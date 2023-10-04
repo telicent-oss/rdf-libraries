@@ -1,0 +1,19 @@
+{
+  "name": "js-ontology-lib",
+  "version": "1.0.0",
+  "description": "Simple client-side lib for working with ontologies",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Telicent-io/js-ontology-lib.git"
+  },
+  "author": "",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/Telicent-io/js-ontology-lib/issues"
+  },
+  "homepage": "https://github.com/Telicent-io/js-ontology-lib#readme"
+}
