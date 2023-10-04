@@ -2,7 +2,7 @@ console.log("javascript")
 const rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
 const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class"
 const rdfsSubClassOf = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
-const rdfsSubClassOf = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf"
+const rdfsSubPropertyOf = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf"
 const owlClass = "http://www.w3.org/2002/07/owl#Class"
 const rdfProperty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"
 const owlDatatypeProperty = "http://www.w3.org/2002/07/owl#DatatypeProperty"
