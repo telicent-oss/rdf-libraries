@@ -3,7 +3,6 @@
 //A fairly simple class that provides methods for creating, reading and deleting RDF triples
 class RdfService {
     constructor(triplestoreUri,dataset) {
-        console.log(triplestoreUri,dataset)
         this.rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
         this.rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class"
         this.rdfsSubClassOf = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
@@ -85,7 +84,6 @@ class OntologyService extends RdfService {
         if (!triplestoreUri) {
             triplestoreUri = "http://localhost:3030/"
         } //no idea why I have to do this here, should get caught in the superclass constructor. 
-        console.log(triplestoreUri)
         super(triplestoreUri,dataset)
     }
 
@@ -136,12 +134,12 @@ class OntologyService extends RdfService {
         }
         else if (domain != null) {
             element.domain.push(domain)
-            makeClass(domain,output)
+            this.makeClass(domain,output)
             output.allElements[domain].ownedProperties.push(elementID)
         }
         else if (range != null) {
             element.range.push(range)
-            makeClass(range,output)
+            this.makeClass(range,output)
         }
     }
     
@@ -182,33 +180,33 @@ class OntologyService extends RdfService {
                     element["predicates"][p].push(o)
                 }
     
-                if (p == rdfsSubClassOf) {
-                    makeClass(s,output,null,o)
-                    makeClass(o,output,s)
+                if (p == this.rdfsSubClassOf) {
+                    this.makeClass(s,output,null,o)
+                    this.makeClass(o,output,s)
                 }
-                else if (p == rdfsSubPropertyOf) {
-                    makeProperty(s,output,null,o)
-                    makeProperty(o,output,s)
+                else if (p == this.rdfsSubPropertyOf) {
+                    this.makeProperty(s,output,null,o)
+                    this.makeProperty(o,output,s)
                 }
-                else if (p == rdfsDomain) {
-                    makeProperty(s,output,null,null,null,o)
+                else if (p == this.rdfsDomain) {
+                    this.makeProperty(s,output,null,null,null,o)
                 }
-                else if (p == rdfsRange) {
-                    makeProperty(s,output,null,null,null,null,o)
+                else if (p == this.rdfsRange) {
+                    this.makeProperty(s,output,null,null,null,null,o)
                 }
-                else if (p == rdfType) {
-                    if ((o == rdfsClass) || (o == owlClass)){
-                        makeClass(s,output,null,null,o)
+                else if (p == this.rdfType) {
+                    if ((o == this.rdfsClass) || (o == this.owlClass)){
+                        this.makeClass(s,output,null,null,o)
                     }
-                    else if ((o == rdfProperty) || (o == owlDatatypeProperty) || (o == owlObjectProperty)){
-                        makeProperty(s,output,null,null,o)
+                    else if ((o == this.rdfProperty) || (o ==this. owlDatatypeProperty) || (o == this.owlObjectProperty)){
+                        this.makeProperty(s,output,null,null,o)
                     }
                 }
             }
         }
-        for (i in output.classes) {
+        for (var i in output.classes) {
             var cls = output.classes[i]
-            if (!(rdfsSubClassOf in cls.predicates)) {
+            if (!(this.rdfsSubClassOf in cls.predicates)) {
                 output.top.push(i)
             }
     
@@ -216,6 +214,19 @@ class OntologyService extends RdfService {
     
         return output
     
+    }
+
+}
+
+class IesService extends RdfService {
+    constructor(triplestoreUri,dataset) {
+        if (!dataset) {
+            dataset = "knowledge" //knowledge *is* power
+        }
+        if (!triplestoreUri) {
+            triplestoreUri = "http://localhost:3030/"
+        } //no idea why I have to do this here, should get caught in the superclass constructor. 
+        super(triplestoreUri,dataset)
     }
 
 }
