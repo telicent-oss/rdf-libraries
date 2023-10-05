@@ -33,7 +33,6 @@ async function runUpdate(updateQuery) {
     const response = await fetch(ontologyUpdateEndpoint,postObject)
     return response.text()
 }
-
 async function testUpdate() {
     const result = await runUpdate("INSERT DATA { <http://a> <http://b> <http://c> . }")
     return result
@@ -46,10 +45,22 @@ async function insertTriple(subject, predicate, object, isLiteral){
     else {
         o = "<"+object+">"
     }
-    result = await runUpdate("INSERT DATA {<"+subject+"> <" + predicate + "> " + o + " }")
+    return await runUpdate("INSERT DATA {<"+subject+"> <" + predicate + "> " + o + " . }")
 }
 
-//testUpdate().then(console.log)
+async function deleteTriple(subject, predicate, object, isLiteral) {
+    if (isLiteral) {
+        o = '"'+object+'"'
+    }
+    else {
+        o = "<"+object+">"
+    }
+    return await runUpdate("DELETE DATA {<"+subject+"> <" + predicate + "> " + o + " . }")
+}
+
+async function instantiate(uri,cls) {
+    return await insertTriple(uri,rdfType,cls)
+}
 
 
 function makeClass(elementID,output,subClass,superClass,rdfType){
@@ -189,6 +200,8 @@ function writeJson(jsonData){
     });
 }
 
+
+//testUpdate().then(console.log)
 
 
 getAll().then(writeJson)

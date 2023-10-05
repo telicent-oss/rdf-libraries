@@ -14816,6 +14816,16 @@
       ],
       "range": []
     },
+    "http://www.w3.org/2000/01/rdf-schema#domain": {
+      "predicates": {}
+    },
+    "http://x": {
+      "predicates": {
+        "http://www.w3.org/1999/02/22-rdf-syntax-ns#type": [
+          "http://www.w3.org/2000/01/rdf-schema#domain"
+        ]
+      }
+    },
     "http://ies.data.gov.uk/ontology/ies4#SubjectOfInterest": {
       "predicates": {
         "http://www.w3.org/2000/01/rdf-schema#comment": [
