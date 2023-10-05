@@ -11488,16 +11488,6 @@
       ],
       "range": []
     },
-    "http://c": {
-      "predicates": {}
-    },
-    "http://a": {
-      "predicates": {
-        "http://b": [
-          "http://c"
-        ]
-      }
-    },
     "http://ies.data.gov.uk/ontology/ies4#ReferenceNumber": {
       "predicates": {
         "http://www.w3.org/2000/01/rdf-schema#comment": [
