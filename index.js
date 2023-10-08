@@ -18,6 +18,53 @@ class RdfService {
         this.owlObjectProperty = "http://www.w3.org/2002/07/owl#ObjectProperty"
         this.telicentStyle = "http://telicent.io/ontology/style"
 
+        this.objectTypes = [
+            "URI",
+            "LITERAL"
+        ]
+
+        this.xsdDatatypes = [
+            "xsd:string", //	Character strings (but not all Unicode character strings)
+            "xsd:boolean",  // true / false
+            "xsd:decimal", // Arbitrary-precision decimal numbers
+            "xsd:integer", // Arbitrary-size integer numbers
+            "xsd:double", // 	64-bit floating point numbers incl. ±Inf, ±0, NaN
+            "xsd:float", // 	32-bit floating point numbers incl. ±Inf, ±0, NaN
+            "xsd:date", // 	Dates (yyyy-mm-dd) with or without timezone
+            "xsd:time", // 	Times (hh:mm:ss.sss…) with or without timezone
+            "xsd:dateTime", // 	Date and time with or without timezone
+            "xsd:dateTimeStamp", // Date and time with required timezone
+            "xsd:gYear", // 	Gregorian calendar year
+            "xsd:gMonth", // 	Gregorian calendar month
+            "xsd:gDay", // 	Gregorian calendar day of the month
+            "xsd:gYearMonth", // 	Gregorian calendar year and month
+            "xsd:gMonthDay", // 	Gregorian calendar month and day
+            "xsd:duration", // 	Duration of time
+            "xsd:yearMonthDuration", //	Duration of time (months and years only)
+            "xsd:dayTimeDuration",	//Duration of time (days, hours, minutes, seconds only)
+            "xsd:byte",	//-128…+127 (8 bit)
+            "xsd:short", //	-32768…+32767 (16 bit)
+            "xsd:int", //	-2147483648…+2147483647 (32 bit)
+            "xsd:long",	//-9223372036854775808…+9223372036854775807 (64 bit)
+            "xsd:unsignedByte", //	0…255 (8 bit)
+            "xsd:unsignedShort", //	0…65535 (16 bit)
+            "xsd:unsignedInt", //	0…4294967295 (32 bit)
+            "xsd:unsignedLong", //	0…18446744073709551615 (64 bit)
+            "xsd:positiveInteger", //	Integer numbers >0
+            "xsd:nonNegativeInteger", //	Integer numbers ≥0
+            "xsd:negativeInteger", //	Integer numbers <0
+            "xsd:nonPositiveInteger", //	Integer numbers ≤0
+            "xsd:hexBinary", //	Hex-encoded binary data
+            "xsd:base64Binary", //	Base64-encoded binary data
+            "xsd:anyURI", //	Absolute or relative URIs and IRIs
+            "xsd:language", //	Language tags per [BCP47]
+            "xsd:normalizedString", //	Whitespace-normalized strings
+            "xsd:token", //	Tokenized strings
+            "xsd:NMTOKEN", //	XML NMTOKENs
+            "xsd:Name", //	XML Names
+            "xsd:NCName"
+        ]
+
         if (!defaultUriStub) {
             this.defaultUriStub = "http://telicent.io/data/"
         }
@@ -44,12 +91,17 @@ class RdfService {
         this.updateEndpoint = triplestoreUri+dataset+"/update"
     }
 
+    //runQuery
+    //Issues a query to the triplestore specified when the RdfService was initiated and returns results in standard SPARQL JSON format
     async runQuery(query) {
         const response = await fetch(this.queryEndpoint+escape(query))
         const ontojson = await response.json()
         return ontojson
     }
 
+    //runUpdate
+    //Sends a SPARQL update to the triplestore specified when the RdfService was initiated 
+    //SPARQL endpoints don't tend to provide much feedback on success. The full response text is returned from this function however. 
     async runUpdate(updateQuery) {
         var postObject = {
             method: 'POST',
@@ -63,36 +115,68 @@ class RdfService {
         return response.text()
     }
 
-    async insertTriple(subject, predicate, object, isLiteral){
-        if (isLiteral) {
-            var o = '"'+object+'"'
+    //in-built function to sort out type of object in a subject-predicate-object triple. 
+    //returns a formatted string suitable for insertion into a SPARQL query
+    //if the object is a literal, a valid xsd datatype can also be provided
+    _checkObject(object,objectType,xsdDatatype) {
+        if (objectType == undefined) {
+            objectType = "URI"
         }
-        else {
+        if (!(this.objectTypes.includes(objectType))) {
+            throw new Error('objectType parameter must be one of "URI" or "LITERAL". Null value will be interpreted as "URI"')
+        }
+        else if (objectType == "URI"){
             var o = "<"+object+">"
         }
+        else if (objectType == "LITERAL"){
+            var o = '"'+object+'"'
+            if ((xsdDatatype) && (xsdDatatype != ""))
+            {
+                if (this.xsdDatatypes.includes(xsdDatatype)) {
+                    o = o + "^^" + xsdDatatype
+                }
+                else
+                {
+                    throw new Error("invalid xsd:datatype provided - see RDF 1.1 specification")
+                }
+            }
+        }
+        else {
+            throw new Error('unknown objectType')
+        }
+        return o
+    }
+
+    //insertTriple
+    //Performs a SPARQL update to insert the provided subject,predicate, object triple. 
+    //Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
+    //Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
+    async insertTriple(subject, predicate, object, objectType, xsdDatatype){
+        var o = this._checkObject(object,objectType,xsdDatatype)
         return await this.runUpdate("INSERT DATA {<"+subject+"> <" + predicate + "> " + o + " . }")
     }
     
-    async deleteTriple(subject, predicate, object, isLiteral) {
-        if (isLiteral) {
-            o = '"'+object+'"'
-        }
-        else {
-            o = "<"+object+">"
-        }
+    //deleteTriple
+    //Performs a SPARQL update to delete the triples corresponding to the provided subject,predicate, object. 
+    //Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
+    //Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
+    async deleteTriple(subject, predicate, object, objectType, xsdDatatype) {
+        var o = this._checkObject(object,objectType,xsdDatatype)
         return await this.runUpdate("DELETE DATA {<"+subject+"> <" + predicate + "> " + o + " . }")
     }
 
-    //Careful with this one !  It removes all references to a URI - effectively deleting all trace of an object from the triplestore. 
-    //If you only want to remove the outgoing references from the object then set ignoreInboundReferences to true
-    async deleteObject(uri,ignoreInboundReferences) {
+    //deleteNode
+    //Careful with this one !  It removes all references to a URI - effectively deleting all trace of an node from the triplestore. 
+    //If you only want to remove the outgoing references (i.e. not the triples where this is the object) from the node then set ignoreInboundReferences to true
+    async deleteNode(uri,ignoreInboundReferences) {
         this.runUpdate("DELETE WHERE {<"+uri+"> ?p ?o . }")
         if (!ignoreInboundReferences) {
             this.runUpdate("DELETE WHERE {?s ?p <"+uri+">}")
         }
     }
     
-    //Instantiates the provided class. You can also specify a URI otherwise, it'll set the URI for you based on the defaultUriStub and a GUID
+    //instantiate
+    //Instantiates the provided class (cls parameter). You can also specify a URI (uri parameter), otherwise it'll set the URI for you based on the defaultUriStub and a GUID
     async instantiate(cls,uri) {
         if (!uri) {
             uri = this.defaultUriStub+crypto.randomUUID()
@@ -101,17 +185,28 @@ class RdfService {
         return uri
     }
 
+    //addLabel
+    //simple convenience function to add an rdfs:label to the given uri - simply pass in the label literal
     async addLabel(uri,label) {
         if (label && (label != "")) {
             this.insertTriple(uri,this.rdfsLabel,label,true)
         }
+        else {
+            throw new Error("invalid label string")
+        }
     }
 
+    //addComment
+    //simple convenience function to add an rdfs:comment to the given uri - simply pass in the comment literal
     async addComment(uri,comment) {
         if (comment && (comment != "")) {
             this.insertTriple(uri,this.rdfsComment,comment,true)
         }
+        else {
+            throw new Error("invalid comment string")
+        }
     }
+
 }
 
 
@@ -142,6 +237,10 @@ class OntologyService extends RdfService {
 
     addSuperClass(subClass,superClass) {
         this.insertTriple(subClass,this.rdfsSubClassOf,superClass)
+    }
+
+    async getSubClasses(uri) {
+        const query = "SELECT ?s ?p ?o WHERE {?s <"+this.rdfsSubClassOf+"> ?style .}"
     }
 
     async getStyle(uri) {
@@ -230,6 +329,8 @@ class OntologyService extends RdfService {
         }
     }
 
+
+    //function that goes through ?s ?p ?o results and formats an object structure for js consumption
     async _buildResultsObject(query,getAllPredicates) {
         const ontojson = await this.runQuery(query)
         var output = {
@@ -354,7 +455,7 @@ obj = new OntologyService()
 
 obj.getAllElements().then(writeJson)
 
-//obj.instantiate("http://cls").then(console.log)
-//obj.insertTriple("http://x","http://y","http://abc")
+obj.instantiate("http://cls").then(console.log)
+obj.insertTriple("http://x","http://y","http://abc")
 
-//obj.deleteObject("http://abc")
+obj.deleteNode("http://abc")
