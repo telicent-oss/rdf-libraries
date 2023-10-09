@@ -3,20 +3,36 @@ const crypto = require('crypto');
 //RdfService
 //A fairly simple class that provides methods for creating, reading and deleting RDF triples
 class RdfService {
-    constructor(triplestoreUri,dataset,defaultUriStub) {
-        this.rdfType = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
-        this.rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class"
-        this.rdfsSubClassOf = "http://www.w3.org/2000/01/rdf-schema#subClassOf"
-        this.rdfsSubPropertyOf = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf"
-        this.rdfsLabel = "http://www.w3.org/2000/01/rdf-schema#label"
-        this.rdfsComment = "http://www.w3.org/2000/01/rdf-schema#comment"
-        this.owlClass = "http://www.w3.org/2002/07/owl#Class"
-        this.rdfsDomain = "http://www.w3.org/2000/01/rdf-schema#domain"
-        this.rdfsRange = "http://www.w3.org/2000/01/rdf-schema#range"
-        this.rdfProperty = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"
-        this.owlDatatypeProperty = "http://www.w3.org/2002/07/owl#DatatypeProperty"
-        this.owlObjectProperty = "http://www.w3.org/2002/07/owl#ObjectProperty"
-        this.telicentStyle = "http://telicent.io/ontology/style"
+    constructor(triplestoreUri = "http://localhost:3030/",dataset="ds",defaultUriStub="http://telicent.io/data/", defaultSecurityLabel="") {
+
+        this.defaultSecurityLabel = defaultSecurityLabel
+        this.dataset = dataset
+        this.defaultUriStub = defaultUriStub
+        this.triplestoreUri = triplestoreUri
+
+        this.dc = "http://purl.org/dc/elements/1.1/"
+        this.xsd = "http://www.w3.org/2001/XMLSchema#"
+        this.rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        this.rdfs = "http://www.w3.org/2000/01/rdf-schema#"
+        this.owl = "http://www.w3.org/2002/07/owl#"
+        this.telicent = "http://telicent.io/ontology/"
+
+        this.sparqlPrefixes = `PREFIX xsd: <${this.xsd}>  PREFIX dc: <${this.dc}> PREFIX rdf: <${this.rdf}> PREFIX rdfs: <${this.rdfs}> PREFIX owl: <${this.owl}> PREFIX telicent: <${this.telicent}> `
+
+        this.rdfType = `${this.rdf}type`
+        this.rdfProperty = `${this.rdf}Property`
+        this.rdfsClass = `${this.rdfs}Class`
+        this.rdfsSubClassOf = `${this.rdfs}subClassOf`
+        this.rdfsSubPropertyOf = `${this.rdfs}subPropertyOf`
+        this.rdfsLabel = `${this.rdfs}label`
+        this.rdfsComment = `${this.rdfs}comment`
+        this.rdfsDomain = `${this.rdfs}domain`
+        this.rdfsRange = `${this.rdfs}range`
+        this.owlClass = `${this.owl}#Class`
+        this.owlDatatypeProperty = `${this.owl}DatatypeProperty`
+        this.owlObjectProperty = `${this.owl}ObjectProperty`
+        this.telicentStyle = `${this.telicent}style`
+
 
         this.objectTypes = [
             "URI",
@@ -65,36 +81,14 @@ class RdfService {
             "xsd:NCName"
         ]
 
-        if (!defaultUriStub) {
-            this.defaultUriStub = "http://telicent.io/data/"
-        }
-        else
-        {
-            this.defaultUriStub = defaultUriStub
-        }
-
-        if (!dataset) {
-            this.dataset = "ds"
-        }
-        else
-        {
-            this.dataset = dataset
-        }
-        if (!triplestoreUri) {
-            this.triplestoreUri = "http://localhost:3030/"
-        }
-        else
-        {
-            this.triplestoreUri = triplestoreUri
-        }
-        this.queryEndpoint = triplestoreUri+dataset+"/query?query="
-        this.updateEndpoint = triplestoreUri+dataset+"/update"
+        this.queryEndpoint = this.triplestoreUri+dataset+"/query?query="
+        this.updateEndpoint = this.triplestoreUri+dataset+"/update"
     }
 
     //runQuery
     //Issues a query to the triplestore specified when the RdfService was initiated and returns results in standard SPARQL JSON format
     async runQuery(query) {
-        const response = await fetch(this.queryEndpoint+escape(query))
+        const response = await fetch(this.queryEndpoint+escape(this.sparqlPrefixes + query))
         const ontojson = await response.json()
         return ontojson
     }
@@ -102,14 +96,18 @@ class RdfService {
     //runUpdate
     //Sends a SPARQL update to the triplestore specified when the RdfService was initiated 
     //SPARQL endpoints don't tend to provide much feedback on success. The full response text is returned from this function however. 
-    async runUpdate(updateQuery) {
+    async runUpdate(updateQuery,securityLabel) {
+        if (securityLabel == undefined) {
+            securityLabel = this.defaultSecurityLabel
+        }
         var postObject = {
             method: 'POST',
             headers: {//
                 'Accept': '*/*',
+                'Security-Label':securityLabel,
                 'Content-Type': 'application/sparql-update'
               },
-            body: updateQuery
+            body: this.sparqlPrefixes + updateQuery
         }
         const response = await fetch(this.updateEndpoint,postObject)
         return response.text()
@@ -151,9 +149,9 @@ class RdfService {
     //Performs a SPARQL update to insert the provided subject,predicate, object triple. 
     //Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
     //Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
-    async insertTriple(subject, predicate, object, objectType, xsdDatatype){
+    async insertTriple(subject, predicate, object, objectType, xsdDatatype,securityLabel){
         var o = this._checkObject(object,objectType,xsdDatatype)
-        return await this.runUpdate("INSERT DATA {<"+subject+"> <" + predicate + "> " + o + " . }")
+        return await this.runUpdate("INSERT DATA {<"+subject+"> <" + predicate + "> " + o + " . }",securityLabel)
     }
     
     //deleteTriple
@@ -177,11 +175,11 @@ class RdfService {
     
     //instantiate
     //Instantiates the provided class (cls parameter). You can also specify a URI (uri parameter), otherwise it'll set the URI for you based on the defaultUriStub and a GUID
-    async instantiate(cls,uri) {
+    async instantiate(cls,uri,securityLabel) {
         if (!uri) {
             uri = this.defaultUriStub+crypto.randomUUID()
         }
-        await this.insertTriple(uri,this.rdfType,cls)
+        await this.insertTriple(uri,this.rdfType,cls,null,null,securityLabel)
         return uri
     }
 
@@ -211,17 +209,9 @@ class RdfService {
 
 
 class OntologyService extends RdfService {
-    constructor(triplestoreUri,dataset,defaultUriStub) {
-        if (!dataset) {
-            dataset = "ontology"
-        }
-        if (!triplestoreUri) {
-            triplestoreUri = "http://localhost:3030/"
-        } //no idea why I have to do this here, should get caught in the superclass constructor. 
-        if (!defaultUriStub) {
-            defaultUriStub = "http://telicent.io/ontology/"
-        }
-        super(triplestoreUri,dataset,defaultUriStub)
+    constructor(triplestoreUri = "http://localhost:3030/",dataset="ontology",defaultUriStub="http://telicent.io/ontology/", defaultSecurityLabel="") {
+
+        super(triplestoreUri,dataset,defaultUriStub, defaultSecurityLabel)
     }
 
     newClass(uri,superClass,clsType) {
@@ -407,7 +397,6 @@ class OntologyService extends RdfService {
     //Don't stringify the returned object as JSON, it'll get huge as there is a lot of repeating use of object references 
     async getAllElements(getAllPredicates) {
         var output = await this._buildResultsObject("SELECT * WHERE {?s ?p ?o}",getAllPredicates)
-
         output.top = []
 
         for (var i in output.classes) {
@@ -419,27 +408,14 @@ class OntologyService extends RdfService {
         }
     
         return output
-    
     }
-
 }
 
 class IesService extends RdfService {
-    constructor(triplestoreUri,dataset) {
-        if (!dataset) {
-            dataset = "knowledge" //knowledge *is* power
-        }
-        if (!triplestoreUri) {
-            triplestoreUri = "http://localhost:3030/"
-        } //no idea why I have to do this here, should get caught in the superclass constructor. 
-        if (!defaultUriStub) {
-            defaultUriStub = "http://telicent.io/data/"
-        }
-        super(triplestoreUri,dataset,defaultUriStub)
+    constructor(triplestoreUri = "http://localhost:3030/",dataset="knowledge",defaultUriStub="http://telicent.io/data/", defaultSecurityLabel="") {
+        super(triplestoreUri,dataset,defaultUriStub,defaultSecurityLabel)
     }
-
 }
-
 
 function writeJson(jsonData){
     var fs = require('fs');
@@ -450,12 +426,13 @@ function writeJson(jsonData){
     });
 }
 
-
 obj = new OntologyService()
 
 obj.getAllElements().then(writeJson)
 
 obj.instantiate("http://cls").then(console.log)
 obj.insertTriple("http://x","http://y","http://abc")
+
+obj.insertTriple("http://x","http://yy","test","LITERAL","xsd:string")
 
 obj.deleteNode("http://abc")

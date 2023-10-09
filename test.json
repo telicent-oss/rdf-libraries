@@ -542,6 +542,22 @@
         "http://ies.data.gov.uk/ontology/ies4#ClassOfElement"
       ]
     },
+    "http://cls": {
+      "rdfType": [],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
+    "http://telicent.io/ontology/d9a83587-0f1d-4466-bb25-22c401cda7b5": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
     "http://ies.data.gov.uk/ontology/ies4#MoneyTransfer": {
       "rdfType": [
         "http://www.w3.org/2000/01/rdf-schema#Class"
@@ -890,6 +906,15 @@
       "superClasses": [
         "http://ies.data.gov.uk/ontology/ies4#Name"
       ]
+    },
+    "http://telicent.io/ontology/a7f2b527-7679-4438-9eb0-467e1b1fffaa": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#excludedFrom": {
       "rdfType": [
@@ -2279,6 +2304,15 @@
         "http://ies.data.gov.uk/ontology/ies4#AssetState"
       ]
     },
+    "http://telicent.io/ontology/7c196390-2e0c-40ab-8111-272fcfb73171": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
     "http://ies.data.gov.uk/ontology/ies4#CardUsed": {
       "rdfType": [
         "http://www.w3.org/2000/01/rdf-schema#Class"
@@ -2668,6 +2702,15 @@
         "http://ies.data.gov.uk/ontology/ies4#ClassOfAsset"
       ]
     },
+    "http://telicent.io/ontology/3949992c-7a92-4036-99b0-8d23f6005b96": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
     "http://ies.data.gov.uk/ontology/ies4#Accent": {
       "rdfType": [
         "http://www.w3.org/2000/01/rdf-schema#Class"
@@ -2825,6 +2868,15 @@
         "http://ies.data.gov.uk/ontology/ies4#PersonState",
         "http://ies.data.gov.uk/ontology/ies4#ResponsibleActor"
       ]
+    },
+    "http://telicent.io/ontology/5e6e27b5-d4e9-48e9-acac-6628ef66ded8": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#Meeting": {
       "rdfType": [
@@ -3655,6 +3707,15 @@
         "http://ies.data.gov.uk/ontology/ies4#ActiveEventParticipant"
       ]
     },
+    "http://telicent.io/ontology/944ec89b-6d8b-4564-af9e-a62605d398c3": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
     "http://ies.data.gov.uk/ontology/ies4#ArrestingOfficer": {
       "rdfType": [
         "http://www.w3.org/2000/01/rdf-schema#Class"
@@ -3747,6 +3808,15 @@
       "range": [
         "http://ies.data.gov.uk/ontology/ies4#AssessToBeTrue"
       ]
+    },
+    "http://telicent.io/ontology/c470c540-0243-49a5-9ca1-87dd845b4a80": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#OnlineAccount": {
       "rdfType": [
@@ -6594,6 +6664,15 @@
         "http://ies.data.gov.uk/ontology/ies4#Observed"
       ]
     },
+    "http://telicent.io/ontology/aba7126d-925c-4915-8d20-7baf231f19af": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
     "http://ies.data.gov.uk/ontology/ies4#SystemState": {
       "rdfType": [
         "http://www.w3.org/2000/01/rdf-schema#Class"
@@ -8238,6 +8317,15 @@
         "http://ies.data.gov.uk/ontology/ies4#Entity",
         "http://ies.data.gov.uk/ontology/ies4#WebResourceState"
       ]
+    },
+    "http://telicent.io/ontology/44e71a15-47d5-48c9-a74e-25bf02d12ea4": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#AccountHolder": {
       "rdfType": [
@@ -10094,6 +10182,13 @@
         "http://ies.data.gov.uk/ontology/ies4#PaymentArtefact"
       ]
     },
+    "http://x": {
+      "rdfType": [],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
     "http://ies.data.gov.uk/ontology/ies4#SubjectOfInterest": {
       "rdfType": [
         "http://www.w3.org/2000/01/rdf-schema#Class"
@@ -10227,6 +10322,15 @@
       "superClasses": [
         "http://ies.data.gov.uk/ontology/ies4#TravelTicket"
       ]
+    },
+    "http://telicent.io/ontology/649f7262-297e-40e9-be4e-16b3fda771e9": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#countryOfRegistration": {
       "rdfType": [
@@ -11142,6 +11246,15 @@
       "range": [
         "http://ies.data.gov.uk/ontology/ies4#TelephoneCountryCode"
       ]
+    },
+    "http://telicent.io/ontology/bf21cad9-5913-4d8e-a18f-1d4b5c8c0e27": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#DrivingLicence": {
       "rdfType": [
@@ -12144,6 +12257,15 @@
         "http://ies.data.gov.uk/ontology/ies4#WorkOfDocumentation"
       ]
     },
+    "http://telicent.io/ontology/abeb6c8c-e121-4824-94d1-faebec77beb1": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
     "http://ies.data.gov.uk/ontology/ies4#objectContentReference": {
       "rdfType": [
         "http://www.w3.org/2002/07/owl#DatatypeProperty"
@@ -12366,6 +12488,15 @@
       "superClasses": [
         "http://ies.data.gov.uk/ontology/ies4#PersonName"
       ]
+    },
+    "http://telicent.io/ontology/d61ba3ee-b6ff-4cdc-bedf-9f2626e70fae": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#upperBound": {
       "rdfType": [
@@ -12675,6 +12806,15 @@
         "http://ies.data.gov.uk/ontology/ies4#OperationalEvent"
       ]
     },
+    "http://telicent.io/ontology/e57683f8-2ff6-4d16-9914-aad79804d96b": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
     "http://ies.data.gov.uk/ontology/ies4#inCategory": {
       "rdfType": [
         "http://www.w3.org/2002/07/owl#ObjectProperty"
@@ -12781,6 +12921,15 @@
       "superClasses": [
         "http://ies.data.gov.uk/ontology/ies4#EventParticipant"
       ]
+    },
+    "http://telicent.io/ontology/413ad72c-643a-491f-bf69-9e1e38d76de5": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#postModificationState": {
       "rdfType": [
@@ -13285,6 +13434,15 @@
         "http://ies.data.gov.uk/ontology/ies4#SystemState",
         "http://ies.data.gov.uk/ontology/ies4#RadioMast"
       ]
+    },
+    "http://telicent.io/ontology/e96848bb-fef7-4a26-8371-4ba8c6b1a1c7": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#idAuthenticity": {
       "rdfType": [
@@ -13837,6 +13995,15 @@
       "superClasses": [
         "http://ies.data.gov.uk/ontology/ies4#PoliticalEvent"
       ]
+    },
+    "http://telicent.io/ontology/51fbb28e-2e3e-4ecb-bbda-a1d44b201e0a": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
     },
     "http://ies.data.gov.uk/ontology/ies4#HealthServiceIdentifier": {
       "rdfType": [
