@@ -9,6 +9,8 @@ class RdfService {
         this.dataset = dataset
         this.defaultUriStub = defaultUriStub
         this.triplestoreUri = triplestoreUri
+        this.queryEndpoint = this.triplestoreUri+dataset+"/query?query="
+        this.updateEndpoint = this.triplestoreUri+dataset+"/update"
 
         this.dc = "http://purl.org/dc/elements/1.1/"
         this.xsd = "http://www.w3.org/2001/XMLSchema#"
@@ -32,7 +34,6 @@ class RdfService {
         this.owlDatatypeProperty = `${this.owl}DatatypeProperty`
         this.owlObjectProperty = `${this.owl}ObjectProperty`
         this.telicentStyle = `${this.telicent}style`
-
 
         this.objectTypes = [
             "URI",
@@ -80,9 +81,6 @@ class RdfService {
             "xsd:Name", //	XML Names
             "xsd:NCName"
         ]
-
-        this.queryEndpoint = this.triplestoreUri+dataset+"/query?query="
-        this.updateEndpoint = this.triplestoreUri+dataset+"/update"
     }
 
     //runQuery
@@ -172,6 +170,12 @@ class RdfService {
             this.runUpdate("DELETE WHERE {?s ?p <"+uri+">}")
         }
     }
+
+    //deleteRelationships
+    //deletes all triples that match the pattern <uri> <predicate> <ALL>
+    async deleteRelationships(uri,predicate) {
+        this.runUpdate(`DELETE WHERE {<${uri}> <${predicate}> ?o . }`)
+    }
     
     //instantiate
     //Instantiates the provided class (cls parameter). You can also specify a URI (uri parameter), otherwise it'll set the URI for you based on the defaultUriStub and a GUID
@@ -233,22 +237,32 @@ class OntologyService extends RdfService {
         const query = "SELECT ?s ?p ?o WHERE {?s <"+this.rdfsSubClassOf+"> ?style .}"
     }
 
-    async getStyle(uri) {
-        const query = "SELECT ?style WHERE {<"+uri+"> <"+this.telicentStyle+"> ?style .}"
-        const styles = await this.runQuery(query)
-        var output = []
-        if (styles && styles.results && styles.results.bindings) {
-            for (var i in styles.results.bindings) {
-                var stmt = styles.results.bindings[i]
-                var st = stmt.style.value
-                console.log(st)
-                output.push(JSON.parse(unescape(st)))
+    //getStyles
+    //returns a dictionary object of styles for each specified class. If no classes are specified, it will get all the styles for every class it finds with style
+    //pass the classes in as an array of URIs
+    async getStyles(classes = []) {
+        var filter = ""
+        if (!Array.isArray(classes)) {
+            throw new Error("classes parameter must be an array")
+        }
+        else if (classes.length > 0){
+            filter = 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )';
+        }
+        var query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`
+        var output = {}
+        var spOut = await this.runQuery(query)
+        if (spOut && spOut.results && spOut.results.bindings) {
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                output[stmt.cls.value] = JSON.parse(unescape(stmt.style.value))
             }
         }
         return output
     }
 
-    setStyle(uri,backgroundColor, color, icon, faIcon, faUnicode, faClass) {
+    //setStyle
+    //sets the default style for a class. Deletes any previous styles
+    setStyle(uri,backgroundColor = "#888", color ="#000", icon="ri-question-mark", faIcon="fa-solid fa-question", faUnicode="\u003f", faClass="fa-solid") {
         var styleObj = {
             backgroundColor: backgroundColor,
             color: color,
@@ -258,7 +272,8 @@ class OntologyService extends RdfService {
             faClass: faClass
         }
         var styleStr = encodeURIComponent(JSON.stringify(styleObj))
-        this.insertTriple(uri,this.telicentStyle,styleStr,true)
+        this.deleteRelationships(uri,this.telicentStyle)
+        this.insertTriple(uri,this.telicentStyle,styleStr,"LITERAL")
     }
 
     _makeElement() {
@@ -409,6 +424,8 @@ class OntologyService extends RdfService {
     
         return output
     }
+
+
 }
 
 class IesService extends RdfService {
@@ -428,11 +445,15 @@ function writeJson(jsonData){
 
 obj = new OntologyService()
 
-obj.getAllElements().then(writeJson)
+//obj.getAllElements().then(writeJson)
 
-obj.instantiate("http://cls").then(console.log)
-obj.insertTriple("http://x","http://y","http://abc")
+//obj.instantiate("http://cls").then(console.log)
+//obj.insertTriple("http://x","http://y","http://abc")
 
-obj.insertTriple("http://x","http://yy","test","LITERAL","xsd:string")
+//obj.insertTriple("http://x","http://yy","test","LITERAL","xsd:string")
 
-obj.deleteNode("http://abc")
+//obj.deleteNode("http://abc")
+
+obj.setStyle('http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset')
+
+obj.getStyles(['http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset','http://ies.data.gov.uk/ontology/ies4#Crossing']).then(console.log)

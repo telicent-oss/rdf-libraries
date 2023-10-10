@@ -6161,6 +6161,15 @@
         "http://ies.data.gov.uk/ontology/ies4#EventParticipant"
       ]
     },
+    "http://telicent.io/ontology/95506929-0f91-41a4-b7f2-e6052b1509c5": {
+      "rdfType": [
+        "http://cls"
+      ],
+      "labels": [],
+      "comments": [],
+      "defaultStyle": {},
+      "predicates": {}
+    },
     "http://ies.data.gov.uk/ontology/ies4#TerrorAttack": {
       "rdfType": [
         "http://www.w3.org/2000/01/rdf-schema#Class"
