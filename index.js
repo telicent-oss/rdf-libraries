@@ -209,19 +209,63 @@ class RdfService {
         }
     }
 
+    //getRelated
+    //Simple function to get all objects related to the uri by a predicate
+    async getRelated(uri,predicate) {
+        if (!uri) {
+            throw new Error("URI must be provided")
+        }
+        if (!predicate) {
+            throw new Error("predicate must be provided")
+        }
+
+        var query = `SELECT ?related WHERE {<${uri}> ?pred ?related . ?pred <${this.rdfsSubPropertyOf}>* <${predicate}> .}`
+
+        var spOut = await this.runQuery(query)
+        var output = []
+        if (spOut && spOut.results && spOut.results.bindings) {
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                output.push(stmt.related.value)
+            }
+        }
+        return output
+    }
+
+    //getRelating
+    //Simple function to get all subjects relating to the uri by a predicate - i.e. reverse relationships
+    async getRelating(uri,predicate) {
+        if (!uri) {
+            throw new Error("URI must be provided")
+        }
+        if (!predicate) {
+            throw new Error("predicate must be provided")
+        }
+        var query = `SELECT ?relating WHERE {?relating ?pred <${uri}> . ?pred <${this.rdfsSubPropertyOf}>* <${predicate}> . }`
+        var spOut = await this.runQuery(query)
+        var output = []
+        if (spOut && spOut.results && spOut.results.bindings) {
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                output.push(stmt.relating.value)
+            }
+        }
+        return output
+    }
 }
 
-
+//OntologyService
+// - and RdfService for managing ontology elements (RDFS and OWL)
 class OntologyService extends RdfService {
     constructor(triplestoreUri = "http://localhost:3030/",dataset="ontology",defaultUriStub="http://telicent.io/ontology/", defaultSecurityLabel="") {
 
         super(triplestoreUri,dataset,defaultUriStub, defaultSecurityLabel)
     }
 
-    newClass(uri,superClass,clsType) {
-        if (!clsType) {
-            clsType = this.rdfsClass
-        }
+    //newClass
+    //Creates a new Class (default rdfs:Class - override via clsType parameter)
+    //if it's a subclass of another class, then provide this via the superClass parameter
+    newClass(uri,superClass,clsType = this.rdfsClass) {
         var cls = this.instantiate(clsType,uri)
         if ((superClass) && (superClass != "")) {
             this.addSuperClass(uri,superClass)
@@ -229,12 +273,132 @@ class OntologyService extends RdfService {
         return cls
     }
 
-    addSuperClass(subClass,superClass) {
+    //getClass
+    //brings back a class object that collects together all the useful info about the class - parameters:
+    //uri - the uri of the class
+    //getAllPredicates - set to false if you don't want the raw predicate info
+    //getSubClasses - set to false if you're not interested in its subclasses (this would require another to the database)
+    //getOwnedProperties - set to false to ignore properties whose domain is this class - again requires an additional query to database
+    //getInheritedProperties - another parameter that if true (default) fires another query
+    //if this is being heavily used, you might want to set some of the paramters to false if you don't need them
+    //...especially if you're calling lots of getClass calls, it might be quicker to call getAllElements()
+    async getClass(uri,getAllPredicates=true,getSubClasses=true,getOwnedProperties = true, getInheritedProperties = true) {
+        var query = `SELECT ?s ?p ?o WHERE {<${uri}> ?p ?o .  BIND (IRI("${uri}") as ?s) }`
+        const ontojson = await this.runQuery(query)
+        var element = this._makeElement(uri)
+        element["ownedProperties"] = []
+        element["superClasses"] = []
+
+        if (ontojson && ontojson.results && ontojson.results.bindings) {
+            for (var i in ontojson.results.bindings) {
+                var stmt = ontojson.results.bindings[i]
+                var s = stmt.s.value
+                var p = stmt.p.value
+                var o = stmt.o.value
+                
+                if (getAllPredicates) {
+                    if (!(p in element["predicates"])) {
+                        element["predicates"][p] = [o]
+                    }
+                    else
+                    {
+                        element["predicates"][p].push(o)
+                    }
+                }
+                if (p == this.telicentStyle) {
+                    var styleObj = JSON.parse(unescape(o))
+                    element.defaultStyle = styleObj
+                }
+                if (p == this.rdfsSubClassOf) {
+                    element.superClasses.push(o)
+                }
+                else if (p == this.rdfType) {
+                    element.rdfType.push(o)
+                }
+                else if (p == this.rdfsLabel) {
+                    element.labels.push(o)
+                }
+                else if (p == this.rdfsComment) {
+                    element.comments.push(o)
+                }
+            }
+        }
+        if (getSubClasses) {
+            element.subClasses = await this.getSubClasses(uri)
+        }
+        if (getOwnedProperties) {
+            element.ownedProperties = await this.getOwnedProperties(uri)
+        }
+        if (getInheritedProperties) {
+            element.inheritedProperties = await this.getInheritedProperties(uri)
+        }
+        return element
+    }
+
+    //getOwnedProperties
+    //returns all properties which have this class as their domain
+    async getOwnedProperties(uri) {
+        return await this.getRelating(uri,this.rdfsDomain)
+    }
+
+    //getInheritedProperties
+    //returns all properties defined (domain) against the superclasses of the provided class
+    async getInheritedProperties(uri) {
+        var query = `SELECT ?prop ?item WHERE {?prop <${this.rdfsDomain}> ?item . <${uri}> <${this.rdfsSubClassOf}>* ?item. }`
+        var spOut = await this.runQuery(query)
+        var output = []
+        if (spOut && spOut.results && spOut.results.bindings) {
+
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                if (stmt.item.value != uri) {
+                    output.push({property:stmt.prop.value,domain:stmt.item.value})
+                }
+            }
+        }
+        return output
+    }
+
+    //addSubClass
+    //instantiates an rdfs:subClassOf relationship between two classes
+    addSubClass(subClass,superClass) {
         this.insertTriple(subClass,this.rdfsSubClassOf,superClass)
     }
 
+    //getSubClasses
+    //Returns a list of all the subclasses of the provided class
+    //If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
     async getSubClasses(uri) {
-        const query = "SELECT ?s ?p ?o WHERE {?s <"+this.rdfsSubClassOf+"> ?style .}"
+        return await this.getRelating(uri,this.rdfsSubClassOf)
+    }
+
+    //getSuperClasses
+    //Returns a list of all the superclasses of the provided class
+    //If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
+    //If you want to get all the supers going all the way to the top (i.e. transitively climbing up the hierarchy) then set getAll to true
+    async getSuperClasses(uri,ignoreSubProps = false, getAll = false) {
+        if (getAll) {
+            var pathOp = "*"
+        } 
+        else {
+            var pathOp = ""
+        }
+        if (ignoreSubProps) {
+            var query = `SELECT ?super WHERE {<${uri}> <${this.rdfsSubClassOf}>${pathOp} ?super .}`
+        }
+        else {
+            var query = `SELECT ?super WHERE {<${uri}> ?subRel${pathOp} ?super . ?subRel <${this.rdfsSubPropertyOf}>* <${this.rdfsSubClassOf}> .}`
+        }
+        console.log(query)
+        var output = []
+        var spOut = await this.runQuery(query)
+        if (spOut && spOut.results && spOut.results.bindings) {
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                output.push(stmt.super.value)
+            }
+        }
+        return output
     }
 
     //getStyles
@@ -276,8 +440,10 @@ class OntologyService extends RdfService {
         this.insertTriple(uri,this.telicentStyle,styleStr,"LITERAL")
     }
 
-    _makeElement() {
+    //_makeElement - built-in function to create an empty element object
+    _makeElement(uri) {
         return {
+            uri:uri,
             rdfType:[],
             labels:[],
             comments:[],
@@ -286,6 +452,7 @@ class OntologyService extends RdfService {
         }
     }
 
+    //_makeClass - built-in function for handling elements that are classes
     _makeClass(elementID,output,subClass,superClass){
         if (!(elementID in output.allElements)) {
             output.allElements[elementID] = {predicates:{}}
@@ -305,6 +472,7 @@ class OntologyService extends RdfService {
         }
     }
 
+    //_makeProperty - a built-in function to handle elements that are property definitions
     _makeProperty(elementID,output,subProperty,superProperty, domain, range){
         if (!(elementID in output.allElements)) {
             output.allElements[elementID] = {predicates:{}}
@@ -351,11 +519,11 @@ class OntologyService extends RdfService {
                 var o = stmt.o.value
                 if ((stmt.o.type != "literal") && !(o in output.allElements))
                 {
-                    output.allElements[o] = this._makeElement()
+                    output.allElements[o] = this._makeElement(o)
                 }
     
                 if (!(s in output.allElements)) {
-                    output.allElements[s] = this._makeElement()
+                    output.allElements[s] = this._makeElement(s)
                 }
                 var element = output.allElements[s]
                 
@@ -425,6 +593,21 @@ class OntologyService extends RdfService {
         return output
     }
 
+    /*
+    async getNodeEdges() {
+        var spOut = this.runQuery("SELECT * WHERE {?s ?p ?o}")
+        output = {nodes:[],edges:[]}
+        if (spOut && spOut.results && spOut.results.bindings) {
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                if (stmt.o.type == "literal") {
+
+                }
+            }
+        }
+        return output
+    }
+*/
 
 }
 
@@ -433,6 +616,9 @@ class IesService extends RdfService {
         super(triplestoreUri,dataset,defaultUriStub,defaultSecurityLabel)
     }
 }
+
+
+//testing functions - please ignore these !
 
 function writeJson(jsonData){
     var fs = require('fs');
@@ -454,6 +640,12 @@ obj = new OntologyService()
 
 //obj.deleteNode("http://abc")
 
-obj.setStyle('http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset')
+//obj.setStyle('http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset')
 
-obj.getStyles(['http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset','http://ies.data.gov.uk/ontology/ies4#Crossing']).then(console.log)
+//obj.getStyles(['http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset','http://ies.data.gov.uk/ontology/ies4#Crossing']).then(console.log)
+
+//obj.getSubClasses('http://ies.data.gov.uk/ontology/ies4#Asset').then(console.log)
+
+//obj.getSuperClasses('http://ies.data.gov.uk/ontology/ies4#Asset',true).then(console.log)
+
+obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity').then(console.log)
