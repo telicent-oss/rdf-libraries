@@ -620,6 +620,7 @@ class IesService extends RdfService {
 
 //testing functions - please ignore these !
 
+/*
 function writeJson(jsonData){
     var fs = require('fs');
     fs.writeFile("test.json", JSON.stringify(jsonData,null,"  "), function(err) {
@@ -628,8 +629,9 @@ function writeJson(jsonData){
         }
     });
 }
+*/
 
-obj = new OntologyService()
+//obj = new OntologyService()
 
 //obj.getAllElements().then(writeJson)
 
@@ -648,4 +650,4 @@ obj = new OntologyService()
 
 //obj.getSuperClasses('http://ies.data.gov.uk/ontology/ies4#Asset',true).then(console.log)
 
-obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity').then(console.log)
+//obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity').then(console.log)
