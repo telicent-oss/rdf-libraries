@@ -4,7 +4,35 @@ import os
 import requests
 from urllib.parse import quote
 
+with open('rdf.ttl') as file:
+    data = file.read()
+    headers = {'Content-Type': 'text/turtle;charset=utf-8'}
+    r = requests.post('http://localhost:3030/ontology/data?default', data=quote(data), headers=headers)
+print("RDF loaded")
 
+with open('owl.ttl') as file:
+    data = file.read()
+    headers = {'Content-Type': 'text/turtle;charset=utf-8'}
+    r = requests.post('http://localhost:3030/ontology/data?default', data=quote(data), headers=headers)
+print("OWL loaded")
+
+with open('rdf-schema.ttl') as file:
+    data = file.read()
+    headers = {'Content-Type': 'text/turtle;charset=utf-8'}
+    r = requests.post('http://localhost:3030/ontology/data?default', data=quote(data), headers=headers)
+print("RDFS loaded")
+
+with open('ies4.ttl') as file:
+    data = file.read()
+    headers = {'Content-Type': 'text/turtle;charset=utf-8'}
+    r = requests.post('http://localhost:3030/ontology/data?default', data=quote(data), headers=headers)
+print("IES4 loaded")
+
+with open('diagrams.ttl') as file:
+    data = file.read()
+    headers = {'Content-Type': 'text/turtle;charset=utf-8'}
+    r = requests.post('http://localhost:3030/ontology/data?default', data=quote(data), headers=headers)
+print("Diagrams loaded")
 
 def addToGraph(subject,predicate,obj):
     url = 'http://localhost:3030/ontology/update'
@@ -21,9 +49,9 @@ def addToGraph(subject,predicate,obj):
 with open('./stylez.json') as f:
     styles = json.load(f)
     for uri in styles:
-        print(uri)
         addToGraph(uri,"http://telicent.io/ontology/style",quote(json.dumps(styles[uri])))
 
+print("Styles loaded")
 
 
     
