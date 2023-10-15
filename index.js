@@ -260,6 +260,16 @@ class OntologyService extends RdfService {
     constructor(triplestoreUri = "http://localhost:3030/",dataset="ontology",defaultUriStub="http://telicent.io/ontology/", defaultSecurityLabel="") {
 
         super(triplestoreUri,dataset,defaultUriStub, defaultSecurityLabel)
+        this.telDiagram = this.telicent+"Diagram"
+        this.telUUID = this.telicent+"uuid"
+        this.telTitle = this.telicent+"title"
+        this.telElementStyle = this.telicent+"elementStyle"
+        this.telInDiagram = this.telicent+"inDiagram"
+        this.telRepresents = this.telicent+"represents"
+        this.telDiagramElement = this.telicent+"DiagramElement"
+        this.telDiagramRelationship = this.telicent+"DiagramRelationship"
+        this.telSourceElem = this.telicent+"sourceElem"
+        this.telTargetElem = this.telicent+"targetElem"
     }
 
     //newClass
@@ -609,6 +619,76 @@ class OntologyService extends RdfService {
     }
 */
 
+//getAllDiagrams
+//returns a list of all the ODM UML diagrams in the triplestore
+async getAllDiagrams() {
+    var query = `SELECT ?uri ?uuid ?title WHERE {
+        ?uri a <${this.telDiagram}> . 
+        OPTIONAL {?uri <${this.telUUID}> ?uuid} 
+        OPTIONAL {?uri <${this.telTitle}> ?title } 
+    }`
+    var spOut = await this.runQuery(query)
+    var output = []
+    if (spOut && spOut.results && spOut.results.bindings) {
+        for (var i in spOut.results.bindings) {
+            var stmt = spOut.results.bindings[i]
+            var diag = {uri:stmt.uri.value}
+            if (stmt.title){
+                diag.title = stmt.title.value
+            }
+            if (stmt.uuid){
+                diag.uuid = stmt.uuid.value
+            }
+            output.push(diag)
+        }
+    }
+    return output
+}
+
+async getDiagram(uri) {
+    var query = `
+    SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
+        <${uri}> a <${this.telDiagram}> . 
+        OPTIONAL {<${uri}> <${this.telUUID}> ?uuid} 
+        OPTIONAL {<${uri}> <${this.telTitle}> ?title } 
+        OPTIONAL {
+            ?diagElem <${this.telInDiagram}> <${uri}> .
+            ?diagElem a <${this.telDiagramElement}> .
+            ?diagElem <${this.telElementStyle}> ?elemStyle .
+            ?diagElem <${this.telRepresents}> ?elem
+        }
+        OPTIONAL {
+            ?diagRel <${this.telInDiagram}> <${uri}> .
+            ?diagRel a <${this.telDiagramRelationship}> .
+            ?diagRel <${this.telRepresents}> ?rel .
+            ?diagRel <${this.telSourceElem}> ?source .
+            ?diagRel <${this.telTargetElem}> ?target .
+        }
+    }`
+    var spOut = await this.runQuery(query)
+    var output = {uri:uri,uuid:'',title:'',diagramElements:{},diagramRelationships:{}}
+    if (spOut && spOut.results && spOut.results.bindings) {
+        for (var i in spOut.results.bindings) {
+            var stmt = spOut.results.bindings[i]
+            output.title = stmt.title.value
+            output.uuid = stmt.uuid.value
+            if (!(stmt.diagElem.value in output.diagramElements)) {
+                output.diagramElements[stmt.diagElem.value] = {style:{}}
+            }
+            output.diagramElements[stmt.diagElem.value].element = stmt.elem.value
+            output.diagramElements[stmt.diagElem.value].style = JSON.parse(unescape(stmt.elemStyle.value))
+            if (!(stmt.diagRel.value in output.diagramRelationships)) {
+                output.diagramRelationships[stmt.diagRel.value] = {}
+            }
+            output.diagramRelationships[stmt.diagRel.value].relationship = stmt.rel.value
+            output.diagramRelationships[stmt.diagRel.value].source = stmt.source.value
+            output.diagramRelationships[stmt.diagRel.value].target = stmt.target.value
+        }
+    }
+    return output
+
+}
+
 }
 
 class IesService extends RdfService {
@@ -651,3 +731,5 @@ function writeJson(jsonData){
 //obj.getSuperClasses('http://ies.data.gov.uk/ontology/ies4#Asset',true).then(console.log)
 
 //obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity').then(console.log)
+
+//obj.getDiagram('http://ies.data.gov.uk/diagrams#EAID_5DF03A2C_F6DF_4433_82D5_7E5C14B6045C').then(console.log)
