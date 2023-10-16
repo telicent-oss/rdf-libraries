@@ -187,6 +187,19 @@ class RdfService {
         return uri
     }
 
+    //addLiteral
+    async addLiteral(uri,predicate,text,deletePrevious = false) {
+        if (label && (label != "")) {
+            if (deletePrevious) {
+                await this.deleteRelationships(uri,predicate)
+            }
+            this.insertTriple(uri,predicate,text,true)
+        }
+        else {
+            throw new Error("invalid literal string")
+        }        
+    }
+
     //addLabel
     //simple convenience function to add an rdfs:label to the given uri - simply pass in the label literal
     async addLabel(uri,label) {
@@ -617,77 +630,96 @@ class OntologyService extends RdfService {
         }
         return output
     }
-*/
+    */
 
-//getAllDiagrams
-//returns a list of all the ODM UML diagrams in the triplestore
-async getAllDiagrams() {
-    var query = `SELECT ?uri ?uuid ?title WHERE {
-        ?uri a <${this.telDiagram}> . 
-        OPTIONAL {?uri <${this.telUUID}> ?uuid} 
-        OPTIONAL {?uri <${this.telTitle}> ?title } 
-    }`
-    var spOut = await this.runQuery(query)
-    var output = []
-    if (spOut && spOut.results && spOut.results.bindings) {
-        for (var i in spOut.results.bindings) {
-            var stmt = spOut.results.bindings[i]
-            var diag = {uri:stmt.uri.value}
-            if (stmt.title){
-                diag.title = stmt.title.value
+    //getAllDiagrams
+    //returns a list of all the ODM UML diagrams in the triplestore
+    async getAllDiagrams() {
+        var query = `SELECT ?uri ?uuid ?title WHERE {
+            ?uri a <${this.telDiagram}> . 
+            OPTIONAL {?uri <${this.telUUID}> ?uuid} 
+            OPTIONAL {?uri <${this.telTitle}> ?title } 
+        }`
+        var spOut = await this.runQuery(query)
+        var output = []
+        if (spOut && spOut.results && spOut.results.bindings) {
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                var diag = {uri:stmt.uri.value}
+                if (stmt.title){
+                    diag.title = stmt.title.value
+                }
+                if (stmt.uuid){
+                    diag.uuid = stmt.uuid.value
+                }
+                output.push(diag)
             }
-            if (stmt.uuid){
-                diag.uuid = stmt.uuid.value
-            }
-            output.push(diag)
         }
+        return output
     }
-    return output
-}
 
-async getDiagram(uri) {
-    var query = `
-    SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
-        <${uri}> a <${this.telDiagram}> . 
-        OPTIONAL {<${uri}> <${this.telUUID}> ?uuid} 
-        OPTIONAL {<${uri}> <${this.telTitle}> ?title } 
-        OPTIONAL {
-            ?diagElem <${this.telInDiagram}> <${uri}> .
-            ?diagElem a <${this.telDiagramElement}> .
-            ?diagElem <${this.telElementStyle}> ?elemStyle .
-            ?diagElem <${this.telRepresents}> ?elem
-        }
-        OPTIONAL {
-            ?diagRel <${this.telInDiagram}> <${uri}> .
-            ?diagRel a <${this.telDiagramRelationship}> .
-            ?diagRel <${this.telRepresents}> ?rel .
-            ?diagRel <${this.telSourceElem}> ?source .
-            ?diagRel <${this.telTargetElem}> ?target .
-        }
-    }`
-    var spOut = await this.runQuery(query)
-    var output = {uri:uri,uuid:'',title:'',diagramElements:{},diagramRelationships:{}}
-    if (spOut && spOut.results && spOut.results.bindings) {
-        for (var i in spOut.results.bindings) {
-            var stmt = spOut.results.bindings[i]
-            output.title = stmt.title.value
-            output.uuid = stmt.uuid.value
-            if (!(stmt.diagElem.value in output.diagramElements)) {
-                output.diagramElements[stmt.diagElem.value] = {style:{}}
+    //getDiagram()
+    //fetches all info about a given diagram - all the elements and relationships in it
+    async getDiagram(uri) {
+        var query = `
+        SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
+            <${uri}> a <${this.telDiagram}> . 
+            OPTIONAL {<${uri}> <${this.telUUID}> ?uuid} 
+            OPTIONAL {<${uri}> <${this.telTitle}> ?title } 
+            OPTIONAL {
+                ?diagElem <${this.telInDiagram}> <${uri}> .
+                ?diagElem a <${this.telDiagramElement}> .
+                ?diagElem <${this.telElementStyle}> ?elemStyle .
+                ?diagElem <${this.telRepresents}> ?elem
             }
-            output.diagramElements[stmt.diagElem.value].element = stmt.elem.value
-            output.diagramElements[stmt.diagElem.value].style = JSON.parse(unescape(stmt.elemStyle.value))
-            if (!(stmt.diagRel.value in output.diagramRelationships)) {
-                output.diagramRelationships[stmt.diagRel.value] = {}
+            OPTIONAL {
+                ?diagRel <${this.telInDiagram}> <${uri}> .
+                ?diagRel a <${this.telDiagramRelationship}> .
+                ?diagRel <${this.telRepresents}> ?rel .
+                ?diagRel <${this.telSourceElem}> ?source .
+                ?diagRel <${this.telTargetElem}> ?target .
             }
-            output.diagramRelationships[stmt.diagRel.value].relationship = stmt.rel.value
-            output.diagramRelationships[stmt.diagRel.value].source = stmt.source.value
-            output.diagramRelationships[stmt.diagRel.value].target = stmt.target.value
+        }`
+        var spOut = await this.runQuery(query)
+        var output = {uri:uri,uuid:'',title:'',diagramElements:{},diagramRelationships:{}}
+        if (spOut && spOut.results && spOut.results.bindings) {
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                output.title = stmt.title.value
+                output.uuid = stmt.uuid.value
+                if (!(stmt.diagElem.value in output.diagramElements)) {
+                    output.diagramElements[stmt.diagElem.value] = {style:{}}
+                }
+                output.diagramElements[stmt.diagElem.value].element = stmt.elem.value
+                output.diagramElements[stmt.diagElem.value].style = JSON.parse(unescape(stmt.elemStyle.value))
+                if (!(stmt.diagRel.value in output.diagramRelationships)) {
+                    output.diagramRelationships[stmt.diagRel.value] = {}
+                }
+                output.diagramRelationships[stmt.diagRel.value].relationship = stmt.rel.value
+                output.diagramRelationships[stmt.diagRel.value].source = stmt.source.value
+                output.diagramRelationships[stmt.diagRel.value].target = stmt.target.value
+            }
         }
+        return output
     }
-    return output
 
-}
+    newDiagram(title,uri,uuid,securityLabel) {
+        if (!uuid) {
+            uuid = crypto.randomUUID()
+        }
+        if (!uri) {
+            uri = this.defaultUriStub+uuid
+        }        
+        this.instantiate(this.telDiagram,uri,securityLabel)
+        this.setTitle(uri,title)
+        this.addLiteral(uri,this.telUUID,uuid)
+    }
+
+    setTitle(uri,title){
+        this.addLiteral(uri,this.telTitle,title,true)
+    }
+
+
 
 }
 
