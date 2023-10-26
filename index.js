@@ -83,6 +83,8 @@ class RdfService {
         ]
     }
 
+
+
     //runQuery
     //Issues a query to the triplestore specified when the RdfService was initiated and returns results in standard SPARQL JSON format
     async runQuery(query) {
@@ -114,7 +116,7 @@ class RdfService {
     //in-built function to sort out type of object in a subject-predicate-object triple. 
     //returns a formatted string suitable for insertion into a SPARQL query
     //if the object is a literal, a valid xsd datatype can also be provided
-    _checkObject(object,objectType,xsdDatatype) {
+    #checkObject(object,objectType,xsdDatatype) {
         if (objectType == undefined) {
             objectType = "URI"
         }
@@ -148,7 +150,7 @@ class RdfService {
     //Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
     //Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
     async insertTriple(subject, predicate, object, objectType, xsdDatatype,securityLabel){
-        var o = this._checkObject(object,objectType,xsdDatatype)
+        var o = this.#checkObject(object,objectType,xsdDatatype)
         return await this.runUpdate("INSERT DATA {<"+subject+"> <" + predicate + "> " + o + " . }",securityLabel)
     }
     
@@ -157,7 +159,7 @@ class RdfService {
     //Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
     //Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
     async deleteTriple(subject, predicate, object, objectType, xsdDatatype) {
-        var o = this._checkObject(object,objectType,xsdDatatype)
+        var o = this.#checkObject(object,objectType,xsdDatatype)
         return await this.runUpdate("DELETE DATA {<"+subject+"> <" + predicate + "> " + o + " . }")
     }
 
@@ -301,14 +303,14 @@ class OntologyService extends RdfService {
     //uri - the uri of the class
     //getAllPredicates - set to false if you don't want the raw predicate info
     //getSubClasses - set to false if you're not interested in its subclasses (this would require another to the database)
-    //getOwnedProperties - set to false to ignore properties whose domain is this class - again requires an additional query to database
-    //getInheritedProperties - another parameter that if true (default) fires another query
+    //getDomainProperties - set to false to ignore properties whose domain is this class - again requires an additional query to database
+    //getInheritedDomainProperties - another parameter that if true (default) fires another query
     //if this is being heavily used, you might want to set some of the paramters to false if you don't need them
     //...especially if you're calling lots of getClass calls, it might be quicker to call getAllElements()
-    async getClass(uri,getAllPredicates=true,getSubClasses=true,getOwnedProperties = true, getInheritedProperties = true) {
+    async getClass(uri,getAllPredicates=true,getSubClasses=true,getDomainProperties = true) {
         var query = `SELECT ?s ?p ?o WHERE {<${uri}> ?p ?o .  BIND (IRI("${uri}") as ?s) }`
         const ontojson = await this.runQuery(query)
-        var element = this._makeElement(uri)
+        var element = this.#makeElement(uri)
         element["ownedProperties"] = []
         element["superClasses"] = []
 
@@ -349,25 +351,46 @@ class OntologyService extends RdfService {
         if (getSubClasses) {
             element.subClasses = await this.getSubClasses(uri)
         }
-        if (getOwnedProperties) {
-            element.ownedProperties = await this.getOwnedProperties(uri)
-        }
-        if (getInheritedProperties) {
-            element.inheritedProperties = await this.getInheritedProperties(uri)
+        if (getDomainProperties) {
+            element.ownedProperties = await this.getDomainProperties(uri)
         }
         return element
     }
 
-    //getOwnedProperties
+    //getDomainProperties
     //returns all properties which have this class as their domain
-    async getOwnedProperties(uri) {
+    async getDomainProperties(uri) {
         return await this.getRelating(uri,this.rdfsDomain)
     }
 
-    //getInheritedProperties
+    //getRangeProperties
+    //returns all properties which have this class as their range
+    async getRangeProperties(uri) {
+        return await this.getRelating(uri,this.rdfsRange)
+    }
+
+    //getInheritedDomainProperties
     //returns all properties defined (domain) against the superclasses of the provided class
-    async getInheritedProperties(uri) {
+    async getInheritedDomainProperties(uri) {
         var query = `SELECT ?prop ?item WHERE {?prop <${this.rdfsDomain}> ?item . <${uri}> <${this.rdfsSubClassOf}>* ?item. }`
+        var spOut = await this.runQuery(query)
+        var output = []
+        if (spOut && spOut.results && spOut.results.bindings) {
+
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                if (stmt.item.value != uri) {
+                    output.push({property:stmt.prop.value,domain:stmt.item.value})
+                }
+            }
+        }
+        return output
+    }
+
+    //getInheritedRangeProperties
+    //returns all properties defined (domain) against the superclasses of the provided class
+    async getInheritedRangeProperties(uri) {
+        var query = `SELECT ?prop ?item WHERE {?prop <${this.rdfsRange}> ?item . <${uri}> <${this.rdfsSubClassOf}>* ?item. }`
         var spOut = await this.runQuery(query)
         var output = []
         if (spOut && spOut.results && spOut.results.bindings) {
@@ -447,10 +470,10 @@ class OntologyService extends RdfService {
         return output
     }
 
-    //setStyle
-    //sets the default style for a class. Deletes any previous styles
-    setStyle(uri,backgroundColor = "#888", color ="#000", icon="ri-question-mark", faIcon="fa-solid fa-question", faUnicode="\u003f", faClass="fa-solid") {
-        var styleObj = {
+    //makeStyleObject
+    //creates a js object with the provided colours, icons, etc. If you leave any unset, they'll default to the grey box.
+    makeStyleObject(backgroundColor = "#888", color ="#000", icon="ri-question-mark", faIcon="fa-solid fa-question", faUnicode="\u003f", faClass="fa-solid") {
+        return {
             backgroundColor: backgroundColor,
             color: color,
             icon: icon,
@@ -458,13 +481,18 @@ class OntologyService extends RdfService {
             faUnicode: faUnicode,
             faClass: faClass
         }
+    }
+
+    //setStyle
+    //sets the default style for a class. Deletes any previous styles
+    setStyle(uri,styleObj) {
         var styleStr = encodeURIComponent(JSON.stringify(styleObj))
         this.deleteRelationships(uri,this.telicentStyle)
         this.insertTriple(uri,this.telicentStyle,styleStr,"LITERAL")
     }
 
-    //_makeElement - built-in function to create an empty element object
-    _makeElement(uri) {
+    //#makeElement - built-in function to create an empty element object
+    #makeElement(uri) {
         return {
             uri:uri,
             rdfType:[],
@@ -475,8 +503,8 @@ class OntologyService extends RdfService {
         }
     }
 
-    //_makeClass - built-in function for handling elements that are classes
-    _makeClass(elementID,output,subClass,superClass){
+    //#makeClass - built-in function for handling elements that are classes
+    #makeClass(elementID,output,subClass,superClass){
         if (!(elementID in output.allElements)) {
             output.allElements[elementID] = {predicates:{}}
         }
@@ -495,8 +523,8 @@ class OntologyService extends RdfService {
         }
     }
 
-    //_makeProperty - a built-in function to handle elements that are property definitions
-    _makeProperty(elementID,output,subProperty,superProperty, domain, range){
+    //#makeProperty - a built-in function to handle elements that are property definitions
+    #makeProperty(elementID,output,subProperty,superProperty, domain, range){
         if (!(elementID in output.allElements)) {
             output.allElements[elementID] = {predicates:{}}
         }
@@ -516,18 +544,43 @@ class OntologyService extends RdfService {
         }
         else if (domain != null) {
             element.domain.push(domain)
-            this._makeClass(domain,output)
+            this.#makeClass(domain,output)
             output.allElements[domain].ownedProperties.push(elementID)
         }
         else if (range != null) {
             element.range.push(range)
-            this._makeClass(range,output)
+            this.#makeClass(range,output)
         }
     }
 
 
+    //#flatOut()
+    //Simplest, default format for SPARQL returns
+    #flatOut(spOut, returnFirstObj=false) {
+        output = []
+        if (spOut && spOut.results && spOut.results.bindings) {
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                obj = {}
+                for (var j in spOut.head.vars) {
+                    var v = spOut.head.vars[j]
+                    if ((v in stmt) && (stmt[v])) {
+                        obj[v] = stmt[v].value
+                    }
+                }
+                output.push(stmt.relating.value)
+            }
+        }
+        if (returnFirstObj) {
+            return output[0]
+        }
+        else {
+            return output
+        }
+    }
+
     //function that goes through ?s ?p ?o results and formats an object structure for js consumption
-    async _buildResultsObject(query,getAllPredicates) {
+    async #buildResultsObject(query,getAllPredicates) {
         const ontojson = await this.runQuery(query)
         var output = {
             allElements:{},
@@ -542,11 +595,11 @@ class OntologyService extends RdfService {
                 var o = stmt.o.value
                 if ((stmt.o.type != "literal") && !(o in output.allElements))
                 {
-                    output.allElements[o] = this._makeElement(o)
+                    output.allElements[o] = this.#makeElement(o)
                 }
     
                 if (!(s in output.allElements)) {
-                    output.allElements[s] = this._makeElement(s)
+                    output.allElements[s] = this.#makeElement(s)
                 }
                 var element = output.allElements[s]
                 
@@ -559,30 +612,30 @@ class OntologyService extends RdfService {
                         element["predicates"][p].push(o)
                     }
                 }
-                if (p == this.telicentStyle) {
+                if ((p == this.telicentStyle) && (o) && (o != "undefined")) {
                     var styleObj = JSON.parse(unescape(o))
                     element.defaultStyle = styleObj
                 }
                 if (p == this.rdfsSubClassOf) {
-                    this._makeClass(s,output,null,o)
-                    this._makeClass(o,output,s)
+                    this.#makeClass(s,output,null,o)
+                    this.#makeClass(o,output,s)
                 }
                 else if (p == this.rdfsSubPropertyOf) {
-                    this._makeProperty(s,output,null,o)
-                    this._makeProperty(o,output,s)
+                    this.#makeProperty(s,output,null,o)
+                    this.#makeProperty(o,output,s)
                 }
                 else if (p == this.rdfsDomain) {
-                    this._makeProperty(s,output,null,null,null,o)
+                    this.#makeProperty(s,output,null,null,null,o)
                 }
                 else if (p == this.rdfsRange) {
-                    this._makeProperty(s,output,null,null,null,null,o)
+                    this.#makeProperty(s,output,null,null,null,null,o)
                 }
                 else if (p == this.rdfType) {
                     if ((o == this.rdfsClass) || (o == this.owlClass)){
-                        this._makeClass(s,output,null,null,o)
+                        this.#makeClass(s,output,null,null,o)
                     }
                     else if ((o == this.rdfProperty) || (o ==this. owlDatatypeProperty) || (o == this.owlObjectProperty)){
-                        this._makeProperty(s,output,null,null,o)
+                        this.#makeProperty(s,output,null,null,o)
                     }
                     element.rdfType.push(o)
                 }
@@ -602,7 +655,7 @@ class OntologyService extends RdfService {
     //Set getAllPredicates to true if you want all predicates in the ontology - the object gets approximately 2x the size if you do this though - it doesn't affect the server though, so just need to consider browser memory
     //Don't stringify the returned object as JSON, it'll get huge as there is a lot of repeating use of object references 
     async getAllElements(getAllPredicates) {
-        var output = await this._buildResultsObject("SELECT * WHERE {?s ?p ?o}",getAllPredicates)
+        var output = await this.#buildResultsObject("SELECT * WHERE {?s ?p ?o}",getAllPredicates)
         output.top = []
 
         for (var i in output.classes) {
@@ -726,13 +779,36 @@ class OntologyService extends RdfService {
 class IesService extends RdfService {
     constructor(triplestoreUri = "http://localhost:3030/",dataset="knowledge",defaultUriStub="http://telicent.io/data/", defaultSecurityLabel="") {
         super(triplestoreUri,dataset,defaultUriStub,defaultSecurityLabel)
+        this.ies = "http://ies.data.gov.uk/ontology/ies4#"
+        this.iesAssessment = this.ies+"Assessment"
     }
+
 }
 
 
+class ParalogService extends IesService {
+    constructor(triplestoreUri = "http://localhost:3030/",dataset="knowledge",defaultUriStub="http://telicent.io/data/", defaultSecurityLabel="") {
+        super(triplestoreUri,dataset,defaultUriStub,defaultSecurityLabel)
+    }
+    async getAssessments() {
+        query = `SELECT ?uri ?name (COUNT(?asset) AS ?numberOfAssessedItems)
+        WHERE {
+            ?uri a ies:CarverAssessment .
+            ?uri ies:hasName ?cAssNameObj .
+            ?cAssNameObj ies:representationValue ?name .
+            OPTIONAL {
+                ?uri ies:assessed ?asset
+            }
+        }
+        GROUP BY ?uri ?name
+    `
+    
+    }
+}
+
 //testing functions - please ignore these !
 
-/*
+
 function writeJson(jsonData){
     var fs = require('fs');
     fs.writeFile("test.json", JSON.stringify(jsonData,null,"  "), function(err) {
@@ -741,27 +817,30 @@ function writeJson(jsonData){
         }
     });
 }
+
+
+obj = new OntologyService()
+
+obj.getAllElements().then(console.log)
+
+obj.instantiate("http://cls").then(console.log)
+
+/*
+obj.insertTriple("http://x","http://y","http://abc")
+
+obj.insertTriple("http://x","http://yy","test","LITERAL","xsd:string")
+
+obj.deleteNode("http://abc")
+
+obj.setStyle('http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset')
+
+obj.getStyles(['http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset','http://ies.data.gov.uk/ontology/ies4#Crossing']).then(console.log)
+
+obj.getSubClasses('http://ies.data.gov.uk/ontology/ies4#Asset').then(console.log)
+
+obj.getSuperClasses('http://ies.data.gov.uk/ontology/ies4#Asset',true).then(console.log)
+
+obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity').then(console.log)
+
+obj.getDiagram('http://ies.data.gov.uk/diagrams#EAID_5DF03A2C_F6DF_4433_82D5_7E5C14B6045C').then(console.log)
 */
-
-//obj = new OntologyService()
-
-//obj.getAllElements().then(writeJson)
-
-//obj.instantiate("http://cls").then(console.log)
-//obj.insertTriple("http://x","http://y","http://abc")
-
-//obj.insertTriple("http://x","http://yy","test","LITERAL","xsd:string")
-
-//obj.deleteNode("http://abc")
-
-//obj.setStyle('http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset')
-
-//obj.getStyles(['http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset','http://ies.data.gov.uk/ontology/ies4#Crossing']).then(console.log)
-
-//obj.getSubClasses('http://ies.data.gov.uk/ontology/ies4#Asset').then(console.log)
-
-//obj.getSuperClasses('http://ies.data.gov.uk/ontology/ies4#Asset',true).then(console.log)
-
-//obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity').then(console.log)
-
-//obj.getDiagram('http://ies.data.gov.uk/diagrams#EAID_5DF03A2C_F6DF_4433_82D5_7E5C14B6045C').then(console.log)
