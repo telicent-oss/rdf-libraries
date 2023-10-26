@@ -3,6 +3,12 @@ const crypto = require('crypto');
 //RdfService
 //A fairly simple class that provides methods for creating, reading and deleting RDF triples
 class RdfService {
+    /**
+     * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
+     * @param {string="ds"} dataset - the dataset name in the triplestore
+     * @param {string="http://telicent.io/data/"} defaultUriStub - the default stub to use when building GUID URIs
+     * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
+    */
     constructor(triplestoreUri = "http://localhost:3030/",dataset="ds",defaultUriStub="http://telicent.io/data/", defaultSecurityLabel="") {
 
         this.defaultSecurityLabel = defaultSecurityLabel
@@ -81,12 +87,16 @@ class RdfService {
             "xsd:Name", //	XML Names
             "xsd:NCName"
         ]
+    
     }
-
 
 
     //runQuery
     //Issues a query to the triplestore specified when the RdfService was initiated and returns results in standard SPARQL JSON format
+    /**
+     * @param {string} query - A valid SPARQL query
+     * @returns {object} the results of the query in standard SPARQL JSON results format
+    */    
     async runQuery(query) {
         const response = await fetch(this.queryEndpoint+escape(this.sparqlPrefixes + query))
         const ontojson = await response.json()
@@ -96,6 +106,11 @@ class RdfService {
     //runUpdate
     //Sends a SPARQL update to the triplestore specified when the RdfService was initiated 
     //SPARQL endpoints don't tend to provide much feedback on success. The full response text is returned from this function however. 
+    /**
+     * @param {string} updateQuery - A valid SPARQL update query
+     * @param {string} securityLabel - the security label to apply to new data. If none provided, the default will be used. 
+     * @returns {string} the response text from the triplestore after running the update
+    */    
     async runUpdate(updateQuery,securityLabel) {
         if (securityLabel == undefined) {
             securityLabel = this.defaultSecurityLabel
@@ -116,6 +131,12 @@ class RdfService {
     //in-built function to sort out type of object in a subject-predicate-object triple. 
     //returns a formatted string suitable for insertion into a SPARQL query
     //if the object is a literal, a valid xsd datatype can also be provided
+    /**
+     * @param {string} object - the triple object (third position in a triple) to be prepared
+     * @param {string} objectType - the type of the provided object - either URI or LITERAL. Blank nodes are not supported because they're a really stupid idea.
+     * @param {string} xsdDatatype - if set, this will apply a ^^ datatype to a literal object. Valid datatypes can be looked up in this.xsdDatatypes
+     * @returns {string} a SPARQL component for a triple that is either formatted as a literal or a URI
+    */    
     #checkObject(object,objectType,xsdDatatype) {
         if (objectType == undefined) {
             objectType = "URI"
@@ -149,6 +170,15 @@ class RdfService {
     //Performs a SPARQL update to insert the provided subject,predicate, object triple. 
     //Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
     //Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
+    /**
+     * @param {string} subject - The first position in the triple (the SUBJECT)
+     * @param {string} predicate - The second position in the triple (the PREDICATE)
+     * @param {string} object - The third position in the triple (the OBJECT) - this may be a literal or a URI
+     * @param {string} objectType - set URI for a URI or LITERAL for a literal object. Blank Nodes are not supported because we want the world to be a better place
+     * @param {string} xsdDatatype - if set, this will apply a ^^ datatype to a literal object. Valid datatypes can be looked up in this.xsdDatatypes
+     * @param {string} securityLabel - the security label to apply to new data. If none provided, the default will be used. 
+     * @returns {object} the results of the query in standard SPARQL JSON results format
+    */    
     async insertTriple(subject, predicate, object, objectType, xsdDatatype,securityLabel){
         var o = this.#checkObject(object,objectType,xsdDatatype)
         return await this.runUpdate("INSERT DATA {<"+subject+"> <" + predicate + "> " + o + " . }",securityLabel)
@@ -158,6 +188,14 @@ class RdfService {
     //Performs a SPARQL update to delete the triples corresponding to the provided subject,predicate, object. 
     //Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
     //Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
+    /**
+     * @param {string} subject - The first position in the triple (the SUBJECT)
+     * @param {string} predicate - The second position in the triple (the PREDICATE)
+     * @param {string} object - The third position in the triple (the OBJECT) - this may be a literal or a URI
+     * @param {string} objectType - set URI for a URI or LITERAL for a literal object. Blank Nodes are not support because, why would you.
+     * @param {string} xsdDatatype - if set, this will apply a ^^ datatype to a literal object. Valid datatypes can be looked up in this.xsdDatatypes
+     * @returns {string} the http response text from the server
+    */    
     async deleteTriple(subject, predicate, object, objectType, xsdDatatype) {
         var o = this.#checkObject(object,objectType,xsdDatatype)
         return await this.runUpdate("DELETE DATA {<"+subject+"> <" + predicate + "> " + o + " . }")
@@ -166,7 +204,11 @@ class RdfService {
     //deleteNode
     //Careful with this one !  It removes all references to a URI - effectively deleting all trace of an node from the triplestore. 
     //If you only want to remove the outgoing references (i.e. not the triples where this is the object) from the node then set ignoreInboundReferences to true
-    async deleteNode(uri,ignoreInboundReferences) {
+    /**
+     * @param {string} uri - The uri of the Node you want to get rid of
+     * @param {boolean=false} ignoreInboundReferences - if set to true, this will not delete any triples that refer to the node 
+    */    
+    async deleteNode(uri,ignoreInboundReferences=false) {
         this.runUpdate("DELETE WHERE {<"+uri+"> ?p ?o . }")
         if (!ignoreInboundReferences) {
             this.runUpdate("DELETE WHERE {?s ?p <"+uri+">}")
@@ -175,12 +217,22 @@ class RdfService {
 
     //deleteRelationships
     //deletes all triples that match the pattern <uri> <predicate> <ALL>
+    /**
+     * @param {string} uri - The uri of the subject of the triples you want remove
+     * @param {string} predicate - the predicate to match for all triples being removed 
+    */    
     async deleteRelationships(uri,predicate) {
         this.runUpdate(`DELETE WHERE {<${uri}> <${predicate}> ?o . }`)
     }
     
     //instantiate
     //Instantiates the provided class (cls parameter). You can also specify a URI (uri parameter), otherwise it'll set the URI for you based on the defaultUriStub and a GUID
+    /**
+     * @param {string} cls - The class (uri of an rdfs:Class or owl:Class) that is to be instantiated
+     * @param {string} uri - The uri of the instantiated item - if unset, one will be constructed using the defaultUriStub
+     * @param {string} securityLabel - the security label to apply to new data. If none provided, the default will be used. 
+     * @returns {string} the URI of the instantiated item
+    */    
     async instantiate(cls,uri,securityLabel) {
         if (!uri) {
             uri = this.defaultUriStub+crypto.randomUUID()
@@ -190,6 +242,12 @@ class RdfService {
     }
 
     //addLiteral
+    /**
+     * @param {string} uri - The uri of the subject of the literal
+     * @param {string} predicate - The second position in the triple (the PREDICATE)
+     * @param {string}
+     * @returns {string} the URI of the instantiated item
+    */    
     async addLiteral(uri,predicate,text,deletePrevious = false) {
         if (label && (label != "")) {
             if (deletePrevious) {
@@ -290,10 +348,14 @@ class OntologyService extends RdfService {
     //newClass
     //Creates a new Class (default rdfs:Class - override via clsType parameter)
     //if it's a subclass of another class, then provide this via the superClass parameter
-    newClass(uri,superClass,clsType = this.rdfsClass) {
+    //optionally add a style object if needed
+    newClass(uri,superClass,clsType = this.rdfsClass, styleObject) {
         var cls = this.instantiate(clsType,uri)
         if ((superClass) && (superClass != "")) {
             this.addSuperClass(uri,superClass)
+        }
+        if (styleObject) {
+            this.setStyle(uri,styleObject)
         }
         return cls
     }
@@ -471,8 +533,8 @@ class OntologyService extends RdfService {
     }
 
     //makeStyleObject
-    //creates a js object with the provided colours, icons, etc. If you leave any unset, they'll default to the grey box.
-    makeStyleObject(backgroundColor = "#888", color ="#000", icon="ri-question-mark", faIcon="fa-solid fa-question", faUnicode="\u003f", faClass="fa-solid") {
+    //creates a js object with the provided colours, icons, etc. If you leave them unset, they'll default to the grey box.
+    makestyleObject(backgroundColor = "#888", color ="#000", icon="ri-question-mark", faIcon="fa-solid fa-question", faUnicode="\u003f", faClass="fa-solid") {
         return {
             backgroundColor: backgroundColor,
             color: color,
