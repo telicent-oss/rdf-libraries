@@ -245,8 +245,7 @@ class RdfService {
     /**
      * @param {string} uri - The uri of the subject of the literal
      * @param {string} predicate - The second position in the triple (the PREDICATE)
-     * @param {string}
-     * @returns {string} the URI of the instantiated item
+     * @param {string} text - the literal to be assigned to the triple
     */    
     async addLiteral(uri,predicate,text,deletePrevious = false) {
         if (label && (label != "")) {
@@ -262,6 +261,10 @@ class RdfService {
 
     //addLabel
     //simple convenience function to add an rdfs:label to the given uri - simply pass in the label literal
+    /**
+     * @param {string} uri - The uri of the subject of the label
+     * @param {string} label - the literal text of the rdfs:label
+    */    
     async addLabel(uri,label) {
         if (label && (label != "")) {
             this.insertTriple(uri,this.rdfsLabel,label,true)
@@ -273,6 +276,10 @@ class RdfService {
 
     //addComment
     //simple convenience function to add an rdfs:comment to the given uri - simply pass in the comment literal
+    /**
+     * @param {string} uri - The uri of the subject of the comment
+     * @param {string} comment - the literal text of the rdfs:comment
+    */    
     async addComment(uri,comment) {
         if (comment && (comment != "")) {
             this.insertTriple(uri,this.rdfsComment,comment,true)
@@ -284,6 +291,11 @@ class RdfService {
 
     //getRelated
     //Simple function to get all objects related to the uri by a predicate
+    /**
+     * @param {string} uri - The uri of the subject
+     * @param {string} predicate - the predicate relating to the objects that are returned
+     * @returns {Array} - an array of related items (each is a string - may be a URI or a literal)
+    */    
     async getRelated(uri,predicate) {
         if (!uri) {
             throw new Error("URI must be provided")
@@ -307,6 +319,11 @@ class RdfService {
 
     //getRelating
     //Simple function to get all subjects relating to the uri by a predicate - i.e. reverse relationships
+    /**
+     * @param {string} uri - The uri of the subject
+     * @param {string} predicate - the predicate relating to the objects that are returned
+     * @returns {Array} - an array of relating items (URIs, as strings). By relating, we mean those that point back at the uri
+    */    
     async getRelating(uri,predicate) {
         if (!uri) {
             throw new Error("URI must be provided")
@@ -330,6 +347,13 @@ class RdfService {
 //OntologyService
 // - and RdfService for managing ontology elements (RDFS and OWL)
 class OntologyService extends RdfService {
+    /**
+     * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
+     * @param {string="ontology"} dataset - the dataset name in the triplestore
+     * @param {string="http://telicent.io/ontology/"} defaultUriStub - the default stub to use when building GUID URIs
+     * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
+    */
+
     constructor(triplestoreUri = "http://localhost:3030/",dataset="ontology",defaultUriStub="http://telicent.io/ontology/", defaultSecurityLabel="") {
 
         super(triplestoreUri,dataset,defaultUriStub, defaultSecurityLabel)
@@ -349,6 +373,12 @@ class OntologyService extends RdfService {
     //Creates a new Class (default rdfs:Class - override via clsType parameter)
     //if it's a subclass of another class, then provide this via the superClass parameter
     //optionally add a style object if needed
+    /**
+     * @param {string} uri - The uri of the new class
+     * @param {string} superclass - the parent (superclass) of the new class
+     * @param {object} styleObject - pass in a style object (call makeStyleObject to get a new one)
+     * @returns {string} - the uri of the new class (which you've already provided...I know...I know...)
+    */    
     newClass(uri,superClass,clsType = this.rdfsClass, styleObject) {
         var cls = this.instantiate(clsType,uri)
         if ((superClass) && (superClass != "")) {
@@ -369,6 +399,13 @@ class OntologyService extends RdfService {
     //getInheritedDomainProperties - another parameter that if true (default) fires another query
     //if this is being heavily used, you might want to set some of the paramters to false if you don't need them
     //...especially if you're calling lots of getClass calls, it might be quicker to call getAllElements()
+    /**
+     * @param {string} uri - The uri of the class to fetch
+     * @param {boolean=true} getAllPredicates - if true, it brings back all the related items. Set to false if you just need the basic info back
+     * @param {boolean=true} getSubClasses - runs a second query to get all the subclasses of the class. Set to false if you don't need it - saves traffic
+     * @param {boolean=true} getDomainProperties - runs a second query to get all the properties whose domain is this class
+     * @returns {object} - an object describing the class
+    */    
     async getClass(uri,getAllPredicates=true,getSubClasses=true,getDomainProperties = true) {
         var query = `SELECT ?s ?p ?o WHERE {<${uri}> ?p ?o .  BIND (IRI("${uri}") as ?s) }`
         const ontojson = await this.runQuery(query)
@@ -421,18 +458,30 @@ class OntologyService extends RdfService {
 
     //getDomainProperties
     //returns all properties which have this class as their domain
+    /**
+     * @param {string} uri - The uri of the class which is the domain for the properties returned
+     * @returns {Array} - an array of properties whose domain is this class
+    */    
     async getDomainProperties(uri) {
         return await this.getRelating(uri,this.rdfsDomain)
     }
 
     //getRangeProperties
     //returns all properties which have this class as their range
+    /**
+     * @param {string} uri - The uri of the class which is the range for the properties returned
+     * @returns {Array} - an array of properties whose range is this class
+    */    
     async getRangeProperties(uri) {
         return await this.getRelating(uri,this.rdfsRange)
     }
 
     //getInheritedDomainProperties
     //returns all properties defined (domain) against the superclasses of the provided class
+    /**
+     * @param {string} uri - The uri of the class (or subclass) which is the domain for the properties returned
+     * @returns {Array} - an array of properties whose domain is this class or one of its superclasses
+    */    
     async getInheritedDomainProperties(uri) {
         var query = `SELECT ?prop ?item WHERE {?prop <${this.rdfsDomain}> ?item . <${uri}> <${this.rdfsSubClassOf}>* ?item. }`
         var spOut = await this.runQuery(query)
@@ -450,7 +499,11 @@ class OntologyService extends RdfService {
     }
 
     //getInheritedRangeProperties
-    //returns all properties defined (domain) against the superclasses of the provided class
+    //returns all properties defined (range) against the superclasses of the provided class
+    /**
+     * @param {string} uri - The uri of the class (or subclass) which is the range for the properties returned
+     * @returns {Array} - an array of properties whose range is this class or one of its superclasses
+    */    
     async getInheritedRangeProperties(uri) {
         var query = `SELECT ?prop ?item WHERE {?prop <${this.rdfsRange}> ?item . <${uri}> <${this.rdfsSubClassOf}>* ?item. }`
         var spOut = await this.runQuery(query)
@@ -469,6 +522,10 @@ class OntologyService extends RdfService {
 
     //addSubClass
     //instantiates an rdfs:subClassOf relationship between two classes
+    /**
+     * @param {string} subClass - The subclass that is to be related to the superclass using rdfs:subClassOf
+     * @param {string} superClass - The superclass that is to be related to the subclass using rdfs:subClassOf
+    */    
     addSubClass(subClass,superClass) {
         this.insertTriple(subClass,this.rdfsSubClassOf,superClass)
     }
@@ -476,6 +533,10 @@ class OntologyService extends RdfService {
     //getSubClasses
     //Returns a list of all the subclasses of the provided class
     //If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
+    /**
+     * @param {string} uri - The uri of the class whose subclasses are returned
+     * @returns {Array} - an array of subclasses
+    */    
     async getSubClasses(uri) {
         return await this.getRelating(uri,this.rdfsSubClassOf)
     }
@@ -484,6 +545,12 @@ class OntologyService extends RdfService {
     //Returns a list of all the superclasses of the provided class
     //If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
     //If you want to get all the supers going all the way to the top (i.e. transitively climbing up the hierarchy) then set getAll to true
+    /**
+     * @param {string} uri - The uri of the class whose subclasses are returned
+     * @param {boolean} ignoreSubProps - set to true to ignore all subproperties of rdfs:subClassOf. Most ontologies don't do this, but IES, BORO and IDEAS do...
+     * @param {boolean} getAll - set to true to chase up the transitive hierarchy and get all the other levels of superclass (you might get a lot of these !)
+     * @returns {Array} - an array of superclasses
+    */    
     async getSuperClasses(uri,ignoreSubProps = false, getAll = false) {
         if (getAll) {
             var pathOp = "*"
@@ -512,6 +579,10 @@ class OntologyService extends RdfService {
     //getStyles
     //returns a dictionary object of styles for each specified class. If no classes are specified, it will get all the styles for every class it finds with style
     //pass the classes in as an array of URIs
+    /**
+     * @param {Array} classes - An array of URIs (strings) of the classes whose styles are required
+     * @returns {object} - a dictionary keyed by the class URIs, with the values being style objects
+    */    
     async getStyles(classes = []) {
         var filter = ""
         if (!Array.isArray(classes)) {
@@ -534,7 +605,16 @@ class OntologyService extends RdfService {
 
     //makeStyleObject
     //creates a js object with the provided colours, icons, etc. If you leave them unset, they'll default to the grey box.
-    makestyleObject(backgroundColor = "#888", color ="#000", icon="ri-question-mark", faIcon="fa-solid fa-question", faUnicode="\u003f", faClass="fa-solid") {
+    /**
+     * @param {string = "#888"} backgroundColor - An array of URIs (strings) of the classes whose styles are required
+     * @param {string = "#000"} color - An array of URIs (strings) of the classes whose styles are required
+     * @param {string = "ri-question-mark"} icon - Legacy feature - an alternative remix icon ID for older apps that still use remix. This will be deprecated in future versions
+     * @param {string ="fa-solid fa-question"} faIcon - The font awesome icon string
+     * @param {string = "\u003f"} faUnicode - The unicode representation of the font awesome icon
+     * @param {string="fa-solid"} faClass - The class string of font awesome icon - usually this also included in the faIcon string
+     * @returns {object} - a style object for use in other methods
+    */    
+    makeStyleObject(backgroundColor = "#888", color ="#000", icon="ri-question-mark", faIcon="fa-solid fa-question", faUnicode="\u003f", faClass="fa-solid") {
         return {
             backgroundColor: backgroundColor,
             color: color,
@@ -547,6 +627,10 @@ class OntologyService extends RdfService {
 
     //setStyle
     //sets the default style for a class. Deletes any previous styles
+    /**
+     * @param {string} uri - The URI of the class that have the style assigned
+     * @param {object} styleObj - A style object for the class - call makeStyleObject to get one
+    */    
     setStyle(uri,styleObj) {
         var styleStr = encodeURIComponent(JSON.stringify(styleObj))
         this.deleteRelationships(uri,this.telicentStyle)
@@ -716,7 +800,11 @@ class OntologyService extends RdfService {
     //It also provides a list of all the top-of-the-shop classes in the ontology hierarchy and a dictionary of all elements
     //Set getAllPredicates to true if you want all predicates in the ontology - the object gets approximately 2x the size if you do this though - it doesn't affect the server though, so just need to consider browser memory
     //Don't stringify the returned object as JSON, it'll get huge as there is a lot of repeating use of object references 
-    async getAllElements(getAllPredicates) {
+    /**
+     * @param {boolean=false} getAllPredicates - if true this will return all predicates owned by the element, not just the essential ones
+     * @returns {Array} array of classes and properties that are in the ontology
+    */    
+    async getAllElements(getAllPredicates=false) {
         var output = await this.#buildResultsObject("SELECT * WHERE {?s ?p ?o}",getAllPredicates)
         output.top = []
 
@@ -731,24 +819,13 @@ class OntologyService extends RdfService {
         return output
     }
 
-    /*
-    async getNodeEdges() {
-        var spOut = this.runQuery("SELECT * WHERE {?s ?p ?o}")
-        output = {nodes:[],edges:[]}
-        if (spOut && spOut.results && spOut.results.bindings) {
-            for (var i in spOut.results.bindings) {
-                var stmt = spOut.results.bindings[i]
-                if (stmt.o.type == "literal") {
 
-                }
-            }
-        }
-        return output
-    }
-    */
 
     //getAllDiagrams
     //returns a list of all the ODM UML diagrams in the triplestore
+    /**
+     * @returns {Array} array of objects summarising all the diagrams
+    */    
     async getAllDiagrams() {
         var query = `SELECT ?uri ?uuid ?title WHERE {
             ?uri a <${this.telDiagram}> . 
@@ -775,6 +852,10 @@ class OntologyService extends RdfService {
 
     //getDiagram()
     //fetches all info about a given diagram - all the elements and relationships in it
+    /**
+     * @param {boolean=false} uri - the uri of the diagram
+     * @returns {object} an object containing all the information about the diagram
+    */    
     async getDiagram(uri) {
         var query = `
         SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
@@ -818,6 +899,12 @@ class OntologyService extends RdfService {
         return output
     }
 
+    /**
+     * @param {string} title - the title of the diagram (mandatory)
+     * @param {string} uri - if unset, a new URI will be minted, and will be based on the UUID 
+     * @param {string} uuid - if unset, a new UUID will be minted
+     * @param {string} securityLabel - the security label enforced by the CORE platform
+    */    
     newDiagram(title,uri,uuid,securityLabel) {
         if (!uuid) {
             uuid = crypto.randomUUID()
@@ -830,6 +917,11 @@ class OntologyService extends RdfService {
         this.addLiteral(uri,this.telUUID,uuid)
     }
 
+
+    /**
+     * @param {string} uri - the URI of the diagram
+     * @param {string} title - the telicent:title to be applied to the diagram - this will remove any previous title.
+    */    
     setTitle(uri,title){
         this.addLiteral(uri,this.telTitle,title,true)
     }
@@ -838,12 +930,54 @@ class OntologyService extends RdfService {
 
 }
 
+
+
 class IesService extends RdfService {
     constructor(triplestoreUri = "http://localhost:3030/",dataset="knowledge",defaultUriStub="http://telicent.io/data/", defaultSecurityLabel="") {
         super(triplestoreUri,dataset,defaultUriStub,defaultSecurityLabel)
         this.ies = "http://ies.data.gov.uk/ontology/ies4#"
         this.iesAssessment = this.ies+"Assessment"
+        this.iesEvent = this.ies+"Event"
+        this.iesState = this.ies+"State"
+        this.ies_isPartOf = this.ies+"isPartOf"
+        this.ies_isStateOf = this.ies+"isStateOf"
     }
+
+    addPart(element, part, partRelType=this.ies_isPartOf){
+        this.insertTriple(part,partRelType,element,"URI")
+    }
+
+    createState(element, stateType=this.iesState, stateRelType=this.ies_isStateOf, securityLabel){
+        state = this.instantiate(stateType,stateUri,securityLabel)
+        this.insertTriple(state,stateRelType,element,"URI","",securityLabel)
+
+    }
+
+    # adds a state to an item
+    def add_state(self, state_type: Optional[str] = None, state_uri: Optional[str] = None,
+                     state_rel: Optional[str] = None, start: Optional[str] = None, end: Optional[str] = None,
+                     in_location: Optional[str] = None) -> BaseExchangedItem:
+
+        if not state_type:
+            state_type = self._default_state_type
+
+        from ies_tool.ies_temporal_classes import BaseState
+        state = BaseState(self._tool, start=start, end=end, uri=state_uri, classes=[state_type])
+
+        if not state_rel:
+            state_rel = "http://ies.data.gov.uk/ontology/ies4#isStateOf"
+
+        self._tool.add_to_graph(subject=state._uri, predicate=state_rel, object=self._uri)
+
+        if in_location is not None:
+            state.in_location(in_location)
+        return state
+
+    createEvent(uri,event_start, event_end, cls = this.iesEvent,telicent_primary_name="",securityLabel) {
+        var event = this.instantiate(cls,uri,securityLabel)
+    }
+
+
 
 }
 

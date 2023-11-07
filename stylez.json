@@ -3842,13 +3842,6 @@
         "faUnicode":"\uf06a",
         "faClass":"fa-regular"
     },
-    "http://ies.data.gov.uk/ontology/ies4#ri-signal-tower-lineName": {
-        "backgroundColor": "#00B0F0",
-        "borderColor": "#FFFF00",
-        "faIcon": "fa-regular fa-circle-e",
-        "faUnicode":"\uf06a",
-        "faClass":"fa-regular"
-    },
     "http://ies.data.gov.uk/ontology/ies4#PassengerName": {
         "backgroundColor": "#00B0F0",
         "borderColor": "#FFFF00",
