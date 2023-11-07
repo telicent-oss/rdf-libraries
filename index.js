@@ -1,9 +1,8 @@
 const crypto = require('crypto');
 
-//RdfService
-//A fairly simple class that provides methods for creating, reading and deleting RDF triples
 class RdfService {
     /**
+     * A fairly simple class that provides methods for creating, reading and deleting RDF triples
      * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
      * @param {string="ds"} dataset - the dataset name in the triplestore
      * @param {string="http://telicent.io/data/"} defaultUriStub - the default stub to use when building GUID URIs
@@ -91,9 +90,8 @@ class RdfService {
     }
 
 
-    //runQuery
-    //Issues a query to the triplestore specified when the RdfService was initiated and returns results in standard SPARQL JSON format
     /**
+     * Issues a query to the triplestore specified when the RdfService was initiated and returns results in standard SPARQL JSON format
      * @param {string} query - A valid SPARQL query
      * @returns {object} the results of the query in standard SPARQL JSON results format
     */    
@@ -103,10 +101,10 @@ class RdfService {
         return ontojson
     }
 
-    //runUpdate
-    //Sends a SPARQL update to the triplestore specified when the RdfService was initiated 
-    //SPARQL endpoints don't tend to provide much feedback on success. The full response text is returned from this function however. 
+
     /**
+     * Sends a SPARQL update to the triplestore specified when the RdfService was initiated 
+     * SPARQL endpoints don't tend to provide much feedback on success. The full response text is returned from this function however. 
      * @param {string} updateQuery - A valid SPARQL update query
      * @param {string} securityLabel - the security label to apply to new data. If none provided, the default will be used. 
      * @returns {string} the response text from the triplestore after running the update
@@ -128,10 +126,11 @@ class RdfService {
         return response.text()
     }
 
-    //in-built function to sort out type of object in a subject-predicate-object triple. 
-    //returns a formatted string suitable for insertion into a SPARQL query
-    //if the object is a literal, a valid xsd datatype can also be provided
+
     /**
+     * in-built function to sort out type of object in a subject-predicate-object triple. 
+     * returns a formatted string suitable for insertion into a SPARQL query
+     * if the object is a literal, a valid xsd datatype can also be provided
      * @param {string} object - the triple object (third position in a triple) to be prepared
      * @param {string} objectType - the type of the provided object - either URI or LITERAL. Blank nodes are not supported because they're a really stupid idea.
      * @param {string} xsdDatatype - if set, this will apply a ^^ datatype to a literal object. Valid datatypes can be looked up in this.xsdDatatypes
@@ -166,11 +165,11 @@ class RdfService {
         return o
     }
 
-    //insertTriple
-    //Performs a SPARQL update to insert the provided subject,predicate, object triple. 
-    //Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
-    //Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
+    
     /**
+     * Performs a SPARQL update to insert the provided subject,predicate, object triple. 
+     * Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
+     * Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
      * @param {string} subject - The first position in the triple (the SUBJECT)
      * @param {string} predicate - The second position in the triple (the PREDICATE)
      * @param {string} object - The third position in the triple (the OBJECT) - this may be a literal or a URI
@@ -184,11 +183,11 @@ class RdfService {
         return await this.runUpdate("INSERT DATA {<"+subject+"> <" + predicate + "> " + o + " . }",securityLabel)
     }
     
-    //deleteTriple
-    //Performs a SPARQL update to delete the triples corresponding to the provided subject,predicate, object. 
-    //Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
-    //Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
+    
     /**
+     * Performs a SPARQL update to delete the triples corresponding to the provided subject,predicate, object. 
+     * Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
+     * Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
      * @param {string} subject - The first position in the triple (the SUBJECT)
      * @param {string} predicate - The second position in the triple (the PREDICATE)
      * @param {string} object - The third position in the triple (the OBJECT) - this may be a literal or a URI
@@ -200,11 +199,10 @@ class RdfService {
         var o = this.#checkObject(object,objectType,xsdDatatype)
         return await this.runUpdate("DELETE DATA {<"+subject+"> <" + predicate + "> " + o + " . }")
     }
-
-    //deleteNode
-    //Careful with this one !  It removes all references to a URI - effectively deleting all trace of an node from the triplestore. 
-    //If you only want to remove the outgoing references (i.e. not the triples where this is the object) from the node then set ignoreInboundReferences to true
+    
     /**
+     * Careful with this one !  It removes all references to a URI - effectively deleting all trace of an node from the triplestore. 
+     * If you only want to remove the outgoing references (i.e. not the triples where this is the object) from the node then set ignoreInboundReferences to true
      * @param {string} uri - The uri of the Node you want to get rid of
      * @param {boolean=false} ignoreInboundReferences - if set to true, this will not delete any triples that refer to the node 
     */    
@@ -215,9 +213,8 @@ class RdfService {
         }
     }
 
-    //deleteRelationships
-    //deletes all triples that match the pattern <uri> <predicate> <ALL>
     /**
+     * deletes all triples that match the pattern <uri> <predicate> <ALL>
      * @param {string} uri - The uri of the subject of the triples you want remove
      * @param {string} predicate - the predicate to match for all triples being removed 
     */    
@@ -225,9 +222,8 @@ class RdfService {
         this.runUpdate(`DELETE WHERE {<${uri}> <${predicate}> ?o . }`)
     }
     
-    //instantiate
-    //Instantiates the provided class (cls parameter). You can also specify a URI (uri parameter), otherwise it'll set the URI for you based on the defaultUriStub and a GUID
     /**
+     * Instantiates the provided class (cls parameter). You can also specify a URI (uri parameter), otherwise it'll set the URI for you based on the defaultUriStub and a GUID
      * @param {string} cls - The class (uri of an rdfs:Class or owl:Class) that is to be instantiated
      * @param {string} uri - The uri of the instantiated item - if unset, one will be constructed using the defaultUriStub
      * @param {string} securityLabel - the security label to apply to new data. If none provided, the default will be used. 
@@ -241,8 +237,8 @@ class RdfService {
         return uri
     }
 
-    //addLiteral
     /**
+     * Adds a literal property to the specified node (uri)
      * @param {string} uri - The uri of the subject of the literal
      * @param {string} predicate - The second position in the triple (the PREDICATE)
      * @param {string} text - the literal to be assigned to the triple
@@ -259,9 +255,8 @@ class RdfService {
         }        
     }
 
-    //addLabel
-    //simple convenience function to add an rdfs:label to the given uri - simply pass in the label literal
     /**
+     * simple convenience function to add an rdfs:label to the given uri - simply pass in the label literal
      * @param {string} uri - The uri of the subject of the label
      * @param {string} label - the literal text of the rdfs:label
     */    
@@ -274,9 +269,8 @@ class RdfService {
         }
     }
 
-    //addComment
-    //simple convenience function to add an rdfs:comment to the given uri - simply pass in the comment literal
     /**
+     * simple convenience function to add an rdfs:comment to the given uri - simply pass in the comment literal
      * @param {string} uri - The uri of the subject of the comment
      * @param {string} comment - the literal text of the rdfs:comment
     */    
@@ -289,9 +283,8 @@ class RdfService {
         }
     }
 
-    //getRelated
-    //Simple function to get all objects related to the uri by a predicate
     /**
+     * Simple function to get all objects related to the uri by a predicate
      * @param {string} uri - The uri of the subject
      * @param {string} predicate - the predicate relating to the objects that are returned
      * @returns {Array} - an array of related items (each is a string - may be a URI or a literal)
@@ -317,9 +310,8 @@ class RdfService {
         return output
     }
 
-    //getRelating
-    //Simple function to get all subjects relating to the uri by a predicate - i.e. reverse relationships
     /**
+     * Simple function to get all subjects relating to the uri by a predicate - i.e. reverse relationships
      * @param {string} uri - The uri of the subject
      * @param {string} predicate - the predicate relating to the objects that are returned
      * @returns {Array} - an array of relating items (URIs, as strings). By relating, we mean those that point back at the uri
@@ -342,18 +334,41 @@ class RdfService {
         }
         return output
     }
+
+    //#flatOut()
+    //Simplest, default format for SPARQL returns
+    #flatOut(spOut, returnFirstObj=false) {
+        output = []
+        if (spOut && spOut.results && spOut.results.bindings) {
+            for (var i in spOut.results.bindings) {
+                var stmt = spOut.results.bindings[i]
+                obj = {}
+                for (var j in spOut.head.vars) {
+                    var v = spOut.head.vars[j]
+                    if ((v in stmt) && (stmt[v])) {
+                        obj[v] = stmt[v].value
+                    }
+                }
+                output.push(stmt.relating.value)
+            }
+        }
+        if (returnFirstObj) {
+            return output[0]
+        }
+        else {
+            return output
+        }
+    }
 }
 
-//OntologyService
-// - and RdfService for managing ontology elements (RDFS and OWL)
 class OntologyService extends RdfService {
     /**
+     * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
      * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
      * @param {string="ontology"} dataset - the dataset name in the triplestore
      * @param {string="http://telicent.io/ontology/"} defaultUriStub - the default stub to use when building GUID URIs
      * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
     */
-
     constructor(triplestoreUri = "http://localhost:3030/",dataset="ontology",defaultUriStub="http://telicent.io/ontology/", defaultSecurityLabel="") {
 
         super(triplestoreUri,dataset,defaultUriStub, defaultSecurityLabel)
@@ -369,11 +384,10 @@ class OntologyService extends RdfService {
         this.telTargetElem = this.telicent+"targetElem"
     }
 
-    //newClass
-    //Creates a new Class (default rdfs:Class - override via clsType parameter)
-    //if it's a subclass of another class, then provide this via the superClass parameter
-    //optionally add a style object if needed
     /**
+     * Creates a new Class (default rdfs:Class - override via clsType parameter)
+     * if it's a subclass of another class, then provide this via the superClass parameter
+     * optionally add a style object if needed
      * @param {string} uri - The uri of the new class
      * @param {string} superclass - the parent (superclass) of the new class
      * @param {object} styleObject - pass in a style object (call makeStyleObject to get a new one)
@@ -390,16 +404,8 @@ class OntologyService extends RdfService {
         return cls
     }
 
-    //getClass
-    //brings back a class object that collects together all the useful info about the class - parameters:
-    //uri - the uri of the class
-    //getAllPredicates - set to false if you don't want the raw predicate info
-    //getSubClasses - set to false if you're not interested in its subclasses (this would require another to the database)
-    //getDomainProperties - set to false to ignore properties whose domain is this class - again requires an additional query to database
-    //getInheritedDomainProperties - another parameter that if true (default) fires another query
-    //if this is being heavily used, you might want to set some of the paramters to false if you don't need them
-    //...especially if you're calling lots of getClass calls, it might be quicker to call getAllElements()
     /**
+     * brings back a class object that collects together all the useful info about the class
      * @param {string} uri - The uri of the class to fetch
      * @param {boolean=true} getAllPredicates - if true, it brings back all the related items. Set to false if you just need the basic info back
      * @param {boolean=true} getSubClasses - runs a second query to get all the subclasses of the class. Set to false if you don't need it - saves traffic
@@ -456,9 +462,8 @@ class OntologyService extends RdfService {
         return element
     }
 
-    //getDomainProperties
-    //returns all properties which have this class as their domain
     /**
+     * returns all properties which have this class as their domain
      * @param {string} uri - The uri of the class which is the domain for the properties returned
      * @returns {Array} - an array of properties whose domain is this class
     */    
@@ -466,9 +471,8 @@ class OntologyService extends RdfService {
         return await this.getRelating(uri,this.rdfsDomain)
     }
 
-    //getRangeProperties
-    //returns all properties which have this class as their range
     /**
+     * returns all properties which have this class as their range
      * @param {string} uri - The uri of the class which is the range for the properties returned
      * @returns {Array} - an array of properties whose range is this class
     */    
@@ -476,9 +480,8 @@ class OntologyService extends RdfService {
         return await this.getRelating(uri,this.rdfsRange)
     }
 
-    //getInheritedDomainProperties
-    //returns all properties defined (domain) against the superclasses of the provided class
     /**
+     * returns all properties defined (domain) against the superclasses of the provided class
      * @param {string} uri - The uri of the class (or subclass) which is the domain for the properties returned
      * @returns {Array} - an array of properties whose domain is this class or one of its superclasses
     */    
@@ -498,9 +501,8 @@ class OntologyService extends RdfService {
         return output
     }
 
-    //getInheritedRangeProperties
-    //returns all properties defined (range) against the superclasses of the provided class
     /**
+     * returns all properties defined (range) against the superclasses of the provided class
      * @param {string} uri - The uri of the class (or subclass) which is the range for the properties returned
      * @returns {Array} - an array of properties whose range is this class or one of its superclasses
     */    
@@ -520,9 +522,8 @@ class OntologyService extends RdfService {
         return output
     }
 
-    //addSubClass
-    //instantiates an rdfs:subClassOf relationship between two classes
     /**
+     * instantiates an rdfs:subClassOf relationship between two classes
      * @param {string} subClass - The subclass that is to be related to the superclass using rdfs:subClassOf
      * @param {string} superClass - The superclass that is to be related to the subclass using rdfs:subClassOf
     */    
@@ -530,10 +531,9 @@ class OntologyService extends RdfService {
         this.insertTriple(subClass,this.rdfsSubClassOf,superClass)
     }
 
-    //getSubClasses
-    //Returns a list of all the subclasses of the provided class
-    //If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
     /**
+     * Returns a list of all the subclasses of the provided class
+     * If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
      * @param {string} uri - The uri of the class whose subclasses are returned
      * @returns {Array} - an array of subclasses
     */    
@@ -541,11 +541,10 @@ class OntologyService extends RdfService {
         return await this.getRelating(uri,this.rdfsSubClassOf)
     }
 
-    //getSuperClasses
-    //Returns a list of all the superclasses of the provided class
-    //If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
-    //If you want to get all the supers going all the way to the top (i.e. transitively climbing up the hierarchy) then set getAll to true
     /**
+     * Returns a list of all the superclasses of the provided class
+     * If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
+     * If you want to get all the supers going all the way to the top (i.e. transitively climbing up the hierarchy) then set getAll to true
      * @param {string} uri - The uri of the class whose subclasses are returned
      * @param {boolean} ignoreSubProps - set to true to ignore all subproperties of rdfs:subClassOf. Most ontologies don't do this, but IES, BORO and IDEAS do...
      * @param {boolean} getAll - set to true to chase up the transitive hierarchy and get all the other levels of superclass (you might get a lot of these !)
@@ -564,7 +563,6 @@ class OntologyService extends RdfService {
         else {
             var query = `SELECT ?super WHERE {<${uri}> ?subRel${pathOp} ?super . ?subRel <${this.rdfsSubPropertyOf}>* <${this.rdfsSubClassOf}> .}`
         }
-        console.log(query)
         var output = []
         var spOut = await this.runQuery(query)
         if (spOut && spOut.results && spOut.results.bindings) {
@@ -576,10 +574,9 @@ class OntologyService extends RdfService {
         return output
     }
 
-    //getStyles
-    //returns a dictionary object of styles for each specified class. If no classes are specified, it will get all the styles for every class it finds with style
-    //pass the classes in as an array of URIs
     /**
+     * returns a dictionary object of styles for each specified class. If no classes are specified, it will get all the styles for every class it finds with style
+     * pass the classes in as an array of URIs
      * @param {Array} classes - An array of URIs (strings) of the classes whose styles are required
      * @returns {object} - a dictionary keyed by the class URIs, with the values being style objects
     */    
@@ -603,9 +600,8 @@ class OntologyService extends RdfService {
         return output
     }
 
-    //makeStyleObject
-    //creates a js object with the provided colours, icons, etc. If you leave them unset, they'll default to the grey box.
     /**
+     * creates a js object with the provided colours, icons, etc. If you leave them unset, they'll default to the grey box.
      * @param {string = "#888"} backgroundColor - An array of URIs (strings) of the classes whose styles are required
      * @param {string = "#000"} color - An array of URIs (strings) of the classes whose styles are required
      * @param {string = "ri-question-mark"} icon - Legacy feature - an alternative remix icon ID for older apps that still use remix. This will be deprecated in future versions
@@ -625,9 +621,8 @@ class OntologyService extends RdfService {
         }
     }
 
-    //setStyle
-    //sets the default style for a class. Deletes any previous styles
     /**
+     * sets the default style for a class. Deletes any previous styles
      * @param {string} uri - The URI of the class that have the style assigned
      * @param {object} styleObj - A style object for the class - call makeStyleObject to get one
     */    
@@ -700,30 +695,7 @@ class OntologyService extends RdfService {
     }
 
 
-    //#flatOut()
-    //Simplest, default format for SPARQL returns
-    #flatOut(spOut, returnFirstObj=false) {
-        output = []
-        if (spOut && spOut.results && spOut.results.bindings) {
-            for (var i in spOut.results.bindings) {
-                var stmt = spOut.results.bindings[i]
-                obj = {}
-                for (var j in spOut.head.vars) {
-                    var v = spOut.head.vars[j]
-                    if ((v in stmt) && (stmt[v])) {
-                        obj[v] = stmt[v].value
-                    }
-                }
-                output.push(stmt.relating.value)
-            }
-        }
-        if (returnFirstObj) {
-            return output[0]
-        }
-        else {
-            return output
-        }
-    }
+
 
     //function that goes through ?s ?p ?o results and formats an object structure for js consumption
     async #buildResultsObject(query,getAllPredicates) {
@@ -796,11 +768,11 @@ class OntologyService extends RdfService {
         return output
     }
     
-    //This is a function that gets every triple in the ontology dataset and shapes it into an object that holds all the properties and classes.
-    //It also provides a list of all the top-of-the-shop classes in the ontology hierarchy and a dictionary of all elements
-    //Set getAllPredicates to true if you want all predicates in the ontology - the object gets approximately 2x the size if you do this though - it doesn't affect the server though, so just need to consider browser memory
-    //Don't stringify the returned object as JSON, it'll get huge as there is a lot of repeating use of object references 
     /**
+     * This is a function that gets every triple in the ontology dataset and shapes it into an object that holds all the properties and classes.
+     * It also provides a list of all the top-of-the-shop classes in the ontology hierarchy and a dictionary of all elements
+     * Set getAllPredicates to true if you want all predicates in the ontology - the object gets approximately 2x the size if you do this though - it doesn't affect the server though, so just need to consider browser memory
+     * Don't stringify the returned object as JSON, it'll get huge as there is a lot of repeating use of object references 
      * @param {boolean=false} getAllPredicates - if true this will return all predicates owned by the element, not just the essential ones
      * @returns {Array} array of classes and properties that are in the ontology
     */    
@@ -819,11 +791,8 @@ class OntologyService extends RdfService {
         return output
     }
 
-
-
-    //getAllDiagrams
-    //returns a list of all the ODM UML diagrams in the triplestore
     /**
+     * returns a list of all the ODM UML diagrams in the triplestore
      * @returns {Array} array of objects summarising all the diagrams
     */    
     async getAllDiagrams() {
@@ -850,9 +819,8 @@ class OntologyService extends RdfService {
         return output
     }
 
-    //getDiagram()
-    //fetches all info about a given diagram - all the elements and relationships in it
     /**
+     * fetches all info about a given diagram - all the elements and relationships in it
      * @param {boolean=false} uri - the uri of the diagram
      * @returns {object} an object containing all the information about the diagram
     */    
@@ -900,6 +868,7 @@ class OntologyService extends RdfService {
     }
 
     /**
+     * creates a new diagram
      * @param {string} title - the title of the diagram (mandatory)
      * @param {string} uri - if unset, a new URI will be minted, and will be based on the UUID 
      * @param {string} uuid - if unset, a new UUID will be minted
@@ -919,6 +888,7 @@ class OntologyService extends RdfService {
 
 
     /**
+     * sets the telicent:title property - used in diagrams and similar
      * @param {string} uri - the URI of the diagram
      * @param {string} title - the telicent:title to be applied to the diagram - this will remove any previous title.
     */    
@@ -933,6 +903,13 @@ class OntologyService extends RdfService {
 
 
 class IesService extends RdfService {
+    /**
+     * An extension of RdfService for managing IES data
+     * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
+     * @param {string="knowledge"} dataset - the dataset name in the triplestore
+     * @param {string="http://telicent.io/data/"} defaultUriStub - the default stub to use when building GUID URIs
+     * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
+    */
     constructor(triplestoreUri = "http://localhost:3030/",dataset="knowledge",defaultUriStub="http://telicent.io/data/", defaultSecurityLabel="") {
         super(triplestoreUri,dataset,defaultUriStub,defaultSecurityLabel)
         this.ies = "http://ies.data.gov.uk/ontology/ies4#"
@@ -947,34 +924,19 @@ class IesService extends RdfService {
         this.insertTriple(part,partRelType,element,"URI")
     }
 
-    createState(element, stateType=this.iesState, stateRelType=this.ies_isStateOf, securityLabel){
-        state = this.instantiate(stateType,stateUri,securityLabel)
-        this.insertTriple(state,stateRelType,element,"URI","",securityLabel)
+    inPeriod(element,iso8601Period, securityLabel) {
 
     }
 
-    # adds a state to an item
-    def add_state(self, state_type: Optional[str] = None, state_uri: Optional[str] = None,
-                     state_rel: Optional[str] = None, start: Optional[str] = None, end: Optional[str] = None,
-                     in_location: Optional[str] = None) -> BaseExchangedItem:
-
-        if not state_type:
-            state_type = self._default_state_type
-
-        from ies_tool.ies_temporal_classes import BaseState
-        state = BaseState(self._tool, start=start, end=end, uri=state_uri, classes=[state_type])
-
-        if not state_rel:
-            state_rel = "http://ies.data.gov.uk/ontology/ies4#isStateOf"
-
-        self._tool.add_to_graph(subject=state._uri, predicate=state_rel, object=self._uri)
-
-        if in_location is not None:
-            state.in_location(in_location)
+    createState(element, stateType=this.iesState, stateRelType=this.ies_isStateOf, start = Nothing,  end = Nothing, securityLabel){
+        var state = this.instantiate(stateType,stateUri,securityLabel)
+        this.insertTriple(state,stateRelType,element,"URI","",securityLabel)
         return state
+    }
 
     createEvent(uri,event_start, event_end, cls = this.iesEvent,telicent_primary_name="",securityLabel) {
         var event = this.instantiate(cls,uri,securityLabel)
+        return event
     }
 
 
@@ -1015,28 +977,19 @@ function writeJson(jsonData){
 }
 
 
-obj = new OntologyService()
+function runTests(){
+    obj = new OntologyService()
+    obj.getAllElements().then(console.log)
+    obj.instantiate("http://cls").then(console.log)
+    obj.insertTriple("http://x","http://y","http://abc")
+    obj.insertTriple("http://x","http://yy","test","LITERAL","xsd:string")
+    obj.deleteNode("http://abc")
+    obj.setStyle('http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset')
+    obj.getStyles(['http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset','http://ies.data.gov.uk/ontology/ies4#Crossing']).then(console.log)
+    obj.getSubClasses('http://ies.data.gov.uk/ontology/ies4#Asset').then(console.log)
+    obj.getSuperClasses('http://ies.data.gov.uk/ontology/ies4#Asset',true).then(console.log)
+    obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity').then(console.log)
+    obj.getDiagram('http://ies.data.gov.uk/diagrams#EAID_5DF03A2C_F6DF_4433_82D5_7E5C14B6045C').then(console.log)
+}
 
-obj.getAllElements().then(console.log)
-
-obj.instantiate("http://cls").then(console.log)
-
-/*
-obj.insertTriple("http://x","http://y","http://abc")
-
-obj.insertTriple("http://x","http://yy","test","LITERAL","xsd:string")
-
-obj.deleteNode("http://abc")
-
-obj.setStyle('http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset')
-
-obj.getStyles(['http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset','http://ies.data.gov.uk/ontology/ies4#Crossing']).then(console.log)
-
-obj.getSubClasses('http://ies.data.gov.uk/ontology/ies4#Asset').then(console.log)
-
-obj.getSuperClasses('http://ies.data.gov.uk/ontology/ies4#Asset',true).then(console.log)
-
-obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity').then(console.log)
-
-obj.getDiagram('http://ies.data.gov.uk/diagrams#EAID_5DF03A2C_F6DF_4433_82D5_7E5C14B6045C').then(console.log)
-*/
+runTests()
