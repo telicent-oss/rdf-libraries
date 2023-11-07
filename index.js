@@ -594,7 +594,9 @@ class OntologyService extends RdfService {
         if (spOut && spOut.results && spOut.results.bindings) {
             for (var i in spOut.results.bindings) {
                 var stmt = spOut.results.bindings[i]
-                output[stmt.cls.value] = JSON.parse(unescape(stmt.style.value))
+                if ((stmt.style.value) && (stmt.style.value != "undefined")) {
+                    output[stmt.cls.value] = JSON.parse(unescape(stmt.style.value))
+                }
             }
         }
         return output
@@ -627,9 +629,15 @@ class OntologyService extends RdfService {
      * @param {object} styleObj - A style object for the class - call makeStyleObject to get one
     */    
     setStyle(uri,styleObj) {
-        var styleStr = encodeURIComponent(JSON.stringify(styleObj))
-        this.deleteRelationships(uri,this.telicentStyle)
-        this.insertTriple(uri,this.telicentStyle,styleStr,"LITERAL")
+        if (styleObj) {
+            var styleStr = encodeURIComponent(JSON.stringify(styleObj))
+            this.deleteRelationships(uri,this.telicentStyle)
+            this.insertTriple(uri,this.telicentStyle,styleStr,"LITERAL")
+        }
+        else {
+            throw new Error('No style object provided')
+        }
+        
     }
 
     //#makeElement - built-in function to create an empty element object
@@ -693,9 +701,6 @@ class OntologyService extends RdfService {
             this.#makeClass(range,output)
         }
     }
-
-
-
 
     //function that goes through ?s ?p ?o results and formats an object structure for js consumption
     async #buildResultsObject(query,getAllPredicates) {
@@ -979,17 +984,17 @@ function writeJson(jsonData){
 
 function runTests(){
     obj = new OntologyService()
-    obj.getAllElements().then(console.log)
-    obj.instantiate("http://cls").then(console.log)
+    obj.getAllElements()//.then(console.log)
+    obj.instantiate("http://cls")//.then(console.log)
     obj.insertTriple("http://x","http://y","http://abc")
     obj.insertTriple("http://x","http://yy","test","LITERAL","xsd:string")
     obj.deleteNode("http://abc")
-    obj.setStyle('http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset')
-    obj.getStyles(['http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset','http://ies.data.gov.uk/ontology/ies4#Crossing']).then(console.log)
-    obj.getSubClasses('http://ies.data.gov.uk/ontology/ies4#Asset').then(console.log)
-    obj.getSuperClasses('http://ies.data.gov.uk/ontology/ies4#Asset',true).then(console.log)
-    obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity').then(console.log)
-    obj.getDiagram('http://ies.data.gov.uk/diagrams#EAID_5DF03A2C_F6DF_4433_82D5_7E5C14B6045C').then(console.log)
+    obj.setStyle('http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset',{})
+    obj.getStyles(['http://ies.data.gov.uk/ontology/ies4#PersonalRadioHandset','http://ies.data.gov.uk/ontology/ies4#Crossing'])//.then(console.log)
+    obj.getSubClasses('http://ies.data.gov.uk/ontology/ies4#Asset')//.then(console.log)
+    obj.getSuperClasses('http://ies.data.gov.uk/ontology/ies4#Asset',true)//.then(console.log)
+    obj.getClass('http://ies.data.gov.uk/ontology/ies4#Entity')//.then(console.log)
+    obj.getDiagram('http://ies.data.gov.uk/diagrams#EAID_5DF03A2C_F6DF_4433_82D5_7E5C14B6045C')//.then(console.log)
 }
 
-runTests()
+//runTests()
