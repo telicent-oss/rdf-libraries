@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>OntologyService/index.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-IesService.html">IesService</a><ul class='methods'><li data-type='method'><a href="module-IesService.html#~constructor">constructor</a></li></ul></li><li><a href="module-OntologyService.html">OntologyService</a><ul class='methods'><li data-type='method'><a href="module-OntologyService.html#~addSubClass">addSubClass</a></li><li data-type='method'><a href="module-OntologyService.html#~constructor">constructor</a></li><li data-type='method'><a href="module-OntologyService.html#~getAllDiagrams">getAllDiagrams</a></li><li data-type='method'><a href="module-OntologyService.html#~getAllElements">getAllElements</a></li><li data-type='method'><a href="module-OntologyService.html#~getClass">getClass</a></li><li data-type='method'><a href="module-OntologyService.html#~getDiagram">getDiagram</a></li><li data-type='method'><a href="module-OntologyService.html#~getDomainProperties">getDomainProperties</a></li><li data-type='method'><a href="module-OntologyService.html#~getInheritedDomainProperties">getInheritedDomainProperties</a></li><li data-type='method'><a href="module-OntologyService.html#~getInheritedRangeProperties">getInheritedRangeProperties</a></li><li data-type='method'><a href="module-OntologyService.html#~getRangeProperties">getRangeProperties</a></li><li data-type='method'><a href="module-OntologyService.html#~getStyles">getStyles</a></li><li data-type='method'><a href="module-OntologyService.html#~getSubClasses">getSubClasses</a></li><li data-type='method'><a href="module-OntologyService.html#~getSuperClasses">getSuperClasses</a></li><li data-type='method'><a href="module-OntologyService.html#~makeStyleObject">makeStyleObject</a></li><li data-type='method'><a href="module-OntologyService.html#~newClass">newClass</a></li><li data-type='method'><a href="module-OntologyService.html#~newDiagram">newDiagram</a></li><li data-type='method'><a href="module-OntologyService.html#~setStyle">setStyle</a></li><li data-type='method'><a href="module-OntologyService.html#~setTitle">setTitle</a></li></ul></li><li><a href="module-ParalogService.html">ParalogService</a><ul class='methods'><li data-type='method'><a href="module-ParalogService.html#~constructor">constructor</a></li></ul></li><li><a href="module-RdfService.html">RdfService</a><ul class='methods'><li data-type='method'><a href="module-RdfService.html#~addComment">addComment</a></li><li data-type='method'><a href="module-RdfService.html#~addLabel">addLabel</a></li><li data-type='method'><a href="module-RdfService.html#~addLiteral">addLiteral</a></li><li data-type='method'><a href="module-RdfService.html#~checkObject">checkObject</a></li><li data-type='method'><a href="module-RdfService.html#~constructor">constructor</a></li><li data-type='method'><a href="module-RdfService.html#~deleteNode">deleteNode</a></li><li data-type='method'><a href="module-RdfService.html#~deleteRelationships">deleteRelationships</a></li><li data-type='method'><a href="module-RdfService.html#~deleteTriple">deleteTriple</a></li><li data-type='method'><a href="module-RdfService.html#~getRelated">getRelated</a></li><li data-type='method'><a href="module-RdfService.html#~getRelating">getRelating</a></li><li data-type='method'><a href="module-RdfService.html#~insertTriple">insertTriple</a></li><li data-type='method'><a href="module-RdfService.html#~instantiate">instantiate</a></li><li data-type='method'><a href="module-RdfService.html#~runQuery">runQuery</a></li><li data-type='method'><a href="module-RdfService.html#~runUpdate">runUpdate</a></li></ul></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">OntologyService/index.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import RdfService from "@telicent-io/rdfservice";
+
+/** 
+  * @module OntologyService
+  * @description An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
+  * @author Ian Bailey
+  */
+
+export default class OntologyService extends RdfService {
+  /**
+   * @method constructor
+   * @description An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
+   * @param {string} [triplestoreUri="http://localhost:3030/"] - The host address of the triplestore
+   * @param {string} [dataset="ontology"] - the dataset name in the triplestore
+   * @param {string} [defaultUriStub="http://telicent.io/ontology/"] - the default stub to use when building GUID URIs
+   * @param {string} [defaultSecurityLabel=""] - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
+  */
+  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ontology", defaultUriStub = "http://telicent.io/ontology/", defaultSecurityLabel = "") {
+
+    super(triplestoreUri, dataset, defaultUriStub, defaultSecurityLabel)
+    this.telDiagram = this.telicent + "Diagram"
+    this.telUUID = this.telicent + "uuid"
+    this.telTitle = this.telicent + "title"
+    this.telElementStyle = this.telicent + "elementStyle"
+    this.telInDiagram = this.telicent + "inDiagram"
+    this.telRepresents = this.telicent + "represents"
+    this.telDiagramElement = this.telicent + "DiagramElement"
+    this.telDiagramRelationship = this.telicent + "DiagramRelationship"
+    this.telSourceElem = this.telicent + "sourceElem"
+    this.telTargetElem = this.telicent + "targetElem"
+  }
+
+  /**
+   * @method newClass 
+   * @description Creates a new Class (default rdfs:Class - override via clsType parameter)
+   * if it's a subclass of another class, then provide this via the superClass parameter
+   * optionally add a style object if needed
+   * @param {string} uri - The uri of the new class
+   * @param {string} superclass - the parent (superclass) of the new class
+   * @param {object} styleObject - pass in a style object (call makeStyleObject to get a new one)
+   * @returns {string} - the uri of the new class (which you've already provided...I know...I know...)
+  */
+  newClass(uri, superClass, clsType = this.rdfsClass, styleObject) {
+    var cls = this.instantiate(clsType, uri)
+    if ((superClass) &amp;&amp; (superClass != "")) {
+      this.addSuperClass(uri, superClass)
+    }
+    if (styleObject) {
+      this.setStyle(uri, styleObject)
+    }
+    return cls
+  }
+
+  /**
+   * @method getClass 
+   * @description brings back a class object that collects together all the useful info about the class
+   * @param {string} uri - The uri of the class to fetch
+   * @param {boolean} [getAllPredicates=true] - if true, it brings back all the related items. Set to false if you just need the basic info back
+   * @param {boolean} [getSubClasses=true] - runs a second query to get all the subclasses of the class. Set to false if you don't need it - saves traffic
+   * @param {boolean} [getDomainProperties=true] - runs a second query to get all the properties whose domain is this class
+   * @returns {object} - an object describing the class
+  */
+  async getClass(uri, getAllPredicates = true, getSubClasses = true, getDomainProperties = true) {
+    var query = `SELECT ?s ?p ?o WHERE {&lt;${uri}> ?p ?o .  BIND (IRI("${uri}") as ?s) }`
+    const ontojson = await this.runQuery(query)
+    var element = this.#makeElement(uri)
+    element["ownedProperties"] = []
+    element["superClasses"] = []
+
+    if (ontojson &amp;&amp; ontojson.results &amp;&amp; ontojson.results.bindings) {
+      for (var i in ontojson.results.bindings) {
+        var stmt = ontojson.results.bindings[i]
+        var s = stmt.s.value
+        var p = stmt.p.value
+        var o = stmt.o.value
+
+        if (getAllPredicates) {
+          if (!(p in element["predicates"])) {
+            element["predicates"][p] = [o]
+          }
+          else {
+            element["predicates"][p].push(o)
+          }
+        }
+        if (p == this.telicentStyle) {
+          var styleObj = JSON.parse(unescape(o))
+          element.defaultStyle = styleObj
+        }
+        if (p == this.rdfsSubClassOf) {
+          element.superClasses.push(o)
+        }
+        else if (p == this.rdfType) {
+          element.rdfType.push(o)
+        }
+        else if (p == this.rdfsLabel) {
+          element.labels.push(o)
+        }
+        else if (p == this.rdfsComment) {
+          element.comments.push(o)
+        }
+      }
+    }
+    if (getSubClasses) {
+      element.subClasses = await this.getSubClasses(uri)
+    }
+    if (getDomainProperties) {
+      element.ownedProperties = await this.getDomainProperties(uri)
+    }
+    return element
+  }
+
+  /**
+   * @method getDomainProperties 
+   * @description returns all properties which have this class as their domain
+   * @param {string} uri - The uri of the class which is the domain for the properties returned
+   * @returns {Array} - an array of properties whose domain is this class
+  */
+  async getDomainProperties(uri) {
+    return await this.getRelating(uri, this.rdfsDomain)
+  }
+
+  /**
+   * @method getRangeProperties
+   * @description returns all properties which have this class as their range
+   * @param {string} uri - The uri of the class which is the range for the properties returned
+   * @returns {Array} - an array of properties whose range is this class
+  */
+  async getRangeProperties(uri) {
+    return await this.getRelating(uri, this.rdfsRange)
+  }
+
+  /**
+   * @method getInheritedDomainProperties 
+   * @description returns all properties defined (domain) against the superclasses of the provided class
+   * @param {string} uri - The uri of the class (or subclass) which is the domain for the properties returned
+   * @returns {Array} - an array of properties whose domain is this class or one of its superclasses
+  */
+  async getInheritedDomainProperties(uri) {
+    var query = `SELECT ?prop ?item WHERE {?prop &lt;${this.rdfsDomain}> ?item . &lt;${uri}> &lt;${this.rdfsSubClassOf}>* ?item. }`
+    var spOut = await this.runQuery(query)
+    var output = []
+    if (spOut &amp;&amp; spOut.results &amp;&amp; spOut.results.bindings) {
+
+      for (var i in spOut.results.bindings) {
+        var stmt = spOut.results.bindings[i]
+        if (stmt.item.value != uri) {
+          output.push({ property: stmt.prop.value, domain: stmt.item.value })
+        }
+      }
+    }
+    return output
+  }
+
+  /**
+   * @method getInheritedRangeProperties 
+   * @description returns all properties defined (range) against the superclasses of the provided class
+   * @param {string} uri - The uri of the class (or subclass) which is the range for the properties returned
+   * @returns {Array} - an array of properties whose range is this class or one of its superclasses
+  */
+  async getInheritedRangeProperties(uri) {
+    var query = `SELECT ?prop ?item WHERE {?prop &lt;${this.rdfsRange}> ?item . &lt;${uri}> &lt;${this.rdfsSubClassOf}>* ?item. }`
+    var spOut = await this.runQuery(query)
+    var output = []
+    if (spOut &amp;&amp; spOut.results &amp;&amp; spOut.results.bindings) {
+
+      for (var i in spOut.results.bindings) {
+        var stmt = spOut.results.bindings[i]
+        if (stmt.item.value != uri) {
+          output.push({ property: stmt.prop.value, domain: stmt.item.value })
+        }
+      }
+    }
+    return output
+  }
+
+  /**
+   * @method addSubClass
+   * @description instantiates an rdfs:subClassOf relationship between two classes
+   * @param {string} subClass - The subclass that is to be related to the superclass using rdfs:subClassOf
+   * @param {string} superClass - The superclass that is to be related to the subclass using rdfs:subClassOf
+  */
+  addSubClass(subClass, superClass) {
+    this.insertTriple(subClass, this.rdfsSubClassOf, superClass)
+  }
+
+  /**
+   * @method getSubClasses
+   * @description Returns a list of all the subclasses of the provided class
+   * If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
+   * @param {string} uri - The uri of the class whose subclasses are returned
+   * @returns {Array} - an array of subclasses
+  */
+  async getSubClasses(uri) {
+    return await this.getRelating(uri, this.rdfsSubClassOf)
+  }
+
+  /**
+   * @method getSuperClasses 
+   * @description Returns a list of all the superclasses of the provided class
+   * If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
+   * If you want to get all the supers going all the way to the top (i.e. transitively climbing up the hierarchy) then set getAll to true
+   * @param {string} uri - The uri of the class whose subclasses are returned
+   * @param {boolean} ignoreSubProps - set to true to ignore all subproperties of rdfs:subClassOf. Most ontologies don't do this, but IES, BORO and IDEAS do...
+   * @param {boolean} getAll - set to true to chase up the transitive hierarchy and get all the other levels of superclass (you might get a lot of these !)
+   * @returns {Array} - an array of superclasses
+  */
+  async getSuperClasses(uri, ignoreSubProps = false, getAll = false) {
+    if (getAll) {
+      var pathOp = "*"
+    }
+    else {
+      var pathOp = ""
+    }
+    if (ignoreSubProps) {
+      var query = `SELECT ?super WHERE {&lt;${uri}> &lt;${this.rdfsSubClassOf}>${pathOp} ?super .}`
+    }
+    else {
+      var query = `SELECT ?super WHERE {&lt;${uri}> ?subRel${pathOp} ?super . ?subRel &lt;${this.rdfsSubPropertyOf}>* &lt;${this.rdfsSubClassOf}> .}`
+    }
+    var output = []
+    var spOut = await this.runQuery(query)
+    if (spOut &amp;&amp; spOut.results &amp;&amp; spOut.results.bindings) {
+      for (var i in spOut.results.bindings) {
+        var stmt = spOut.results.bindings[i]
+        output.push(stmt.super.value)
+      }
+    }
+    return output
+  }
+
+  /**
+   * @method getStyles 
+   * @description returns a dictionary object of styles for each specified class. If no classes are specified, it will get all the styles for every class it finds with style
+   * pass the classes in as an array of URIs
+   * @param {Array} classes - An array of URIs (strings) of the classes whose styles are required
+   * @returns {object} - a dictionary keyed by the class URIs, with the values being style objects
+  */
+  async getStyles(classes = []) {
+    var filter = ""
+    if (!Array.isArray(classes)) {
+      throw new Error("classes parameter must be an array")
+    }
+    else if (classes.length > 0) {
+      filter = 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )';
+    }
+    var query = `SELECT ?cls ?style WHERE {?cls &lt;${this.telicentStyle}> ?style . ${filter} }`
+    var output = {}
+    var spOut = await this.runQuery(query)
+    if (spOut &amp;&amp; spOut.results &amp;&amp; spOut.results.bindings) {
+      for (var i in spOut.results.bindings) {
+        var stmt = spOut.results.bindings[i]
+        if ((stmt.style.value) &amp;&amp; (stmt.style.value != "undefined")) {
+          output[stmt.cls.value] = JSON.parse(unescape(stmt.style.value))
+        }
+      }
+    }
+    return output
+  }
+
+  /**
+   * @method makeStyleObject 
+   * @description creates a js object with the provided colours, icons, etc. If you leave them unset, they'll default to the grey box.
+   * @param {string} [backgroundColor="#888"] - An array of URIs (strings) of the classes whose styles are required
+   * @param {string} [color="#000"] - An array of URIs (strings) of the classes whose styles are required
+   * @param {string} [icon="ri-question-mark"] - Legacy feature - an alternative remix icon ID for older apps that still use remix. This will be deprecated in future versions
+   * @param {string} [faIcon=fa-solid fa-question"] - The font awesome icon string
+   * @param {string} [faUnicode="\u003f"] - The unicode representation of the font awesome icon
+   * @param {string} [faClass="fa-solid"] - The class string of font awesome icon - usually this also included in the faIcon string
+   * @returns {object} - a style object for use in other methods
+  */
+  makeStyleObject(backgroundColor = "#888", color = "#000", icon = "ri-question-mark", faIcon = "fa-solid fa-question", faUnicode = "\u003f", faClass = "fa-solid") {
+    return {
+      backgroundColor: backgroundColor,
+      color: color,
+      icon: icon,
+      faIcon: faIcon,
+      faUnicode: faUnicode,
+      faClass: faClass
+    }
+  }
+
+  /**
+   * @method setStyle 
+   * @description sets the default style for a class. Deletes any previous styles
+   * @param {string} uri - The URI of the class that have the style assigned
+   * @param {object} styleObj - A style object for the class - call makeStyleObject to get one
+  */
+  setStyle(uri, styleObj) {
+    if (styleObj) {
+      var styleStr = encodeURIComponent(JSON.stringify(styleObj))
+      this.deleteRelationships(uri, this.telicentStyle)
+      this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL")
+    }
+    else {
+      throw new Error('No style object provided')
+    }
+
+  }
+
+  //#makeElement - built-in function to create an empty element object
+  #makeElement(uri) {
+    return {
+      uri: uri,
+      rdfType: [],
+      labels: [],
+      comments: [],
+      defaultStyle: {},
+      predicates: {}
+    }
+  }
+
+  //#makeClass - built-in function for handling elements that are classes
+  #makeClass(elementID, output, subClass, superClass) {
+    if (!(elementID in output.allElements)) {
+      output.allElements[elementID] = { predicates: {} }
+    }
+    var element = output.allElements[elementID]
+    if (!(elementID in output.classes)) {
+      element["ownedProperties"] = []
+      element["subClasses"] = []
+      element["superClasses"] = []
+      output.classes[elementID] = element
+    }
+    if (subClass != null) {
+      element.subClasses.push(subClass)
+    }
+    else if (superClass != null) {
+      element.superClasses.push(superClass)
+    }
+  }
+
+  //#makeProperty - a built-in function to handle elements that are property definitions
+  #makeProperty(elementID, output, subProperty, superProperty, domain, range) {
+    if (!(elementID in output.allElements)) {
+      output.allElements[elementID] = { predicates: {} }
+    }
+    var element = output.allElements[elementID]
+    if (!(elementID in output.properties)) {
+      element["subProperties"] = []
+      element["superProperties"] = []
+      element["domain"] = []
+      element["range"] = []
+      output.properties[elementID] = element
+    }
+    if (subProperty != null) {
+      element.subProperties.push(subProperty)
+    }
+    else if (superProperty != null) {
+      element.superProperties.push(superProperty)
+    }
+    else if (domain != null) {
+      element.domain.push(domain)
+      this.#makeClass(domain, output)
+      output.allElements[domain].ownedProperties.push(elementID)
+    }
+    else if (range != null) {
+      element.range.push(range)
+      this.#makeClass(range, output)
+    }
+  }
+
+  //function that goes through ?s ?p ?o results and formats an object structure for js consumption
+  async #buildResultsObject(query, getAllPredicates) {
+    const ontojson = await this.runQuery(query)
+    var output = {
+      allElements: {},
+      properties: {},
+      classes: {},
+    }
+    if (ontojson &amp;&amp; ontojson.results &amp;&amp; ontojson.results.bindings) {
+      for (var i in ontojson.results.bindings) {
+        var stmt = ontojson.results.bindings[i]
+        var s = stmt.s.value
+        var p = stmt.p.value
+        var o = stmt.o.value
+        if ((stmt.o.type != "literal") &amp;&amp; !(o in output.allElements)) {
+          output.allElements[o] = this.#makeElement(o)
+        }
+
+        if (!(s in output.allElements)) {
+          output.allElements[s] = this.#makeElement(s)
+        }
+        var element = output.allElements[s]
+
+        if (getAllPredicates) {
+          if (!(p in element["predicates"])) {
+            element["predicates"][p] = [o]
+          }
+          else {
+            element["predicates"][p].push(o)
+          }
+        }
+        if ((p == this.telicentStyle) &amp;&amp; (o) &amp;&amp; (o != "undefined")) {
+          var styleObj = JSON.parse(unescape(o))
+          element.defaultStyle = styleObj
+        }
+        if (p == this.rdfsSubClassOf) {
+          this.#makeClass(s, output, null, o)
+          this.#makeClass(o, output, s)
+        }
+        else if (p == this.rdfsSubPropertyOf) {
+          this.#makeProperty(s, output, null, o)
+          this.#makeProperty(o, output, s)
+        }
+        else if (p == this.rdfsDomain) {
+          this.#makeProperty(s, output, null, null, null, o)
+        }
+        else if (p == this.rdfsRange) {
+          this.#makeProperty(s, output, null, null, null, null, o)
+        }
+        else if (p == this.rdfType) {
+          if ((o == this.rdfsClass) || (o == this.owlClass)) {
+            this.#makeClass(s, output, null, null, o)
+          }
+          else if ((o == this.rdfProperty) || (o == this.owlDatatypeProperty) || (o == this.owlObjectProperty)) {
+            this.#makeProperty(s, output, null, null, o)
+          }
+          element.rdfType.push(o)
+        }
+        else if (p == this.rdfsLabel) {
+          element.labels.push(o)
+        }
+        else if (p == this.rdfsComment) {
+          element.comments.push(o)
+        }
+      }
+    }
+    return output
+  }
+
+  /**
+   * @method getAllElements 
+   * @description This is a function that gets every triple in the ontology dataset and shapes it into an object that holds all the properties and classes.
+   * It also provides a list of all the top-of-the-shop classes in the ontology hierarchy and a dictionary of all elements
+   * Set getAllPredicates to true if you want all predicates in the ontology - the object gets approximately 2x the size if you do this though - it doesn't affect the server though, so just need to consider browser memory
+   * Don't stringify the returned object as JSON, it'll get huge as there is a lot of repeating use of object references 
+   * @param {boolean} [getAllPredicates=false] - if true this will return all predicates owned by the element, not just the essential ones
+   * @returns {Array} array of classes and properties that are in the ontology
+  */
+  async getAllElements(getAllPredicates = false) {
+    var output = await this.#buildResultsObject("SELECT * WHERE {?s ?p ?o}", getAllPredicates)
+    output.top = []
+
+    for (var i in output.classes) {
+      var cls = output.classes[i]
+      if (cls.superClasses.length == 0) {
+        output.top.push(i)
+      }
+
+    }
+
+    return output
+  }
+
+  /**
+   * @method getAllDiagrams 
+   * @description returns a list of all the ODM UML diagrams in the triplestore
+   * @returns {Array} array of objects summarising all the diagrams
+  */
+  async getAllDiagrams() {
+    var query = `SELECT ?uri ?uuid ?title WHERE {
+            ?uri a &lt;${this.telDiagram}> . 
+            OPTIONAL {?uri &lt;${this.telUUID}> ?uuid} 
+            OPTIONAL {?uri &lt;${this.telTitle}> ?title } 
+        }`
+    var spOut = await this.runQuery(query)
+    var output = []
+    if (spOut &amp;&amp; spOut.results &amp;&amp; spOut.results.bindings) {
+      for (var i in spOut.results.bindings) {
+        var stmt = spOut.results.bindings[i]
+        var diag = { uri: stmt.uri.value }
+        if (stmt.title) {
+          diag.title = stmt.title.value
+        }
+        if (stmt.uuid) {
+          diag.uuid = stmt.uuid.value
+        }
+        output.push(diag)
+      }
+    }
+    return output
+  }
+
+  /**
+   * @method getDiagram 
+   * @description fetches all info about a given diagram - all the elements and relationships in it
+   * @param {boolean} [uri=false] - the uri of the diagram
+   * @returns {object} an object containing all the information about the diagram
+  */
+  async getDiagram(uri) {
+    var query = `
+        SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
+            &lt;${uri}> a &lt;${this.telDiagram}> . 
+            OPTIONAL {&lt;${uri}> &lt;${this.telUUID}> ?uuid} 
+            OPTIONAL {&lt;${uri}> &lt;${this.telTitle}> ?title } 
+            OPTIONAL {
+                ?diagElem &lt;${this.telInDiagram}> &lt;${uri}> .
+                ?diagElem a &lt;${this.telDiagramElement}> .
+                ?diagElem &lt;${this.telElementStyle}> ?elemStyle .
+                ?diagElem &lt;${this.telRepresents}> ?elem
+            }
+            OPTIONAL {
+                ?diagRel &lt;${this.telInDiagram}> &lt;${uri}> .
+                ?diagRel a &lt;${this.telDiagramRelationship}> .
+                ?diagRel &lt;${this.telRepresents}> ?rel .
+                ?diagRel &lt;${this.telSourceElem}> ?source .
+                ?diagRel &lt;${this.telTargetElem}> ?target .
+            }
+        }`
+    var spOut = await this.runQuery(query)
+    var output = { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} }
+    if (spOut &amp;&amp; spOut.results &amp;&amp; spOut.results.bindings) {
+      for (var i in spOut.results.bindings) {
+        var stmt = spOut.results.bindings[i]
+        output.title = stmt.title.value
+        output.uuid = stmt.uuid.value
+        if (!(stmt.diagElem.value in output.diagramElements)) {
+          output.diagramElements[stmt.diagElem.value] = { style: {} }
+        }
+        output.diagramElements[stmt.diagElem.value].element = stmt.elem.value
+        output.diagramElements[stmt.diagElem.value].style = JSON.parse(unescape(stmt.elemStyle.value))
+        if (!(stmt.diagRel.value in output.diagramRelationships)) {
+          output.diagramRelationships[stmt.diagRel.value] = {}
+        }
+        output.diagramRelationships[stmt.diagRel.value].relationship = stmt.rel.value
+        output.diagramRelationships[stmt.diagRel.value].source = stmt.source.value
+        output.diagramRelationships[stmt.diagRel.value].target = stmt.target.value
+      }
+    }
+    return output
+  }
+
+  /**
+   * @method newDiagram 
+   * @description creates a new diagram
+   * @param {string} title - the title of the diagram (mandatory)
+   * @param {string} uri - if unset, a new URI will be minted, and will be based on the UUID 
+   * @param {string} uuid - if unset, a new UUID will be minted
+   * @param {string} securityLabel - the security label enforced by the CORE platform
+  */
+  newDiagram(title, uri, uuid, securityLabel) {
+    if (!uuid) {
+      uuid = crypto.randomUUID()
+    }
+    if (!uri) {
+      uri = this.defaultUriStub + uuid
+    }
+    this.instantiate(this.telDiagram, uri, securityLabel)
+    this.setTitle(uri, title)
+    this.addLiteral(uri, this.telUUID, uuid)
+  }
+
+
+  /**
+   * @method setTitle 
+   * @description sets the telicent:title property - used in diagrams and similar
+   * @param {string} uri - the URI of the diagram
+   * @param {string} title - the telicent:title to be applied to the diagram - this will remove any previous title.
+  */
+  setTitle(uri, title) {
+    this.addLiteral(uri, this.telTitle, title, true)
+  }
+
+
+
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Tue Nov 21 2023 20:59:46 GMT+0000 (Greenwich Mean Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>

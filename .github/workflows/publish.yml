@@ -1,0 +1,150 @@
+name: build and push ontology libraries
+
+on:
+  push:
+    branches:
+      - tidy-up 
+
+jobs:
+  get_version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Get version from package.json
+        id: semver
+        uses: martinbeentjes/npm-get-version-action@main
+        with:
+          path: ./RdfService
+    outputs:
+      version: ${{ steps.semver.outputs.current-version }}
+  publish-rdf-service:
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    needs: get_version
+    defaults:
+      run:
+        working-directory: ./RdfService
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: configure-node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+          scope: "@Telicent-io"
+          always-auth: true
+      - name: create .yarnrc file
+        run: |
+          npm config set "@telicent-io:registry" "https://npm.pkg.github.com/"
+          npm config set "//npm.pkg.github.com/:_authToken" ${{ secrets.PACKAGE_PAT }} 
+      - name: Install dependencies
+        run: yarn install
+      - run: yarn build
+      - run: yarn publish
+        env:
+          NPM_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  publish-ies-service:
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    needs: publish-rdf-service
+    defaults:
+      run:
+        working-directory: ./IesService
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.PACKAGE_PAT }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: configure-node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+          scope: "@Telicent-io"
+          always-auth: true
+      - name: create .yarnrc file
+        run: |
+          npm config set "@telicent-io:registry" "https://npm.pkg.github.com/"
+          npm config set "//npm.pkg.github.com/:_authToken" ${{ secrets.PACKAGE_PAT }} 
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: yarn publish
+        env:
+          NPM_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  publish-ontology-service:
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    needs: publish-rdf-service
+    defaults:
+      run:
+        working-directory: ./OntologyService
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.PACKAGE_PAT }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: configure-node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+          scope: "@Telicent-io"
+          always-auth: true
+      - name: create .yarnrc file
+        run: |
+          npm config set "@telicent-io:registry" "https://npm.pkg.github.com/"
+          npm config set "//npm.pkg.github.com/:_authToken" ${{ secrets.PACKAGE_PAT }} 
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: yarn publish
+        env:
+          NPM_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+  publish-Paralog-service:
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    needs: publish-ies-service
+    defaults:
+      run:
+        working-directory: ./ParalogService
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.PACKAGE_PAT }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: configure-node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 20
+          registry-url: https://npm.pkg.github.com/
+          scope: "@Telicent-io"
+          always-auth: true
+      - name: create .yarnrc file
+        run: |
+          npm config set "@telicent-io:registry" "https://npm.pkg.github.com/"
+          npm config set "//npm.pkg.github.com/:_authToken" ${{ secrets.PACKAGE_PAT }} 
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+      - run: yarn build
+      - run: yarn publish
+        env:
+          NPM_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}

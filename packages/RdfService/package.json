@@ -1,0 +1,53 @@
+{
+  "name": "@telicent-io/rdfservice",
+  "version": "0.0.5",
+  "private": false,
+  "description": "Create, Read and Delete RDF Triples",
+  "main": "./dist/rdfservice.umd.js",
+  "files": [
+    "dist"
+  ],
+  "module": "./dist/rdfservice.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/rdfservice.es.js",
+      "export": "./dist/rdfservice.umd.js"
+    }
+  },
+  "scripts": {
+    "test": "jest test",
+    "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
+    "build": "rm -rf ./dist && vite build",
+    "lint": "eslint -f unix \"src/**/*.{ts,tsx}\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Telicent-io/js-ontology-lib.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "author": "",
+  "license": "NO LICENSE",
+  "devDependencies": {
+    "@microsoft/tsdoc": "^0.14.2",
+    "@types/jest": "^29.4.0",
+    "eslint-plugin-tsdoc": "^0.2.17",
+    "jest-fetch-mock": "^3.0.3",
+    "remove": "^0.1.5",
+    "testing": "link:@nrwl/nx-plugin/testing",
+    "ts-jest": "^29.1.1",
+    "tsc": "^2.0.4",
+    "typedoc": "^0.25.3",
+    "typescript": "^5.2.2",
+    "vite": "^4.5.0",
+    "vite-plugin-dts": "^3.6.3",
+    "vite-tsconfig-paths": "^4.2.1"
+  },
+  "jest": {
+    "automock": false,
+    "setupFiles": [
+      "./setupJest.js"
+    ]
+  }
+}

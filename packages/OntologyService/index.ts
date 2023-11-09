@@ -1,0 +1,450 @@
+/** 
+  * @module OntologyService
+  * @remarks
+  * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
+  * @author Ian Bailey
+  */
+
+import RdfService, { DiagramQuery, DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-io/rdfservice";
+import { randomUUID } from "crypto";
+import { StyleObject } from "./Types";
+import ClassDefinition from "./ClassDefinition";
+import PropertyDefinition from "./PropertyDefinition";
+import ElementDefinition from "./ElementDefinition";
+import { buildStatementPartial } from "./helper";
+
+export interface Diagram {
+  uuid?: string;
+  title?: string;
+  uri: string;
+}
+
+export interface NamedElements {
+  [subject: string]: ElementDefinition;
+}
+
+export interface NamedClassDefinitions {
+  [subject: string]: ClassDefinition;
+}
+
+export interface NamedPropertiesDefinitions {
+  [subject: string]: PropertyDefinition;
+}
+
+export type AllElements = NamedPropertiesDefinitions | NamedClassDefinitions | NamedElements; 
+
+export interface OntologyOutput {
+  allElements: AllElements;
+  properties: NamedPropertiesDefinitions;
+  classes: NamedClassDefinitions;
+}
+
+export default class OntologyService extends RdfService {
+  telDiagram: string;
+  telUUID: string;
+  telTitle: string;
+  telElementStyle: string;
+  telInDiagram: string;
+  telRepresents: string;
+  telDiagramElement: string;
+  telDiagramRelationship: string;
+  telSourceElem: string;
+  telTargetElem: string;
+  nodes: OntologyOutput = {
+    allElements: {},
+    classes: {},
+    properties: {}
+  };
+
+  /**
+   * @method constructor
+   * @remarks
+   * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
+   * @param triplestoreUri - The host address of the triplestore
+   * @param dataset - the dataset name in the triplestore
+   * @param defaultUriStub - the default stub to use when building GUID URIs
+   * @param defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
+  */
+  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ontology", defaultUriStub = "http://telicent.io/ontology/", defaultSecurityLabel = "") {
+    super(triplestoreUri, dataset, defaultUriStub, defaultSecurityLabel)
+    this.telDiagram = this.telicent + "Diagram"
+    this.telUUID = this.telicent + "uuid"
+    this.telTitle = this.telicent + "title"
+    this.telElementStyle = this.telicent + "elementStyle"
+    this.telInDiagram = this.telicent + "inDiagram"
+    this.telRepresents = this.telicent + "represents"
+    this.telDiagramElement = this.telicent + "DiagramElement"
+    this.telDiagramRelationship = this.telicent + "DiagramRelationship"
+    this.telSourceElem = this.telicent + "sourceElem"
+    this.telTargetElem = this.telicent + "targetElem"
+  }
+
+
+  /**
+   * @method getClass 
+   * @remarks
+   * brings back a class object that collects together all the useful info about the class
+   * @param uri - The uri of the class to fetch
+   * @param getAllPredicates - if true, it brings back all the related items. Set to false if you just need the basic info back
+   * @param getSubClasses - runs a second query to get all the subclasses of the class. Set to false if you don't need it - saves traffic
+   * @param getDomainProperties - runs a second query to get all the properties whose domain is this class
+   * @returns object - an object describing the class
+  */
+  async getClass(uri: string, getAllPredicates = true, getSubClasses = true, getDomainProperties = true) {
+    const cls = new ClassDefinition()
+    if(!getAllPredicates && !getSubClasses && ! getDomainProperties) return cls
+
+    var query = `SELECT ?s ?p ?o WHERE {<${uri}> ?p ?o .  BIND (IRI("${uri}") as ?s) }`
+    const ontojson = await this.runQuery<SPARQL[]>(query)
+
+    //TODO: add class to nodes.allElements and nodes.classes after result is returned
+    if (ontojson?.results?.bindings) {
+      const statements = ontojson.results.bindings
+
+      statements.forEach(statement => {
+        const subject = statement.s.value;
+        const predicate = statement.p.value;
+        const object = statement.o.value;
+
+        getAllPredicates && cls.addPredicate(predicate, object)
+
+
+        if (predicate === this.telicentStyle) {
+          const styleObj = JSON.parse(encodeURIComponent(object))
+          cls.setDefaultStyle(styleObj)
+        }
+
+        // TODO find a grouped name for what this figures out and 
+        // add it to the class setPredicate?
+        switch (predicate) {
+          case this.rdfsSubClassOf:
+            cls.addSuperClass(object)
+            break;
+          case this.rdfType:
+            cls.addRdfType(object)
+            break;
+          case this.rdfsLabel:
+            cls.addLabel(object)
+            break;
+          case this.rdfsComment:
+            cls.addComment(object)
+            break;
+          default:
+            break;
+        }
+      })
+
+      if (getSubClasses) {
+        cls.subClasses = await this.getSubClasses(uri)
+      }
+
+      if (getDomainProperties) {
+        cls.ownedProperties = await this.getDomainProperties(uri)
+      }
+    }
+    return cls
+  }
+
+  /**
+   * @method getDomainProperties 
+   * @remarks
+   * returns all properties which have this class as their domain
+   * @param uri - The uri of the class which is the domain for the properties returned
+   * @returns an array of properties whose domain is this class
+  */
+  async getDomainProperties(uri: string) {
+    return await this.getRelating(uri, this.rdfsDomain)
+  }
+
+  /**
+   * @method getRangeProperties
+   * @remarks
+   * returns all properties which have this class as their range
+   * @param uri - The uri of the class which is the range for the properties returned
+   * @returns - an array of properties whose range is this class
+  */
+  async getRangeProperties(uri: string) {
+    return await this.getRelating(uri, this.rdfsRange)
+  }
+
+  /**
+   * @method getInheritedDomainProperties 
+   * @remarks
+   * returns all properties defined (domain) against the superclasses of the provided class
+   * @param uri - The uri of the class (or subclass) which is the domain for the properties returned
+   * @returns an array of properties whose domain is this class or one of its superclasses
+  */
+  async getInheritedDomainProperties(uri: string) {
+    const query = `SELECT ?prop ?item WHERE {?prop <${this.rdfsDomain}> ?item . <${uri}> <${this.rdfsSubClassOf}>* ?item. }`
+    const spOut = await this.runQuery<InheritedDomainQuery[]>(query)
+    if (!(spOut?.results?.bindings)) return
+
+    const statements = spOut.results.bindings;
+    return statements.filter(statement => statement.item.value !== uri)
+      .map(statement => ({ property: statement.prop.value, domain: statement.item.value }))
+  }
+
+  /**
+   * @method getInheritedRangeProperties 
+   * @remarks
+   * returns all properties defined (range) against the superclasses of the provided class
+   * @param uri - The uri of the class (or subclass) which is the range for the properties returned
+   * @returns an array of properties whose range is this class or one of its superclasses
+  */
+  async getInheritedRangeProperties(uri: string) {
+    const query = `SELECT ?prop ?item WHERE {?prop <${this.rdfsRange}> ?item . <${uri}> <${this.rdfsSubClassOf}>* ?item. }`
+    const spOut = await this.runQuery<InheritedDomainQuery[]>(query)
+    if (!(spOut?.results?.bindings)) return
+    const statements = spOut.results.bindings
+    return statements.filter(statement => statement.item.value !== uri)
+      .map(statement => ({ property: statement.prop.value, domain: statement.item.value }))
+  }
+
+  /**
+   * @method addSubClass
+   * @remarks
+   * instantiates an rdfs:subClassOf relationship between two classes
+   * @param subClass - The subclass that is to be related to the superclass using rdfs:subClassOf
+   * @param superClass - The superclass that is to be related to the subclass using rdfs:subClassOf
+  */
+  addSubClass(subClass: string, superClass: string) {
+    this.insertTriple(subClass, this.rdfsSubClassOf, superClass)
+  }
+
+  /**
+   * @method getSubClasses
+   * @remarks
+   * Returns a list of all the subclasses of the provided class
+   * If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
+   * @param uri - The uri of the class whose subclasses are returned
+   * @returns an array of subclasses
+  */
+  async getSubClasses(uri: string) {
+    return await this.getRelating(uri, this.rdfsSubClassOf)
+  }
+
+  /**
+   * @method getSuperClasses 
+   * @remarks
+   * Returns a list of all the superclasses of the provided class
+   * If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
+   * If you want to get all the supers going all the way to the top (i.e. transitively climbing up the hierarchy) then set getAll to true
+   * @param uri - The uri of the class whose subclasses are returned
+   * @param ignoreSubProps - set to true to ignore all subproperties of rdfs:subClassOf. Most ontologies don't do this, but IES, BORO and IDEAS do...
+   * @param getAll - set to true to chase up the transitive hierarchy and get all the other levels of superclass (you might get a lot of these !)
+   * @returns an array of superclasses
+  */
+  async getSuperClasses(uri: string, ignoreSubProps = false, getAll = false) {
+    const pathOp = getAll ? "*" : "";
+
+    const query = ignoreSubProps ?
+      `SELECT ?super WHERE {<${uri}> <${this.rdfsSubClassOf}>${pathOp} ?super .}` :
+      `SELECT ?super WHERE {<${uri}> ?subRel${pathOp} ?super . ?subRel <${this.rdfsSubPropertyOf}>* <${this.rdfsSubClassOf}> .}`
+
+    const spOut = await this.runQuery<SuperClassQuery[]>(query)
+    if (!(spOut?.results?.bindings)) return
+    const statements = spOut.results.bindings
+    return statements.map(statement => statement.super.value)
+  }
+
+  /**
+   * @method getStyles 
+   * @remarks
+   * returns a dictionary object of styles for each specified class. If no classes are specified, it will get all the styles for every class it finds with style
+   * pass the classes in as an array of URIs
+   * @param classes - An array of URIs (strings) of the classes whose styles are required
+   * @returns a dictionary keyed by the class URIs, with the values being style objects
+  */
+  async getStyles(classes: string[] = []) {
+    var filter = ""
+
+    if (classes.length > 0) {
+      filter = 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )';
+    }
+    const query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`
+    const spOut = await this.runQuery<StylesQuery[]>(query)
+    if (!(spOut?.results?.bindings)) return
+
+    const statements = spOut.results.bindings
+    return statements.reduce((statements, statement) => {
+      if (!statement.style.value || statement.style.value === "undefined") return statements
+      statements[statement.cls.value] = JSON.parse(decodeURIComponent(statement.style.value))
+    }, {})
+  }
+
+  /**
+   * @method setStyle 
+   * @remarks
+   * sets the default style for a class. Deletes any previous styles
+   * @param uri - The URI of the class that have the style assigned
+   * @param styleObj - A style object for the class - call makeStyleObject to get one
+  */
+  setStyle(uri: string, styleObj: StyleObject) {
+    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
+    this.deleteRelationships(uri, this.telicentStyle)
+    this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL")
+  }
+
+
+  /**
+   * @method #addPropertiesToOutput
+   */
+  //function that goes through ?s ?p ?o results and formats an object structure for js consumption
+  async #buildResultsObject(query: string, getAllPredicates = false) {
+    const ontojson = await this.runQuery<SPARQL[]>(query)
+
+    if (ontojson?.results?.bindings) {
+      const statements = ontojson.results.bindings
+      const processStatement =  buildStatementPartial(this, getAllPredicates)
+      statements.forEach(processStatement)
+    }
+
+    return this.nodes
+  }
+
+  /**
+   * @method getAllElements 
+   * @remarks
+   * This is a function that gets every triple in the ontology dataset and shapes it into an object that holds all the properties and classes.
+   * It also provides a list of all the top-of-the-shop classes in the ontology hierarchy and a dictionary of all elements
+   * Set getAllPredicates to true if you want all predicates in the ontology - the object gets approximately 2x the size if you do this though - it doesn't affect the server though, so just need to consider browser memory
+   * Don't stringify the returned object as JSON, it'll get huge as there is a lot of repeating use of object references 
+   * @param  [getAllPredicates=false] - if true this will return all predicates owned by the element, not just the essential ones
+   * @returns array of classes and properties that are in the ontology
+  */
+  async getAllElements(getAllPredicates = false) {
+    var result = await this.#buildResultsObject("SELECT * WHERE {?s ?p ?o}", getAllPredicates)
+
+    //TODO has no ability to get predicates
+
+    const output = {
+      ...result,
+      top: []
+    }
+    for (let className in output.classes) {
+      const cls = output.classes[className]
+      if (cls.superClasses.length === 0) {
+        output.top.push(cls)
+      }
+    }
+
+    return output
+  }
+
+  /**
+   * @method getAllDiagrams 
+   * @remarks
+   * returns a list of all the ODM UML diagrams in the triplestore
+   * @returns array of objects summarising all the diagrams
+  */
+  async getAllDiagrams() {
+    const query = `SELECT ?uri ?uuid ?title WHERE {
+            ?uri a <${this.telDiagram}> . 
+            OPTIONAL {?uri <${this.telUUID}> ?uuid} 
+            OPTIONAL {?uri <${this.telTitle}> ?title } 
+        }`
+    const spOut = await this.runQuery<DiagramListQuery[]>(query)
+    if (!(spOut?.results?.bindings)) return
+
+    const statements = spOut.results.bindings
+    return statements.map(statement => {
+      const diag: Diagram = { uri: statement.uri.value }
+      if (statement.title) {
+        diag.title = statement.title.value
+      }
+      if (statement.uuid) {
+        diag.uuid = statement.uuid.value
+      }
+
+      return diag
+    })
+  }
+
+  /**
+   * @method getDiagram 
+   * @remarks
+   * fetches all info about a given diagram - all the elements and relationships in it
+   * @param   the uri of the diagram
+   * @returns an object containing all the information about the diagram
+  */
+  async getDiagram(uri: string) {
+    var query = `
+        SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
+            <${uri}> a <${this.telDiagram}> . 
+            OPTIONAL {<${uri}> <${this.telUUID}> ?uuid} 
+            OPTIONAL {<${uri}> <${this.telTitle}> ?title } 
+            OPTIONAL {
+                ?diagElem <${this.telInDiagram}> <${uri}> .
+                ?diagElem a <${this.telDiagramElement}> .
+                ?diagElem <${this.telElementStyle}> ?elemStyle .
+                ?diagElem <${this.telRepresents}> ?elem
+            }
+            OPTIONAL {
+                ?diagRel <${this.telInDiagram}> <${uri}> .
+                ?diagRel a <${this.telDiagramRelationship}> .
+                ?diagRel <${this.telRepresents}> ?rel .
+                ?diagRel <${this.telSourceElem}> ?source .
+                ?diagRel <${this.telTargetElem}> ?target .
+            }
+        }`
+    const spOut = await this.runQuery<DiagramQuery[]>(query)
+    if (!(spOut?.results?.bindings)) return
+
+    const statements = spOut.results.bindings
+    const output = statements.reduce((acc, statement) => {
+      // TODO: this will override the title each time is that correct?
+      acc.title = statement.title.value
+      acc.uuid = statement.uuid.value
+
+      if (!(statement.diagElem.value in acc.diagramElements)) {
+        acc.diagramElements[statement.diagElem.value] = { style: {} }
+      }
+      acc.diagramElements[statement.diagElem.value].element = statement.elem.value
+      acc.diagramElements[statement.diagElem.value].style = JSON.parse(decodeURIComponent(statement.elemStyle.value))
+      if (!(statement.diagRel.value in acc.diagramRelationships)) {
+        acc.diagramRelationships[statement.diagRel.value] = {}
+      }
+      acc.diagramRelationships[statement.diagRel.value].relationship = statement.rel.value
+      acc.diagramRelationships[statement.diagRel.value].source = statement.source.value
+      acc.diagramRelationships[statement.diagRel.value].target = statement.target.value
+
+      return acc
+    }, { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} })
+
+    return output
+  }
+
+  /**
+   * @method newDiagram 
+   * @remarks
+   * creates a new diagram
+   * @param title - the title of the diagram (mandatory)
+   * @param uri - if unset, a new URI will be minted, and will be based on the UUID 
+   * @param uuid - if unset, a new UUID will be minted
+   * @param securityLabel - the security label enforced by the CORE platform
+  */
+  newDiagram(title: string, uri: string, uuid: string, securityLabel: string) {
+    if (!uuid) {
+      uuid = randomUUID()
+    }
+    if (!uri) {
+      uri = this.defaultUriStub + uuid
+    }
+    this.instantiate(this.telDiagram, uri, securityLabel)
+    this.setTitle(uri, title)
+    this.addLiteral(uri, this.telUUID, uuid)
+  }
+
+
+  /**
+   * @method setTitle 
+   * @remarks
+   * sets the telicent:title property - used in diagrams and similar
+   * @param {string} uri - the URI of the diagram
+   * @param {string} title - the telicent:title to be applied to the diagram - this will remove any previous title.
+  */
+  setTitle(uri: string, title: string) {
+    this.addLiteral(uri, this.telTitle, title, true)
+  }
+
+}

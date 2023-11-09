@@ -1,0 +1,39 @@
+{
+  "name": "@telicent-io/paralogservice",
+  "private": false,
+  "version": "0.0.5",
+  "description": "An extension of IESService for managing paralog data",
+  "main": "./dist/paralogservice.umd.js",
+  "files": [
+    "dist"
+  ],
+  "module": "./dist/paralogservice.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/paralogservice.es.js",
+      "export": "./dist/paralogservice.umd.js"
+    }
+  },
+  "scripts": {
+    "test": "jest test",
+    "generate-docs": "node_modules/jsdoc/jsdoc.js -d docs -c ./jsdocConf.json",
+    "build": "rm -rf ./dist && vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Telicent-io/js-ontology-lib.git"
+  },
+  "publishConfig": {
+    "registry": "https://npm.pkg.github.com/"
+  },
+  "dependencies": {
+    "@telicent-io/iesservice": "workspace:*"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "tsc": "^2.0.4",
+    "vite": "^4.5.0"
+  }
+}

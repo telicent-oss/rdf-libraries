@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    
+    <meta charset="utf-8">
+    <title>RdfService/index.js - Documentation</title>
+    
+    
+    <script src="scripts/prettify/prettify.js"></script>
+    <script src="scripts/prettify/lang-css.js"></script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc.css">
+    <script src="scripts/nav.js" defer></script>
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger" class="navicon-button x">
+  <div class="navicon"></div>
+</label>
+
+<label for="nav-trigger" class="overlay"></label>
+
+<nav >
+    
+    
+    <h2><a href="index.html">Home</a></h2><h3>Modules</h3><ul><li><a href="module-IesService.html">IesService</a><ul class='methods'><li data-type='method'><a href="module-IesService.html#~constructor">constructor</a></li></ul></li><li><a href="module-OntologyService.html">OntologyService</a><ul class='methods'><li data-type='method'><a href="module-OntologyService.html#~addSubClass">addSubClass</a></li><li data-type='method'><a href="module-OntologyService.html#~constructor">constructor</a></li><li data-type='method'><a href="module-OntologyService.html#~getAllDiagrams">getAllDiagrams</a></li><li data-type='method'><a href="module-OntologyService.html#~getAllElements">getAllElements</a></li><li data-type='method'><a href="module-OntologyService.html#~getClass">getClass</a></li><li data-type='method'><a href="module-OntologyService.html#~getDiagram">getDiagram</a></li><li data-type='method'><a href="module-OntologyService.html#~getDomainProperties">getDomainProperties</a></li><li data-type='method'><a href="module-OntologyService.html#~getInheritedDomainProperties">getInheritedDomainProperties</a></li><li data-type='method'><a href="module-OntologyService.html#~getInheritedRangeProperties">getInheritedRangeProperties</a></li><li data-type='method'><a href="module-OntologyService.html#~getRangeProperties">getRangeProperties</a></li><li data-type='method'><a href="module-OntologyService.html#~getStyles">getStyles</a></li><li data-type='method'><a href="module-OntologyService.html#~getSubClasses">getSubClasses</a></li><li data-type='method'><a href="module-OntologyService.html#~getSuperClasses">getSuperClasses</a></li><li data-type='method'><a href="module-OntologyService.html#~makeStyleObject">makeStyleObject</a></li><li data-type='method'><a href="module-OntologyService.html#~newClass">newClass</a></li><li data-type='method'><a href="module-OntologyService.html#~newDiagram">newDiagram</a></li><li data-type='method'><a href="module-OntologyService.html#~setStyle">setStyle</a></li><li data-type='method'><a href="module-OntologyService.html#~setTitle">setTitle</a></li></ul></li><li><a href="module-ParalogService.html">ParalogService</a><ul class='methods'><li data-type='method'><a href="module-ParalogService.html#~constructor">constructor</a></li></ul></li><li><a href="module-RdfService.html">RdfService</a><ul class='methods'><li data-type='method'><a href="module-RdfService.html#~addComment">addComment</a></li><li data-type='method'><a href="module-RdfService.html#~addLabel">addLabel</a></li><li data-type='method'><a href="module-RdfService.html#~addLiteral">addLiteral</a></li><li data-type='method'><a href="module-RdfService.html#~checkObject">checkObject</a></li><li data-type='method'><a href="module-RdfService.html#~constructor">constructor</a></li><li data-type='method'><a href="module-RdfService.html#~deleteNode">deleteNode</a></li><li data-type='method'><a href="module-RdfService.html#~deleteRelationships">deleteRelationships</a></li><li data-type='method'><a href="module-RdfService.html#~deleteTriple">deleteTriple</a></li><li data-type='method'><a href="module-RdfService.html#~getRelated">getRelated</a></li><li data-type='method'><a href="module-RdfService.html#~getRelating">getRelating</a></li><li data-type='method'><a href="module-RdfService.html#~insertTriple">insertTriple</a></li><li data-type='method'><a href="module-RdfService.html#~instantiate">instantiate</a></li><li data-type='method'><a href="module-RdfService.html#~runQuery">runQuery</a></li><li data-type='method'><a href="module-RdfService.html#~runUpdate">runUpdate</a></li></ul></li></ul>
+    
+</nav>
+
+<div id="main">
+    
+    <h1 class="page-title">RdfService/index.js</h1>
+    
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>// @ts-check
+/**
+  * @module RdfService
+  * @description A fairly simple class that provides methods for creating, reading and deleting RDF triples
+  * @author Ian Bailey
+  */
+
+
+/**
+  * ObjectType
+  * Enum for IES ObjectTypes
+  * @readonly
+  * @enum {string}
+  * @property {string} uri - "URI"
+  * @property {string} literal - "LITERAL"
+  */
+
+
+const XsdDataType = enum_([
+  "xsd:string", //	Character strings (but not all Unicode character strings)
+  "xsd:boolean",  // true / false
+  "xsd:decimal", // Arbitrary-precision decimal numbers
+  "xsd:integer", // Arbitrary-size integer numbers
+  "xsd:double", // 	64-bit floating point numbers incl. ±Inf, ±0, NaN
+  "xsd:float", // 	32-bit floating point numbers incl. ±Inf, ±0, NaN
+  "xsd:date", // 	Dates (yyyy-mm-dd) with or without timezone
+  "xsd:time", // 	Times (hh:mm:ss.sss…) with or without timezone
+  "xsd:dateTime", // 	Date and time with or without timezone
+  "xsd:dateTimeStamp", // Date and time with required timezone
+  "xsd:gYear", // 	Gregorian calendar year
+  "xsd:gMonth", // 	Gregorian calendar month
+  "xsd:gDay", // 	Gregorian calendar day of the month
+  "xsd:gYearMonth", // 	Gregorian calendar year and month
+  "xsd:gMonthDay", // 	Gregorian calendar month and day
+  "xsd:duration", // 	Duration of time
+  "xsd:yearMonthDuration", //	Duration of time (months and years only)
+  "xsd:dayTimeDuration",	//Duration of time (days, hours, minutes, seconds only)
+  "xsd:byte",	//-128…+127 (8 bit)
+  "xsd:short", //	-32768…+32767 (16 bit)
+  "xsd:int", //	-2147483648…+2147483647 (32 bit)
+  "xsd:long",	//-9223372036854775808…+9223372036854775807 (64 bit)
+  "xsd:unsignedByte", //	0…255 (8 bit)
+  "xsd:unsignedShort", //	0…65535 (16 bit)
+  "xsd:unsignedInt", //	0…4294967295 (32 bit)
+  "xsd:unsignedLong", //	0…18446744073709551615 (64 bit)
+  "xsd:positiveInteger", //	Integer numbers >0
+  "xsd:nonNegativeInteger", //	Integer numbers ≥0
+  "xsd:negativeInteger", //	Integer numbers &lt;0
+  "xsd:nonPositiveInteger", //	Integer numbers ≤0
+  "xsd:hexBinary", //	Hex-encoded binary data
+  "xsd:base64Binary", //	Base64-encoded binary data
+  "xsd:anyURI", //	Absolute or relative URIs and IRIs
+  "xsd:language", //	Language tags per [BCP47]
+  "xsd:normalizedString", //	Whitespace-normalized strings
+  "xsd:token", //	Tokenized strings
+  "xsd:NMTOKEN", //	XML NMTOKENs
+  "xsd:Name", //	XML Names
+  "xsd:NCName"]
+)
+
+export default class RdfService {
+  /**
+   * @method constructor 
+   * @description A fairly simple class that provides methods for creating, reading and deleting RDF triples
+   * @param {string} [triplestoreUri="http://localhost:3030/"] - The host address of the triplestore
+   * @param {string} [dataset="ds"] - the dataset name in the triplestore
+   * @param {string} [defaultUriStub="http://telicent.io/data/"] - the default stub to use when building GUID URIs
+   * @param {string} [defaultSecurityLabel=""] - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
+  */
+  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ds", defaultUriStub = "http://telicent.io/data/", defaultSecurityLabel = "") {
+    this.defaultSecurityLabel = defaultSecurityLabel
+    this.dataset = dataset
+    this.defaultUriStub = defaultUriStub
+    this.triplestoreUri = triplestoreUri
+    this.queryEndpoint = this.triplestoreUri + dataset + "/query?query="
+    this.updateEndpoint = this.triplestoreUri + dataset + "/update"
+
+    this.dc = "http://purl.org/dc/elements/1.1/"
+    this.xsd = "http://www.w3.org/2001/XMLSchema#"
+    this.rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+    this.rdfs = "http://www.w3.org/2000/01/rdf-schema#"
+    this.owl = "http://www.w3.org/2002/07/owl#"
+    this.telicent = "http://telicent.io/ontology/"
+
+    this.sparqlPrefixes = `PREFIX xsd: &lt;${this.xsd}>  PREFIX dc: &lt;${this.dc}> PREFIX rdf: &lt;${this.rdf}> PREFIX rdfs: &lt;${this.rdfs}> PREFIX owl: &lt;${this.owl}> PREFIX telicent: &lt;${this.telicent}> `
+
+    this.rdfType = `${this.rdf}type`
+    this.rdfProperty = `${this.rdf}Property`
+    this.rdfsClass = `${this.rdfs}Class`
+    this.rdfsSubClassOf = `${this.rdfs}subClassOf`
+    this.rdfsSubPropertyOf = `${this.rdfs}subPropertyOf`
+    this.rdfsLabel = `${this.rdfs}label`
+    this.rdfsComment = `${this.rdfs}comment`
+    this.rdfsDomain = `${this.rdfs}domain`
+    this.rdfsRange = `${this.rdfs}range`
+    this.owlClass = `${this.owl}#Class`
+    this.owlDatatypeProperty = `${this.owl}DatatypeProperty`
+    this.owlObjectProperty = `${this.owl}ObjectProperty`
+    this.telicentStyle = `${this.telicent}style`
+  }
+
+
+  /**
+   * @method runQuery
+   * @description Issues a query to the triplestore specified when the RdfService was initiated and returns results in standard SPARQL JSON format
+   * @param {string} query - A valid SPARQL query
+   * @returns {object} the results of the query in standard SPARQL JSON results format
+  */
+  async runQuery(query) {
+    if (!Boolean(query)) {
+      console.warn("runQuery: A valid query is required")
+      return
+    }
+    try {
+      const response = await fetch(this.queryEndpoint + escape(this.sparqlPrefixes + query))
+      const ontojson = await response.json()
+      return ontojson
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+
+  /**
+   * @method runUpdate 
+   * @description Sends a SPARQL update to the triplestore specified when the RdfService was initiated 
+   * SPARQL endpoints don't tend to provide much feedback on success. The full response text is returned from this function however. 
+   * @param {string} updateQuery - A valid SPARQL update query
+   * @param {string} securityLabel - the security label to apply to new data. If none provided, the default will be used. 
+   * @returns {string} the response text from the triplestore after running the update
+  */
+  async runUpdate(updateQuery, securityLabel) {
+    if (securityLabel === undefined) {
+      securityLabel = this.defaultSecurityLabel
+    }
+    var postObject = {
+      method: 'POST',
+      headers: {//
+        'Accept': '*/*',
+        'Security-Label': securityLabel,
+        'Content-Type': 'application/sparql-update'
+      },
+      body: this.sparqlPrefixes + updateQuery
+    }
+    try {
+      const response = await fetch(this.updateEndpoint, postObject)
+      return response.text()
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+
+  /**
+   * @method checkObject
+   * @description private function to sort out type of object in a subject-predicate-object triple. 
+   * returns a formatted string suitable for insertion into a SPARQL query
+   * if the object is a literal, a valid xsd datatype can also be provided
+   * @param {string} object - the triple object (third position in a triple) to be prepared
+   * @param {XsdDataTypeEnum} xsdDatatype - if set, this will apply a ^^ datatype to a literal object. 
+   * @param {ObjectType} [objectType=URI] - the type of the provided object - either URI or LITERAL. Blank nodes are not supported because they're a really stupid idea.
+   * @returns {string} a SPARQL component for a triple that is either formatted as a literal or a URI
+  */
+  #checkObject(object, xsdDatatype, objectType = "URI") {
+    if (!objectType) {
+      objectType = "URI"
+    }
+//    const checkValidObjectType = ObjectType.safeParse(objectType)
+//    if (!checkValidObjectType.success) {
+//      throw new Error('objectType parameter must be one of "URI" or "LITERAL". Null value will be interpreted as "URI"')
+//    }
+
+    if (objectType === "URI") {
+      var o = `&lt;$${object}>`
+    }
+    else if (objectType == "LITERAL") {
+      var o = `"object"`
+      if ((xsdDatatype) &amp;&amp; (xsdDatatype !== "")) {
+        const checkValidXsdDataType = XsdDataType.safeParse(xsdDatatype)
+        if (!checkValidXsdDataType.success) {
+          throw new Error("invalid xsd:datatype provided - see RDF 1.1 specification")
+        }
+        o = `${o}^^${xsdDatatype}`
+      }
+    }
+    else {
+      throw new Error('unknown objectType')
+    }
+    return o
+  }
+
+
+  /**
+   * @method insertTriple
+   * @description Performs a SPARQL update to insert the provided subject,predicate, object triple. 
+   * Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
+   * Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
+   * @param {string} subject - The first position in the triple (the SUBJECT)
+   * @param {string} predicate - The second position in the triple (the PREDICATE)
+   * @param {string} object - The third position in the triple (the OBJECT) - this may be a literal or a URI
+   * @param {ObjectType} objectType - set URI for a URI or LITERAL for a literal object. Blank Nodes are not supported because we want the world to be a better place
+   * @param {string} xsdDatatype - if set, this will apply a ^^ datatype to a literal object. Valid datatypes can be looked up in this.xsdDatatypes
+   * @param {string} securityLabel - the security label to apply to new data. If none provided, the default will be used. 
+   * @returns {object} the results of the query in standard SPARQL JSON results format
+  */
+  async insertTriple(subject, predicate, object, objectType, xsdDatatype, securityLabel) {
+    var o = this.#checkObject(object, xsdDatatype, objectType)
+    return await this.runUpdate("INSERT DATA {&lt;" + subject + "> &lt;" + predicate + "> " + o + " . }", securityLabel)
+  }
+
+
+  /**
+   * @method deleteTriple 
+   * @description Performs a SPARQL update to delete the triples corresponding to the provided subject,predicate, object. 
+   * Default is to assume object is a URI. Otherwise pass "URI" or "LITERAL" in the objectType parameter. 
+   * Blank nodes are unsupported in this function - use runUpdate to send a more sophisticated update...or, ya know, just don't use blank nodes
+   * @param {string} subject - The first position in the triple (the SUBJECT)
+   * @param {string} predicate - The second position in the triple (the PREDICATE)
+   * @param {string} object - The third position in the triple (the OBJECT) - this may be a literal or a URI
+   * @param {ObjectType} objectType - set URI for a URI or LITERAL for a literal object. Blank Nodes are not support because, why would you.
+   * @param {string} xsdDatatype - if set, this will apply a ^^ datatype to a literal object. Valid datatypes can be looked up in this.xsdDatatypes
+   * @returns {string} the http response text from the server
+  */
+  async deleteTriple(subject, predicate, object, objectType, xsdDatatype) {
+    var o = this.#checkObject(object, xsdDatatype, objectType)
+    return await this.runUpdate("DELETE DATA {&lt;" + subject + "> &lt;" + predicate + "> " + o + " . }")
+  }
+
+  /**
+   * @method deleteNode 
+   * @description Careful with this one !  It removes all references to a URI - effectively deleting all trace of an node from the triplestore. 
+   * If you only want to remove the outgoing references (i.e. not the triples where this is the object) from the node then set ignoreInboundReferences to true
+   * @param {string} uri - The uri of the Node you want to get rid of
+   * @param {boolean} [ignoreInboundReferences=false] - if set to true, this will not delete any triples that refer to the node 
+  */
+  async deleteNode(uri, ignoreInboundReferences = false) {
+    this.runUpdate("DELETE WHERE {&lt;" + uri + "> ?p ?o . }")
+    if (!ignoreInboundReferences) {
+      this.runUpdate("DELETE WHERE {?s ?p &lt;" + uri + ">}")
+    }
+  }
+
+  /**
+   * @method deleteRelationships 
+   * @description deletes all triples that match the pattern &lt;uri> &lt;predicate> &lt;ALL>
+   * @param {string} uri - The uri of the subject of the triples you want remove
+   * @param {string} predicate - the predicate to match for all triples being removed 
+  */
+  async deleteRelationships(uri, predicate) {
+    this.runUpdate(`DELETE WHERE {&lt;${uri}> &lt;${predicate}> ?o . }`)
+  }
+
+  /**
+   * @method instantiate
+   * @description Instantiates the provided class (cls parameter). You can also specify a URI (uri parameter), otherwise it'll set the URI for you based on the defaultUriStub and a GUID
+   * @param {string} cls - The class (uri of an rdfs:Class or owl:Class) that is to be instantiated
+   * @param {string} uri - The uri of the instantiated item - if unset, one will be constructed using the defaultUriStub
+   * @param {string} securityLabel - the security label to apply to new data. If none provided, the default will be used. 
+   * @returns {string} the URI of the instantiated item
+  */
+  async instantiate(cls, uri, securityLabel) {
+    if (!uri) {
+      uri = this.defaultUriStub + crypto.randomUUID()
+    }
+    await this.insertTriple(uri, this.rdfType, cls, null, null, securityLabel)
+    return uri
+  }
+
+  /**
+   * @method addLiteral
+   * @description Adds a literal property to the specified node (uri)
+   * @param {string} uri - The uri of the subject of the literal
+   * @param {string} predicate - The second position in the triple (the PREDICATE)
+   * @param {string} text - the literal to be assigned to the triple
+  */
+  async addLiteral(uri, predicate, text, deletePrevious = false) {
+    if (label &amp;&amp; (label != "")) {
+      if (deletePrevious) {
+        await this.deleteRelationships(uri, predicate)
+      }
+      this.insertTriple(uri, predicate, text, true)
+    }
+    else {
+      throw new Error("invalid literal string")
+    }
+  }
+
+  /**
+   * @method addLabel 
+   * @description simple convenience function to add an rdfs:label to the given uri - simply pass in the label literal
+   * @param {string} uri - The uri of the subject of the label
+   * @param {string} label - the literal text of the rdfs:label
+  */
+  async addLabel(uri, label) {
+    if (label &amp;&amp; (label != "")) {
+      this.insertTriple(uri, this.rdfsLabel, label, true)
+    }
+    else {
+      throw new Error("invalid label string")
+    }
+  }
+
+  /**
+   * @method addComment 
+   * @description simple convenience function to add an rdfs:comment to the given uri - simply pass in the comment literal
+   * @param {string} uri - The uri of the subject of the comment
+   * @param {string} comment - the literal text of the rdfs:comment
+  */
+  async addComment(uri, comment) {
+    if (comment &amp;&amp; (comment != "")) {
+      this.insertTriple(uri, this.rdfsComment, comment, true)
+    }
+    else {
+      throw new Error("invalid comment string")
+    }
+  }
+
+  /**
+   * @method getRelated
+   * @description Simple function to get all objects related to the uri by a predicate
+   * @param {string} uri - The uri of the subject
+   * @param {string} predicate - the predicate relating to the objects that are returned
+   * @returns {Array} - an array of related items (each is a string - may be a URI or a literal)
+  */
+  async getRelated(uri, predicate) {
+    if (!uri) {
+      throw new Error("URI must be provided")
+    }
+    if (!predicate) {
+      throw new Error("predicate must be provided")
+    }
+
+    var query = `SELECT ?related WHERE {&lt;${uri}> ?pred ?related . ?pred &lt;${this.rdfsSubPropertyOf}>* &lt;${predicate}> .}`
+
+    var spOut = await this.runQuery(query)
+    var output = []
+    if (spOut &amp;&amp; spOut.results &amp;&amp; spOut.results.bindings) {
+      for (var i in spOut.results.bindings) {
+        var stmt = spOut.results.bindings[i]
+        output.push(stmt.related.value)
+      }
+    }
+    return output
+  }
+
+  /**
+   * @method getRelating 
+   * @description simple function to get all subjects relating to the uri by a predicate - i.e. reverse relationships
+   * @param {string} uri - The uri of the subject
+   * @param {string} predicate - the predicate relating to the objects that are returned
+   * @returns {Array} - an array of relating items (URIs, as strings). By relating, we mean those that point back at the uri
+  */
+  async getRelating(uri, predicate) {
+    if (!uri) {
+      throw new Error("URI must be provided")
+    }
+    if (!predicate) {
+      throw new Error("predicate must be provided")
+    }
+    var query = `SELECT ?relating WHERE {?relating ?pred &lt;${uri}> . ?pred &lt;${this.rdfsSubPropertyOf}>* &lt;${predicate}> . }`
+    var spOut = await this.runQuery(query)
+    var output = []
+    if (spOut &amp;&amp; spOut.results &amp;&amp; spOut.results.bindings) {
+      for (var i in spOut.results.bindings) {
+        var stmt = spOut.results.bindings[i]
+        output.push(stmt.relating.value)
+      }
+    }
+    return output
+  }
+
+  //#flatOut()
+  //Simplest, default format for SPARQL returns
+  #flatOut(spOut, returnFirstObj = false) {
+    output = []
+    if (spOut &amp;&amp; spOut.results &amp;&amp; spOut.results.bindings) {
+      for (var i in spOut.results.bindings) {
+        var stmt = spOut.results.bindings[i]
+        obj = {}
+        for (var j in spOut.head.vars) {
+          var v = spOut.head.vars[j]
+          if ((v in stmt) &amp;&amp; (stmt[v])) {
+            obj[v] = stmt[v].value
+          }
+        }
+        output.push(stmt.relating.value)
+      }
+    }
+    if (returnFirstObj) {
+      return output[0]
+    }
+    else {
+      return output
+    }
+  }
+}
+
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+    
+    
+</div>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 4.0.2</a> on Tue Nov 21 2023 20:59:46 GMT+0000 (Greenwich Mean Time) using the <a href="https://github.com/clenemt/docdash">docdash</a> theme.
+</footer>
+
+<script>prettyPrint();</script>
+<script src="scripts/polyfill.js"></script>
+<script src="scripts/linenumber.js"></script>
+
+
+
+</body>
+</html>
