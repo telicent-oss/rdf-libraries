@@ -37,7 +37,7 @@ jobs:
       - run: | 
           git branch --track main origin/main
           pnpm install
-          pnpm dlx nx affected -t test,build --parallel=2
+          pnpm dlx nx run-many -t test,build -p @telicent-io/rdfservice @telicent-io/ontologyservice --parallel=2
           pnpm publish ./packages/RdfService/dist 
           pnpm publish ./packages/OntologyService/dist
         env:
