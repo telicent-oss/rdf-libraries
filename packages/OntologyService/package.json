@@ -12,7 +12,7 @@
     ".": {
       "import": "./dist/ontologyservice.mjs",
       "require": "./dist/ontologyservice.umd.js"
-    },
+    }
   },
   "types": "./dist/packages/OntologyService/*.d.ts",
   "scripts": {
