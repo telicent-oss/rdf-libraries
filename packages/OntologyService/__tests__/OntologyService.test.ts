@@ -1,15 +1,14 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 import OntologyService from "../index"
-import * as crypto from "crypto"
 import ClassDefinition from "../ClassDefinition";
 import { QueryResponse, RelatedQuery, RelatingQuery, SPARQL } from "packages/RdfService";
 import { rdfType, rdfsSubClassOf } from "../testMocks";
 import { makeStyleObject } from "../helper";
 
-jest.mock('crypto', () => ({
-  ...jest.requireActual('crypto'), // Preserve other methods from crypto module
-  randomUUID: jest.fn().mockReturnValue('mockedUUID'),
-}));
+//jest.mock('crypto', () => ({
+//  ...jest.requireActual('crypto'), // Preserve other methods from crypto module
+//  randomUUID: jest.fn().mockReturnValue('mockedUUID'),
+//}));
 
 enableFetchMocks()
 
