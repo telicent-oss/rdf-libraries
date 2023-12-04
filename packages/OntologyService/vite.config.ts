@@ -6,8 +6,8 @@ module.exports = defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'index.ts'),
-      name: 'ontologyservice',
+      name: '@telicent-io/ontologyservice',
     }
   },
-  plugins: [dts()]
+  plugins: [dts({ insertTypesEntry: true })]
 });

@@ -6,8 +6,8 @@ module.exports = defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, 'index.ts'),
-      name: 'rdfservice',
+      name: '@telicent-io/rdfservice',
     }
   },
-  plugins: [dts()]
+  plugins: [dts({ insertTypesEntry: true })]
 });
