@@ -32,27 +32,13 @@ jobs:
           version: 8
           run_install: false
 
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - uses: actions/cache@v3
-        name: Setup pnpm cache
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
       - uses: nrwl/nx-set-shas@v3
       # This line is needed for nx affected to work when CI is running on a PR
       - run: | 
           git branch --track main origin/main
-          pnpm dlx nx run-many --target=install --all
           pnpm dlx nx format:check
-          pnpm dlx nx affected -t test,build --parallel=2
+          pnpm dlx nx run-many --target=install --all
+          pnpm dlx nx affected -t test,build --parallel=3
           pnpm publish ./packages/RdfService/dist 
           pnpm publish ./packages/OntologyService/dist
         env:

@@ -115,9 +115,6 @@ importers:
 
   packages/OntologyService:
     dependencies:
-      '@telicent-io/iesservice':
-        specifier: workspace:*
-        version: link:../IesService
       '@telicent-io/rdfservice':
         specifier: workspace:*
         version: link:../RdfService
