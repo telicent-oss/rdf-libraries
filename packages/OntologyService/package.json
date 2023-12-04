@@ -18,8 +18,7 @@
     "test": "jest test",
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
     "build": "rm -rf ./dist && vite build",
-    "lint": "eslint -f unix \"src/**/*.{ts,tsx}\"",
-    "install": "npm install"
+    "lint": "eslint -f unix \"src/**/*.{ts,tsx}\""
   },
   "author": "",
   "license": "ISC",

@@ -17,8 +17,7 @@
   "scripts": {
     "test": "jest test",
     "generate-docs": "node_modules/jsdoc/jsdoc.js -d docs -c ./jsdocConf.json",
-    "build": "rm -rf ./dist && vite build",
-    "install": "npm install"
+    "build": "rm -rf ./dist && vite build"
   },
   "repository": {
     "type": "git",
