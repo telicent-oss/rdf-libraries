@@ -13,7 +13,7 @@
       "import": "./dist/rdfservice.mjs",
       "require": "./dist/rdfservice.umd.js"
     },
-    "./types/*": "./dist/packages/RdfService/*.d.ts
+    "./types/*": "./dist/packages/RdfService/*.d.ts"
   },
   "scripts": {
     "test": "jest test",
