@@ -10,8 +10,8 @@
   "module": "./dist/ontologyservice.es.js",
   "exports": {
     ".": {
-      "import": "./dist/ontologyservice.es.js",
-      "export": "./dist/ontologyservice.umd.js"
+      "import": "./dist/ontologyservice.mjs",
+      "require": "./dist/ontologyservice.umd.js"
     }
   },
   "scripts": {

@@ -10,8 +10,8 @@
   "module": "./dist/rdfservice.es.js",
   "exports": {
     ".": {
-      "import": "./dist/rdfservice.es.js",
-      "export": "./dist/rdfservice.umd.js"
+      "import": "./dist/rdfservice.mjs",
+      "require": "./dist/rdfservice.umd.js"
     }
   },
   "scripts": {
