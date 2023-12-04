@@ -4,9 +4,9 @@
   "description": "Simple client-side lib for working with ontologies",
   "scripts": {
     "test": "nx exec -- yarn _test ",
-    "generate-docs": "nx exec -- jsdoc -d docs -c ./jsdocConf.json",
     "_test": "echo \"Error: no test specified\" && exit 1"
   },
+  "private": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Telicent-io/js-ontology-lib.git"
