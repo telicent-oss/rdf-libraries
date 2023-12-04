@@ -37,9 +37,7 @@ jobs:
       - run: | 
           git branch --track main origin/main
           pnpm install
-          pnpm dlx nx run-many -t test,build -p @telicent-io/rdfservice @telicent-io/ontologyservice --parallel=2
-          pnpm publish ./packages/RdfService/dist 
-          pnpm publish ./packages/OntologyService/dist
+          pnpm dlx nx run-many -t test,build,publish -p @telicent-io/rdfservice @telicent-io/ontologyservice --parallel=2
         env:
           NPM_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
