@@ -3,7 +3,7 @@
   "version": "0.0.6",
   "private": false,
   "description": "Create, Read and Delete RDF Triples",
-  "main": "./dist/rdfservice.umd.js",
+  "main": "./dist/rdfservice.mjs",
   "files": [
     "dist"
   ],
