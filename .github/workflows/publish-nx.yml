@@ -19,17 +19,6 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 20
-      - run: npm ci
-      - uses: nrwl/nx-set-shas@v3
-      # This line is needed for nx affected to work when CI is running on a PR
-      - run: git branch --track main origin/main
-
-      - run: npx nx format:check
-      - run: npx nx affected -t test,build --parallel=2
-      - name: configure-node
-        uses: actions/setup-node@v2
-        with:
-          node-version: 20
           registry-url: https://npm.pkg.github.com/
           scope: "@Telicent-io"
           always-auth: true
@@ -37,7 +26,12 @@ jobs:
         run: |
           npm config set "@telicent-io:registry" "https://npm.pkg.github.com/"
           npm config set "//npm.pkg.github.com/:_authToken" ${{ secrets.PACKAGE_PAT }} 
-      - name: Install dependencies
+      - uses: nrwl/nx-set-shas@v3
+      # This line is needed for nx affected to work when CI is running on a PR
+      - run: git branch --track main origin/main
+      - run: nx run-many --target=install --all
+      - run: npx nx format:check
+      - run: npx nx affected -t test,build --parallel=2
         run: |
           yarn publish ./packages/RdfService/dist 
           yarn publish ./packages/OntologyService/dist

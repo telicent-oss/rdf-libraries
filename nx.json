@@ -46,7 +46,6 @@
   "affected": {
     "defaultBase": "main"
   },
-  "nxCloudAccessToken": "OGYxMjE5ZWUtYzBiOC00ODRhLWIyODgtNDlhODcyZjM1OWQxfHJlYWQtd3JpdGU=",
   "generators": {
     "@nx/js:library": {
       "buildable": true
