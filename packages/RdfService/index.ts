@@ -5,7 +5,6 @@
 export const emptyUriErrorMessage = "Cannot have an empty URI"
 export const emptyPredicateErrorMessage = "predicate must be provided"
 const isEmptyString = (str: string) => !Boolean(str);
-import { randomUUID } from "crypto"
 
 export type IESObject = "URI" | "LITERAL";
 
@@ -68,7 +67,7 @@ export type QueryResponse<T> = {
     "vars": string[]
   },
   "results": {
-    "bindings": T  
+    "bindings": T
   }
 }
 
@@ -204,7 +203,7 @@ export default class RdfService {
       throw response.statusText
     }
 
-    const ontojson:QueryResponse<T> = await response.json()
+    const ontojson: QueryResponse<T> = await response.json()
     return ontojson
   }
 
@@ -370,7 +369,7 @@ export default class RdfService {
     if (isEmptyString(cls)) throw Error("Cannot have an empty cls");
 
     if (!uri) {
-      uri = this.defaultUriStub + randomUUID()
+      uri = this.defaultUriStub + crypto.randomUUID()
     }
     await this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel)
     return uri

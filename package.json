@@ -18,8 +18,6 @@
   },
   "homepage": "https://github.com/Telicent-io/js-ontology-lib#readme",
   "dependencies": {
-    "docdash": "^2.0.2",
-    "jsdoc": "^4.0.2",
     "tslib": "^2.3.0"
   },
   "devDependencies": {

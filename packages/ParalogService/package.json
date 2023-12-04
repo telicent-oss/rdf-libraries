@@ -16,7 +16,8 @@
   },
   "scripts": {
     "test": "jest test",
-    "generate-docs": "node_modules/jsdoc/jsdoc.js -d docs -c ./jsdocConf.json",
+    "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
+    "lint": "eslint -f unix \"src/**/*.{ts,tsx}\"",
     "build": "rm -rf ./dist && vite build"
   },
   "repository": {
@@ -34,6 +35,10 @@
   "license": "ISC",
   "devDependencies": {
     "tsc": "^2.0.4",
-    "vite": "^4.5.0"
+    "vite": "^4.5.0",
+    "eslint-plugin-tsdoc": "^0.2.17",
+    "typedoc": "^0.25.3",
+    "testing": "link:@nrwl/nx-plugin/testing",
+    "typescript": "^5.2.2"
   }
 }

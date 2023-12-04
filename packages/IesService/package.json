@@ -33,11 +33,6 @@
   },
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "testing": "link:@nrwl/nx-plugin/testing",
-    "tsc": "^2.0.4",
-    "vite": "^4.5.0"
-  },
   "dependencies": {
     "@telicent-io/rdfservice": "workspace:*"
   },
