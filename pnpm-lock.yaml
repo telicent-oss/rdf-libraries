@@ -61,60 +61,11 @@ importers:
         specifier: ^5.2.2
         version: 5.2.2
 
-  packages/IesService:
-    dependencies:
-      '@telicent-io/rdfservice':
-        specifier: workspace:*
-        version: link:../RdfService
-    devDependencies:
-      '@microsoft/tsdoc':
-        specifier: ^0.14.2
-        version: 0.14.2
-      '@types/jest':
-        specifier: ^29.4.0
-        version: 29.5.8
-      eslint-plugin-tsdoc:
-        specifier: ^0.2.17
-        version: 0.2.17
-      jest-fetch-mock:
-        specifier: ^3.0.3
-        version: 3.0.3
-      remove:
-        specifier: ^0.1.5
-        version: 0.1.5
-      testing:
-        specifier: link:@nrwl/nx-plugin/testing
-        version: link:@nrwl/nx-plugin/testing
-      ts-jest:
-        specifier: ^29.1.1
-        version: 29.1.1(@babel/core@7.23.3)(babel-jest@29.7.0)(jest@29.7.0)(typescript@5.2.2)
-      tsc:
-        specifier: ^2.0.4
-        version: 2.0.4
-      typedoc:
-        specifier: ^0.25.3
-        version: 0.25.3(typescript@5.2.2)
-      typescript:
-        specifier: ^5.2.2
-        version: 5.2.2
-      vite:
-        specifier: ^4.5.0
-        version: 4.5.0(@types/node@16.11.7)
-      vite-plugin-dts:
-        specifier: ^3.6.3
-        version: 3.6.3(@types/node@16.11.7)(typescript@5.2.2)(vite@4.5.0)
-      vite-tsconfig-paths:
-        specifier: ^4.2.1
-        version: 4.2.1(typescript@5.2.2)(vite@4.5.0)
-
   packages/OntologyService:
     dependencies:
       '@telicent-io/rdfservice':
         specifier: workspace:*
         version: link:../RdfService
-      '@types/node':
-        specifier: 16.11.7
-        version: 16.11.7
     devDependencies:
       '@microsoft/tsdoc':
         specifier: ^0.14.2
@@ -122,6 +73,9 @@ importers:
       '@types/jest':
         specifier: ^29.4.0
         version: 29.5.8
+      '@types/node':
+        specifier: 16.11.7
+        version: 16.11.7
       eslint-plugin-tsdoc:
         specifier: ^0.2.17
         version: 0.2.17
@@ -156,36 +110,7 @@ importers:
         specifier: ^4.2.1
         version: 4.2.1(typescript@5.2.2)(vite@4.5.0)
 
-  packages/ParalogService:
-    dependencies:
-      '@telicent-io/iesservice':
-        specifier: workspace:*
-        version: link:../IesService
-    devDependencies:
-      eslint-plugin-tsdoc:
-        specifier: ^0.2.17
-        version: 0.2.17
-      testing:
-        specifier: link:@nrwl/nx-plugin/testing
-        version: link:@nrwl/nx-plugin/testing
-      tsc:
-        specifier: ^2.0.4
-        version: 2.0.4
-      typedoc:
-        specifier: ^0.25.3
-        version: 0.25.3(typescript@5.2.2)
-      typescript:
-        specifier: ^5.2.2
-        version: 5.2.2
-      vite:
-        specifier: ^4.5.0
-        version: 4.5.0(@types/node@16.11.7)
-
   packages/RdfService:
-    dependencies:
-      '@types/node':
-        specifier: 16.11.7
-        version: 16.11.7
     devDependencies:
       '@microsoft/tsdoc':
         specifier: ^0.14.2
@@ -193,6 +118,9 @@ importers:
       '@types/jest':
         specifier: ^29.4.0
         version: 29.5.8
+      '@types/node':
+        specifier: 16.11.7
+        version: 16.11.7
       eslint-plugin-tsdoc:
         specifier: ^0.2.17
         version: 0.2.17
@@ -2636,6 +2564,7 @@ packages:
 
   /@types/node@16.11.7:
     resolution: {integrity: sha512-QB5D2sqfSjCmTuWcBWyJ+/44bcjO7VbjSbOE0ucoVbAsSNQc4Lt6QkgkVXkTDwkL4z/beecZNDvVX15D4P8Jbw==}
+    dev: true
 
   /@types/parse-json@4.0.2:
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
