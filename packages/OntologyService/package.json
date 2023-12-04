@@ -30,7 +30,6 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "dependencies": {
-    "@telicent-io/iesservice": "workspace:*",
     "@telicent-io/rdfservice": "workspace:*"
   },
   "devDependencies": {
