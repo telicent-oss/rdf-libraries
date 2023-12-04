@@ -6,7 +6,6 @@
   */
 
 import RdfService, { DiagramQuery, DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-io/rdfservice";
-import { randomUUID } from "crypto";
 import { StyleObject } from "./Types";
 import ClassDefinition from "./ClassDefinition";
 import PropertyDefinition from "./PropertyDefinition";
@@ -31,7 +30,7 @@ export interface NamedPropertiesDefinitions {
   [subject: string]: PropertyDefinition;
 }
 
-export type AllElements = NamedPropertiesDefinitions | NamedClassDefinitions | NamedElements; 
+export type AllElements = NamedPropertiesDefinitions | NamedClassDefinitions | NamedElements;
 
 export interface OntologyOutput {
   allElements: AllElements;
@@ -92,7 +91,7 @@ export default class OntologyService extends RdfService {
   */
   async getClass(uri: string, getAllPredicates = true, getSubClasses = true, getDomainProperties = true) {
     const cls = new ClassDefinition()
-    if(!getAllPredicates && !getSubClasses && ! getDomainProperties) return cls
+    if (!getAllPredicates && !getSubClasses && !getDomainProperties) return cls
 
     var query = `SELECT ?s ?p ?o WHERE {<${uri}> ?p ?o .  BIND (IRI("${uri}") as ?s) }`
     const ontojson = await this.runQuery<SPARQL[]>(query)
@@ -295,7 +294,7 @@ export default class OntologyService extends RdfService {
 
     if (ontojson?.results?.bindings) {
       const statements = ontojson.results.bindings
-      const processStatement =  buildStatementPartial(this, getAllPredicates)
+      const processStatement = buildStatementPartial(this, getAllPredicates)
       statements.forEach(processStatement)
     }
 
@@ -425,7 +424,7 @@ export default class OntologyService extends RdfService {
   */
   newDiagram(title: string, uri: string, uuid: string, securityLabel: string) {
     if (!uuid) {
-      uuid = randomUUID()
+      uuid = crypto.randomUUID()
     }
     if (!uri) {
       uri = this.defaultUriStub + uuid
