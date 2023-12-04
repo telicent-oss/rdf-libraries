@@ -30,7 +30,7 @@ jobs:
       # This line is needed for nx affected to work when CI is running on a PR
       - run: | 
           git branch --track main origin/main
-          nx run-many --target=install --all
+          npx nx run-many --target=install --all
           npx nx format:check
           npx nx affected -t test,build --parallel=2
           yarn publish ./packages/RdfService/dist 
