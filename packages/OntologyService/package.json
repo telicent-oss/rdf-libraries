@@ -7,7 +7,7 @@
   "files": [
     "dist"
   ],
-  "module": "./dist/ontologyservice.es.js",
+  "module": "./dist/ontologyservice.mjs",
   "exports": {
     ".": {
       "import": "./dist/ontologyservice.mjs",

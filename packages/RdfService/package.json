@@ -7,7 +7,7 @@
   "files": [
     "dist"
   ],
-  "module": "./dist/rdfservice.es.js",
+  "module": "./dist/rdfservice.mjs",
   "exports": {
     ".": {
       "import": "./dist/rdfservice.mjs",
