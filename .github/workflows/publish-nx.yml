@@ -36,8 +36,8 @@ jobs:
       # This line is needed for nx affected to work when CI is running on a PR
       - run: | 
           git branch --track main origin/main
+          pnpm install
           pnpm dlx nx format:check
-          pnpm dlx nx run-many --target=install --all
           pnpm dlx nx affected -t test,build --parallel=3
           pnpm publish ./packages/RdfService/dist 
           pnpm publish ./packages/OntologyService/dist
