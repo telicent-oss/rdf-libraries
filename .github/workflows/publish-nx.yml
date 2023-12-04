@@ -39,8 +39,9 @@ jobs:
           npm config set "@telicent-io:registry" "https://npm.pkg.github.com/"
           npm config set "//npm.pkg.github.com/:_authToken" ${{ secrets.PACKAGE_PAT }} 
       - name: Install dependencies
-        run: yarn publish ./packages/RdfService/dist |
-             yarn publish ./packages/OntologyService/dist
+        run: |
+          yarn publish ./packages/RdfService/dist 
+          yarn publish ./packages/OntologyService/dist
         env:
           NPM_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
           NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
