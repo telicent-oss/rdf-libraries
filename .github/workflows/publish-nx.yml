@@ -38,7 +38,7 @@ jobs:
           git branch --track main origin/main
           pnpm install
           pnpm dlx nx format:check
-          pnpm dlx nx affected -t test,build --parallel=3
+          pnpm dlx nx affected -t test,build --parallel=2
           pnpm publish ./packages/RdfService/dist 
           pnpm publish ./packages/OntologyService/dist
         env:
