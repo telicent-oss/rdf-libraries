@@ -1,6 +1,6 @@
 {
   "name": "@telicent-io/rdfservice",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "private": false,
   "description": "Create, Read and Delete RDF Triples",
   "main": "./dist/rdfservice.mjs",
