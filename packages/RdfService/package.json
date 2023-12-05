@@ -14,7 +14,7 @@
       "require": "./dist/rdfservice.umd.js"
     }
   },
-  "types": "./dist/packages/RdfService/*.d.ts",
+  "types": "./dist/types",
   "scripts": {
     "test": "jest test",
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",

@@ -14,7 +14,7 @@
       "require": "./dist/ontologyservice.umd.js"
     }
   },
-  "types": "./dist/packages/OntologyService/*.d.ts",
+  "types": "./dist/types",
   "scripts": {
     "test": "jest test",
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
@@ -48,11 +48,5 @@
     "vite": "^4.5.0",
     "vite-plugin-dts": "^3.6.3",
     "vite-tsconfig-paths": "^4.2.1"
-  },
-  "jest": {
-    "automock": false,
-    "setupFiles": [
-      "./setupJest.js"
-    ]
   }
 }

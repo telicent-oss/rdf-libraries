@@ -14,7 +14,7 @@ describe("ClassDefinition", () => {
       rdfType: [],
       subClasses: [],
       superClasses: [],
-      uri: undefined
+      uri: ""
     })
   })
 
@@ -31,7 +31,7 @@ describe("ClassDefinition", () => {
       rdfType: [],
       subClasses: ["testSubClass"],
       superClasses: [],
-      uri: undefined
+      uri: ""
     })
   })
 
@@ -48,7 +48,7 @@ describe("ClassDefinition", () => {
       rdfType: [],
       subClasses: [],
       superClasses: ["testSuperClass"],
-      uri: undefined
+      uri: ""
     })
   })
 
@@ -65,7 +65,7 @@ describe("ClassDefinition", () => {
       rdfType: [],
       subClasses: [],
       superClasses: [],
-      uri: undefined
+      uri: ""
     })
   })
 })

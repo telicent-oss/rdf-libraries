@@ -10,7 +10,7 @@ describe("ElementDefinition", () => {
       labels: [],
       predicates: {},
       rdfType: [],
-      uri: undefined
+      uri: ""
     })
   })
 
@@ -22,7 +22,7 @@ describe("ElementDefinition", () => {
       labels: [],
       predicates: {},
       rdfType: [],
-      uri: "testUri" 
+      uri: "testUri"
     })
   })
 
@@ -38,18 +38,18 @@ describe("ElementDefinition", () => {
         predicateName: ["predicateValue"]
       },
       rdfType: [],
-      uri: "testUri" 
+      uri: "testUri"
     })
   })
 
   it("should override default style", () => {
-     const origStyle = makeStyleObject()
-     const el = new ElementDefinition("testUri")
+    const origStyle = makeStyleObject()
+    const el = new ElementDefinition("testUri")
 
-     expect(el.defaultStyle).toEqual(origStyle)
-     const updatedStyle = makeStyleObject("#999", "#111", "ri-icon")
+    expect(el.defaultStyle).toEqual(origStyle)
+    const updatedStyle = makeStyleObject("#999", "#111", "ri-icon")
 
-     el.setDefaultStyle(updatedStyle)
-     expect(el.defaultStyle).toEqual(updatedStyle)
+    el.setDefaultStyle(updatedStyle)
+    expect(el.defaultStyle).toEqual(updatedStyle)
   })
 })

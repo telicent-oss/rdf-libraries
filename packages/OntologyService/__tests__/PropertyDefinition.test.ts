@@ -17,7 +17,7 @@ const propertyDefinitionStub = {
   "rdfType": [],
   "subProperties": [],
   "superProperties": [],
-  "uri": undefined,
+  "uri": "",
 }
 
 describe("PropertyDefinition", () => {
@@ -56,7 +56,7 @@ describe("PropertyDefinition", () => {
     })
   })
 
-it("should add a range", () => {
+  it("should add a range", () => {
     const obj = new PropertyDefinition()
       .addRange("testRange")
 

@@ -1,4 +1,4 @@
-import OntologyService from "."
+import OntologyService from "./index"
 
 const ontServ = new OntologyService()
 

@@ -12,11 +12,6 @@ import PropertyDefinition from "./PropertyDefinition";
 import ElementDefinition from "./ElementDefinition";
 import { buildStatementPartial } from "./helper";
 
-export interface Diagram {
-  uuid?: string;
-  title?: string;
-  uri: string;
-}
 
 export interface NamedElements {
   [subject: string]: ElementDefinition;
@@ -36,6 +31,33 @@ export interface OntologyOutput {
   allElements: AllElements;
   properties: NamedPropertiesDefinitions;
   classes: NamedClassDefinitions;
+}
+
+export interface DiagramRelationship {
+  source: string;
+  target: string;
+  relationship: string;
+}
+
+export interface NamedDiagramRelationship {
+  [subject: string]: DiagramRelationship
+}
+
+export interface DiagramElement {
+  style: StyleObject;
+  element: string;
+}
+
+export interface NamedDiagramElement {
+  [subject: string]: DiagramElement;
+}
+
+export interface Diagram {
+  uuid?: string;
+  title?: string;
+  uri: string;
+  diagramElements: NamedDiagramElement;
+  diagramRelationships: NamedDiagramRelationship;
 }
 
 export default class OntologyService extends RdfService {
@@ -267,7 +289,9 @@ export default class OntologyService extends RdfService {
     const statements = spOut.results.bindings
     return statements.reduce((statements, statement) => {
       if (!statement.style.value || statement.style.value === "undefined") return statements
+
       statements[statement.cls.value] = JSON.parse(decodeURIComponent(statement.style.value))
+      return statements
     }, {})
   }
 
@@ -294,7 +318,7 @@ export default class OntologyService extends RdfService {
 
     if (ontojson?.results?.bindings) {
       const statements = ontojson.results.bindings
-      const processStatement = buildStatementPartial(this, getAllPredicates)
+      const processStatement = buildStatementPartial(this as any, getAllPredicates)
       statements.forEach(processStatement)
     }
 
@@ -347,7 +371,7 @@ export default class OntologyService extends RdfService {
 
     const statements = spOut.results.bindings
     return statements.map(statement => {
-      const diag: Diagram = { uri: statement.uri.value }
+      const diag: Diagram = { uri: statement.uri.value, diagramElements: {}, diagramRelationships: {} }
       if (statement.title) {
         diag.title = statement.title.value
       }
@@ -390,22 +414,31 @@ export default class OntologyService extends RdfService {
     if (!(spOut?.results?.bindings)) return
 
     const statements = spOut.results.bindings
-    const output = statements.reduce((acc, statement) => {
+    const output = statements.reduce((acc: Diagram, statement) => {
       // TODO: this will override the title each time is that correct?
       acc.title = statement.title.value
       acc.uuid = statement.uuid.value
 
       if (!(statement.diagElem.value in acc.diagramElements)) {
-        acc.diagramElements[statement.diagElem.value] = { style: {} }
+        acc.diagramElements[statement.diagElem.value] = {} as DiagramElement
       }
-      acc.diagramElements[statement.diagElem.value].element = statement.elem.value
-      acc.diagramElements[statement.diagElem.value].style = JSON.parse(decodeURIComponent(statement.elemStyle.value))
+
+      acc.diagramElements[statement.diagElem.value] = {
+        ...acc.diagramElements[statement.diagElem.value],
+        element: statement.elem.value,
+        style: JSON.parse(decodeURIComponent(statement.elemStyle.value))
+      }
+
       if (!(statement.diagRel.value in acc.diagramRelationships)) {
-        acc.diagramRelationships[statement.diagRel.value] = {}
+        acc.diagramRelationships[statement.diagRel.value] = {} as DiagramRelationship
       }
-      acc.diagramRelationships[statement.diagRel.value].relationship = statement.rel.value
-      acc.diagramRelationships[statement.diagRel.value].source = statement.source.value
-      acc.diagramRelationships[statement.diagRel.value].target = statement.target.value
+
+      acc.diagramRelationships[statement.diagRel.value] = {
+        ...acc.diagramRelationships[statement.diagRel.value],
+        relationship: statement.rel.value,
+        source: statement.source.value,
+        target: statement.target.value
+      }
 
       return acc
     }, { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} })

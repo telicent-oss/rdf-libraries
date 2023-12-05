@@ -1,7 +1,7 @@
 import { NamedPredicate, StyleObject } from "./Types";
 
 export default class ElementDefinition {
-  uri: string;
+  uri: string = "";
   rdfType: string[] = [];
   labels: string[] = [];
   comments: string[] = [];
