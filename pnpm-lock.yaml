@@ -64,7 +64,7 @@ importers:
   packages/OntologyService:
     dependencies:
       '@telicent-io/rdfservice':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../RdfService
     devDependencies:
       '@microsoft/tsdoc':
