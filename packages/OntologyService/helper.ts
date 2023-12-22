@@ -1,5 +1,4 @@
 import { SPARQL } from "packages/RdfService";
-import ElementDefinition from "./ElementDefinition";
 import ClassDefinition from "./ClassDefinition";
 import PropertyDefinition from "./PropertyDefinition";
 
@@ -133,11 +132,14 @@ export const buildStatementPartial = (ontologyService: OntologyService, getAllPr
   const object = statement.o.value;
 
   if ((statement.o.type !== "literal") && !doesExist(object, ontologyService.nodes.allElements)) {
-    ontologyService.nodes.allElements[object] = new ElementDefinition(object)
+    // Going to need superClasses field which is on ClassDefinition.
+    // Are the naming conventions correct? Should ElementDefinition always
+    // be ClassDefinition schema?
+    ontologyService.nodes.allElements[object] = new ClassDefinition(object)
   }
 
   if (!doesExist(subject, ontologyService.nodes.allElements)) {
-    ontologyService.nodes.allElements[subject] = new ElementDefinition(subject)
+    ontologyService.nodes.allElements[subject] = new ClassDefinition(subject)
   }
 
   processPredicates(getAllPredicates, ontologyService, predicate, subject, object)
