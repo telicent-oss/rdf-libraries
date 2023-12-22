@@ -317,8 +317,11 @@ describe("Ontology Service", () => {
                 "icon": "ri-question-mark",
               },
               "labels": [],
+              "ownedProperties": [],
               "predicates": {},
               "rdfType": [],
+              "subClasses": [],
+              "superClasses": [],
               "uri": "testObject1",
             },
             "testSubject1": {
@@ -332,10 +335,13 @@ describe("Ontology Service", () => {
                 "icon": "ri-question-mark",
               },
               "labels": [],
+              "ownedProperties": [],
               "predicates": {},
               "rdfType": [
                 "testObject1",
               ],
+              "subClasses": [],
+              "superClasses": [],
               "uri": "testSubject1",
             },
           },
@@ -366,6 +372,9 @@ describe("Ontology Service", () => {
                 "icon": "ri-question-mark",
               },
               "labels": [],
+              "ownedProperties": [],
+              "subClasses": [],
+              "superClasses": [],
               "predicates": {},
               "rdfType": [
                 "testObject1",
@@ -400,6 +409,9 @@ describe("Ontology Service", () => {
                 "icon": "ri-question-mark",
               },
               "labels": [],
+              "ownedProperties": [],
+              "subClasses": [],
+              "superClasses": [],
               "predicates": {
                 "http://www.w3.org/1999/02/22-rdf-syntax-ns#type": [
                   "testObject1",
