@@ -151,6 +151,7 @@ export default class OntologyService extends RdfService {
           default:
             break;
         }
+        cls.uri = subject;
       })
 
       if (getSubClasses) {
@@ -160,6 +161,7 @@ export default class OntologyService extends RdfService {
       if (getDomainProperties) {
         cls.ownedProperties = await this.getDomainProperties(uri)
       }
+
     }
     return cls
   }
