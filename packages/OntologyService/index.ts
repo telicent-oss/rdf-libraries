@@ -129,10 +129,8 @@ export default class OntologyService extends RdfService {
 
         getAllPredicates && cls.addPredicate(predicate, object)
 
-
         if (predicate === this.telicentStyle) {
-          const styleObj = JSON.parse(encodeURIComponent(object))
-          cls.setDefaultStyle(styleObj)
+          cls.setDefaultStyle(JSON.parse(object))
         }
 
         // TODO find a grouped name for what this figures out and 
@@ -391,7 +389,7 @@ export default class OntologyService extends RdfService {
    * @returns an object containing all the information about the diagram
   */
   async getDiagram(uri: string) {
-    var query = `
+    const query = `
         SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
             <${uri}> a <${this.telDiagram}> . 
             OPTIONAL {<${uri}> <${this.telUUID}> ?uuid} 
