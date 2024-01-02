@@ -138,6 +138,7 @@ describe("Ontology Service", () => {
       const cls = await new OntologyService().getClass("testUri")
 
       const mockClass = new ClassDefinition()
+      mockClass.uri = "testSubject1"
       mockClass.addOwnedProperties("relating2")
         .addPredicate(rdfType, "testObject1")
         .addSubClass("relating1")
@@ -152,7 +153,6 @@ describe("Ontology Service", () => {
 
       const cls = await new OntologyService().getClass("testUri", false, false, false)
       const mockClass = new ClassDefinition()
-
       expect(fetchMock).toHaveBeenCalledTimes(0)
       expect(cls).toEqual(mockClass)
     })
