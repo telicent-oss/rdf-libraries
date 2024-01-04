@@ -260,7 +260,7 @@ export default class RdfService {
   */
   #checkObject(object: string, objectType: IESObject = "URI", xsdDatatype?: XsdData) {
     if (objectType === "URI") {
-      var o = `<$${object}>`
+      var o = `<${object}>`
     }
     else if (objectType == "LITERAL") {
       var o = `"object"`

@@ -87,14 +87,14 @@ describe("RdfService", () => {
     it("should send post request to update triple", async () => {
       const obj = new RdfService()
       await obj.insertTriple("testSubject", "testPredicate", "testObject")
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testSubject> <testPredicate> <$testObject> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testSubject> <testPredicate> <testObject> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
     })
 
     it("should send post request with the defaultSecurityLabel", async () => {
       const obj = new RdfService()
       obj.defaultSecurityLabel = "testSecurityLabel"
       await obj.insertTriple("testSubject", "testPredicate", "testObject")
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testSubject> <testPredicate> <$testObject> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testSubject> <testPredicate> <testObject> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
     })
 
     it("should throw an error if fetch encounters a problem", async () => {
@@ -249,7 +249,7 @@ describe("RdfService", () => {
       const obj = new RdfService()
       await obj.instantiate("testCLS", "testURI")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testURI> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <$testCLS> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testURI> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <testCLS> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
     })
 
     xit("should generate a URI if none is provided", async () => {
@@ -258,7 +258,7 @@ describe("RdfService", () => {
 
       const expectedURI = "http://telicent.io/data/mockedUUID"
       expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", {
-        "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<" + expectedURI + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <$testCLS> . }",
+        "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<" + expectedURI + "> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <testCLS> . }",
         "headers": {
           "Accept": "*/*",
           "Content-Type": "application/sparql-update",
@@ -282,7 +282,7 @@ describe("RdfService", () => {
       const obj = new RdfService();
       await obj.addLiteral("testUri", "testPredicate", "testText")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testUri> <testPredicate> <$testText> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testUri> <testPredicate> <testText> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
     })
 
     it("should send post request to delete before adding new literal", async () => {
@@ -297,7 +297,7 @@ describe("RdfService", () => {
           "Content-Type": "application/sparql-update",
         }, "method": "POST"
       })
-      expect(fetchMock).toHaveBeenLastCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testUri> <testPredicate> <$testText> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
+      expect(fetchMock).toHaveBeenLastCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testUri> <testPredicate> <testText> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
     })
 
     it("should throw an error if the uri is an empty string", async () => {
@@ -325,7 +325,7 @@ describe("RdfService", () => {
       const obj = new RdfService()
       await obj.addLabel("testUri", "testLabel")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testUri> <http://www.w3.org/2000/01/rdf-schema#label> <$testLabel> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testUri> <http://www.w3.org/2000/01/rdf-schema#label> <testLabel> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
     })
 
     it("should throw an error if the uri is an empty string", async () => {
@@ -348,7 +348,7 @@ describe("RdfService", () => {
       const obj = new RdfService();
       await obj.addComment("testUri", "testComment")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testUri> <http://www.w3.org/2000/01/rdf-schema#comment> <$testComment> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ds/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<testUri> <http://www.w3.org/2000/01/rdf-schema#comment> <testComment> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
     })
 
     it("should throw an error if the uri is an empty string", async () => {
