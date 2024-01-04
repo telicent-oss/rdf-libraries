@@ -230,8 +230,9 @@ export default class RdfService {
       method: 'POST',
       headers: {//
         'Accept': '*/*',
-        'Security-Label': sl,
-        'Content-Type': 'application/sparql-update'
+        // 'Security-Label': sl, Temporarily removed because if this label is applied
+        //  it omits CORS headers from the pre-flight response
+        'Content-Type': 'application/sparql-update',
       },
       body: this.sparqlPrefixes + updateQuery
     }
