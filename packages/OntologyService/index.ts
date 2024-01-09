@@ -107,11 +107,12 @@ export default class OntologyService extends RdfService {
    * if it's a subclass of another class, then provide this via the superClass parameter
    * optionally add a style object if needed
    * @param uri - The uri of the new class
-   * @param superclass - the parent (superclass) of the new class
+   * @param clsType - The type of the new class
    * @param styleObject - pass in a style object (call makeStyleObject to get a new one)
+   * @param superclass - the parent (superclass) of the new class
    * @returns the uri of the new class (which you've already provided...I know...I know...)
   */
-  newClass(uri: string, superClass: string, clsType: string = this.rdfsClass, styleObject: StyleObject) {
+  newClass(uri: string, clsType: string = this.rdfsClass, styleObject?: StyleObject, superClass?: string) {
     var cls = this.instantiate(clsType, uri)
     if ((superClass) && (superClass !== "")) {
       this.addSubClass(uri, superClass)
