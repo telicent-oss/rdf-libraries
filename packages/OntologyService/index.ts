@@ -5,8 +5,8 @@
   * @author Ian Bailey
   */
 
-import { z, ZodSchema } from "zod"
-import RdfService, { DiagramQuery, DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-io/rdfservice";
+import { z } from "zod"
+import RdfService, { DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-io/rdfservice";
 import { StyleObject } from "./Types";
 import ClassDefinition from "./ClassDefinition";
 import PropertyDefinition from "./PropertyDefinition";
@@ -81,7 +81,7 @@ const binding = z.record(sparqlObject)
 const responseBindings = z.array(binding)
 
 const diagramResponseSchema = z.object({
-  headers: responseHeaders,
+  head: responseHeaders,
   results: z.object({
     bindings: responseBindings
   })
@@ -99,8 +99,22 @@ const DiagramStatement = z.object({
   elemStyle: sparqlObject
 })
 
-const isValidResponse = (data: unknown) => diagramResponseSchema.parse(data)
-const isValidDiagram = (data: unknown) => Diagram.parse(data)
+function getAndCheckQueryResponse(data: unknown): z.infer<typeof diagramResponseSchema> {
+  try {
+    return diagramResponseSchema.parse(data);
+  } catch (err) {     // Optionally, process the error here for more informative output    
+    throw new Error('Response validation failed: ' + err.message);
+  }
+}
+
+function getAndCheckDiagram(data: unknown): Diagram {
+  try {
+    return Diagram.parse(data);
+  } catch (err) {     // Optionally, process the error here for more informative output    
+    throw new Error('Diagram validation failed: ' + err.message);
+  }
+}
+
 
 export default class OntologyService extends RdfService {
   telDiagram: string;
@@ -478,12 +492,11 @@ export default class OntologyService extends RdfService {
             }
         }`
 
-    const spOut = await this.runQuery<DiagramQuery[]>(query)
+    const spOut = await this.runQuery(query)
+    const spOutValidated = getAndCheckQueryResponse(spOut)
 
-    isValidResponse(spOut) // if fails will throw error
-
-    const statements = spOut.results.bindings
-    const output = statements.reduce((acc: Diagram, statement: z.infer<typeof DiagramStatement>) => {
+    const statements = spOutValidated.results.bindings
+    const output = statements.reduce((acc: Diagram, statement) => {
       // TODO: this will override the title each time is that correct?
       acc.title = statement.title.value
       acc.uuid = statement.uuid.value
@@ -513,9 +526,7 @@ export default class OntologyService extends RdfService {
     }, { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} })
 
     console.log(output)
-    isValidDiagram(output) // will throw error if fail
-
-    return output;
+    return getAndCheckDiagram(output);
   }
 
   /**
@@ -553,8 +564,8 @@ export default class OntologyService extends RdfService {
 
 }
 
-//export const response: z.infer<typeof diagramResponseSchema> = {
-//  headers: {
+//export const expectedResponse: z.infer<typeof diagramResponseSchema> = {
+//  head: {
 //    "vars": [
 //      "uuid",
 //      "title",
