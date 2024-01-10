@@ -3,7 +3,7 @@ import PropertyDefinition from "../PropertyDefinition"
 const propertyDefinitionStub = {
   "comments": [],
   "defaultStyle": {
-    "backgroundColor": "#888",
+    "bgColor": "#888",
     "color": "#000",
     "faClass": "fa-solid",
     "faIcon": "fa-solid fa-question",

@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const StyleObject = z.object({
-  backgroundColor: z.string(),
+  bgColor: z.string(),
   color: z.string(),
   icon: z.string(),
   faIcon: z.string(),

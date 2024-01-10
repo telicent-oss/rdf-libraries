@@ -309,7 +309,7 @@ describe("Ontology Service", () => {
             "testObject1": {
               "comments": [],
               "defaultStyle": {
-                "backgroundColor": "#888",
+                "bgColor": "#888",
                 "color": "#000",
                 "faClass": "fa-solid",
                 "faIcon": "fa-solid fa-question",
@@ -327,7 +327,7 @@ describe("Ontology Service", () => {
             "testSubject1": {
               "comments": [],
               "defaultStyle": {
-                "backgroundColor": "#888",
+                "bgColor": "#888",
                 "color": "#000",
                 "faClass": "fa-solid",
                 "faIcon": "fa-solid fa-question",
@@ -364,7 +364,7 @@ describe("Ontology Service", () => {
             "testSubject1": {
               "comments": [],
               "defaultStyle": {
-                "backgroundColor": "#888",
+                "bgColor": "#888",
                 "color": "#000",
                 "faClass": "fa-solid",
                 "faIcon": "fa-solid fa-question",
@@ -401,7 +401,7 @@ describe("Ontology Service", () => {
             "testSubject1": {
               "comments": [],
               "defaultStyle": {
-                "backgroundColor": "#888",
+                "bgColor": "#888",
                 "color": "#000",
                 "faClass": "fa-solid",
                 "faIcon": "fa-solid fa-question",
