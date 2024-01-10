@@ -5,7 +5,7 @@
   * @author Ian Bailey
   */
 
-import { z, ZodSchema, ZodType } from "zod"
+import { z, ZodSchema } from "zod"
 import RdfService, { DiagramQuery, DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-io/rdfservice";
 import { StyleObject } from "./Types";
 import ClassDefinition from "./ClassDefinition";
@@ -71,14 +71,18 @@ const sparqlObject = z.object({
   value: z.string(),
   type: z.string()
 })
-const responseHeaders = z.array(z.string())
+
+const responseHeaders = z.object({
+  vars: z.array(z.string())
+})
+
 const binding = z.record(sparqlObject)
 
 const responseBindings = z.array(binding)
 
 const diagramResponseSchema = z.object({
+  headers: responseHeaders,
   results: z.object({
-    headers: responseHeaders,
     bindings: responseBindings
   })
 })
@@ -94,6 +98,9 @@ const DiagramStatement = z.object({
   diagElem: sparqlObject,
   elemStyle: sparqlObject
 })
+
+const isValidResponse = (data: unknown) => diagramResponseSchema.parse(data)
+const isValidDiagram = (data: unknown) => Diagram.parse(data)
 
 export default class OntologyService extends RdfService {
   telDiagram: string;
@@ -450,8 +457,6 @@ export default class OntologyService extends RdfService {
    * @returns an object containing all the information about the diagram
   */
   async getDiagram(uri: string) {
-    const isValidResponse = (data: unknown): data is z.infer<typeof diagramResponseSchema> => diagramResponseSchema.safeParse(data).success
-    const isValidDiagram = (data: unknown): data is Diagram => Diagram.safeParse(data).success
 
     const query = `
         SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
@@ -475,9 +480,7 @@ export default class OntologyService extends RdfService {
 
     const spOut = await this.runQuery<DiagramQuery[]>(query)
 
-    if (!isValidResponse(spOut)) {
-      throw new Error("Invalid API response")
-    }
+    isValidResponse(spOut) // if fails will throw error
 
     const statements = spOut.results.bindings
     const output = statements.reduce((acc: Diagram, statement: z.infer<typeof DiagramStatement>) => {
@@ -509,9 +512,8 @@ export default class OntologyService extends RdfService {
       return acc
     }, { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} })
 
-    if (!isValidDiagram(output)) {
-      throw new Error("Invalid diagram")
-    }
+    console.log(output)
+    isValidDiagram(output) // will throw error if fail
 
     return output;
   }
@@ -550,3 +552,61 @@ export default class OntologyService extends RdfService {
   }
 
 }
+
+//export const response: z.infer<typeof diagramResponseSchema> = {
+//  headers: {
+//    "vars": [
+//      "uuid",
+//      "title",
+//      "diagElem",
+//      "elem",
+//      "elemStyle",
+//      "diagRel",
+//      "rel",
+//      "source",
+//      "target"
+//    ]
+//  },
+//  results: {
+//    bindings: [
+//      {
+//        "uuid": {
+//          "type": "literal",
+//          "value": "EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F"
+//        },
+//        "title": {
+//          "type": "literal",
+//          "value": "Agreement"
+//        },
+//        "diagElem": {
+//          "type": "uri",
+//          "value": "http://ies.data.gov.uk/diagrams#EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F_EAID_FB2EA8AE_164A_4642_82E3_D2622DC6FCCB"
+//        },
+//        "elem": {
+//          "type": "uri",
+//          "value": "http://ies.data.gov.uk/ontology/ies4#Negotiation"
+//        },
+//        "elemStyle": {
+//          "type": "literal",
+//          "value": "{\"shape\": \"roundrectangle\", \"bgColour\": \"#FF8AD8\", \"colour\": \"#FFFFFF\", \"borderColour\": \"#FFFFFF\", \"icon\": \"fa-solid fa-play\", \"x\": 686, \"y\": 349, \"height\": 55, \"width\": 119}"
+//        },
+//        "diagRel": {
+//          "type": "uri",
+//          "value": "http://ies.data.gov.uk/diagrams#EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F_EAID_759F13D4_9709_4501_A301_73E49D4BE109"
+//        },
+//        "rel": {
+//          "type": "uri",
+//          "value": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
+//        },
+//        "source": {
+//          "type": "uri",
+//          "value": "http://ies.data.gov.uk/diagrams#EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F_EAID_1ECB4C6E_6A30_4dc5_A4AC_9A9DF5B6A54F"
+//        },
+//        "target": {
+//          "type": "uri",
+//          "value": "http://ies.data.gov.uk/diagrams#EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F_EAID_D09EDE21_E862_4ec1_BC0F_045CCE5454A9"
+//        }
+//      }
+//    ]
+//  }
+//}
