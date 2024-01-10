@@ -1,11 +1,12 @@
 import { NamedPredicate, StyleObject } from "./Types";
+import { z } from "zod"
 
 export default class ElementDefinition {
   uri: string = "";
   rdfType: string[] = [];
   labels: string[] = [];
   comments: string[] = [];
-  defaultStyle: StyleObject = {
+  defaultStyle: z.infer<typeof StyleObject> = {
     backgroundColor: "#888",
     color: "#000",
     icon: "ri-question-mark",
@@ -28,7 +29,7 @@ export default class ElementDefinition {
     return this;
   }
 
-  setDefaultStyle(style: StyleObject) {
+  setDefaultStyle(style: z.infer<typeof StyleObject>) {
     this.defaultStyle = style;
     return this;
   }

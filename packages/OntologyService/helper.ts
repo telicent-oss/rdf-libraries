@@ -1,3 +1,4 @@
+import { z } from "zod"
 import { SPARQL } from "packages/RdfService";
 import ClassDefinition from "./ClassDefinition";
 import PropertyDefinition from "./PropertyDefinition";
@@ -16,7 +17,7 @@ import OntologyService, { AllElements, OntologyOutput } from ".";
  * @param string - The class string of font awesome icon - usually ontologyService also included in the faIcon string
  * @returns object - a style object for use in other methods
 */
-export const makeStyleObject = (backgroundColor = "#888", color = "#000", icon = "ri-question-mark", faIcon = "fa-solid fa-question", faUnicode = "\u003f", faClass = "fa-solid"): StyleObject => ({
+export const makeStyleObject = (backgroundColor = "#888", color = "#000", icon = "ri-question-mark", faIcon = "fa-solid fa-question", faUnicode = "\u003f", faClass = "fa-solid"): z.infer<typeof StyleObject> => ({
   backgroundColor: backgroundColor,
   color: color,
   icon: icon,
