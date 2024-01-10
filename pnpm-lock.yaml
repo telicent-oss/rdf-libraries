@@ -66,6 +66,9 @@ importers:
       '@telicent-io/rdfservice':
         specifier: '*'
         version: link:../RdfService
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
     devDependencies:
       '@microsoft/tsdoc':
         specifier: ^0.14.2
@@ -111,6 +114,10 @@ importers:
         version: 4.2.1(typescript@5.2.2)(vite@4.5.0)
 
   packages/RdfService:
+    dependencies:
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
     devDependencies:
       '@microsoft/tsdoc':
         specifier: ^0.14.2
@@ -5942,3 +5949,7 @@ packages:
     optionalDependencies:
       commander: 9.5.0
     dev: true
+
+  /zod@3.22.4:
+    resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
+    dev: false

@@ -5,6 +5,7 @@
   * @author Ian Bailey
   */
 
+import { z, ZodSchema, ZodType } from "zod"
 import RdfService, { DiagramQuery, DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-io/rdfservice";
 import { StyleObject } from "./Types";
 import ClassDefinition from "./ClassDefinition";
@@ -33,20 +34,24 @@ export interface OntologyOutput {
   classes: NamedClassDefinitions;
 }
 
-export interface DiagramRelationship {
-  source: string;
-  target: string;
-  relationship: string;
-}
+const DiagramRelationship = z.object({
+  source: z.string(),
+  target: z.string(),
+  relationship: z.string()
+});
+
+export type DiagramRelationship = z.infer<typeof DiagramRelationship>;
 
 export interface NamedDiagramRelationship {
   [subject: string]: DiagramRelationship
 }
 
-export interface DiagramElement {
-  style: StyleObject;
-  element: string;
-}
+const DiagramElement = z.object({
+  style: StyleObject,
+  element: z.string()
+});
+
+export type DiagramElement = z.infer<typeof DiagramElement>;
 
 export interface NamedDiagramElement {
   [subject: string]: DiagramElement;
@@ -59,6 +64,34 @@ export interface Diagram {
   diagramElements: NamedDiagramElement;
   diagramRelationships: NamedDiagramRelationship;
 }
+
+const sparqlObject = z.object({
+  value: z.string(),
+  type: z.string()
+})
+const responseHeaders = z.array(z.string())
+const binding = z.record(sparqlObject)
+
+const responseBindings = z.array(binding)
+
+const diagramResponseSchema = z.object({
+  results: z.object({
+    headers: responseHeaders,
+    bindings: responseBindings
+  })
+})
+
+const DiagramStatement = z.object({
+  title: sparqlObject,
+  uuid: sparqlObject,
+  source: sparqlObject,
+  target: sparqlObject,
+  rel: sparqlObject,
+  diagRel: sparqlObject,
+  elem: sparqlObject,
+  diagElem: sparqlObject,
+  elemStyle: sparqlObject
+})
 
 export default class OntologyService extends RdfService {
   telDiagram: string;
@@ -112,7 +145,7 @@ export default class OntologyService extends RdfService {
    * @param superclass - the parent (superclass) of the new class
    * @returns the uri of the new class (which you've already provided...I know...I know...)
   */
-  newClass(uri: string, clsType: string = this.rdfsClass, styleObject?: StyleObject, superClass?: string) {
+  newClass(uri: string, clsType: string = this.rdfsClass, styleObject?: z.infer<typeof StyleObject>, superClass?: string) {
     var cls = this.instantiate(clsType, uri)
     if ((superClass) && (superClass !== "")) {
       this.addSubClass(uri, superClass)
@@ -326,7 +359,7 @@ export default class OntologyService extends RdfService {
    * @param uri - The URI of the class that have the style assigned
    * @param styleObj - A style object for the class - call makeStyleObject to get one
   */
-  setStyle(uri: string, styleObj: StyleObject) {
+  setStyle(uri: string, styleObj: z.infer<typeof StyleObject>) {
     const styleStr = encodeURIComponent(JSON.stringify(styleObj))
     this.deleteRelationships(uri, this.telicentStyle)
     this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL")
@@ -415,6 +448,8 @@ export default class OntologyService extends RdfService {
    * @returns an object containing all the information about the diagram
   */
   async getDiagram(uri: string) {
+    const isValidResponse = (data: unknown): data is z.infer<typeof diagramResponseSchema> => diagramResponseSchema.safeParse(data).success
+
     const query = `
         SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
             <${uri}> a <${this.telDiagram}> . 
@@ -434,11 +469,14 @@ export default class OntologyService extends RdfService {
                 ?diagRel <${this.telTargetElem}> ?target .
             }
         }`
+
     const spOut = await this.runQuery<DiagramQuery[]>(query)
-    if (!(spOut?.results?.bindings)) return
+    if (!isValidResponse(spOut)) {
+      throw new Error("Invalid API response")
+    }
 
     const statements = spOut.results.bindings
-    const output = statements.reduce((acc: Diagram, statement) => {
+    const output = statements.reduce((acc: Diagram, statement: z.infer<typeof DiagramStatement>) => {
       // TODO: this will override the title each time is that correct?
       acc.title = statement.title.value
       acc.uuid = statement.uuid.value
