@@ -57,13 +57,15 @@ export interface NamedDiagramElement {
   [subject: string]: DiagramElement;
 }
 
-export interface Diagram {
-  uuid?: string;
-  title?: string;
-  uri: string;
-  diagramElements: NamedDiagramElement;
-  diagramRelationships: NamedDiagramRelationship;
-}
+const Diagram = z.object({
+  uuid: z.string().optional(),
+  title: z.string().optional(),
+  uri: z.string(),
+  diagramElements: z.record(DiagramElement),
+  diagramRelationships: z.record(DiagramRelationship)
+})
+
+export type Diagram = z.infer<typeof Diagram>;
 
 const sparqlObject = z.object({
   value: z.string(),
@@ -449,6 +451,7 @@ export default class OntologyService extends RdfService {
   */
   async getDiagram(uri: string) {
     const isValidResponse = (data: unknown): data is z.infer<typeof diagramResponseSchema> => diagramResponseSchema.safeParse(data).success
+    const isValidDiagram = (data: unknown): data is Diagram => Diagram.safeParse(data).success
 
     const query = `
         SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
@@ -471,6 +474,7 @@ export default class OntologyService extends RdfService {
         }`
 
     const spOut = await this.runQuery<DiagramQuery[]>(query)
+
     if (!isValidResponse(spOut)) {
       throw new Error("Invalid API response")
     }
@@ -505,7 +509,11 @@ export default class OntologyService extends RdfService {
       return acc
     }, { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} })
 
-    return output
+    if (!isValidDiagram(output)) {
+      throw new Error("Invalid diagram")
+    }
+
+    return output;
   }
 
   /**
