@@ -5,10 +5,7 @@ const propertyDefinitionStub = {
   "defaultStyle": {
     "bgColour": "#888",
     "colour": "#000",
-    "faClass": "fa-solid",
-    "faIcon": "fa-solid fa-question",
-    "faUnicode": "?",
-    "icon": "ri-question-mark",
+    "icon": "fa-solid fa-question",
   },
   "domain": [],
   "labels": [],

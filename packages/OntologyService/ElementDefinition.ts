@@ -9,11 +9,9 @@ export default class ElementDefinition {
   defaultStyle: z.infer<typeof StyleObject> = {
     bgColour: "#888",
     colour: "#000",
-    icon: "ri-question-mark",
-    faIcon: "fa-solid fa-question",
-    faUnicode: "\u003f",
-    faClass: "fa-solid"
+    icon: "fa-solid fa-question",
   };
+
   predicates: NamedPredicate = {}
 
   constructor(uri?: string) {

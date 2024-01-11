@@ -3,10 +3,13 @@ import { z } from "zod";
 export const StyleObject = z.object({
   bgColour: z.string(),
   colour: z.string(),
+  borderColour: z.string(),
+  height: z.number(),
+  width: z.number(),
   icon: z.string(),
-  faIcon: z.string(),
-  faUnicode: z.string(),
-  faClass: z.string()
+  shape: z.enum(["roundrectangle", "parallelogram", "diamond"]),
+  x: z.number(),
+  y: z.number()
 });
 
 export interface NamedPredicate {
