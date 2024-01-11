@@ -7,8 +7,8 @@ export default class ElementDefinition {
   labels: string[] = [];
   comments: string[] = [];
   defaultStyle: z.infer<typeof StyleObject> = {
-    bgColor: "#888",
-    color: "#000",
+    bgColour: "#888",
+    colour: "#000",
     icon: "ri-question-mark",
     faIcon: "fa-solid fa-question",
     faUnicode: "\u003f",

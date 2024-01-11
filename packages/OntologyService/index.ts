@@ -78,15 +78,6 @@ const responseHeaders = z.object({
 
 const binding = z.record(sparqlObject)
 
-const responseBindings = z.array(binding)
-
-const diagramResponseSchema = z.object({
-  head: responseHeaders,
-  results: z.object({
-    bindings: responseBindings
-  })
-})
-
 const DiagramStatement = z.object({
   title: sparqlObject,
   uuid: sparqlObject,
@@ -97,6 +88,15 @@ const DiagramStatement = z.object({
   elem: sparqlObject,
   diagElem: sparqlObject,
   elemStyle: sparqlObject
+})
+
+const responseBindings = z.array(DiagramStatement)
+
+const diagramResponseSchema = z.object({
+  head: responseHeaders,
+  results: z.object({
+    bindings: responseBindings
+  })
 })
 
 function getAndCheckQueryResponse(data: unknown): z.infer<typeof diagramResponseSchema> {
