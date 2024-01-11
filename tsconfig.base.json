@@ -9,16 +9,23 @@
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "strict": false,
+    "strict": true,
     "importHelpers": true,
     "target": "esnext",
     "module": "esnext",
-    "lib": ["es2020", "dom"],
+    "lib": [
+      "es2020",
+      "dom"
+    ],
     "esModuleInterop": true,
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {}
   },
-  "exclude": ["node_modules", "tmp", "dist"],
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "dist"
+  ]
 }

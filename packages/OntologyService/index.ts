@@ -58,8 +58,8 @@ export interface NamedDiagramElement {
 }
 
 const Diagram = z.object({
-  uuid: z.string().optional(),
-  title: z.string().optional(),
+  uuid: z.string(),
+  title: z.string(),
   uri: z.string(),
   diagramElements: z.record(DiagramElement),
   diagramRelationships: z.record(DiagramRelationship)
@@ -98,6 +98,26 @@ const diagramResponseSchema = z.object({
     bindings: responseBindings
   })
 })
+
+const StyleStatement = z.object({
+  cls: sparqlObject,
+  style: sparqlObject
+})
+
+const styleResponseSchema = z.object({
+  head: responseHeaders,
+  results: z.object({
+    bindings: z.array(StyleStatement)
+  })
+})
+
+function getAndCheckStyleQueryResponse(data: unknown): z.infer<typeof styleResponseSchema> {
+  try {
+    return styleResponseSchema.parse(data);
+  } catch (err) {
+    throw new Error('Style response validation failed' + err.message)
+  }
+}
 
 function getAndCheckQueryResponse(data: unknown): z.infer<typeof diagramResponseSchema> {
   try {
@@ -364,9 +384,10 @@ export default class OntologyService extends RdfService {
     }
     const query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`
     const spOut = await this.runQuery<StylesQuery[]>(query)
-    if (!(spOut?.results?.bindings)) return
 
-    const statements = spOut.results.bindings
+    const spOutValidated = getAndCheckStyleQueryResponse(spOut)
+    const statements = spOutValidated.results.bindings
+
     return statements.reduce((statements, statement) => {
       if (!statement.style.value || statement.style.value === "undefined") return statements
 
