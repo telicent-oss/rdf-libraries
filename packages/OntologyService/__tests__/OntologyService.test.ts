@@ -225,7 +225,7 @@ describe("Ontology Service", () => {
       new OntologyService()
         .addSubClass("subClass", "superClass")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<subClass> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <$superClass> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<subClass> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <superClass> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
     })
   })
 
