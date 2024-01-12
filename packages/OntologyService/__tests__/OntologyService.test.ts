@@ -5,11 +5,6 @@ import { QueryResponse, RelatedQuery, RelatingQuery, SPARQL } from "packages/Rdf
 import { rdfType, rdfsSubClassOf } from "../testMocks";
 import { makeStyleObject } from "../helper";
 
-//jest.mock('crypto', () => ({
-//  ...jest.requireActual('crypto'), // Preserve other methods from crypto module
-//  randomUUID: jest.fn().mockReturnValue('mockedUUID'),
-//}));
-
 enableFetchMocks()
 
 const ontologyObjectStub = {
@@ -270,7 +265,28 @@ describe("Ontology Service", () => {
       fetchMock.resetMocks();
     })
     it("should send a request for each style", () => {
-      fetchMock.mockResponseOnce(JSON.stringify({}))
+      fetchMock.mockResponseOnce(JSON.stringify({
+        head: {
+          "vars": [
+            "cls",
+            "style"
+          ]
+        },
+        results: {
+          bindings: [
+            {
+              "cls": {
+                "type": "uri",
+                "value": "http://ies.data.gov.uk/ontology/ies4#Provider"
+              },
+              "style": {
+                "type": "literal",
+                "value": "{\"defaultStyles\": {\"dark\": {\"backgroundColor\": \"#0F0024\", \"color\": \"#BA85FF\"}, \"light\": {\"backgroundColor\": \"#BA85FF\", \"color\": \"#0F0024\"}, \"shape\": \"circle\", \"borderRadius\": \"9999px\", \"borderWidth\": \"2px\", \"selectedBorderWidth\": \"3px\"}, \"defaultIcons\": {\"riIcon\": \"ri-exchange-box-fill\", \"faIcon\": \"fa-sharp fa-solid fa-arrow-right-arrow-left\", \"faUnicode\": \"\\uf0ec\", \"faClass\": \"fa-sharp fa-solid\"}}"
+              }
+            }
+          ]
+        }
+      }))
       new OntologyService()
         .getStyles(["style1", "style2"])
       expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fcls%20%3Fstyle%20WHERE%20%7B%3Fcls%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2Fstyle%3E%20%3Fstyle%20.%20FILTER%20(str(%3Fcls)%20IN%20(%22style1%22%2C%20%22style2%22)%20)%20%7D")
@@ -312,7 +328,12 @@ describe("Ontology Service", () => {
               "defaultStyle": {
                 "bgColour": "#888",
                 "colour": "#000",
+                "height": 0,
                 "icon": "fa-solid fa-question",
+                "shape": "diamond",
+                "width": 0,
+                "x": 0,
+                "y": 0,
               },
               "labels": [],
               "ownedProperties": [],
@@ -327,7 +348,12 @@ describe("Ontology Service", () => {
               "defaultStyle": {
                 "bgColour": "#888",
                 "colour": "#000",
+                "height": 0,
                 "icon": "fa-solid fa-question",
+                "shape": "diamond",
+                "width": 0,
+                "x": 0,
+                "y": 0,
               },
               "labels": [],
               "ownedProperties": [],
@@ -361,7 +387,12 @@ describe("Ontology Service", () => {
               "defaultStyle": {
                 "bgColour": "#888",
                 "colour": "#000",
+                "height": 0,
                 "icon": "fa-solid fa-question",
+                "shape": "diamond",
+                "width": 0,
+                "x": 0,
+                "y": 0,
               },
               "labels": [],
               "ownedProperties": [],
@@ -395,7 +426,12 @@ describe("Ontology Service", () => {
               "defaultStyle": {
                 "bgColour": "#888",
                 "colour": "#000",
+                "height": 0,
                 "icon": "fa-solid fa-question",
+                "shape": "diamond",
+                "width": 0,
+                "x": 0,
+                "y": 0,
               },
               "labels": [],
               "ownedProperties": [],
