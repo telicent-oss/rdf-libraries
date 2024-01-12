@@ -46,8 +46,8 @@ export type StylesQuery = {
 
 export type DiagramListQuery = {
   uri: SPARQLObject,
-  uuid?: SPARQLObject,
-  title?: SPARQLObject
+  uuid: SPARQLObject,
+  title: SPARQLObject
 }
 
 export type DiagramQuery = {
