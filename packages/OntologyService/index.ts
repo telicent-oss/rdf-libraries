@@ -8,31 +8,31 @@
 import { z } from "zod"
 import RdfService, { DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-io/rdfservice";
 import { StyleObject } from "./Types";
-import ClassDefinition from "./ClassDefinition";
-import PropertyDefinition from "./PropertyDefinition";
-import ElementDefinition from "./ElementDefinition";
+import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
+import { PropertyDefinitionSchema } from "./PropertyDefinition";
+import { ElementDefinitionSchema } from "./ElementDefinition";
 import { buildStatementPartial } from "./helper";
 
+const NamedElements = z.record(ElementDefinitionSchema)
+const NamedClassDefinitions = z.record(ClassDefinitionSchema)
+const NamedPropertiesDefinitions = z.record(PropertyDefinitionSchema)
 
-export interface NamedElements {
-  [subject: string]: ElementDefinition;
-}
+// export type AllElements = NamedPropertiesDefinitions | NamedClassDefinitions | NamedElements;
+const AllElements = z.union([
+  NamedPropertiesDefinitions,
+  NamedClassDefinitions,
+  NamedElements
+])
 
-export interface NamedClassDefinitions {
-  [subject: string]: ClassDefinition;
-}
+export type AllElements = z.infer<typeof AllElements>
 
-export interface NamedPropertiesDefinitions {
-  [subject: string]: PropertyDefinition;
-}
+const ontologyOutput = z.object({
+  allElements: AllElements,
+  properties: NamedPropertiesDefinitions,
+  classes: NamedClassDefinitions
+})
 
-export type AllElements = NamedPropertiesDefinitions | NamedClassDefinitions | NamedElements;
-
-export interface OntologyOutput {
-  allElements: AllElements;
-  properties: NamedPropertiesDefinitions;
-  classes: NamedClassDefinitions;
-}
+export type OntologyOutput = z.infer<typeof ontologyOutput>
 
 const DiagramRelationship = z.object({
   source: z.string(),
@@ -76,8 +76,6 @@ const responseHeaders = z.object({
   vars: z.array(z.string())
 })
 
-const binding = z.record(sparqlObject)
-
 const DiagramStatement = z.object({
   title: sparqlObject,
   uuid: sparqlObject,
@@ -111,30 +109,64 @@ const styleResponseSchema = z.object({
   })
 })
 
-function getAndCheckStyleQueryResponse(data: unknown): z.infer<typeof styleResponseSchema> {
+const StyleResponse = z.record(z.object({
+  defaultStyles: z.object({
+    dark: z.object({
+      backgroundColor: z.string(),
+      color: z.string()
+    }),
+    light: z.object({
+      backgroundColor: z.string(),
+      color: z.string()
+    }),
+    shape: z.string(),
+    borderRadius: z.string(),
+    borderWidth: z.string(),
+    selectedBorderWidth: z.string()
+  }),
+  defaultIcons: z.object({
+    riIcon: z.string(),
+    faIcon: z.string(),
+    faUnicode: z.string(),
+    faClass: z.string()
+  })
+}))
+
+const SubjectPredicateObjectStatement = z.object({
+  s: sparqlObject,
+  p: sparqlObject,
+  o: sparqlObject
+})
+
+const subjectPredicateObjectResponseSchema = z.object({
+  head: responseHeaders,
+  results: z.object({
+    bindings: z.array(SubjectPredicateObjectStatement)
+  })
+})
+
+const getAndCheckValidation = <T>(data: unknown, schema: z.ZodType<T, any, any>): T => {
   try {
-    return styleResponseSchema.parse(data);
+    return schema.parse(data);
   } catch (err) {
-    throw new Error('Style response validation failed' + err.message)
+    if (err instanceof z.ZodError) {
+      throw new Error(`Validation failed: ${err.message} ${JSON.stringify(data)}`);
+    }
+    throw new Error('Validation failed');
   }
-}
+};
 
-function getAndCheckQueryResponse(data: unknown): z.infer<typeof diagramResponseSchema> {
-  try {
-    return diagramResponseSchema.parse(data);
-  } catch (err) {     // Optionally, process the error here for more informative output    
-    throw new Error('Response validation failed: ' + err.message);
-  }
-}
+const getAndCheckStyleQueryResponse = (data: unknown): z.infer<typeof styleResponseSchema> =>
+  getAndCheckValidation(data, styleResponseSchema)
 
-function getAndCheckDiagram(data: unknown): Diagram {
-  try {
-    return Diagram.parse(data);
-  } catch (err) {     // Optionally, process the error here for more informative output    
-    throw new Error('Diagram validation failed: ' + err.message);
-  }
-}
+const getAndCheckQueryResponse = (data: unknown): z.infer<typeof diagramResponseSchema> =>
+  getAndCheckValidation(data, diagramResponseSchema);
 
+const getAndCheckDiagram = (data: unknown): Diagram =>
+  getAndCheckValidation(data, Diagram);
+
+const getAndCheckResultObject = (data: unknown): z.infer<typeof subjectPredicateObjectResponseSchema> =>
+  getAndCheckValidation(data, subjectPredicateObjectResponseSchema);
 
 export default class OntologyService extends RdfService {
   telDiagram: string;
@@ -388,12 +420,13 @@ export default class OntologyService extends RdfService {
     const spOutValidated = getAndCheckStyleQueryResponse(spOut)
     const statements = spOutValidated.results.bindings
 
+    let acc: z.infer<typeof StyleResponse> = {}
     return statements.reduce((statements, statement) => {
       if (!statement.style.value || statement.style.value === "undefined") return statements
 
       statements[statement.cls.value] = JSON.parse(decodeURIComponent(statement.style.value))
       return statements
-    }, {})
+    }, acc)
   }
 
   /**
@@ -415,13 +448,13 @@ export default class OntologyService extends RdfService {
    */
   //function that goes through ?s ?p ?o results and formats an object structure for js consumption
   async #buildResultsObject(query: string, getAllPredicates = false) {
-    const ontojson = await this.runQuery<SPARQL[]>(query)
+    const spOut = await this.runQuery(query)
+    const spOutValidated = getAndCheckResultObject(spOut)
 
-    if (ontojson?.results?.bindings) {
-      const statements = ontojson.results.bindings
-      const processStatement = buildStatementPartial(this as any, getAllPredicates)
-      statements.forEach(processStatement)
-    }
+    const statements = spOutValidated.results.bindings
+
+    const processStatement = buildStatementPartial(this, getAllPredicates)
+    statements.forEach(processStatement)
 
     return this.nodes
   }
@@ -437,11 +470,16 @@ export default class OntologyService extends RdfService {
    * @returns array of classes and properties that are in the ontology
   */
   async getAllElements(getAllPredicates = false) {
-    var result = await this.#buildResultsObject("SELECT * WHERE {?s ?p ?o}", getAllPredicates)
+    const result = await this.#buildResultsObject("SELECT * WHERE {?s ?p ?o}", getAllPredicates)
 
     //TODO has no ability to get predicates
 
-    const output = {
+    const topOutput = z.object({
+      top: z.array(ClassDefinitionSchema)
+    })
+
+    const combinedOutput = ontologyOutput.merge(topOutput)
+    const output: z.infer<typeof combinedOutput> = {
       ...result,
       top: []
     }
@@ -464,15 +502,15 @@ export default class OntologyService extends RdfService {
   async getAllDiagrams() {
     const query = `SELECT ?uri ?uuid ?title WHERE {
             ?uri a <${this.telDiagram}> . 
-            OPTIONAL {?uri <${this.telUUID}> ?uuid} 
-            OPTIONAL {?uri <${this.telTitle}> ?title } 
+            {?uri <${this.telUUID}> ?uuid} 
+            {?uri <${this.telTitle}> ?title } 
         }`
     const spOut = await this.runQuery<DiagramListQuery[]>(query)
     if (!(spOut?.results?.bindings)) return
 
     const statements = spOut.results.bindings
     return statements.map(statement => {
-      const diag: Diagram = { uri: statement.uri.value, diagramElements: {}, diagramRelationships: {} }
+      const diag: Diagram = { uuid: statement.uuid.value, title: statement.title.value, uri: statement.uri.value, diagramElements: {}, diagramRelationships: {} }
       if (statement.title) {
         diag.title = statement.title.value
       }
@@ -518,7 +556,6 @@ export default class OntologyService extends RdfService {
 
     const statements = spOutValidated.results.bindings
     const output = statements.reduce((acc: Diagram, statement) => {
-      // TODO: this will override the title each time is that correct?
       acc.title = statement.title.value
       acc.uuid = statement.uuid.value
 
@@ -546,7 +583,6 @@ export default class OntologyService extends RdfService {
       return acc
     }, { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} })
 
-    console.log(output)
     return getAndCheckDiagram(output);
   }
 

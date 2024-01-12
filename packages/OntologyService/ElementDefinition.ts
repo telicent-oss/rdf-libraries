@@ -1,6 +1,14 @@
 import { NamedPredicate, StyleObject } from "./Types";
 import { z } from "zod"
 
+export const ElementDefinitionSchema = z.object({
+  uri: z.string(),
+  rdfType: z.array(z.string()),
+  labels: z.array(z.string()),
+  comments: z.array(z.string()),
+  defaultStyle: StyleObject,
+})
+
 export default class ElementDefinition {
   uri: string = "";
   rdfType: string[] = [];
@@ -10,6 +18,11 @@ export default class ElementDefinition {
     bgColour: "#888",
     colour: "#000",
     icon: "fa-solid fa-question",
+    height: 0,
+    width: 0,
+    x: 0,
+    y: 0,
+    shape: "diamond"
   };
 
   predicates: NamedPredicate = {}

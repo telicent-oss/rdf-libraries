@@ -3,7 +3,7 @@ import { z } from "zod";
 export const StyleObject = z.object({
   bgColour: z.string(),
   colour: z.string(),
-  borderColour: z.string(),
+  borderColour: z.string().optional(),
   height: z.number(),
   width: z.number(),
   icon: z.string(),

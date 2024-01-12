@@ -132,17 +132,18 @@ describe("Ontology Service", () => {
     })
 
     it("should perform a query to get the class and populate a class object with all params set to true", async () => {
-
+      // Performs three API requests as by default getClass has getAllPredicates, getSubClasses, getDomainProperties to true
       fetchMock.mockResponses([JSON.stringify(mockSPARQLResponse), { status: 200 }], [JSON.stringify(mockSubClassesResponse), { status: 200 }], [JSON.stringify(mockDomainPropertiesResponse), { status: 200 }])
 
-      const cls = await new OntologyService().getClass("testUri")
-
+      // build up how the mockClass Schema should look
       const mockClass = new ClassDefinition()
       mockClass.uri = "testSubject1"
       mockClass.addOwnedProperties("relating2")
         .addPredicate(rdfType, "testObject1")
         .addSubClass("relating1")
         .addRdfType("testObject1")
+
+      const cls = await new OntologyService().getClass("testUri")
 
       expect(fetchMock).toHaveBeenCalledTimes(3)
       expect(cls).toEqual(mockClass)

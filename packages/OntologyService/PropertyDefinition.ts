@@ -1,4 +1,12 @@
+import { z } from "zod"
 import ElementDefinition from "./ElementDefinition";
+
+export const PropertyDefinitionSchema = z.object({
+  subProperties: z.array(z.string()),
+  superProperties: z.array(z.string()),
+  domain: z.array(z.string()),
+  range: z.array(z.string())
+})
 
 export default class PropertyDefinition extends ElementDefinition {
   subProperties: string[] = [];

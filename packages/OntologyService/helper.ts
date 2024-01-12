@@ -1,10 +1,10 @@
 import { z } from "zod"
 import { SPARQL } from "packages/RdfService";
-import ClassDefinition from "./ClassDefinition";
+import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
 import PropertyDefinition from "./PropertyDefinition";
 
 import { StyleObject } from "./Types";
-import OntologyService, { AllElements, OntologyOutput } from ".";
+import OntologyService, { AllElements } from ".";
 /*
  * @function makeStyleObject 
  * @remarks
@@ -21,6 +21,11 @@ export const makeStyleObject = (backgroundColor = "#888", color = "#000", icon =
   bgColour: backgroundColor,
   colour: color,
   icon: icon,
+  height: 0,
+  width: 0,
+  x: 0,
+  y: 0,
+  shape: "diamond"
 })
 
 const doesExist = (target: string, elementList: AllElements) => Boolean(target in elementList)
@@ -83,9 +88,13 @@ const processRdfType = (output: OntologyService, subject: string, object: string
     output.nodes.allElements[object] = output.nodes.classes[object] = classProperty;
   }
 }
+const isClassDefinition = (el: any): el is ClassDefinition => el instanceof ClassDefinition;
 
 const processPredicates = (getAllPredicates = false, output: OntologyService, predicate: string, subject: string, object: string) => {
   const element = output.nodes.allElements[subject]
+  if (!isClassDefinition(element)) {
+    throw new Error("should never go here");
+  }
 
   if (getAllPredicates) {
     element.addPredicate(predicate, object)
@@ -139,6 +148,7 @@ export const buildStatementPartial = (ontologyService: OntologyService, getAllPr
   if (!doesExist(subject, ontologyService.nodes.allElements)) {
     ontologyService.nodes.allElements[subject] = new ClassDefinition(subject)
   }
+
 
   processPredicates(getAllPredicates, ontologyService, predicate, subject, object)
 

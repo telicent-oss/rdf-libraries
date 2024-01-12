@@ -6,6 +6,11 @@ const propertyDefinitionStub = {
     "bgColour": "#888",
     "colour": "#000",
     "icon": "fa-solid fa-question",
+    "height": 0,
+    "shape": "diamond",
+    "width": 0,
+    "x": 0,
+    "y": 0
   },
   "domain": [],
   "labels": [],
