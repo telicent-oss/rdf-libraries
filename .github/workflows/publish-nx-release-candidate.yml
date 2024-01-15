@@ -1,9 +1,8 @@
-name: CI
+name: Publish release candidate
 on:
   push:
-    branches:
-      # Change this if your primary branch is not main
-      - main
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+-rc[0-9]+"
 
     workflow_dispatch:
 
