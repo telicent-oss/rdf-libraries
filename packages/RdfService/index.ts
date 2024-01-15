@@ -266,6 +266,7 @@ export default class RdfService {
     }
     else if (objectType == "LITERAL") {
       var o = `"object"`
+      console.log({ objectType, xsdDatatype })
       if (xsdDatatype) {
         //      if ((xsdDatatype) && (xsdDatatype !== "")) {
         o = `${o}^^${xsdDatatype}`
