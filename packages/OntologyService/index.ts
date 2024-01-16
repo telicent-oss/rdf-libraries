@@ -165,6 +165,7 @@ const getAndCheckValidation = <T>(data: unknown, schema: z.ZodType<T, any, any>)
   try {
     return schema.parse(data);
   } catch (err) {
+    console.log(data)
     if (err instanceof z.ZodError) {
       throw new Error(`Validation failed: ${err.message} ${JSON.stringify(data)}`);
     }

@@ -236,6 +236,7 @@ export default class RdfService {
       },
       body: this.sparqlPrefixes + updateQuery
     }
+
     const response = await fetch(this.updateEndpoint, postObject)
     if (!response.ok) {
       throw response.statusText
@@ -263,7 +264,7 @@ export default class RdfService {
       var o = `<${object}>`
     }
     else if (objectType == "LITERAL") {
-      var o = `"object"`
+      var o = `"${object}"`
       if (xsdDatatype) {
         //      if ((xsdDatatype) && (xsdDatatype !== "")) {
         o = `${o}^^${xsdDatatype}`
