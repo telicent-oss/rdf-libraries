@@ -438,6 +438,7 @@ export default class OntologyService extends RdfService {
   */
   setStyle(uri: string, styleObj: z.infer<typeof StyleObject>) {
     const styleStr = encodeURIComponent(JSON.stringify(styleObj))
+    console.log({ styleStr })
     this.deleteRelationships(uri, this.telicentStyle)
     this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL")
   }
