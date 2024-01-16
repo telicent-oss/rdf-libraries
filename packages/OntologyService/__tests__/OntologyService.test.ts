@@ -309,7 +309,7 @@ describe("Ontology Service", () => {
         "method": "POST"
       })
       expect(fetchMock).toHaveBeenNthCalledWith(2, "http://localhost:3030/ontology/update", {
-        "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<style1> <http://telicent.io/ontology/style> %7B%22bgColour%22%3A%22%23888%22%2C%22colour%22%3A%22%23000%22%2C%22icon%22%3A%22fa-solid%20fa-question%22%2C%22height%22%3A0%2C%22width%22%3A0%2C%22x%22%3A0%2C%22y%22%3A0%2C%22shape%22%3A%22diamond%22%7D . }",
+        "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>  PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<style1> <http://telicent.io/ontology/style> \"%7B%22bgColour%22%3A%22%23888%22%2C%22colour%22%3A%22%23000%22%2C%22icon%22%3A%22fa-solid%20fa-question%22%2C%22height%22%3A0%2C%22width%22%3A0%2C%22x%22%3A0%2C%22y%22%3A0%2C%22shape%22%3A%22diamond%22%7D\" . }",
         "headers": {
           "Accept": "*/*",
           "Content-Type": "application/sparql-update",

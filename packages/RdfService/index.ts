@@ -264,7 +264,7 @@ export default class RdfService {
       var o = `<${object}>`
     }
     else if (objectType == "LITERAL") {
-      var o = `${object}`
+      var o = `"${object}"`
       if (xsdDatatype) {
         //      if ((xsdDatatype) && (xsdDatatype !== "")) {
         o = `${o}^^${xsdDatatype}`
