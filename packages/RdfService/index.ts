@@ -237,7 +237,6 @@ export default class RdfService {
       body: this.sparqlPrefixes + updateQuery
     }
 
-    console.log({ updateQuery })
     const response = await fetch(this.updateEndpoint, postObject)
     if (!response.ok) {
       throw response.statusText
@@ -265,8 +264,7 @@ export default class RdfService {
       var o = `<${object}>`
     }
     else if (objectType == "LITERAL") {
-      var o = `"${object}"`
-      console.log({ objectType, xsdDatatype })
+      var o = `${object}`
       if (xsdDatatype) {
         //      if ((xsdDatatype) && (xsdDatatype !== "")) {
         o = `${o}^^${xsdDatatype}`
@@ -298,7 +296,6 @@ export default class RdfService {
   */
   async insertTriple(subject: string, predicate: string, object: string, objectType?: IESObject, securityLabel?: string, xsdDatatype?: XsdData) {
     var o = this.#checkObject(object, objectType, xsdDatatype)
-    console.log({ object: o }, "called inside insert triple")
     return await this.runUpdate("INSERT DATA {<" + subject + "> <" + predicate + "> " + o + " . }", securityLabel)
   }
 
