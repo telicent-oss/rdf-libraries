@@ -88,12 +88,28 @@ const DiagramStatement = z.object({
   elemStyle: sparqlObject
 })
 
-const responseBindings = z.array(DiagramStatement)
+const diagramResponseBindings = z.array(DiagramStatement)
 
 const diagramResponseSchema = z.object({
   head: responseHeaders,
   results: z.object({
-    bindings: responseBindings
+    bindings: diagramResponseBindings
+  })
+})
+
+
+const diagramSummaryStatement = z.object({
+  title: sparqlObject,
+  uri: sparqlObject,
+  uuid: sparqlObject,
+})
+
+const diagramSummaryResponseBindings = z.array(diagramSummaryStatement)
+
+const diagramSummaryResponseSchema = z.object({
+  head: responseHeaders,
+  results: z.object({
+    bindings: diagramSummaryResponseBindings
   })
 })
 
@@ -165,6 +181,9 @@ const getAndCheckQueryResponse = (data: unknown): z.infer<typeof diagramResponse
 
 const getAndCheckDiagram = (data: unknown): Diagram =>
   getAndCheckValidation(data, Diagram);
+
+const getAndCheckDiagramSummary = (data: unknown): z.infer<typeof diagramSummaryResponseSchema> =>
+  getAndCheckValidation(data, diagramSummaryResponseSchema)
 
 const getAndCheckResultObject = (data: unknown): z.infer<typeof subjectPredicateObjectResponseSchema> =>
   getAndCheckValidation(data, subjectPredicateObjectResponseSchema);
@@ -506,10 +525,10 @@ export default class OntologyService extends RdfService {
             {?uri <${this.telUUID}> ?uuid} 
             {?uri <${this.telTitle}> ?title } 
         }`
-    const spOut = await this.runQuery<DiagramListQuery[]>(query)
-    if (!(spOut?.results?.bindings)) return
+    const spOut = await this.runQuery(query)
+    const spOutValidated = getAndCheckDiagramSummary(spOut)
 
-    const statements = spOut.results.bindings
+    const statements = spOutValidated.results.bindings
     return statements.map(statement => {
       const diag: Diagram = { uuid: statement.uuid.value, title: statement.title.value, uri: statement.uri.value, diagramElements: {}, diagramRelationships: {} }
       if (statement.title) {
