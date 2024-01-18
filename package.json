@@ -4,7 +4,6 @@
   "description": "Simple client-side lib for working with ontologies",
   "scripts": {
     "test": "nx exec -- yarn _test ",
-    "_test": "echo \"Error: no test specified\" && exit 1"
   },
   "private": true,
   "repository": {
