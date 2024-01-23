@@ -1,0 +1,13 @@
+{
+  "name": "@telicent-io/ontologyservice",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/OntologyService/jest.config.js"
+      }
+    }
+  }
+}
