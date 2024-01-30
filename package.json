@@ -3,7 +3,7 @@
   "version": "0.0.14-rc1",
   "description": "Simple client-side lib for working with ontologies",
   "scripts": {
-    "test": "nx exec -- yarn _test ",
+    "test": "nx exec -- yarn _test"
   },
   "private": true,
   "repository": {
