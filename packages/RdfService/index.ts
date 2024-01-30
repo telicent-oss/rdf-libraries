@@ -395,7 +395,7 @@ export default class RdfService {
     if (deletePrevious) {
       await this.deleteRelationships(uri, predicate)
     }
-    await this.insertTriple(uri, predicate, text)
+    await this.insertTriple(uri, predicate, text, "LITERAL")
   }
 
   /**
