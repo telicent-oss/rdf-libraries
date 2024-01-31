@@ -29,7 +29,7 @@
     "registry": "https://npm.pkg.github.com/"
   },
   "author": "",
-  "license": "NO LICENSE",
+  "license": "Apache-2.0",
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",
     "@types/jest": "^29.4.0",
