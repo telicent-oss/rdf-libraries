@@ -1,7 +1,7 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
 import OntologyService from "../index"
 import ClassDefinition from "../ClassDefinition";
-import { QueryResponse, RelatedQuery, RelatingQuery, SPARQL } from "packages/RdfService";
+import { QueryResponse, RelatingQuery, SPARQL } from "packages/RdfService";
 import { rdfType, rdfsSubClassOf } from "../testMocks";
 import { makeStyleObject } from "../helper";
 
@@ -161,7 +161,7 @@ describe("Ontology Service", () => {
 
     it("should perform getRelating query with rdfsDomain value", () => {
       fetchMock.mockResponseOnce(JSON.stringify({}))
-      const obj = new OntologyService()
+      new OntologyService()
         .getDomainProperties("testUri")
 
       expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Frelating%20WHERE%20%7B%3Frelating%20%3Fpred%20%3CtestUri%3E%20.%20%3Fpred%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subPropertyOf%3E*%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23domain%3E%20.%20%7D")
@@ -204,7 +204,7 @@ describe("Ontology Service", () => {
 
     it("should perform the same query as getInheritedDomainProperties but using the rdfsRange value", () => {
       fetchMock.mockResponseOnce(JSON.stringify({}))
-      const obj = new OntologyService()
+      new OntologyService()
         .getInheritedRangeProperties("testUri")
 
       expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fprop%20%3Fitem%20WHERE%20%7B%3Fprop%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23range%3E%20%3Fitem%20.%20%3CtestUri%3E%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E*%20%3Fitem.%20%7D")

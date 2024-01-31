@@ -4,7 +4,7 @@ import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
 import PropertyDefinition from "./PropertyDefinition";
 
 import { StyleObject } from "./Types";
-import OntologyService, { AllElements } from ".";
+import OntologyService, { AllElements } from "./index";
 /*
  * @function makeStyleObject 
  * @remarks
