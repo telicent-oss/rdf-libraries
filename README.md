@@ -79,6 +79,7 @@ npx nx run-many -t build
 
 ## Developer notes
 
+- WARNING: `import x from '.'` can cause problems. Instead use `import x from './index'`
 - If changing code then all commands must be run via nx else it will use the code in `node_modules`
 - nx commands can be run from any monorepo package and will resolve as if run on monorepo root
 - NPM has been switched out for PNPM
