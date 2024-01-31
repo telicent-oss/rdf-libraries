@@ -3,7 +3,11 @@
   "version": "0.0.14-rc1",
   "description": "Simple client-side lib for working with ontologies",
   "scripts": {
-    "test": "nx exec -- yarn _test"
+    "preinstall": "node ./scripts/enforcePnpm.js",
+    "test": "./scripts/run-packages.sh test",
+    "build": "./scripts/run-packages.sh build",
+    "generate-docs": "./scripts/run-packages.sh generate-docs",
+    "lint": "./scripts/run-packages.sh lint"
   },
   "private": true,
   "repository": {
