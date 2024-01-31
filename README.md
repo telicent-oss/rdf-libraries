@@ -28,7 +28,6 @@ Install all dependencies:
 ```sh
 cd <monorepoRoot>;
 pnpm install; # IMPORTANT: yarn & npm may cause downstream problems during development
-To generate docs: `yarn docs`;
 ```
 
 Execute task (see `nx.json`) on package:
