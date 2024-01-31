@@ -17,6 +17,7 @@
   "types": "./dist/types",
   "scripts": {
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
+    "open-docs": "open ./dist/docs/index.html",
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts"
