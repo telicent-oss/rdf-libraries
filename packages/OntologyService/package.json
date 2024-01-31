@@ -16,13 +16,14 @@
   },
   "types": "./dist/types",
   "scripts": {
-    "test": "jest test",
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
+    "open-docs": "open ./dist/docs/index.html",
+    "test": "jest test",
     "build": "rm -rf ./dist && vite build",
-    "lint": "eslint -f unix \"src/**/*.{ts,tsx}\""
+    "lint": "eslint **/*.ts"
   },
   "author": "",
-  "license": "ISC",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Telicent-io/js-ontology-lib.git"

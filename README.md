@@ -1,5 +1,90 @@
 # js-ontology-lib
+
+## Short Description
+
 Simple client-side lib for working with ontologies
+
+## Build / Install
+
+Get access to `@telicent-io` package repository (t.b.a)
+```sh
+cd <yourProject>
+yarn install @telicent-io/ontologyservice
+```
+
+## Usage
+
+```tsx
+import OntologyService from "@telicent-io/ontologyservice";
+
+const ontologyService = new OntologyService("http://localhost:3030/", "ontology");
+
+const diagrams = await ontologyService.getAllDiagrams();
+```
+
+## Development 
+
+Install all dependencies:
+```sh
+cd <monorepoRoot>;
+pnpm install; # IMPORTANT: yarn & npm may cause downstream problems during development
+```
+
+Execute task (see `nx.json`) on package:
+```sh
+npx nx affected:build
+npx nx affected:test
+npx nx affected:gen-docs
+# etc
+```
+
+Execute task (see `nx.json`) on affected packages:
+```sh
+npx nx @telicent-io/rdfservice:build
+npx nx @telicent-io/ontologyservice:test
+# etc
+```
+
+Add dependency to package: 
+```sh
+pnpm add crypto --filter @telicent-io/<packageName>
+```
+
+Run command (See `packages.json` "scripts" field) on package: 
+```sh
+npx nx run @telicent-io/rdfservice:format
+npx nx test @telicent-io/ontologyservice --watch -t setStyles # flags work
+```
+
+To develop multiple packages:
+```sh
+# In producer package...
+cd ./packages/RdfService;
+# ...edit producer feature
+echo "console.log('hi');" >> ./src/index.ts;
+# In consumer package...
+cd - && cd ./packages/OntologyService;
+# ...edit consumer test
+echo "test('hi', () => expect(logSpy).toHaveBeenCalledWith('hi'));" >> ./src/index.test.ts; 
+# Build affected
+npx nx affected:build 
+# Test affected
+npx nx affected:test 
+```
+Build all packages simultaneously:
+```sh
+npx nx run-many -t build
+```
+
+## Developer notes
+
+- WARNING: `import x from '.'` can cause problems. Instead use `import x from './index'`
+- If changing code then all commands must be run via nx else it will use the code in `node_modules`
+- nx commands can be run from any monorepo package and will resolve as if run on monorepo root
+- NPM has been switched out for PNPM
+- More nx documentation at brilliant AI bot https://nx.dev/ai-chat
+
+## Next steps
 
 The idea is to make this open source. To that end, it will be split into four separate NPM modules:
 
@@ -10,34 +95,8 @@ The idea is to make this open source. To that end, it will be split into four se
 
 To do:      
 
-* extr        act the rdf class from index.js and refactor it be suitable as a node module in the new repo
+* extract the rdf class from index.js and refactor it be suitable as a node module in the new repo
 * finish off the commenting in the file (tried to add param types for example)
 * eventually need to make this a public NPM installable thing
 * I can support with documentation
 * now do it all again for ont-js, with a dependency on rdf-js
-
-## Developer notes
-TSDoc has been added to generate documentation
-To generate documentation use the following command.
-You do not need to be in the packge folder itself to run it,
-just inside the project root.
-`npx nx run @telicent-io/<service>:generate-docs`
-
-NPM has been switched out for PNPM so that the monorepo can be
-managed more effectively
-- To install libraries for all of your packages in one go use:
-`pnpm install`
-
-- To install a dependency to a specific package use:
-`pnpm add crypto --filter @telicent-io/<service>`
-
-- To run tests on a specific package run:
-`npx nx test @telicent-io/<service> --watch`
-
-- To build all packages simultaneously run:
-`npx nx run-many -t build`
-
-If more help is required nx has brilliant documentation and
-my favourite method was to use their (AI Bot)[https://nx.dev/ai-chat]
-
-
