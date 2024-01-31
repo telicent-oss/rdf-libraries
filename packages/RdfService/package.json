@@ -19,7 +19,7 @@
     "test": "jest test",
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
     "build": "rm -rf ./dist && vite build",
-    "lint": "eslint -f unix \"src/**/*.{ts,tsx}\""
+    "lint": "eslint **/*.ts"
   },
   "repository": {
     "type": "git",
