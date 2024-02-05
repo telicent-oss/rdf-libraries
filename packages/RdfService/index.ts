@@ -143,7 +143,9 @@ export default class RdfService {
   owlDatatypeProperty: string;
   owlObjectProperty: string;
   telicentStyle: string;
-  prefixDict: object;
+  prefixDict: {
+    [key: string]: string;
+  };
   /**
    * @method constructor 
    * @remarks
@@ -171,12 +173,12 @@ export default class RdfService {
 
     this.prefixDict = {}
 
-    this.addPrefix("xsd:",this.xsd)
-    this.addPrefix("dc:",this.dc)
-    this.addPrefix("owl:",this.owl)
-    this.addPrefix("telicent:",this.telicent)
-    this.addPrefix("rdf:", this.rdf) 
-    this.addPrefix("rdfs:", this.rdfs) 
+    this.addPrefix("xsd:", this.xsd)
+    this.addPrefix("dc:", this.dc)
+    this.addPrefix("owl:", this.owl)
+    this.addPrefix("telicent:", this.telicent)
+    this.addPrefix("rdf:", this.rdf)
+    this.addPrefix("rdfs:", this.rdfs)
 
 
     this.rdfType = `${this.rdf}type`
@@ -194,41 +196,31 @@ export default class RdfService {
     this.telicentStyle = `${this.telicent}style`
   }
 
-  addPrefix(prefix:string,uri:string) {
+  addPrefix(prefix: string, uri: string) {
     this.prefixDict[prefix] = uri
   }
 
 
   getPrefix(uri: string) {
-    var keys = Object.keys(this.prefixDict)
-    var values = Object.values[this.prefixDict]
-    var i = values.indexOf(uri)
-    if (i>-1){
-        return keys[i]
-    }
-    else
-    {
-        return uri
-    }
+    const keys = Object.keys(this.prefixDict)
+    const values = Object.values(this.prefixDict)
+
+    return keys.find((_, index) => values[index] === uri) || uri;
   }
 
   shorten(uri: string) {
-    var keys = Object.keys(this.prefixDict)
-    for (var i in keys) {
-      var val = this.prefixDict[keys[i]]
-      if (uri.includes(val)) {
-        return uri.replace(val,keys[i])
-      }
-    }
-    return uri
+    const keys = Object.keys(this.prefixDict)
+
+    const result = keys.find(key => uri.includes(this.prefixDict[key]));
+    return result ? uri.replace(this.prefixDict[result], result) : uri;
   }
 
   get sparqlPrefixes() {
-      var prefixStr = ""
-      for (var prefix in this.prefixDict) {
-          prefixStr = prefixStr + `PREFIX ${prefix} <${this.prefixDict[prefix]}> `
-      }
-      return prefixStr
+    let prefixStr = ""
+    for (let prefix in this.prefixDict) {
+      prefixStr = prefixStr + `PREFIX ${prefix} <${this.prefixDict[prefix]}> `
+    }
+    return prefixStr
   }
 
 
