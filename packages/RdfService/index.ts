@@ -130,7 +130,6 @@ export default class RdfService {
   rdfs: string;
   owl: string;
   telicent: string;
-  sparqlPrefixes: string;
   rdfType: string;
   rdfProperty: string;
   rdfsClass: string;
@@ -144,6 +143,7 @@ export default class RdfService {
   owlDatatypeProperty: string;
   owlObjectProperty: string;
   telicentStyle: string;
+  prefixDict: object;
   /**
    * @method constructor 
    * @remarks
@@ -169,7 +169,15 @@ export default class RdfService {
     this.owl = "http://www.w3.org/2002/07/owl#"
     this.telicent = "http://telicent.io/ontology/"
 
-    this.sparqlPrefixes = `PREFIX xsd: <${this.xsd}>  PREFIX dc: <${this.dc}> PREFIX rdf: <${this.rdf}> PREFIX rdfs: <${this.rdfs}> PREFIX owl: <${this.owl}> PREFIX telicent: <${this.telicent}> `
+    this.prefixDict = {}
+
+    this.addPrefix("xsd:",this.xsd)
+    this.addPrefix("dc:",this.dc)
+    this.addPrefix("owl:",this.owl)
+    this.addPrefix("telicent:",this.telicent)
+    this.addPrefix("rdf:", this.rdf) 
+    this.addPrefix("rdfs:", this.rdfs) 
+
 
     this.rdfType = `${this.rdf}type`
     this.rdfProperty = `${this.rdf}Property`
@@ -184,6 +192,43 @@ export default class RdfService {
     this.owlDatatypeProperty = `${this.owl}DatatypeProperty`
     this.owlObjectProperty = `${this.owl}ObjectProperty`
     this.telicentStyle = `${this.telicent}style`
+  }
+
+  addPrefix(prefix:string,uri:string) {
+    this.prefixDict[prefix] = uri
+  }
+
+
+  getPrefix(uri: string) {
+    var keys = Object.keys(this.prefixDict)
+    var values = Object.values[this.prefixDict]
+    var i = values.indexOf(uri)
+    if (i>-1){
+        return keys[i]
+    }
+    else
+    {
+        return uri
+    }
+  }
+
+  shorten(uri: string) {
+    var keys = Object.keys(this.prefixDict)
+    for (var i in keys) {
+      var val = this.prefixDict[keys[i]]
+      if (uri.includes(val)) {
+        return uri.replace(val,keys[i])
+      }
+    }
+    return uri
+  }
+
+  get sparqlPrefixes() {
+      var prefixStr = ""
+      for (var prefix in this.prefixDict) {
+          prefixStr = prefixStr + `PREFIX ${prefix} <${this.prefixDict[prefix]}> `
+      }
+      return prefixStr
   }
 
 
