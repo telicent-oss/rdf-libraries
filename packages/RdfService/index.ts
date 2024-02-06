@@ -175,10 +175,10 @@ export default class RdfService {
 
     this.addPrefix("xsd:", this.xsd)
     this.addPrefix("dc:", this.dc)
-    this.addPrefix("owl:", this.owl)
-    this.addPrefix("telicent:", this.telicent)
     this.addPrefix("rdf:", this.rdf)
     this.addPrefix("rdfs:", this.rdfs)
+    this.addPrefix("owl:", this.owl)
+    this.addPrefix("telicent:", this.telicent)
 
 
     this.rdfType = `${this.rdf}type`
