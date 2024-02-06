@@ -6,8 +6,6 @@ on:
       # Change this if your primary branch is not main
       - main
 
-    workflow_dispatch:
-
 jobs:
   main:
     runs-on: ubuntu-latest
