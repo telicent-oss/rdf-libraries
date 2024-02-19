@@ -6,7 +6,7 @@ export const emptyUriErrorMessage = "Cannot have an empty URI"
 export const emptyPredicateErrorMessage = "predicate must be provided"
 const isEmptyString = (str: string) => !Boolean(str);
 
-export type IESObject = "URI" | "LITERAL";
+export type RdfObjectType = "URI" | "LITERAL" | "BNODE";
 
 export interface SPARQLObject {
   value: string;
@@ -296,7 +296,7 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  #checkObject(object: string, objectType: IESObject = "URI", xsdDatatype?: XsdData) {
+  #checkObject(object: string, objectType: RdfObjectType = "URI", xsdDatatype?: XsdData) {
     if (objectType === "URI") {
       var o = `<${object}>`
     }
@@ -331,7 +331,7 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  async insertTriple(subject: string, predicate: string, object: string, objectType?: IESObject, securityLabel?: string, xsdDatatype?: XsdData) {
+  async insertTriple(subject: string, predicate: string, object: string, objectType?: RdfObjectType, securityLabel?: string, xsdDatatype?: XsdData) {
     var o = this.#checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate("INSERT DATA {<" + subject + "> <" + predicate + "> " + o + " . }", securityLabel)
   }
@@ -352,7 +352,7 @@ export default class RdfService {
    * @throws
    * Thrown if the object type is unknown
   */
-  async deleteTriple(subject: string, predicate: string, object: string, objectType: IESObject, xsdDatatype?: XsdData) {
+  async deleteTriple(subject: string, predicate: string, object: string, objectType: RdfObjectType, xsdDatatype?: XsdData) {
     var o = this.#checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate("DELETE DATA {<" + subject + "> <" + predicate + "> " + o + " . }")
   }
