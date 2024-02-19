@@ -4,6 +4,9 @@
   */
 export const emptyUriErrorMessage = "Cannot have an empty URI"
 export const emptyPredicateErrorMessage = "predicate must be provided"
+export const noColonInPrefixException = "W3C/XML prefixes must end with a : (colon) character"
+export const unknownPrefixException = "Unknown Prefix "
+
 const isEmptyString = (str: string) => !Boolean(str);
 
 export type RdfObjectType = "URI" | "LITERAL" | "BNODE";
@@ -280,11 +283,29 @@ export default class RdfService {
     this.telicentStyle = `${this.telicent}style`
   }
 
+  /**
+   * @method addPrefix
+   * @remarks
+   * Adds an XML/W3C prefix to the RdfService so it can be used in query production, URI shortening, etc.
+   *
+   * @param prefix - a valid W3C prefix, with the : (colon) character at the end
+   * @param uri - the URI represented by the prefix
+  */
   addPrefix(prefix: string, uri: string) {
+    if (prefix.slice(-1) != ":") {
+      throw noColonInPrefixException
+    }
     this.prefixDict[prefix] = uri
   }
 
-
+  /**
+   * @method getPrefix
+   * @remarks
+   * returns the prefix for a given URI - if no prefix is known, the URI is returned instead of a prefix
+   *
+   * @param uri - the URI represented by the prefix
+   * @returns the prefix that matches the URI, if not found, the URI is returned 
+  */
   getPrefix(uri: string) {
     const keys = Object.keys(this.prefixDict)
     const values = Object.values(this.prefixDict)
@@ -292,6 +313,14 @@ export default class RdfService {
     return keys.find((_, index) => values[index] === uri) || uri;
   }
 
+  /**
+   * @method shorten
+   * @remarks
+   * Shortens a URI to its prefixed equivalent. If no prefix is found, the full URI is returned
+   *
+   * @param uri - the URI represented by the prefix
+   * @returns the prefix that matches the URI, if not found, the URI is returned 
+  */
   shorten(uri: string) {
     const keys = Object.keys(this.prefixDict)
 
@@ -299,6 +328,28 @@ export default class RdfService {
     return result ? uri.replace(this.prefixDict[result], result) : uri;
   }
 
+  /**
+   * @method getSparqlPrefix
+   * @remarks
+   * Returns a formatted SPARQL prefix statement for the provided prefix
+   *
+   * @param prefix - the prefix for which you need the statement
+   * @returns a formatted SPARQL prefix statement
+  */
+  getSparqlPrefix(prefix: string) {
+    if (prefix in this.prefixDict) {
+      return `PREFIX ${prefix} <${this.prefixDict[prefix]}> `
+    }
+    else
+    {
+      throw unknownPrefixException+prefix
+    }
+    
+  }
+
+  /**
+   * @returns a formatted set of SPARQL prefix statements
+  */
   get sparqlPrefixes() {
     let prefixStr = ""
     for (let prefix in this.prefixDict) {
@@ -380,7 +431,7 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  #checkObject(object: string, objectType: RdfObjectType = "URI", xsdDatatype?: XsdData) {
+  protected checkObject(object: string, objectType: RdfObjectType = "URI", xsdDatatype?: XsdData) {
     if (objectType === "URI") {
       var o = `<${object}>`
     }
@@ -396,6 +447,8 @@ export default class RdfService {
     }
     return o
   }
+
+
 
 
   /**
@@ -416,7 +469,7 @@ export default class RdfService {
    * Thrown if the object type is unknown
   */
   async insertTriple(subject: string, predicate: string, object: string, objectType?: RdfObjectType, securityLabel?: string, xsdDatatype?: XsdData) {
-    var o = this.#checkObject(object, objectType, xsdDatatype)
+    var o = this.checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate("INSERT DATA {<" + subject + "> <" + predicate + "> " + o + " . }", securityLabel)
   }
 
@@ -437,7 +490,7 @@ export default class RdfService {
    * Thrown if the object type is unknown
   */
   async deleteTriple(subject: string, predicate: string, object: string, objectType: RdfObjectType, xsdDatatype?: XsdData) {
-    var o = this.#checkObject(object, objectType, xsdDatatype)
+    var o = this.checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate("DELETE DATA {<" + subject + "> <" + predicate + "> " + o + " . }")
   }
 
