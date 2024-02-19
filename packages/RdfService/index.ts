@@ -114,6 +114,90 @@ export type XsdData = "xsd:string" | //	Character strings (but not all Unicode c
   "xsd:Name" | //	XML Names
   "xsd:NCName";
 
+  export class RdfItem {
+    protected service : RdfService
+    constructor(service: RdfService) {
+      if (!service) {
+          throw "A valid RdfService or derivative must be provided"
+      }
+      this.service = service
+    }
+  }
+    
+  export class BlankNode extends RdfItem {
+    id : string
+    constructor(service : RdfService, id : string) {
+      super(service)
+      if (!id) {
+        this.id = "_:"+crypto.randomUUID()
+      }
+      else {
+        this.id = id
+      }
+    }
+  }
+    
+  class RdfLiteral extends RdfItem {
+    value: string
+    datatype: XsdData
+    languageTag: string
+    constructor(service: RdfService, value: string ,datatype: XsdData,languageTag:string) {
+      super(service)
+      if ((!value) || (value == "")) {
+        throw "RdfLiteral must have a value"
+      }
+      this.value = value
+      this.datatype = datatype
+      this.languageTag = languageTag
+    }
+  }
+
+  class RdfResource extends RdfItem{
+    uri: string
+    type: any //should be a Set, but TS doesn't seem to want to let me
+    constructor(service:RdfService,uri:string,type:any) {
+      super(service)
+            if (!service) {
+                throw "A valid RdfService or derivative must be provided"
+            }
+            if (!uri) {
+                this.uri = service.defaultUriStub + crypto.randomUUID()
+            }
+            else
+            {
+                this.uri = uri
+            }
+            this.type = new Set()
+            if (type) {
+                if (type.constructor == Array) {
+                    this.type = new Set(type)
+                }
+                else
+                {
+                    this.type.add(type)
+                }
+            }
+        }
+        async addLiteral(predicate:string, text:string, deletePrevious:boolean = false) {
+            await this.service.addLiteral(this.uri, predicate, text, deletePrevious)
+        }
+        async addRelated(predicate:string, object:string, securityLabel:string) {
+            await this.service.insertTriple(this.uri, predicate, object, "URI", securityLabel) 
+        }
+        async addLabel(label:string, securityLabel:string) {
+            await this.service.addLabel(this.uri,label)
+        }
+        async addComment(comment:string, securityLabel:string) {
+            await this.service.addComment(this.uri,comment)
+        }
+        async getRelated(predicate:string) {
+            return await this.service.getRelated(this.uri,predicate)
+        }
+        async getRelating(predicate:string) {
+            return await this.service.getRelating(this.uri,predicate)
+        }
+  }
+
 export default class RdfService {
   /**
     * A fallback security label if none is specified
