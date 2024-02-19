@@ -6,6 +6,7 @@ export const emptyUriErrorMessage = "Cannot have an empty URI"
 export const emptyPredicateErrorMessage = "predicate must be provided"
 export const noColonInPrefixException = "W3C/XML prefixes must end with a : (colon) character"
 export const unknownPrefixException = "Unknown Prefix "
+export const unrecognisedIdField = "ID field is not in the results"
 
 const isEmptyString = (str: string) => !Boolean(str);
 
@@ -344,7 +345,6 @@ export default class RdfService {
     {
       throw unknownPrefixException+prefix
     }
-    
   }
 
   /**
@@ -357,7 +357,6 @@ export default class RdfService {
     }
     return prefixStr
   }
-
 
   /**
    * @method runQuery
@@ -378,7 +377,6 @@ export default class RdfService {
     const ontojson: QueryResponse<T> = await response.json()
     return ontojson
   }
-
 
   /**
    * @method runUpdate 
@@ -448,8 +446,110 @@ export default class RdfService {
     return o
   }
 
-
-
+  /**
+   * @method objectsOut
+   * @remarks
+   * protected function that can manipulate JSON SPARQL results into sensible
+   * Javascript / Typescript objects
+   *
+   * @param query - the SPARQL query to execute
+   * @param rdfType - the type of items to be returned 
+   * @param idField - if set, this will cause the method to normalise the data (aggregate it) around this identifier. 
+   * Setting idField will result in all other fields becoming Sets
+   * @param aggregateProperties - an array of SPARQL variables (without the ? char) that are aggregated by the query
+   * - e.g. by the GROUP_CONCAT operator
+   * @param aggregateDelimeter - the delimeter used in the GROUP_CONCAT statement
+   * @param shortenUris - if set, the method will attempt to use prefixes for URIs. This cannot be done for aggregated variables though
+   * @returns - an array of RdfItem objects
+  */  
+  protected async objectsOut(query:string, rdfType = RdfItem, idField:string = "", aggregateProperties:Array<string>=[], aggregateDelimeter:string=",",shortenUris:boolean=false) {
+    let result = await this.runQuery(query)
+    let output = []
+    let index = {} // used for normalising data when the idField is set - it stores unique IDs as keys, with objects as values. This is not returned.
+    if (!result?.results?.bindings) return []
+    const bindings = result.results.bindings
+    const keys = result.head.vars
+    if (idField != "") { //check to see if the idField is actually returned by this query
+      if (!(keys.includes(idField))) {
+        throw unrecognisedIdField
+      }
+    }
+    for (var binding of bindings as Object) {
+        let obj = new rdfType(this) //the object to be added to the output array
+        if (idField != "") {
+            if (binding[idField].value in index) {
+                obj = index[binding[idField].value] //we've seen this identifier before, use an existing object from the index  
+            }
+            else {
+                index[binding[idField].value] = obj //this is a new ID, add the object to the index
+                output.push(obj)
+            }
+        }
+        else
+        {
+            output.push(obj) //we're not normalising the data, so just push the object to the output array
+        }
+        for (var key of keys) { //step though the variable names returned by the query
+          if (key in binding) {
+            let val = null //this might be problematic in Typescript ?  Sometimes it's an int, sometimes a float, and sometimes it's an Array
+            if (aggregateProperties.includes(key)){
+                //we've got an aggregate value, split it into an array
+                val = new Set(binding[key].value.split(aggregateDelimeter))
+            }
+            else {
+              let datatype = ""
+              if ("datatype" in binding[key]){
+                datatype = binding[key].datatype
+              }
+              //is this a uri ?  If so, either shorten it or not...
+              if (binding[key].type == "uri") {
+                if (shortenUris) {
+                  val = this.shorten(binding[key].value)
+                }
+                else {
+                    val = binding[key].value
+                }
+              }
+              else {
+                  //if we're getting numeric values, then cast to ints or floats
+                if (datatype == "http://www.w3.org/2001/XMLSchema#integer") {
+                  val = parseInt(binding[key].value)
+                }
+                else {
+                  if (datatype && (datatype.includes("double") || datatype.includes("float") || datatype.includes("decimal"))) {
+                    val = parseFloat(binding[key].value)
+                  }
+                  else {
+                    val = binding[key].value
+                  }  
+                }
+              }
+            }
+            //now we check to see if we're normalising the data around a particular idField - if so, we need to append data to arrays rather than setting singleton values
+            if ((idField != "") && (idField != key)){
+              if (!(key in obj)) {
+                obj[key] = new Set([])
+              }
+              if (val.constructor == Array) { //in case we have any aggegrates coming back from the triplestore, if so, concat with existing array. 
+                obj[key] = obj[key].union(val)
+              }
+              else {
+                obj[key].add(val)
+              }
+            } 
+            else {
+              if ((obj[key]) && (obj[key].constructor == Array)) {
+                obj[key].add(val)
+              }
+              else {
+                obj[key] = val
+              } 
+            }
+          }   
+      }
+    }
+    return output
+}
 
   /**
    * @method insertTriple
