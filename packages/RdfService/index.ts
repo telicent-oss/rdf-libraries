@@ -12,58 +12,60 @@ const isEmptyString = (str: string) => !Boolean(str);
 
 export type RdfObjectType = "URI" | "LITERAL" | "BNODE";
 
-export interface SPARQLObject {
+export interface SPARQLVariableBinding {
   value: string;
   type: string;
+  datatype?: XsdDatatype;
+  languageTag?: string
 }
 
 export type SPARQL = {
-  s: SPARQLObject,
-  p: SPARQLObject,
-  o: SPARQLObject
+  s: SPARQLVariableBinding,
+  p: SPARQLVariableBinding,
+  o: SPARQLVariableBinding
 }
 
 export type RelatingQuery = {
-  relating: SPARQLObject,
-  pred: SPARQLObject
+  relating: SPARQLVariableBinding,
+  pred: SPARQLVariableBinding
 }
 
 export type RelatedQuery = {
-  related: SPARQLObject,
-  pred: SPARQLObject
+  related: SPARQLVariableBinding,
+  pred: SPARQLVariableBinding
 }
 
 export type InheritedDomainQuery = {
-  prop: SPARQLObject,
-  item: SPARQLObject
+  prop: SPARQLVariableBinding,
+  item: SPARQLVariableBinding
 }
 
 export type SuperClassQuery = {
-  super: SPARQLObject,
-  subRel: SPARQLObject
+  super: SPARQLVariableBinding,
+  subRel: SPARQLVariableBinding
 }
 
 export type StylesQuery = {
-  cls: SPARQLObject,
-  style: SPARQLObject
+  cls: SPARQLVariableBinding,
+  style: SPARQLVariableBinding
 }
 
 export type DiagramListQuery = {
-  uri: SPARQLObject,
-  uuid: SPARQLObject,
-  title: SPARQLObject
+  uri: SPARQLVariableBinding,
+  uuid: SPARQLVariableBinding,
+  title: SPARQLVariableBinding
 }
 
 export type DiagramQuery = {
-  uuid: SPARQLObject,
-  title: SPARQLObject,
-  diagElem: SPARQLObject,
-  elem: SPARQLObject,
-  elemStyle: SPARQLObject,
-  diagRel: SPARQLObject,
-  rel: SPARQLObject,
-  source: SPARQLObject,
-  target: SPARQLObject
+  uuid: SPARQLVariableBinding,
+  title: SPARQLVariableBinding,
+  diagElem: SPARQLVariableBinding,
+  elem: SPARQLVariableBinding,
+  elemStyle: SPARQLVariableBinding,
+  diagRel: SPARQLVariableBinding,
+  rel: SPARQLVariableBinding,
+  source: SPARQLVariableBinding,
+  target: SPARQLVariableBinding
 }
 
 export type QueryResponse<T> = {
@@ -76,9 +78,9 @@ export type QueryResponse<T> = {
 }
 
 /**
-  * @typeParam XsdData
+  * @typeParam XsdDatatype
   */
-export type XsdData = "xsd:string" | //	Character strings (but not all Unicode character strings)
+export type XsdDatatype = "xsd:string" | //	Character strings (but not all Unicode character strings)
   "xsd:boolean" |  // true / false
   "xsd:decimal" | // Arbitrary-precision decimal numbers
   "xsd:integer" | // Arbitrary-size integer numbers
@@ -118,6 +120,25 @@ export type XsdData = "xsd:string" | //	Character strings (but not all Unicode c
   "xsd:Name" | //	XML Names
   "xsd:NCName";
 
+  /**ObjectConfig is passed into the object */
+  export class ObjectConfig {
+    defaultType : typeof RdfItem
+    idField : string
+    aggregateProperties : Array<string>
+    aggregateDelimeters : Array<string>
+    aggregateTypes : Array<RdfObjectType>
+    shortenUris : boolean
+
+    constructor(defaultType = RdfItem,idField="",shortenUris=false) {
+      this.defaultType = defaultType
+      this.idField = idField
+      this.shortenUris = shortenUris
+      this.aggregateProperties = []
+      this.aggregateDelimeters = []
+      this.aggregateTypes = []
+    }
+  }
+
   export class RdfItem {
     protected service : RdfService
     constructor(service: RdfService) {
@@ -143,9 +164,9 @@ export type XsdData = "xsd:string" | //	Character strings (but not all Unicode c
     
   class RdfLiteral extends RdfItem {
     value: string
-    datatype: XsdData
+    datatype: XsdDatatype
     languageTag: string
-    constructor(service: RdfService, value: string ,datatype: XsdData,languageTag:string) {
+    constructor(service: RdfService, value: string ,datatype: XsdDatatype,languageTag:string) {
       super(service)
       if ((!value) || (value == "")) {
         throw "RdfLiteral must have a value"
@@ -429,7 +450,7 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  protected checkObject(object: string, objectType: RdfObjectType = "URI", xsdDatatype?: XsdData) {
+  protected checkObject(object: string, objectType: RdfObjectType = "URI", xsdDatatype?: XsdDatatype) {
     if (objectType === "URI") {
       var o = `<${object}>`
     }
@@ -447,7 +468,7 @@ export default class RdfService {
   }
 
   /**
-   * @method objectsOut
+   * @method objectFormatter
    * @remarks
    * protected function that can manipulate JSON SPARQL results into sensible
    * Javascript / Typescript objects
@@ -462,21 +483,21 @@ export default class RdfService {
    * @param shortenUris - if set, the method will attempt to use prefixes for URIs. This cannot be done for aggregated variables though
    * @returns - an array of RdfItem objects
   */  
-  protected async objectsOut(query:string, rdfType = RdfItem, idField:string = "", aggregateProperties:Array<string>=[], aggregateDelimeter:string=",",shortenUris:boolean=false) {
+  protected async objectFormatter(query:string, config:ObjectConfig = new ObjectConfig(RdfItem,"")) {
     let result = await this.runQuery(query)
     let output = []
     let index = {} // used for normalising data when the idField is set - it stores unique IDs as keys, with objects as values. This is not returned.
     if (!result?.results?.bindings) return []
     const bindings = result.results.bindings
     const keys = result.head.vars
-    if (idField != "") { //check to see if the idField is actually returned by this query
-      if (!(keys.includes(idField))) {
+    if (config.idField != "") { //check to see if the idField is actually returned by this query
+      if (!(keys.includes(config.idField))) {
         throw unrecognisedIdField
       }
     }
     for (var binding of bindings as Object) {
-        let obj = new rdfType(this) //the object to be added to the output array
-        if (idField != "") {
+        let obj = new config.defaultType(this) //the object to be added to the output array
+        if (config.idField != "") {
             if (binding[idField].value in index) {
                 obj = index[binding[idField].value] //we've seen this identifier before, use an existing object from the index  
             }
@@ -492,9 +513,10 @@ export default class RdfService {
         for (var key of keys) { //step though the variable names returned by the query
           if (key in binding) {
             let val = null //this might be problematic in Typescript ?  Sometimes it's an int, sometimes a float, and sometimes it's an Array
-            if (aggregateProperties.includes(key)){
+            if (config.aggregateProperties.includes(key)){
                 //we've got an aggregate value, split it into an array
-                val = new Set(binding[key].value.split(aggregateDelimeter))
+                let i = config.aggregateProperties.indexOf(key)
+                val = new Set(binding[key].value.split(config.aggregateDelimeters[i]))
             }
             else {
               let datatype = ""
@@ -503,7 +525,7 @@ export default class RdfService {
               }
               //is this a uri ?  If so, either shorten it or not...
               if (binding[key].type == "uri") {
-                if (shortenUris) {
+                if (config.shortenUris) {
                   val = this.shorten(binding[key].value)
                 }
                 else {
@@ -568,7 +590,7 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  async insertTriple(subject: string, predicate: string, object: string, objectType?: RdfObjectType, securityLabel?: string, xsdDatatype?: XsdData) {
+  async insertTriple(subject: string, predicate: string, object: string, objectType?: RdfObjectType, securityLabel?: string, xsdDatatype?: XsdDatatype) {
     var o = this.checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate("INSERT DATA {<" + subject + "> <" + predicate + "> " + o + " . }", securityLabel)
   }
@@ -589,7 +611,7 @@ export default class RdfService {
    * @throws
    * Thrown if the object type is unknown
   */
-  async deleteTriple(subject: string, predicate: string, object: string, objectType: RdfObjectType, xsdDatatype?: XsdData) {
+  async deleteTriple(subject: string, predicate: string, object: string, objectType: RdfObjectType, xsdDatatype?: XsdDatatype) {
     var o = this.checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate("DELETE DATA {<" + subject + "> <" + predicate + "> " + o + " . }")
   }
