@@ -24,10 +24,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Telicent-io/js-ontology-lib.git"
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "registry": "https://www.npmjs.com/"
   },
   "author": "",
   "license": "Apache-2.0",
