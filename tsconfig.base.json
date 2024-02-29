@@ -1,0 +1,32 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "allowJs": true,
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": true,
+    "declarationDir": "./types",
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "strict": true,
+    "importHelpers": true,
+    "target": "esnext",
+    "module": "esnext",
+    "lib": [
+      "es2020",
+      "dom"
+    ],
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {}
+  },
+  "exclude": [
+    "node_modules",
+    "tmp",
+    "**/dist",
+    "**/*.config.js"
+  ]
+}
