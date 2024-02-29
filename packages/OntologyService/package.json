@@ -1,6 +1,6 @@
 {
-  "name": "@telicent-io/ontologyservice",
-  "version": "0.0.14-rc49",
+  "name": "@telicent-oss/ontologyservice",
+  "version": "0.0.1",
   "private": false,
   "description": "An extension of RdfService from managing ontology elements (RDFS and OWL) and diagramatic / style information",
   "main": "./dist/ontologyservice.mjs",
@@ -26,13 +26,13 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Telicent-io/js-ontology-lib.git"
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com/"
+    "registry": "https://www.npmjs.com/"
   },
   "dependencies": {
-    "@telicent-io/rdfservice": "*",
+    "@telicent-oss/rdfservice": "*",
     "zod": "^3.22.4"
   },
   "devDependencies": {
