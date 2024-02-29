@@ -26,7 +26,7 @@
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Telicent-oss/rdf-libraries.git"
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "publishConfig": {
     "registry": "https://www.npmjs.com/"
