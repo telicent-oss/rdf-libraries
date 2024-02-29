@@ -1,0 +1,38 @@
+name: CI
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      # Change this if your primary branch is not main
+      - main
+    paths:
+      - CHANGELOG.md
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      # Cache node_modules
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        with:
+          version: 8
+          run_install: false
+
+      - uses: nrwl/nx-set-shas@v3
+      # This line is needed for nx affected to work when CI is running on a PR
+      - run: | 
+          git branch --track main origin/main
+          pnpm install
+          pnpm dlx nx run-many -t test,build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice 
+          pnpm dlx nx release publish -p @telicent-oss/rdfservice @telicent-oss/ontologyservice
+

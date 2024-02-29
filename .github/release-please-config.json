@@ -1,0 +1,16 @@
+{
+  "packages": {
+    "./packages/RdfService/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "bumpPatchForMinorPreMajor": true
+    },
+    "./packages/OntologyService/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "bumpPatchForMinorPreMajor": true
+    }
+  }
+}
