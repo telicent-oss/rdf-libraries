@@ -4,16 +4,16 @@ Simple client-side library exported as a JavaScript package, for working with on
 
 ## Install
 
-Get access to `@telicent-io` package repository (t.b.a)
+Get access to `@telicent-oss` package repository (t.b.a)
 ```sh
 cd <yourProject>
-yarn install @telicent-io/ontologyservice
+yarn install @telicent-oss/ontologyservice
 ```
 
 ## Usage
 
 ```tsx
-import OntologyService from "@telicent-io/ontologyservice";
+import OntologyService from "@telicent-oss/ontologyservice";
 
 const ontologyService = new OntologyService("http://localhost:3030/", "ontology");
 
@@ -47,22 +47,22 @@ npx nx affected:generate-docs
 Execute task (see `nx.json`) on affected packages:
 ```sh
 # Build the rdfservice package only
-npx nx @telicent-io/rdfservice:build
+npx nx @telicent-oss/rdfservice:build
 
 # Test the ontologyservice package only
-npx nx @telicent-io/ontologyservice:test
+npx nx @telicent-oss/ontologyservice:test
 # For more commands see [the nx documentation](https://nx.dev/getting-started/intro)
 ```
 
 Add dependency to package: 
 ```sh
-pnpm add <npm-package> --filter @telicent-io/<packageName>
+pnpm add <npm-package> --filter @telicent-oss/<packageName>
 ```
 
 Run command (See `packages.json` "scripts" field) on package: 
 ```sh
-npx nx run @telicent-io/rdfservice:format
-npx nx test @telicent-io/ontologyservice --watch -t setStyles # flags work
+npx nx run @telicent-oss/rdfservice:format
+npx nx test @telicent-oss/ontologyservice --watch -t setStyles # flags work
 ```
 
 To develop multiple packages:
