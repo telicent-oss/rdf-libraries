@@ -1,7 +1,7 @@
 {
   "bootstrap-sha": "24485f3dd799664850813a7dfcc31d6043d8bf47",
   "packages": {
-    "./packages/RdfService/": {
+    "packages/RdfService/": {
       "labels": [
         "autorelease: pending"
       ],
@@ -9,7 +9,7 @@
       "bumpPatchForMinorPreMajor": true,
       "release-type": "node"
     },
-    "./packages/OntologyService/": {
+    "packages/OntologyService/": {
       "labels": [
         "autorelease: pending"
       ],
