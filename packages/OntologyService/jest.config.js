@@ -1,6 +1,6 @@
 /* eslint-disable */
 module.exports = {
-  displayName: '@telicent-io/ontologyservice',
+  displayName: '@telicent-oss/ontologyservice',
   preset: '../../jest.preset.js',
   coverageDirectory: '../../coverage/packages/OntologyService',
   automock: false,
