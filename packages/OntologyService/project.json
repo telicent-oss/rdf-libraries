@@ -1,5 +1,5 @@
 {
-  "name": "@telicent-io/ontologyservice",
+  "name": "@telicent-oss/ontologyservice",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "targets": {
     "test": {
