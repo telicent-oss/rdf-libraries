@@ -5,13 +5,17 @@
       "labels": [
         "autorelease: pending"
       ],
-      "bumpPatchForMinorPreMajor": true
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
     },
     "./packages/OntologyService/": {
       "labels": [
         "autorelease: pending"
       ],
-      "bumpPatchForMinorPreMajor": true
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
     }
   }
 }
