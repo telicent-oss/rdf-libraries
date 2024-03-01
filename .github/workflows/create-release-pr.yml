@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: google-github-actions/release-please-action@v3
         with:
-          release-type: node
+          command: manifest
           prerelease: true
           config-file: .github/release-please-config.json
           manifest-file: .github/.release-please-manifest.json
