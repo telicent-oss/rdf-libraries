@@ -13,28 +13,21 @@ jobs:
     permissions:
       contents: read
     steps:
-
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-
-      - uses: pnpm/action-setup@v2
+      - uses: pnpm/action-setup@v3
         with:
           version: 8
-      
       - run: pnpm install
       - run: yarn generate-docs
-
-      - uses: actions/upload-artifact@v2
+      - run: |
+          mkdir -p docs/rdf-service
+          mkdir -p docs/ontology-service
+          cp -R packages/RdfService/dist/docs/ docs/rdf-service/
+          cp -R packages/OntologyService/dist/docs/ docs/ontology-service/
+      - uses: peaceiris/actions-gh-pages@v3
         with:
-          name: RdfService docs
-          path: packages/RdfService/dist/docs/
-
-      - uses: actions/upload-artifact@v2
-        with:
-          name: OntologyService docs
-          path: packages/OntologyService/dist/docs/
+          github_token: ${{ secrets.GH_PAGES }}
+          publish_dir: ./docs
