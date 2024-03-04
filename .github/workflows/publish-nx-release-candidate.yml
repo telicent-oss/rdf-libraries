@@ -8,17 +8,24 @@ on:
 jobs:
   main:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       # Cache node_modules
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
+          scope: 'telicent-oss'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+
       - uses: pnpm/action-setup@v2
         name: Install pnpm
         with:
@@ -26,9 +33,16 @@ jobs:
           run_install: false
 
       - uses: nrwl/nx-set-shas@v3
+
       # This line is needed for nx affected to work when CI is running on a PR
-      - run: | 
-          git checkout ${GITHUB_REF#refs/heads/}
-          pnpm install
-          pnpm dlx nx run-many -t test,build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice 
-          pnpm dlx nx release publish
+      - run: git checkout ${GITHUB_REF#refs/heads/}
+      - run: pnpm install
+      - run: pnpm dlx nx run-many -t test,build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice 
+
+      - run: cd ./packages/RdfService && npm publish --access public --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true
+
+      - run: cd ./packages/OntologyService && npm publish --access public --provenance
+        env:
+          NPM_CONFIG_PROVENANCE: true
