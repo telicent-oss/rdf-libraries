@@ -4,7 +4,6 @@ Simple client-side library exported as a JavaScript package, for working with on
 
 ## Install
 
-Get access to `@telicent-oss` package repository (t.b.a)
 ```sh
 cd <yourProject>
 yarn install @telicent-oss/ontologyservice
