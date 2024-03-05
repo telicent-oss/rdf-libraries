@@ -1,5 +1,5 @@
 {
-  "name": "@telicent-io/rdfservice",
+  "name": "@telicent-oss/rdfservice",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "targets": {
     "test": {

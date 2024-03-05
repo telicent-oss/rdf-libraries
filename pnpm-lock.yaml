@@ -78,7 +78,7 @@ importers:
 
   packages/OntologyService:
     dependencies:
-      '@telicent-io/rdfservice':
+      '@telicent-oss/rdfservice':
         specifier: '*'
         version: link:../RdfService
       zod:

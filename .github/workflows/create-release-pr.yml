@@ -1,0 +1,17 @@
+name: Publish new release version
+
+on:
+  push:
+    branches:
+      - "main"
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: google-github-actions/release-please-action@v3
+        with:
+          command: manifest
+          prerelease: true
+          config-file: .github/release-please-config.json
+          manifest-file: .github/.release-please-manifest.json

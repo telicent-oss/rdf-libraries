@@ -6,7 +6,7 @@
   */
 
 import { z } from "zod"
-import RdfService, { DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-io/rdfservice";
+import RdfService, { DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-oss/rdfservice";
 import { StyleObject } from "./Types";
 import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
 import { PropertyDefinitionSchema } from "./PropertyDefinition";

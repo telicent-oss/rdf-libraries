@@ -169,7 +169,7 @@ export default class RdfService {
     this.owl = "http://www.w3.org/2002/07/owl#"
     this.telicent = "http://telicent.io/ontology/"
 
-    this.sparqlPrefixes = `PREFIX xsd: <${this.xsd}>  PREFIX dc: <${this.dc}> PREFIX rdf: <${this.rdf}> PREFIX rdfs: <${this.rdfs}> PREFIX owl: <${this.owl}> PREFIX telicent: <${this.telicent}> `
+    this.sparqlPrefixes = `PREFIX xsd: <${this.xsd}> PREFIX dc: <${this.dc}> PREFIX rdf: <${this.rdf}> PREFIX rdfs: <${this.rdfs}> PREFIX owl: <${this.owl}> PREFIX telicent: <${this.telicent}> `
 
     this.rdfType = `${this.rdf}type`
     this.rdfProperty = `${this.rdf}Property`
