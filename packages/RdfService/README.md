@@ -1,6 +1,6 @@
 # RdfService
 
-RdfService is a helper library that abstracts away the complexity of interactive with RDF triplestores, providing basic CRUD abilities.
+RdfService is a helper library that abstracts away the complexity of interacting with RDF triplestores, providing basic CRUD abilities.
 
 For futher information on how to use the library see the [API documentation](https://needtocreate.com)
 
