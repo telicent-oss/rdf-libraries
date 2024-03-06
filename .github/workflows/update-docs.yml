@@ -1,0 +1,33 @@
+name: Update docs
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ./packages
+
+jobs:
+  main:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+      - run: pnpm install
+      - run: yarn generate-docs
+      - run: |
+          mkdir -p docs/rdf-service
+          mkdir -p docs/ontology-service
+          cp -R packages/RdfService/dist/docs/ docs/rdf-service/
+          cp -R packages/OntologyService/dist/docs/ docs/ontology-service/
+      - uses: peaceiris/actions-gh-pages@v3
+        with:
+          deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+          publish_dir: ./docs
