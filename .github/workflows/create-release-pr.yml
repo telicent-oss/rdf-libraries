@@ -1,4 +1,4 @@
-name: Publish new release version
+name: Create release PR
 
 on:
   push:
