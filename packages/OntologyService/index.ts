@@ -633,7 +633,7 @@ export default class OntologyService extends RdfService {
       uuid = crypto.randomUUID()
     }
     if (!uri) {
-      uri = this.defaultUriStub + uuid
+      uri = this.mintUri()
     }
     this.instantiate(this.telDiagram, uri, securityLabel)
     this.setTitle(uri, title)

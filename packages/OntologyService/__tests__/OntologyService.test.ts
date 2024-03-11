@@ -11,7 +11,6 @@ const ontologyObjectStub = {
   "dataset": "ontology",
   "dc": "http://purl.org/dc/elements/1.1/",
   "defaultSecurityLabel": "",
-  "defaultUriStub": "http://telicent.io/ontology/",
   "nodes": {
     "allElements": {},
     "classes": {},
@@ -21,6 +20,15 @@ const ontologyObjectStub = {
   "owlClass": "http://www.w3.org/2002/07/owl##Class",
   "owlDatatypeProperty": "http://www.w3.org/2002/07/owl#DatatypeProperty",
   "owlObjectProperty": "http://www.w3.org/2002/07/owl#ObjectProperty",
+  "prefixDict": {
+    ":": "http://telicent.io/ontology/",
+    "dc:": "http://purl.org/dc/elements/1.1/",
+    "owl:": "http://www.w3.org/2002/07/owl#",
+    "rdf:": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
+    "rdfs:": "http://www.w3.org/2000/01/rdf-schema#",
+    "telicent:": "http://telicent.io/ontology/",
+    "xsd:": "http://www.w3.org/2001/XMLSchema#",
+  },
   "queryEndpoint": "http://localhost:3030/ontology/query?query=",
   "rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
   "rdfProperty": "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
@@ -33,7 +41,6 @@ const ontologyObjectStub = {
   "rdfsRange": "http://www.w3.org/2000/01/rdf-schema#range",
   "rdfsSubClassOf": "http://www.w3.org/2000/01/rdf-schema#subClassOf",
   "rdfsSubPropertyOf": "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
-  "sparqlPrefixes": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> ",
   "telDiagram": "http://telicent.io/ontology/Diagram",
   "telDiagramElement": "http://telicent.io/ontology/DiagramElement",
   "telDiagramRelationship": "http://telicent.io/ontology/DiagramRelationship",
@@ -164,7 +171,7 @@ describe("Ontology Service", () => {
       new OntologyService()
         .getDomainProperties("testUri")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Frelating%20WHERE%20%7B%3Frelating%20%3Fpred%20%3CtestUri%3E%20.%20%3Fpred%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subPropertyOf%3E*%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23domain%3E%20.%20%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Frelating%20WHERE%20%7B%3Frelating%20%3Fpred%20%3CtestUri%3E%20.%20%3Fpred%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subPropertyOf%3E*%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23domain%3E%20.%20%7D")
     })
   })
 
@@ -178,7 +185,7 @@ describe("Ontology Service", () => {
       new OntologyService()
         .getRangeProperties("testUri")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Frelating%20WHERE%20%7B%3Frelating%20%3Fpred%20%3CtestUri%3E%20.%20%3Fpred%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subPropertyOf%3E*%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23range%3E%20.%20%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Frelating%20WHERE%20%7B%3Frelating%20%3Fpred%20%3CtestUri%3E%20.%20%3Fpred%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subPropertyOf%3E*%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23range%3E%20.%20%7D")
     })
   })
 
@@ -193,7 +200,7 @@ describe("Ontology Service", () => {
       new OntologyService()
         .getInheritedDomainProperties("testUri")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fprop%20%3Fitem%20WHERE%20%7B%3Fprop%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23domain%3E%20%3Fitem%20.%20%3CtestUri%3E%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E*%20%3Fitem.%20%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fprop%20%3Fitem%20WHERE%20%7B%3Fprop%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23domain%3E%20%3Fitem%20.%20%3CtestUri%3E%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E*%20%3Fitem.%20%7D")
     })
   })
 
@@ -207,7 +214,7 @@ describe("Ontology Service", () => {
       new OntologyService()
         .getInheritedRangeProperties("testUri")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fprop%20%3Fitem%20WHERE%20%7B%3Fprop%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23range%3E%20%3Fitem%20.%20%3CtestUri%3E%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E*%20%3Fitem.%20%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fprop%20%3Fitem%20WHERE%20%7B%3Fprop%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23range%3E%20%3Fitem%20.%20%3CtestUri%3E%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E*%20%3Fitem.%20%7D")
     })
   })
 
@@ -221,7 +228,7 @@ describe("Ontology Service", () => {
       new OntologyService()
         .addSubClass("subClass", "superClass")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/update", { "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<subClass> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <superClass> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/update", { "body": "PREFIX : <http://telicent.io/ontology/> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<subClass> <http://www.w3.org/2000/01/rdf-schema#subClassOf> <superClass> . }", "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" }, "method": "POST" })
     })
   })
 
@@ -235,7 +242,7 @@ describe("Ontology Service", () => {
       new OntologyService()
         .getSubClasses("testUri")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Frelating%20WHERE%20%7B%3Frelating%20%3Fpred%20%3CtestUri%3E%20.%20%3Fpred%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subPropertyOf%3E*%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E%20.%20%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Frelating%20WHERE%20%7B%3Frelating%20%3Fpred%20%3CtestUri%3E%20.%20%3Fpred%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subPropertyOf%3E*%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E%20.%20%7D")
     })
   })
 
@@ -249,14 +256,14 @@ describe("Ontology Service", () => {
       new OntologyService()
         .getSuperClasses("testUri")
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fsuper%20WHERE%20%7B%3CtestUri%3E%20%3FsubRel%20%3Fsuper%20.%20%3FsubRel%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subPropertyOf%3E*%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E%20.%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fsuper%20WHERE%20%7B%3CtestUri%3E%20%3FsubRel%20%3Fsuper%20.%20%3FsubRel%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subPropertyOf%3E*%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E%20.%7D")
     })
     it("should run a query with the while card and should ignoreSubProps", () => {
       fetchMock.mockResponseOnce(JSON.stringify({}))
       new OntologyService()
         .getSuperClasses("testUri", true, true)
 
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fsuper%20WHERE%20%7B%3CtestUri%3E%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E*%20%3Fsuper%20.%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fsuper%20WHERE%20%7B%3CtestUri%3E%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23subClassOf%3E*%20%3Fsuper%20.%7D")
     })
   })
 
@@ -289,7 +296,7 @@ describe("Ontology Service", () => {
       }))
       new OntologyService()
         .getStyles(["style1", "style2"])
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fcls%20%3Fstyle%20WHERE%20%7B%3Fcls%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2Fstyle%3E%20%3Fstyle%20.%20FILTER%20(str(%3Fcls)%20IN%20(%22style1%22%2C%20%22style2%22)%20)%20%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20%3Fcls%20%3Fstyle%20WHERE%20%7B%3Fcls%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2Fstyle%3E%20%3Fstyle%20.%20FILTER%20(str(%3Fcls)%20IN%20(%22style1%22%2C%20%22style2%22)%20)%20%7D")
     })
   })
 
@@ -304,12 +311,12 @@ describe("Ontology Service", () => {
         .setStyle("style1", styleObj)
       expect(fetchMock).toHaveBeenCalledTimes(2)
       expect(fetchMock).toHaveBeenNthCalledWith(1, "http://localhost:3030/ontology/update", {
-        "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> DELETE WHERE {<style1> <http://telicent.io/ontology/style> ?o . }",
+        "body": "PREFIX : <http://telicent.io/ontology/> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> DELETE WHERE {<style1> <http://telicent.io/ontology/style> ?o . }",
         "headers": { "Accept": "*/*", "Content-Type": "application/sparql-update" },
         "method": "POST"
       })
       expect(fetchMock).toHaveBeenNthCalledWith(2, "http://localhost:3030/ontology/update", {
-        "body": "PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<style1> <http://telicent.io/ontology/style> \"%7B%22bgColour%22%3A%22%23888%22%2C%22colour%22%3A%22%23000%22%2C%22icon%22%3A%22fa-solid%20fa-question%22%2C%22height%22%3A0%2C%22width%22%3A0%2C%22x%22%3A0%2C%22y%22%3A0%2C%22shape%22%3A%22diamond%22%7D\" . }",
+        "body": "PREFIX : <http://telicent.io/ontology/> PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> PREFIX dc: <http://purl.org/dc/elements/1.1/> PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> PREFIX owl: <http://www.w3.org/2002/07/owl#> PREFIX telicent: <http://telicent.io/ontology/> INSERT DATA {<style1> <http://telicent.io/ontology/style> \"%7B%22bgColour%22%3A%22%23888%22%2C%22colour%22%3A%22%23000%22%2C%22icon%22%3A%22fa-solid%20fa-question%22%2C%22height%22%3A0%2C%22width%22%3A0%2C%22x%22%3A0%2C%22y%22%3A0%2C%22shape%22%3A%22diamond%22%7D\" . }",
         "headers": {
           "Accept": "*/*",
           "Content-Type": "application/sparql-update",
@@ -330,7 +337,7 @@ describe("Ontology Service", () => {
       const obj = new OntologyService()
       const got = await obj.getAllElements();
       expect(fetchMock).toHaveBeenCalledTimes(1)
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20*%20WHERE%20%7B%3Fs%20%3Fp%20%3Fo%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20*%20WHERE%20%7B%3Fs%20%3Fp%20%3Fo%7D")
       expect(got).toEqual(
         {
           "allElements": {
@@ -389,7 +396,7 @@ describe("Ontology Service", () => {
       const obj = new OntologyService()
       const got = await obj.getAllElements();
       expect(fetchMock).toHaveBeenCalledTimes(1)
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20*%20WHERE%20%7B%3Fs%20%3Fp%20%3Fo%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20*%20WHERE%20%7B%3Fs%20%3Fp%20%3Fo%7D")
       expect(got).toEqual(
         {
           "allElements": {
@@ -428,7 +435,7 @@ describe("Ontology Service", () => {
       const obj = new OntologyService()
       const got = await obj.getAllElements(true);
       expect(fetchMock).toHaveBeenCalledTimes(1)
-      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20*%20WHERE%20%7B%3Fs%20%3Fp%20%3Fo%7D")
+      expect(fetchMock).toHaveBeenCalledWith("http://localhost:3030/ontology/query?query=PREFIX%20%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20PREFIX%20xsd%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2001%2FXMLSchema%23%3E%20PREFIX%20dc%3A%20%3Chttp%3A%2F%2Fpurl.org%2Fdc%2Felements%2F1.1%2F%3E%20PREFIX%20rdf%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F1999%2F02%2F22-rdf-syntax-ns%23%3E%20PREFIX%20rdfs%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2000%2F01%2Frdf-schema%23%3E%20PREFIX%20owl%3A%20%3Chttp%3A%2F%2Fwww.w3.org%2F2002%2F07%2Fowl%23%3E%20PREFIX%20telicent%3A%20%3Chttp%3A%2F%2Ftelicent.io%2Fontology%2F%3E%20SELECT%20*%20WHERE%20%7B%3Fs%20%3Fp%20%3Fo%7D")
       expect(got).toEqual(
         {
           "allElements": {
