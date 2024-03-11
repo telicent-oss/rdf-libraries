@@ -43,6 +43,7 @@ const ontologyObjectStub = {
   "rdfsSubPropertyOf": "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
   "telDiagram": "http://telicent.io/ontology/Diagram",
   "telDiagramElement": "http://telicent.io/ontology/DiagramElement",
+  "telBaseType": "http://telicent.io/ontology/baseType",
   "telDiagramRelationship": "http://telicent.io/ontology/DiagramRelationship",
   "telElementStyle": "http://telicent.io/ontology/elementStyle",
   "telInDiagram": "http://telicent.io/ontology/inDiagram",

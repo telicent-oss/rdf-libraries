@@ -85,7 +85,8 @@ const DiagramStatement = z.object({
   diagRel: sparqlObject,
   elem: sparqlObject,
   diagElem: sparqlObject,
-  elemStyle: sparqlObject
+  elemStyle: sparqlObject,
+  elemBaseType: sparqlObject
 })
 
 const diagramResponseBindings = z.array(DiagramStatement)
