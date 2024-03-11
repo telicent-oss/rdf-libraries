@@ -4,9 +4,12 @@
   */
 export const emptyUriErrorMessage = "Cannot have an empty URI"
 export const emptyPredicateErrorMessage = "predicate must be provided"
+export const noColonInPrefixException = "W3C/XML prefixes must end with a : (colon) character"
+export const unknownPrefixException = "Unknown Prefix "
+export const unrecognisedIdField = "ID field is not in the results"
 const isEmptyString = (str: string) => !Boolean(str);
 
-export type IESObject = "URI" | "LITERAL";
+export type IESObject = "URI" | "LITERAL" | "BNODE";
 
 export interface SPARQLObject {
   value: string;
@@ -72,9 +75,9 @@ export type QueryResponse<T> = {
 }
 
 /**
-  * @typeParam XsdData
+  * @typeParam XsdDataType
   */
-export type XsdData = "xsd:string" | //	Character strings (but not all Unicode character strings)
+export type XsdDataType = "xsd:string" | //	Character strings (but not all Unicode character strings)
   "xsd:boolean" |  // true / false
   "xsd:decimal" | // Arbitrary-precision decimal numbers
   "xsd:integer" | // Arbitrary-size integer numbers
@@ -120,7 +123,6 @@ export default class RdfService {
     */
   defaultSecurityLabel: string;
   dataset: string;
-  defaultUriStub: string;
   triplestoreUri: string;
   queryEndpoint: string; // should these be made a private method?
   updateEndpoint: string;
@@ -130,7 +132,9 @@ export default class RdfService {
   rdfs: string;
   owl: string;
   telicent: string;
-  sparqlPrefixes: string;
+  prefixDict: {
+    [key: string]: string;
+  };
   rdfType: string;
   rdfProperty: string;
   rdfsClass: string;
@@ -153,10 +157,9 @@ export default class RdfService {
    * @param {string} [defaultUriStub="http://telicent.io/data/"] - the default stub to use when building GUID URIs
    * @param {string} [defaultSecurityLabel=""] - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
   */
-  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ds", defaultUriStub = "http://telicent.io/data/", defaultSecurityLabel = "") {
+  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ds", defaultNamespace = "http://telicent.io/data/", defaultSecurityLabel = "") {
     this.defaultSecurityLabel = defaultSecurityLabel
     this.dataset = dataset
-    this.defaultUriStub = defaultUriStub
     this.triplestoreUri = triplestoreUri
     this.queryEndpoint = this.triplestoreUri + dataset + "/query?query="
     this.updateEndpoint = this.triplestoreUri + dataset + "/update"
@@ -168,8 +171,6 @@ export default class RdfService {
     this.rdfs = "http://www.w3.org/2000/01/rdf-schema#"
     this.owl = "http://www.w3.org/2002/07/owl#"
     this.telicent = "http://telicent.io/ontology/"
-
-    this.sparqlPrefixes = `PREFIX xsd: <${this.xsd}> PREFIX dc: <${this.dc}> PREFIX rdf: <${this.rdf}> PREFIX rdfs: <${this.rdfs}> PREFIX owl: <${this.owl}> PREFIX telicent: <${this.telicent}> `
 
     this.rdfType = `${this.rdf}type`
     this.rdfProperty = `${this.rdf}Property`
@@ -184,6 +185,108 @@ export default class RdfService {
     this.owlDatatypeProperty = `${this.owl}DatatypeProperty`
     this.owlObjectProperty = `${this.owl}ObjectProperty`
     this.telicentStyle = `${this.telicent}style`
+    this.prefixDict = {}
+    this.addPrefix(":", defaultNamespace)
+    this.addPrefix("xsd:", this.xsd)
+    this.addPrefix("dc:", this.dc)
+    this.addPrefix("rdf:", this.rdf)
+    this.addPrefix("rdfs:", this.rdfs)
+    this.addPrefix("owl:", this.owl)
+    this.addPrefix("telicent:", this.telicent)
+
+  }
+
+  /**
+   * @method addPrefix
+   * @remarks
+   * Adds an XML/W3C prefix to the RdfService so it can be used in query production, URI shortening, etc.
+   *
+   * @param prefix - a valid W3C prefix, with the : (colon) character at the end
+   * @param uri - the URI represented by the prefix
+  */
+  addPrefix(prefix: string, uri: string) {
+    if (prefix.slice(-1) != ":") {
+      throw noColonInPrefixException
+    }
+    this.prefixDict[prefix] = uri
+  }
+
+  public set defaultNamespace(uri: string) {
+    this.addPrefix(":", uri)
+  }
+
+  public get defaultNamespace(): string {
+    return this.prefixDict[":"]
+  }
+
+  /**
+   * @method getPrefix
+   * @remarks
+   * returns the prefix for a given URI - if no prefix is known, the URI is returned instead of a prefix
+   *
+   * @param uri - the URI represented by the prefix
+   * @returns the prefix that matches the URI, if not found, the URI is returned 
+  */
+  getPrefix(uri: string) {
+    const keys = Object.keys(this.prefixDict)
+    const values = Object.values(this.prefixDict)
+
+    return keys.find((_, index) => values[index] === uri) || uri;
+  }
+
+  /**
+   * @method shorten
+   * @remarks
+   * Shortens a URI to its prefixed equivalent. If no prefix is found, the full URI is returned
+   *
+   * @param uri - the URI represented by the prefix
+   * @returns the prefix that matches the URI, if not found, the URI is returned 
+  */
+  shorten(uri: string) {
+    const keys = Object.keys(this.prefixDict)
+
+    const result = keys.find(key => uri.includes(this.prefixDict[key]));
+    return result ? uri.replace(this.prefixDict[result], result) : uri;
+  }
+
+  /**
+   * @method getSparqlPrefix
+   * @remarks
+   * Returns a formatted SPARQL prefix statement for the provided prefix
+   *
+   * @param prefix - the prefix for which you need the statement
+   * @returns a formatted SPARQL prefix statement
+  */
+  getSparqlPrefix(prefix: string) {
+    if (prefix in this.prefixDict) {
+      return `PREFIX ${prefix} <${this.prefixDict[prefix]}> `
+    }
+    else {
+      throw unknownPrefixException + prefix
+    }
+  }
+
+  /**
+   * @returns a formatted set of SPARQL prefix statements
+  */
+  get sparqlPrefixes() {
+    let prefixStr = ""
+    for (let prefix in this.prefixDict) {
+      prefixStr = prefixStr + `PREFIX ${prefix} <${this.prefixDict[prefix]}> `
+    }
+    return prefixStr
+  }
+
+  /**
+   * @method mintUri
+   * @remarks
+   * Generates a random (UUID) URI based on the namespace passed to it. If not namespace is passed, it will use the RDF Service default namespace
+   *
+   * @param namespace - a valid uri namespace - if none, the default will be used
+   * @returns a random URI
+  */
+  mintUri(namespace: string = this.defaultNamespace) {
+    return namespace + crypto.randomUUID()
   }
 
 
@@ -259,7 +362,7 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  #checkObject(object: string, objectType: IESObject = "URI", xsdDatatype?: XsdData) {
+  #checkObject(object: string, objectType: IESObject = "URI", xsdDatatype?: XsdDataType) {
     if (objectType === "URI") {
       var o = `<${object}>`
     }
@@ -294,7 +397,7 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  async insertTriple(subject: string, predicate: string, object: string, objectType?: IESObject, securityLabel?: string, xsdDatatype?: XsdData) {
+  async insertTriple(subject: string, predicate: string, object: string, objectType?: IESObject, securityLabel?: string, xsdDatatype?: XsdDataType) {
     var o = this.#checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate("INSERT DATA {<" + subject + "> <" + predicate + "> " + o + " . }", securityLabel)
   }
@@ -315,7 +418,7 @@ export default class RdfService {
    * @throws
    * Thrown if the object type is unknown
   */
-  async deleteTriple(subject: string, predicate: string, object: string, objectType: IESObject, xsdDatatype?: XsdData) {
+  async deleteTriple(subject: string, predicate: string, object: string, objectType: IESObject, xsdDatatype?: XsdDataType) {
     var o = this.#checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate("DELETE DATA {<" + subject + "> <" + predicate + "> " + o + " . }")
   }
@@ -371,7 +474,7 @@ export default class RdfService {
     if (isEmptyString(cls)) throw Error("Cannot have an empty cls");
 
     if (!uri) {
-      uri = this.defaultUriStub + crypto.randomUUID()
+      uri = this.mintUri()
     }
     await this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel)
     return uri
