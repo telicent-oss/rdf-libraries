@@ -2,6 +2,8 @@ name: Temporary workflow (Manual Publish)
 on:
   workflow_dispatch:
   push:
+    branches:
+      - main
 
 jobs:
   main:
