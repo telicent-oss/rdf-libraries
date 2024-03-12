@@ -85,7 +85,8 @@ const DiagramStatement = z.object({
   diagRel: sparqlObject,
   elem: sparqlObject,
   diagElem: sparqlObject,
-  elemStyle: sparqlObject
+  elemStyle: sparqlObject,
+  elemBaseType: sparqlObject
 })
 
 const diagramResponseBindings = z.array(DiagramStatement)
@@ -208,6 +209,7 @@ export default class OntologyService extends RdfService {
   telElementStyle: string;
   telInDiagram: string;
   telRepresents: string;
+  telBaseType: string;
   telDiagramElement: string;
   telDiagramRelationship: string;
   telSourceElem: string;
@@ -235,6 +237,7 @@ export default class OntologyService extends RdfService {
     this.telElementStyle = this.telicent + "elementStyle"
     this.telInDiagram = this.telicent + "inDiagram"
     this.telRepresents = this.telicent + "represents"
+    this.telBaseType = this.telicent + "baseType"
     this.telDiagramElement = this.telicent + "DiagramElement"
     this.telDiagramRelationship = this.telicent + "DiagramRelationship"
     this.telSourceElem = this.telicent + "sourceElem"
@@ -565,7 +568,7 @@ export default class OntologyService extends RdfService {
   async getDiagram(uri: string) {
 
     const query = `
-        SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target WHERE {
+        SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target ?elemBaseType WHERE {
             <${uri}> a <${this.telDiagram}> . 
             OPTIONAL {<${uri}> <${this.telUUID}> ?uuid} 
             OPTIONAL {<${uri}> <${this.telTitle}> ?title } 
@@ -574,6 +577,7 @@ export default class OntologyService extends RdfService {
                 ?diagElem a <${this.telDiagramElement}> .
                 ?diagElem <${this.telElementStyle}> ?elemStyle .
                 ?diagElem <${this.telRepresents}> ?elem
+                ?diagElem <${this.telBaseType}> ?elemBaseType
             }
             OPTIONAL {
                 ?diagRel <${this.telInDiagram}> <${uri}> .
@@ -633,7 +637,7 @@ export default class OntologyService extends RdfService {
       uuid = crypto.randomUUID()
     }
     if (!uri) {
-      uri = this.defaultUriStub + uuid
+      uri = this.mintUri()
     }
     this.instantiate(this.telDiagram, uri, securityLabel)
     this.setTitle(uri, title)
