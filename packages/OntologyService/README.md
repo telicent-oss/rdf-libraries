@@ -23,5 +23,4 @@ const diagrams = await ontologyService.getAllDiagrams();
 
 ## API
 
-See here for generated API docs:
 * [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)
