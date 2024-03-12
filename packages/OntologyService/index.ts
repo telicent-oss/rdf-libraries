@@ -576,8 +576,8 @@ export default class OntologyService extends RdfService {
                 ?diagElem <${this.telInDiagram}> <${uri}> .
                 ?diagElem a <${this.telDiagramElement}> .
                 ?diagElem <${this.telElementStyle}> ?elemStyle .
-                ?diagElem <${this.telRepresents}> ?elem
-                ?diagElem <${this.telBaseType}> ?elemBaseType
+                ?diagElem <${this.telRepresents}> ?elem .
+                ?diagElem <${this.telBaseType}> ?elemBaseType .
             }
             OPTIONAL {
                 ?diagRel <${this.telInDiagram}> <${uri}> .
