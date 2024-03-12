@@ -21,5 +21,4 @@ const diagrams = await rdfService.runQuery(query);
 
 ## API
 
-See here for generated API docs:
 * [RDF Service API docs](https://telicent-oss.github.io/rdf-libraries/rdf-service/docs/)
