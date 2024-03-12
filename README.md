@@ -79,7 +79,6 @@ Developer notes:
 
 ## API
 
-See here for generated API docs:
 * [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)
 * [RDF Service API docs](https://telicent-oss.github.io/rdf-libraries/rdf-service/docs/)
 
