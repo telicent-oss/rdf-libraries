@@ -2,15 +2,21 @@
 
 Simple client-side library exported as a JavaScript package, for working with ontologies.
 
+This is a monorepo, which contains sub-packages:
+* [packages/OntologyService/README.md](packages/OntologyService/README.md)
+* [packages/RdfService/README.md](packages/RdfService/README.md)
+
 ## Install
 
+This monorepo's sub-packages are published to https://www.npmjs.com/org/telicent-oss:
+
 ```sh
-cd <yourProject>
 yarn install @telicent-oss/ontologyservice
 ```
 
 ## Usage
 
+A simple example:
 ```tsx
 import OntologyService from "@telicent-oss/ontologyservice";
 
@@ -19,7 +25,10 @@ const ontologyService = new OntologyService("http://localhost:3030/", "ontology"
 const diagrams = await ontologyService.getAllDiagrams();
 ```
 
-## Contributing to rdf-libraries
+For more info, see [API section](README.md#API).
+
+
+## Local development
 
 Install all dependencies for all packages and the root workspace:
 ```
@@ -88,5 +97,12 @@ npx nx run-many -t build
 
 - WARNING: `import x from '.'` can cause problems. Instead use `import x from './index'`
 - If changing code then all commands must be run via nx else it will use the old code in `node_modules`
-- nx commands can be run from any monorepo package and will resolve as if run on monorepo root
-- More nx documentation at brilliant AI bot https://nx.dev/ai-chat
+- nx commands can be run from any sub-directory and will resolve as if run on monorepo root
+- More nx documentation at: https://nx.dev/ai-chat
+
+## API
+
+See here for generated API docs:
+* [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)
+* [RDF Service API docs](https://telicent-oss.github.io/rdf-libraries/rdf-service/docs/)
+
