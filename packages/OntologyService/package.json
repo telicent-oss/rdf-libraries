@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontologyservice",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "private": false,
   "description": "Simple client-side library for working with RDF ontologies. Includes basic CRUD abilities and functions to help you navigate an ontology hierarchy.",
   "main": "./dist/ontologyservice.mjs",
