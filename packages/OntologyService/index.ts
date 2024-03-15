@@ -48,7 +48,8 @@ export interface NamedDiagramRelationship {
 
 const DiagramElement = z.object({
   style: StyleObject,
-  element: z.string()
+  element: z.string(),
+  baseType: z.string()
 });
 
 export type DiagramElement = z.infer<typeof DiagramElement>;
@@ -603,7 +604,8 @@ export default class OntologyService extends RdfService {
       acc.diagramElements[statement.diagElem.value] = {
         ...acc.diagramElements[statement.diagElem.value],
         element: statement.elem.value,
-        style: JSON.parse(decodeURIComponent(statement.elemStyle.value))
+        style: JSON.parse(decodeURIComponent(statement.elemStyle.value)),
+        baseType: statement.elemBaseType.value ?? ""
       }
 
       if (!(statement.diagRel.value in acc.diagramRelationships)) {
