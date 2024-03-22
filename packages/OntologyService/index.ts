@@ -299,7 +299,7 @@ export default class OntologyService extends RdfService {
         getAllPredicates && cls.addPredicate(predicate, object)
 
         if (predicate === this.telicentStyle) {
-          cls.setDefaultStyle(JSON.parse(object))
+          cls.setDefaultStyle(JSON.parse(decodeURIComponent(object)))
         }
 
         // TODO find a grouped name for what this figures out and 
