@@ -14,7 +14,7 @@
       "require": "./dist/ontologyservice.umd.js"
     }
   },
-  "types": "./dist/types",
+  "types": "./dist/types.d.ts",
   "scripts": {
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
     "open-docs": "open ./dist/docs/index.html",
