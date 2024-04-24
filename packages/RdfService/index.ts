@@ -32,38 +32,7 @@ export type RelatedQuery = {
   pred: SPARQLObject
 }
 
-export type InheritedDomainQuery = {
-  prop: SPARQLObject,
-  item: SPARQLObject
-}
 
-export type SuperClassQuery = {
-  super: SPARQLObject,
-  subRel: SPARQLObject
-}
-
-export type StylesQuery = {
-  cls: SPARQLObject,
-  style: SPARQLObject
-}
-
-export type DiagramListQuery = {
-  uri: SPARQLObject,
-  uuid: SPARQLObject,
-  title: SPARQLObject
-}
-
-export type DiagramQuery = {
-  uuid: SPARQLObject,
-  title: SPARQLObject,
-  diagElem: SPARQLObject,
-  elem: SPARQLObject,
-  elemStyle: SPARQLObject,
-  diagRel: SPARQLObject,
-  rel: SPARQLObject,
-  source: SPARQLObject,
-  target: SPARQLObject
-}
 
 export type QueryResponse<T> = {
   "head": {

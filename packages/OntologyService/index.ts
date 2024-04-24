@@ -6,7 +6,7 @@
   */
 
 import { z } from "zod"
-import RdfService, { DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-oss/rdfservice";
+import RdfService, {  SPARQL,  SPARQLObject } from "@telicent-oss/rdfservice";
 import { StyleObject } from "./Types";
 import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
 import { PropertyDefinitionSchema } from "./PropertyDefinition";
@@ -16,6 +16,103 @@ import { buildStatementPartial } from "./helper";
 const NamedElements = z.record(ElementDefinitionSchema)
 const NamedClassDefinitions = z.record(ClassDefinitionSchema)
 const NamedPropertiesDefinitions = z.record(PropertyDefinitionSchema)
+
+
+
+export type InheritedDomainQuery = {
+  prop: SPARQLObject,
+  item: SPARQLObject
+}
+
+export type SuperClassQuery = {
+  super: SPARQLObject,
+  subRel: SPARQLObject
+}
+
+export type PropertyQuery = {
+  property: SPARQLObject,
+  propertyType: SPARQLObject
+}
+
+export type StylesQuery = {
+  cls: SPARQLObject,
+  style: SPARQLObject
+}
+
+export type DiagramListQuery = {
+  uri: SPARQLObject,
+  uuid: SPARQLObject,
+  title: SPARQLObject
+}
+
+export type DiagramQuery = {
+  uuid: SPARQLObject,
+  title: SPARQLObject,
+  diagElem: SPARQLObject,
+  elem: SPARQLObject,
+  elemStyle: SPARQLObject,
+  diagRel: SPARQLObject,
+  rel: SPARQLObject,
+  source: SPARQLObject,
+  target: SPARQLObject
+}
+
+//A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
+class Property {
+  uri: string;
+  _type: string;
+  #service: OntologyService;
+
+  /**
+   * @method constructor
+   * @remarks
+   * Initiate a Typescript wrapper for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
+   * @param service - a reference to the OntologyService being used
+   * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
+   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
+   * @param type - if not being created from a query, then type (e.g. rdf Property, owl ObjectProperty / DatatypeProperty) must be supplied - will add data to ontology
+  */
+  public constructor(service: OntologyService, statement? : PropertyQuery, uri? : string, type?: string) {
+    this.#service = service
+    if (statement) {
+      this.uri = statement.property.value
+      this._type = statement.propertyType.value
+      //no need to instantiate this data in the triplestore as it's already come from a query
+    }
+    else {
+      if (uri && type) {
+        this.uri = uri
+        this._type = type
+        this.#service.insertTriple(this.uri, this.#service.rdfType, this._type)
+      }
+      else {
+        throw new Error("A Property requires either a URI and type, or a statement PropertyQuery object")
+      }
+    }
+    
+  }
+  /**
+   * @method getSubProperties
+   * @remarks
+   * returns the sub properties of this property as an array of Property objects
+   * @param recurse - if true (default) only immediate subproperties are return otherwise the  hierarchy will be fully recursed
+  */
+  async getSubProperties(recurse:boolean = false) {
+    var path = ''
+    if (recurse) {
+      path = '*'
+    }
+    const query = `SELECT ?property ?propertyType WHERE {?property rdfs:subPropertyOf${path} <${this.uri}> . ?property a ?propertyType}`
+    const spOut = await this.#service.runQuery<PropertyQuery[]>(query)
+    var props = []
+    for (var statement of spOut) {
+      var prop = new Property(this.#service,statement)
+      props.push(prop)
+    }
+    return props
+  }
+  
+}
 
 // export type AllElements = NamedPropertiesDefinitions | NamedClassDefinitions | NamedElements;
 const AllElements = z.union([
@@ -67,6 +164,8 @@ const Diagram = z.object({
 })
 
 export type Diagram = z.infer<typeof Diagram>;
+
+
 
 const sparqlObject = z.object({
   value: z.string(),
@@ -213,6 +312,9 @@ export default class OntologyService extends RdfService {
   telBaseType: string;
   telDiagramElement: string;
   telDiagramRelationship: string;
+  telDiagramPropertyDefinition: string
+  telRouting:string
+  telDisplayAs:string
   telSourceElem: string;
   telTargetElem: string;
   nodes: OntologyOutput = {
@@ -241,6 +343,9 @@ export default class OntologyService extends RdfService {
     this.telBaseType = this.telicent + "baseType"
     this.telDiagramElement = this.telicent + "DiagramElement"
     this.telDiagramRelationship = this.telicent + "DiagramRelationship"
+    this.telDiagramPropertyDefinition = this.telicent + "DiagramPropertyDefinition"
+    this.telRouting = this.telicent + "routing"
+    this.telDisplayAs = this.telicent + "displayAs"
     this.telSourceElem = this.telicent + "sourceElem"
     this.telTargetElem = this.telicent + "targetElem"
   }
@@ -438,6 +543,37 @@ export default class OntologyService extends RdfService {
   }
 
   /**
+   * @method getAllRdfProperties 
+   * @remarks
+   * returns all properties defined (domain) against the superclasses of the provided class
+   * @param includeOwlProperties - if true (default) this will return owl ObjectProperties and DatatypeProperties in addition to rdf Properties
+   * @param getOnlyTopProperties - if true (default is false) this will only return those properties that are not subproperties of any others - i.e the top ones
+   * @returns an array of properties
+  */
+  async getAllRdfProperties(includeOwlProperties: boolean = true, getOnlyTopProperties: boolean = false) {
+    var filter = ''
+    if (getOnlyTopProperties) {
+      filter = `FILTER NOT EXISTS {
+        ?property rdfs:subPropertyOf ?parentProp
+      }`
+    }
+
+    var whereClause = `WHERE {BIND (rdf:Property as ?propertyType . ?property a ?propertyType ) . ${filter}}`
+    if (includeOwlProperties) {
+      whereClause = `WHERE {?property a ?propertyType . FILTER (?propertyType IN (owl:ObjectProperty, owl:DatatypeProperty, rdf:Property)) . ${filter}}`
+    }
+
+    const query = `SELECT ?property ?propertyType ${whereClause}`
+    const spOut = await this.runQuery<PropertyQuery[]>(query)
+    var props = []
+    for (var statement of spOut) {
+      var prop = new Property(this,statement)
+      props.push(prop)
+    }
+    return props
+  }
+
+  /**
    * @method getStyles 
    * @remarks
    * returns a dictionary object of styles for each specified class. If no classes are specified, it will get all the styles for every class it finds with style
@@ -581,6 +717,15 @@ export default class OntologyService extends RdfService {
                 ?diagElem <${this.telBaseType}> ?elemBaseType .
             }
             OPTIONAL {
+              ?diagProp <${this.telInDiagram}> <${uri}> .
+              ?diagProp a <${this.telDiagramPropertyDefinition}> .
+              ?diagProp <${this.telElementStyle}> ?propStyle .
+              ?diagProp <${this.telRepresents}> ?prop .
+              ?diagProp <${this.telBaseType}> ?propBaseType .
+              ?diagProp <${this.telRouting}> ?propRouting .
+              ?diagProp <${this.telDisplayAs}> ?propBaseType .
+          }
+          OPTIONAL {
                 ?diagRel <${this.telInDiagram}> <${uri}> .
                 ?diagRel a <${this.telDiagramRelationship}> .
                 ?diagRel <${this.telRepresents}> ?rel .
