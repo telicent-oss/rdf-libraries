@@ -96,7 +96,7 @@ class Property {
    * @remarks
    * returns the sub properties of this property as an array of Property objects
    * @param recurse - if true (default) only immediate subproperties are return otherwise the  hierarchy will be fully recursed
-  
+  */
   async getSubProperties(recurse:boolean = false) {
     var path = ''
     if (recurse) {
@@ -112,7 +112,7 @@ class Property {
     return props
   }
   
-}*/
+}
 
 // export type AllElements = NamedPropertiesDefinitions | NamedClassDefinitions | NamedElements;
 const AllElements = z.union([
