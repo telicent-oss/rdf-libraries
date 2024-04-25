@@ -6,7 +6,7 @@
   */
 
 import { z } from "zod"
-import RdfService, {  SPARQL,  SPARQLObject } from "@telicent-oss/rdfservice";
+import RdfService, {  SPARQL,  SPARQLObject, InheritedDomainQuery, SuperClassQuery,PropertyQuery,StylesQuery,DiagramListQuery,DiagramQuery } from "@telicent-oss/rdfservice";
 import { StyleObject } from "./Types";
 import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
 import { PropertyDefinitionSchema } from "./PropertyDefinition";
@@ -19,49 +19,12 @@ const NamedPropertiesDefinitions = z.record(PropertyDefinitionSchema)
 
 
 
-export type InheritedDomainQuery = {
-  prop: SPARQLObject,
-  item: SPARQLObject
-}
-
-export type SuperClassQuery = {
-  super: SPARQLObject,
-  subRel: SPARQLObject
-}
-
-export type PropertyQuery = {
-  property: SPARQLObject,
-  propertyType: SPARQLObject
-}
-
-export type StylesQuery = {
-  cls: SPARQLObject,
-  style: SPARQLObject
-}
-
-export type DiagramListQuery = {
-  uri: SPARQLObject,
-  uuid: SPARQLObject,
-  title: SPARQLObject
-}
-
-export type DiagramQuery = {
-  uuid: SPARQLObject,
-  title: SPARQLObject,
-  diagElem: SPARQLObject,
-  elem: SPARQLObject,
-  elemStyle: SPARQLObject,
-  diagRel: SPARQLObject,
-  rel: SPARQLObject,
-  source: SPARQLObject,
-  target: SPARQLObject
-}
 
 //A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
 class Property {
   uri: string;
   _type: string;
-  #service: RdfService;
+  #service: OntologyService;
 
   /**
    * @method constructor
