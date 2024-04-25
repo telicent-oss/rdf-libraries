@@ -33,43 +33,6 @@ export type RelatedQuery = {
 }
 
 
-export type InheritedDomainQuery = {
-  prop: SPARQLObject,
-  item: SPARQLObject
-}
-
-export type SuperClassQuery = {
-  super: SPARQLObject,
-  subRel: SPARQLObject
-}
-
-export type PropertyQuery = {
-  property: SPARQLObject,
-  propertyType: SPARQLObject
-}
-
-export type StylesQuery = {
-  cls: SPARQLObject,
-  style: SPARQLObject
-}
-
-export type DiagramListQuery = {
-  uri: SPARQLObject,
-  uuid: SPARQLObject,
-  title: SPARQLObject
-}
-
-export type DiagramQuery = {
-  uuid: SPARQLObject,
-  title: SPARQLObject,
-  diagElem: SPARQLObject,
-  elem: SPARQLObject,
-  elemStyle: SPARQLObject,
-  diagRel: SPARQLObject,
-  rel: SPARQLObject,
-  source: SPARQLObject,
-  target: SPARQLObject
-}
 
 
 
