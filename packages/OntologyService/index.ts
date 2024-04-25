@@ -6,7 +6,7 @@
   */
 
 import { z } from "zod"
-import RdfService, {  SPARQL,  SPARQLObject } from "@telicent-oss/rdfservice";
+import RdfService, {  SPARQL,  SPARQLObject, InheritedDomainQuery, SuperClassQuery,PropertyQuery,StylesQuery,DiagramListQuery,DiagramQuery } from "@telicent-oss/rdfservice";
 import { StyleObject } from "./Types";
 import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
 import { PropertyDefinitionSchema } from "./PropertyDefinition";
@@ -19,43 +19,6 @@ const NamedPropertiesDefinitions = z.record(PropertyDefinitionSchema)
 
 
 
-export type InheritedDomainQuery = {
-  prop: SPARQLObject,
-  item: SPARQLObject
-}
-
-export type SuperClassQuery = {
-  super: SPARQLObject,
-  subRel: SPARQLObject
-}
-
-export type PropertyQuery = {
-  property: SPARQLObject,
-  propertyType: SPARQLObject
-}
-
-export type StylesQuery = {
-  cls: SPARQLObject,
-  style: SPARQLObject
-}
-
-export type DiagramListQuery = {
-  uri: SPARQLObject,
-  uuid: SPARQLObject,
-  title: SPARQLObject
-}
-
-export type DiagramQuery = {
-  uuid: SPARQLObject,
-  title: SPARQLObject,
-  diagElem: SPARQLObject,
-  elem: SPARQLObject,
-  elemStyle: SPARQLObject,
-  diagRel: SPARQLObject,
-  rel: SPARQLObject,
-  source: SPARQLObject,
-  target: SPARQLObject
-}
 
 //A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
 class Property {
@@ -91,7 +54,26 @@ class Property {
     }
     
   }
-  
+  /**
+   * @method getSubProperties
+   * @remarks
+   * returns the sub properties of this property as an array of Property objects
+   * @param recurse - if true (default) only immediate subproperties are return otherwise the  hierarchy will be fully recursed
+  */
+  async getSubProperties(recurse:boolean = false) {
+    var path = ''
+    if (recurse) {
+      path = '*'
+    }
+    const query = `SELECT ?property ?propertyType WHERE {?property rdfs:subPropertyOf${path} <${this.uri}> . ?property a ?propertyType}`
+    const spOut = await this.#service.runQuery<PropertyQuery[]>(query)
+    var props = []
+    for (var statement of spOut) {
+      var prop = new Property(this.#service,statement)
+      props.push(prop)
+    }
+    return props
+  }
   
 }
 
