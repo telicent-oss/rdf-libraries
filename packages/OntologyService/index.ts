@@ -61,7 +61,7 @@ export type DiagramQuery = {
 class Property {
   uri: string;
   _type: string;
-  #service: OntologyService;
+  #service: RdfService;
 
   /**
    * @method constructor
