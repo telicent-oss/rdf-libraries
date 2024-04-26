@@ -240,13 +240,13 @@ export default class RdfService {
    * Shortens a URI to its prefixed equivalent. If no prefix is found, the full URI is returned
    *
    * @param uri - the URI represented by the prefix
-   * @returns the prefix that matches the URI, if not found, the URI is returned 
+   * @returns the prefix that matches the URI, if not found, the URI is returned wrapped in angle brackets
   */
   shorten(uri: string) {
     const keys = Object.keys(this.prefixDict)
 
     const result = keys.find(key => uri.includes(this.prefixDict[key]));
-    return result ? uri.replace(this.prefixDict[result], result) : uri;
+    return result ? uri.replace(this.prefixDict[result], result) : `<${uri}>`;
   }
 
   /**
