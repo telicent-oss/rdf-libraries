@@ -4,8 +4,6 @@ import { QueryResponse, RelatingQuerySolution, SPOQuerySolution } from "packages
 import { rdfType, rdfsSubClassOf } from "../testMocks";
 import { makeStyleObject } from "../helper";
 
-
-
 enableFetchMocks()
 
 const ontologyObjectStub = {

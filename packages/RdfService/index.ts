@@ -20,6 +20,10 @@ export interface SPARQLQuerySolution {
 
 }
 
+export interface CountQuerySolution extends SPARQLQuerySolution{
+  count: SPARQLResultBinding
+}
+
 export interface TypedNodeQuerySolution extends SPARQLQuerySolution {
   uri: SPARQLResultBinding,
   _type: SPARQLResultBinding,
@@ -100,7 +104,7 @@ export class RDFSResource {
   uri: string;
   _type: string;
   protected service: RdfService;
-  public constructor(service: RdfService, uri? : string, type?: string, statement? : TypedNodeQuerySolution) {
+  public constructor(service: RdfService, uri? : string, type:string = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
     this.service = service
     if (statement) {
       this.uri = statement.uri.value
@@ -133,7 +137,7 @@ export class RDFSResource {
    * @param text - the literal to be assigned to the triple
    * @param {boolean} deletePrevious - remove any existing properties with that predicate type - defaults to false 
   */
-  async addLiteral(predicate: string, text: string, deletePrevious = false) {
+  async addLiteral(predicate: string, text: string, deletePrevious:boolean = false) {
     if (isEmptyString(predicate)) throw new Error("Cannot have an empty predicate")
     if (isEmptyString(text)) throw new Error("Cannot have empty text in a triple")
 
@@ -151,7 +155,7 @@ export class RDFSResource {
    * @param {string} label - the literal text of the rdfs:label
    * @param {boolean} deletePrevious - remove any existing labels - defaults to false 
   */
-    async addLabel(label: string, deletePrevious = false) {
+    async addLabel(label: string, deletePrevious:boolean = false) {
       if (isEmptyString(label)) throw new Error("invalid label string")
       await this.addLiteral(this.service.rdfsLabel,label,deletePrevious)
     }
@@ -164,10 +168,51 @@ export class RDFSResource {
    * @param {string} comment - the literal text of the rdfs:comment
    * @param {boolean} deletePrevious - remove any existing comments - defaults to false 
   */
-  async addComment(comment: string, deletePrevious = false) {
+  async addComment(comment: string, deletePrevious:boolean = false) {
     if (isEmptyString(comment)) throw new Error("invalid comment string")
     await this.addLiteral(this.service.rdfsComment,comment,deletePrevious)
   }
+
+
+  /**
+   * @method setTitle 
+   * @remarks
+   * Adds a dublin core title to a node
+   * @param {string} title - the title to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async setTitle(title:string, deletePrevious:boolean = true) {
+    if (isEmptyString(title)) throw new Error("invalid title string")
+    this.addLiteral(this.service.dcTitle,title,deletePrevious)
+  }
+
+  /**
+   * @method setPublished
+   * @remarks
+   * Adds a dublin core published to a node
+   * @param {string} publishedDate - the title to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async setPublished(publishedDate:string, deletePrevious:boolean = true) {
+    if (isEmptyString(publishedDate)) throw new Error("invalid published date")
+    this.addLiteral(this.service.dcPublished,publishedDate,deletePrevious)
+  }
+
+  async countRelated(rel:string):Promise<Number> {
+    const query = `SELECT (count(DISTINCT ?item) as ?count) WHERE {<${this.uri}> ${rel} ?item}`
+    const queryReturn = await this.service.runQuery<CountQuerySolution>(query)
+    if (queryReturn.results.bindings.length < 1) {
+        return 0
+    }
+    else {
+        if (queryReturn.results.bindings.length > 1) {
+            throw 'Count query should never return more than one binding'
+        }
+        else {
+            return Number(queryReturn.results.bindings[0].count.value)
+        }
+    }
+}
 
 }
 
@@ -182,10 +227,7 @@ export class RDFProperty extends RDFSResource {
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
    * @param type - if not being created from a query, then type (e.g. rdf Property, owl ObjectProperty / DatatypeProperty) must be supplied - will add data to ontology
   */
-  public constructor(service: RdfService, uri? : string, type?: string, statement? : TypedNodeQuerySolution) {
-    if (!type) {
-      type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"
-    }
+  public constructor(service: RdfService, uri? : string, type: string = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property", statement? : TypedNodeQuerySolution) {
     super(service,uri,type,statement)           
   }
 
@@ -244,6 +286,10 @@ export default class RdfService {
   owlDatatypeProperty: string;
   owlObjectProperty: string;
   telicentStyle: string;
+  dct : string;
+  dcTitle : string;
+  dcCreated : string;
+  dcPublished : string;
   classLookup: {
     [key: string]: any;
   };
@@ -285,6 +331,10 @@ export default class RdfService {
     this.owlDatatypeProperty = `${this.owl}DatatypeProperty`
     this.owlObjectProperty = `${this.owl}ObjectProperty`
     this.telicentStyle = `${this.telicent}style`
+    this.dct = "http://purl.org/dc/terms/"   //@Dave -  DC items  to move up to the RdfService class. Didn't want to go messing with your code though
+    this.dcTitle = `${this.dct}title`
+    this.dcCreated = `${this.dct}created`
+    this.dcPublished = `${this.dct}published`
     this.prefixDict = {}
     this.addPrefix(":", defaultNamespace)
     this.addPrefix("xsd:", this.xsd)
@@ -293,6 +343,8 @@ export default class RdfService {
     this.addPrefix("rdfs:", this.rdfs)
     this.addPrefix("owl:", this.owl)
     this.addPrefix("telicent:", this.telicent)
+    this.addPrefix("foaf:", "http://xmlns.com/foaf/0.1/")
+    this.addPrefix("dct:", "http://purl.org/dc/terms/")
     this.classLookup = {}
     this.classLookup[this.rdfsResource] = RDFSResource
     this.classLookup[this.rdfProperty] = RDFProperty
