@@ -316,7 +316,7 @@ export class OWLClass extends RDFSClass {
 
 }
 
-export class OntologyService extends RdfService {
+export default class OntologyService extends RdfService {
   telDiagram: string;
   telUUID: string;
   telTitle: string;

@@ -1,9 +1,7 @@
 import fetchMock, { enableFetchMocks } from "jest-fetch-mock"
-import OntologyService from "../index"
-import ClassDefinition from "../ClassDefinition";
+import OntologyService, { Style } from "../index"
 import { QueryResponse, RelatingQuerySolution, SPOQuerySolution } from "packages/RdfService";
 import { rdfType, rdfsSubClassOf } from "../testMocks";
-import Style from "packages/OntologyService"
 import { makeStyleObject } from "../helper";
 
 

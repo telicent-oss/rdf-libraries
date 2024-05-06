@@ -1,6 +1,6 @@
 import ElementDefinition from "../ElementDefinition";
 import { makeStyleObject } from "../helper";
-import Style from "packages/OntologyService"
+import OntologyService, { Style } from "../index"
 
 describe("ElementDefinition", () => {
   it("should create an instance of an element with no uri", () => {
