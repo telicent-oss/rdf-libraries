@@ -7,7 +7,7 @@ describe("ClassDefinition", () => {
 
     expect(cls).toEqual({
       comments: [],
-      defaultStyle: makeStyleObject(),
+      defaultStyle: makeStyleObject,
       labels: [],
       ownedProperties: [],
       predicates: {},
@@ -24,7 +24,7 @@ describe("ClassDefinition", () => {
 
     expect(cls).toEqual({
       comments: [],
-      defaultStyle: makeStyleObject(),
+      defaultStyle: makeStyleObject,
       labels: [],
       ownedProperties: [],
       predicates: {},
@@ -41,7 +41,7 @@ describe("ClassDefinition", () => {
 
     expect(cls).toEqual({
       comments: [],
-      defaultStyle: makeStyleObject(),
+      defaultStyle: makeStyleObject,
       labels: [],
       ownedProperties: [],
       predicates: {},
@@ -58,7 +58,7 @@ describe("ClassDefinition", () => {
 
     expect(cls).toEqual({
       comments: [],
-      defaultStyle: makeStyleObject(),
+      defaultStyle: makeStyleObject,
       labels: [],
       ownedProperties: ["testProperty"],
       predicates: {},

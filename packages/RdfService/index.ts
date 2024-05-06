@@ -11,74 +11,43 @@ const isEmptyString = (str: string) => !Boolean(str);
 
 export type IESObject = "URI" | "LITERAL" | "BNODE";
 
-export interface SPARQLObject {
+export interface SPARQLResultBinding {
   value: string;
   type: string;
 }
 
-export type SPARQL = {
-  s: SPARQLObject,
-  p: SPARQLObject,
-  o: SPARQLObject
+export interface SPARQLQuerySolution {
+
 }
 
-export type RelatingQuery = {
-  relating: SPARQLObject,
-  pred: SPARQLObject
+export interface TypedNodeQuerySolution extends SPARQLQuerySolution {
+  uri: SPARQLResultBinding,
+  _type: SPARQLResultBinding,
 }
 
-export type RelatedQuery = {
-  related: SPARQLObject,
-  pred: SPARQLObject
+export interface SPOQuerySolution extends SPARQLQuerySolution {
+  s: SPARQLResultBinding,
+  p: SPARQLResultBinding,
+  o: SPARQLResultBinding
 }
 
-
-export type InheritedDomainQuery = {
-  prop: SPARQLObject,
-  item: SPARQLObject
+export interface RelatingQuerySolution extends SPARQLQuerySolution {
+  relating: SPARQLResultBinding,
+  pred: SPARQLResultBinding
 }
 
-export type SuperClassQuery = {
-  super: SPARQLObject,
-  subRel: SPARQLObject
-}
-
-export type PropertyQuery = {
-  property: SPARQLObject,
-  propertyType: SPARQLObject
-}
-
-export type StylesQuery = {
-  cls: SPARQLObject,
-  style: SPARQLObject
-}
-
-export type DiagramListQuery = {
-  uri: SPARQLObject,
-  uuid: SPARQLObject,
-  title: SPARQLObject
-}
-
-export type DiagramQuery = {
-  uuid: SPARQLObject,
-  title: SPARQLObject,
-  diagElem: SPARQLObject,
-  elem: SPARQLObject,
-  elemStyle: SPARQLObject,
-  diagRel: SPARQLObject,
-  rel: SPARQLObject,
-  source: SPARQLObject,
-  target: SPARQLObject
+export interface RelatedQuerySolution extends SPARQLQuerySolution {
+  related: SPARQLResultBinding,
+  pred: SPARQLResultBinding
 }
 
 
-
-export type QueryResponse<T> = {
+export type QueryResponse<T = SPARQLQuerySolution> = {
   "head": {
     "vars": string[]
   },
   "results": {
-    "bindings": T
+    "bindings": T[]
   }
 }
 
@@ -125,6 +94,124 @@ export type XsdDataType = "xsd:string" | //	Character strings (but not all Unico
   "xsd:Name" | //	XML Names
   "xsd:NCName";
 
+
+//A wrapper class for an RDFS Resource - i.e. typed node in the graph  
+export class RDFSResource {
+  uri: string;
+  _type: string;
+  protected service: RdfService;
+  public constructor(service: RdfService, uri? : string, type?: string, statement? : TypedNodeQuerySolution) {
+    this.service = service
+    if (statement) {
+      this.uri = statement.uri.value
+      this._type = statement._type.value
+      //no need to instantiate this data in the triplestore as it's already come from a query
+    }
+    else {
+      if (uri) {
+        this.uri = uri
+      }
+      else {
+        this.uri = this.service.mintUri()
+      }
+      if (type) {
+        this._type = type
+        this.service.instantiate(this._type, this.uri)
+      }
+      else {
+        throw new Error("An RDFResource requires a type, or a statement PropertyQuery object")
+      }
+    }
+    
+  }
+  /**
+   * @method addLiteral
+   * @remarks 
+   * Adds a literal property 
+   *
+   * @param predicate - The second position in the triple (the PREDICATE)
+   * @param text - the literal to be assigned to the triple
+   * @param {boolean} deletePrevious - remove any existing properties with that predicate type - defaults to false 
+  */
+  async addLiteral(predicate: string, text: string, deletePrevious = false) {
+    if (isEmptyString(predicate)) throw new Error("Cannot have an empty predicate")
+    if (isEmptyString(text)) throw new Error("Cannot have empty text in a triple")
+
+    if (deletePrevious) {
+      await this.service.deleteRelationships(this.uri,predicate)
+    }
+    await this.service.insertTriple(this.uri, predicate, text, "LITERAL")
+  }
+
+  /**
+   * @method addLabel 
+   * @remarks
+   * simple convenience function to add an rdfs:label 
+   *
+   * @param {string} label - the literal text of the rdfs:label
+   * @param {boolean} deletePrevious - remove any existing labels - defaults to false 
+  */
+    async addLabel(label: string, deletePrevious = false) {
+      if (isEmptyString(label)) throw new Error("invalid label string")
+      await this.addLiteral(this.service.rdfsLabel,label,deletePrevious)
+    }
+  
+  /**
+   * @method addComment 
+   * @remarks
+   * simple convenience function to add an rdfs:comment 
+   *
+   * @param {string} comment - the literal text of the rdfs:comment
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to false 
+  */
+  async addComment(comment: string, deletePrevious = false) {
+    if (isEmptyString(comment)) throw new Error("invalid comment string")
+    await this.addLiteral(this.service.rdfsComment,comment,deletePrevious)
+  }
+
+}
+
+//A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
+export class RDFProperty extends RDFSResource {
+  /**
+   * @method constructor
+   * @remarks
+   * Initiate a Typescript wrapper for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
+   * @param service - a reference to the OntologyService being used
+   * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
+   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
+   * @param type - if not being created from a query, then type (e.g. rdf Property, owl ObjectProperty / DatatypeProperty) must be supplied - will add data to ontology
+  */
+  public constructor(service: RdfService, uri? : string, type?: string, statement? : TypedNodeQuerySolution) {
+    if (!type) {
+      type = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property"
+    }
+    super(service,uri,type,statement)           
+  }
+
+  /**
+   * @method getSubProperties
+   * @remarks
+   * returns the sub properties of this property as an array of Property objects
+   * @param recurse - if true (default) only immediate subproperties are return otherwise the  hierarchy will be fully recursed
+  */
+  async getSubProperties(recurse:boolean = false) {
+    var path = ''
+    if (recurse) {
+      path = '*'
+    }
+    const query = `SELECT ?uri ?_type WHERE {?uri rdfs:subPropertyOf${path} <${this.uri}> . ?uri a ?_type}`
+    const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
+    var props = []
+    for (var statement of spOut.results.bindings) {
+      var cls = this.service.lookupClass(statement._type.value,RDFProperty)
+      var prop = new cls(this.service,undefined,undefined,statement)
+      props.push(prop)
+    }
+    return props
+  }
+}
+  
 export default class RdfService {
   /**
     * A fallback security label if none is specified
@@ -146,6 +233,7 @@ export default class RdfService {
   rdfType: string;
   rdfProperty: string;
   rdfsClass: string;
+  rdfsResource: string;
   rdfsSubClassOf: string;
   rdfsSubPropertyOf: string;
   rdfsLabel: string;
@@ -156,6 +244,9 @@ export default class RdfService {
   owlDatatypeProperty: string;
   owlObjectProperty: string;
   telicentStyle: string;
+  classLookup: {
+    [key: string]: any;
+  };
   /**
    * @method constructor 
    * @remarks
@@ -182,6 +273,7 @@ export default class RdfService {
 
     this.rdfType = `${this.rdf}type`
     this.rdfProperty = `${this.rdf}Property`
+    this.rdfsResource = `${this.rdfs}Resource`
     this.rdfsClass = `${this.rdfs}Class`
     this.rdfsSubClassOf = `${this.rdfs}subClassOf`
     this.rdfsSubPropertyOf = `${this.rdfs}subPropertyOf`
@@ -201,6 +293,31 @@ export default class RdfService {
     this.addPrefix("rdfs:", this.rdfs)
     this.addPrefix("owl:", this.owl)
     this.addPrefix("telicent:", this.telicent)
+    this.classLookup = {}
+    this.classLookup[this.rdfsResource] = RDFSResource
+    this.classLookup[this.rdfProperty] = RDFProperty
+  }
+
+  wrapPropertyList(results:QueryResponse<TypedNodeQuerySolution>) {
+    var props:RDFProperty[] = []
+    results.results.bindings.forEach((statement:TypedNodeQuerySolution) => {
+      var cls = this.lookupClass(statement._type.value,RDFProperty)
+      var prop = new cls(this,undefined,undefined,statement)
+      props.push(prop)
+    })
+    return props
+  }
+
+  lookupClass(clsUri:string,defaultCls:any) {
+    if (this.classLookup[clsUri])
+      return this.classLookup[clsUri]
+    else {
+      return defaultCls
+    }
+  }
+
+  getAllElements(param:boolean) {
+    console.warn("This has been deprecated - who wants to get everything at once ?")
 
   }
 
@@ -314,8 +431,8 @@ export default class RdfService {
       throw response.statusText
     }
 
-    const ontojson: QueryResponse<T> = await response.json()
-    return ontojson
+    const results: QueryResponse<T> = await response.json()
+    return results
   }
 
 
@@ -488,55 +605,7 @@ export default class RdfService {
     return uri
   }
 
-  /**
-   * @method addLiteral
-   * @remarks 
-   * Adds a literal property to the specified node (uri)
-   *
-   * @param uri - The uri of the subject of the literal
-   * @param predicate - The second position in the triple (the PREDICATE)
-   * @param text - the literal to be assigned to the triple
-   * @param deletePrevious - defaults to false
-  */
-  async addLiteral(uri: string, predicate: string, text: string, deletePrevious = false) {
-    if (isEmptyString(uri)) throw new Error(emptyUriErrorMessage)
-    if (isEmptyString(predicate)) throw new Error("Cannot have an empty predicate")
-    if (isEmptyString(text)) throw new Error("Cannot have empty text in a triple")
 
-    if (deletePrevious) {
-      await this.deleteRelationships(uri, predicate)
-    }
-    await this.insertTriple(uri, predicate, text, "LITERAL")
-  }
-
-  /**
-   * @method addLabel 
-   * @remarks
-   * simple convenience function to add an rdfs:label to the given uri - simply pass in the label literal
-   *
-   * @param {string} uri - The uri of the subject of the label
-   * @param {string} label - the literal text of the rdfs:label
-  */
-  async addLabel(uri: string, label: string) {
-    if (isEmptyString(uri)) throw new Error(emptyUriErrorMessage)
-    if (isEmptyString(label)) throw new Error("invalid label string")
-
-    await this.insertTriple(uri, this.rdfsLabel, label)
-  }
-
-  /**
-   * @method addComment 
-   * @remarks
-   * simple convenience function to add an rdfs:comment to the given uri - simply pass in the comment literal
-   *
-   * @param {string} uri - The uri of the subject of the comment
-   * @param {string} comment - the literal text of the rdfs:comment
-  */
-  async addComment(uri: string, comment: string) {
-    if (isEmptyString(uri)) throw new Error(emptyUriErrorMessage)
-    if (isEmptyString(comment)) throw new Error("invalid comment string");
-    await this.insertTriple(uri, this.rdfsComment, comment)
-  }
 
   /**
    * @method getRelated
@@ -547,13 +616,13 @@ export default class RdfService {
    * @param predicate - the predicate relating to the objects that are returned
    * @returns - an array of related items (each is a string - may be a URI or a literal)
   */
-  async getRelated(uri: string, predicate: string) {
+  async getRelated(uri: string, predicate: string):Promise<string[]> {
     if (isEmptyString(uri)) throw new Error(emptyUriErrorMessage);
     if (isEmptyString(predicate)) throw new Error(emptyPredicateErrorMessage);
 
     const query = `SELECT ?related WHERE {<${uri}> ?pred ?related . ?pred <${this.rdfsSubPropertyOf}>* <${predicate}> .}`
 
-    const spOut = await this.runQuery<RelatedQuery[]>(query)
+    const spOut = await this.runQuery<RelatedQuerySolution>(query)
     if (!spOut?.results?.bindings) return []
 
     const statements = spOut.results.bindings
@@ -570,15 +639,15 @@ export default class RdfService {
    * @param predicate - the predicate relating to the objects that are returned
    * @returns an array of relating items (URIs, as strings). By relating, we mean those that point back at the uri
   */
-  async getRelating(uri: string, predicate: string) {
+  async getRelating(uri: string, predicate: string):Promise<string[]> {
     if (isEmptyString(uri)) throw new Error(emptyUriErrorMessage);
     if (isEmptyString(predicate)) throw new Error(emptyPredicateErrorMessage)
 
     const query = `SELECT ?relating WHERE {?relating ?pred <${uri}> . ?pred <${this.rdfsSubPropertyOf}>* <${predicate}> . }`
-    const spOut = await this.runQuery<RelatingQuery[]>(query)
+    const spOut = await this.runQuery<RelatingQuerySolution>(query)
     if (!(spOut?.results?.bindings)) return []
 
-    const statements = spOut.results.bindings;
+    const statements:RelatingQuerySolution[] = spOut.results.bindings;
     return statements.map(statement => statement.relating.value);
   }
 
