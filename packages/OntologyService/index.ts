@@ -5,11 +5,7 @@
   * @author Ian Bailey
   */
 
-import RdfService, {  SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, RDFProperty } from "@telicent-oss/rdfservice";
-import { StyleObject } from "./Types";
-import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
-import { PropertyDefinitionSchema } from "./PropertyDefinition";
-import { ElementDefinitionSchema } from "./ElementDefinition";
+import  RdfService, { SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, RDFProperty } from "@telicent-oss/rdfservice";
 
 export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
   prop: SPARQLResultBinding,
