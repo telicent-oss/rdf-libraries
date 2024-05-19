@@ -1,10 +1,10 @@
-import { z } from "zod"
-//import { SPARQL } from "packages/RdfService";
-import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
-import PropertyDefinition from "./PropertyDefinition";
 
-import { StyleObject } from "./Types";
-import OntologyService, { Style } from "./index";
+//import { SPARQL } from "packages/RdfService";
+
+
+
+
+import {OntologyService,  Style } from "./index";
 /*
  * @function makeStyleObject 
  * @remarks

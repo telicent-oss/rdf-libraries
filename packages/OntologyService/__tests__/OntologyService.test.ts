@@ -1,0 +1,142 @@
+
+import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, QueryResponse, SPOQuerySolution  } from "../index";
+const os = new OntologyService(
+  "http://localhost:3030/",
+  "ontology_test",
+  undefined,
+  undefined,
+  true
+);
+
+const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
+const owlClass = "http://www.w3.org/2002/07/owl#Class";
+const testDefaultNamespace = "http://telicent.io/data/";
+
+const expectedNodeCount:number = 9
+const expectedTripleCount:number = 11
+
+function delays(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+describe("OntologyService", () => {
+  beforeAll(async ()=>{
+    os.runUpdate("DELETE WHERE {?s ?p ?o }"); //clear the dataset
+    await delays(1000);
+    new RDFSClass(os, `${testDefaultNamespace}ONT1`);
+    new RDFSClass(os, `${testDefaultNamespace}ONT11`);
+    new RDFSClass(os, `${testDefaultNamespace}ONT12`);
+    new RDFSClass(os, `${testDefaultNamespace}ONT13`);
+    new OWLClass(os, `${testDefaultNamespace}ONT111`);
+    new OWLClass(os, `${testDefaultNamespace}ONT121`);
+    const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
+    const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
+    const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
+    p1.addSubProperty(p2)
+    p3.addSuperProperty(p2)
+    await delays(2000);
+  });
+
+  it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
+    const ats: boolean = await os.checkTripleStore();
+    expect(ats).toBeTruthy();
+
+    
+    const triples: QueryResponse<SPOQuerySolution> =
+      await os.runQuery<SPOQuerySolution>("SELECT * WHERE {?s ?p ?o}");
+   
+    expect(triples.results.bindings.length).toEqual(expectedTripleCount);
+  });
+
+  it("should allow classes to be created", async () => {
+    const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
+    const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
+    const g111 = new OWLClass(os, `${testDefaultNamespace}ONT111`);
+    expect(g1.uri === `${testDefaultNamespace}ONT1`).toBeTruthy();
+    expect(g11.uri === `${testDefaultNamespace}ONT11`).toBeTruthy();
+    expect(g111.uri === `${testDefaultNamespace}ONT111`).toBeTruthy();
+    expect(g1.types.includes(rdfsClass)).toBeTruthy();
+    expect(g11.types.includes(rdfsClass)).toBeTruthy();
+    expect(g111.types.includes(owlClass)).toBeTruthy();
+    expect(g1.types.length).toEqual(1);
+    expect(g11.types.length).toEqual(1);
+    expect(g111.types.length).toEqual(1);
+  });
+
+  it("it should allow subclasses to be be created, and not accidently create any new Typescript objects while doing so", async () => {
+    const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
+    const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
+    const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
+    const g13 = new RDFSClass(os, `${testDefaultNamespace}ONT13`);
+    const g111 = new OWLClass(os, `${testDefaultNamespace}ONT111`);
+    const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);
+    const g11_: RDFSClass = await g1.addSubClass(g11);
+    const g12_: RDFSClass = await g1.addSubClass(g12);
+    const g13_: RDFSClass = await g1.addSubClass(g13);
+    const g121_: RDFSClass = await g12.addSubClass(g121);
+    const g11__: RDFSClass = await g111.addSuperClass(g11);
+    expect(Object.keys(os.nodes).length).toEqual(expectedNodeCount);
+    await delays(2000);
+    expect(g11_.uri === `${testDefaultNamespace}ONT11`).toBeTruthy();
+    expect(g12_.uri === `${testDefaultNamespace}ONT12`).toBeTruthy();
+    expect(g13_.uri === `${testDefaultNamespace}ONT13`).toBeTruthy();
+    expect(g121_.uri === `${testDefaultNamespace}ONT121`).toBeTruthy();
+    expect(g11.uri === g11_.uri).toBeTruthy();
+    expect(g11.uri === g11__.uri).toBeTruthy();
+    expect(g11 === g11_).toBeTruthy();
+    expect(g11 === g11__).toBeTruthy();
+  });
+
+  it('should detect two subproperty relationships that have been created', async () => {
+    const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
+    const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
+    const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
+    expect(Object.keys(os.nodes).length).toEqual(expectedNodeCount); // just make sure no extra properties got made
+    const p1subs:RDFProperty[] = await p1.getSubProperties()
+    expect(p1subs.length).toEqual(1)
+    expect(p1subs[0] === p2)
+    const p2subs:RDFProperty[] = await p2.getSubProperties()
+    expect(p2subs.length).toEqual(1)
+    expect(p2subs[0] === p3)
+  })
+
+  it("should detect that subclasses were created", async () => {
+    const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
+    const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
+    const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
+    const g13 = new RDFSClass(os, `${testDefaultNamespace}ONT13`);
+    const g111 = new OWLClass(os, `${testDefaultNamespace}ONT111`);
+    const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);
+    const g1_subs = await g1.getSubClasses(false);
+    expect(g1_subs.length).toEqual(3);
+    expect(g1_subs.includes(g11)).toBeTruthy();
+    expect(g1_subs.includes(g12)).toBeTruthy();
+    expect(g1_subs.includes(g13)).toBeTruthy();
+
+    const g1_subs_rec = await g1.getSubClasses(true);
+    expect(g1_subs_rec.length).toEqual(5);
+    expect(g1_subs_rec.includes(g11)).toBeTruthy();
+    expect(g1_subs_rec.includes(g12)).toBeTruthy();
+    expect(g1_subs_rec.includes(g13)).toBeTruthy();
+    expect(g1_subs_rec.includes(g111)).toBeTruthy();
+    expect(g1_subs_rec.includes(g121)).toBeTruthy();
+  });
+
+  it("should have more classes than top-most classes", async () => {
+    const tops: RDFSClass[] = await os.getTopClasses();
+    const all: RDFSClass[] = await os.getAllClasses();
+    expect(all.length > tops.length).toBeTruthy;
+    expect(tops.length).toEqual(1)
+    expect(all.length).toEqual(6)
+  });
+
+  it("should return JS class for provided URI", () => {
+    const rr = os.lookupClass(owlClass, RDFSClass);
+    expect(rr).toEqual(OWLClass);
+  });
+
+  it("should return default RDFSResource JS class for garbage URI", () => {
+    const rr = os.lookupClass("doh", RDFSResource);
+    expect(rr).toEqual(RDFSResource);
+  });
+});

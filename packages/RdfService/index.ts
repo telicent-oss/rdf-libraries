@@ -9,7 +9,7 @@ export const unknownPrefixException = "Unknown Prefix "
 export const unrecognisedIdField = "ID field is not in the results"
 const isEmptyString = (str: string) => !Boolean(str);
 
-export type IESObject = "URI" | "LITERAL" | "BNODE";
+export type RDFBasetype = "URI" | "LITERAL" | "BNODE";
 
 export interface SPARQLResultBinding {
   value: string;
@@ -26,8 +26,18 @@ export interface CountQuerySolution extends SPARQLQuerySolution{
 
 export interface TypedNodeQuerySolution extends SPARQLQuerySolution {
   uri: SPARQLResultBinding,
-  _type: SPARQLResultBinding,
+  _type?: SPARQLResultBinding,
 }
+
+export interface RelatedNodeQuerySolution extends TypedNodeQuerySolution {
+  predicate: SPARQLResultBinding
+}
+
+export interface LiteralPropertyQuerySolution {
+  predicate: SPARQLResultBinding,
+  literal: SPARQLResultBinding
+}
+
 
 export interface SPOQuerySolution extends SPARQLQuerySolution {
   s: SPARQLResultBinding,
@@ -52,8 +62,18 @@ export type QueryResponse<T = SPARQLQuerySolution> = {
   },
   "results": {
     "bindings": T[]
-  }
+  },
+  boolean?:boolean
 }
+
+export type RelatedResources = {
+  [key: string]: RDFSResource[];
+}
+
+export type RelatedLiterals = {
+  [key: string]: string[];
+}
+
 
 /**
   * @typeParam XsdDataType
@@ -102,30 +122,48 @@ export type XsdDataType = "xsd:string" | //	Character strings (but not all Unico
 //A wrapper class for an RDFS Resource - i.e. typed node in the graph  
 export class RDFSResource {
   uri: string;
-  _type: string;
+  types: string[];
   protected service: RdfService;
   public constructor(service: RdfService, uri? : string, type:string = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
+    this.uri = ''
+    this.types = []
     this.service = service
     if (statement) {
+      if (statement.uri.value in this.service.nodes) { //we've already created an object for this item
+        const existingItem = this.service.nodes[statement.uri.value]
+        if ((statement._type) && !(existingItem.types.includes(statement._type.value)) ){
+          existingItem.types.push(statement._type.value)
+        }
+        return existingItem
+      } 
       this.uri = statement.uri.value
-      this._type = statement._type.value
+      if ((statement._type) && !(this.types.includes(statement._type.value))){
+        this.types.push(statement._type.value)
+      }      
       //no need to instantiate this data in the triplestore as it's already come from a query
-    }
-    else {
+    } else {
       if (uri) {
         this.uri = uri
+        if (uri in this.service.nodes) { //we've already created an object for this item
+          const existingItem = this.service.nodes[uri]
+          if ((type) && !(existingItem.types.includes(type)) ){
+            existingItem.types.push(type)
+          }
+          return existingItem
+        } 
       }
       else {
         this.uri = this.service.mintUri()
       }
-      if (type) {
-        this._type = type
-        this.service.instantiate(this._type, this.uri)
+      if ((type)&& !(this.types.includes(type))) {
+        this.types.push(type)
+        this.service.instantiate(type, this.uri)
       }
       else {
         throw new Error("An RDFResource requires a type, or a statement PropertyQuery object")
       }
     }
+    this.service.nodes[this.uri] = this
     
   }
   /**
@@ -198,7 +236,7 @@ export class RDFSResource {
     this.addLiteral(this.service.dcPublished,publishedDate,deletePrevious)
   }
 
-  async countRelated(rel:string):Promise<Number> {
+  async countRelated(rel:string):Promise<number> {
     const query = `SELECT (count(DISTINCT ?item) as ?count) WHERE {<${this.uri}> ${rel} ?item}`
     const queryReturn = await this.service.runQuery<CountQuerySolution>(query)
     if (queryReturn.results.bindings.length < 1) {
@@ -209,56 +247,202 @@ export class RDFSResource {
             throw 'Count query should never return more than one binding'
         }
         else {
-            return Number(queryReturn.results.bindings[0].count.value)
+          if (queryReturn.results.bindings[0].count) {
+            return Number( queryReturn.results.bindings[0].count.value)
+          } else {
+            return 0
+          }
         }
     }
-}
-
-}
-
-//A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
-export class RDFProperty extends RDFSResource {
-  /**
-   * @method constructor
-   * @remarks
-   * Initiate a Typescript wrapper for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
-   * @param service - a reference to the OntologyService being used
-   * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
-   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
-   * @param type - if not being created from a query, then type (e.g. rdf Property, owl ObjectProperty / DatatypeProperty) must be supplied - will add data to ontology
-  */
-  public constructor(service: RdfService, uri? : string, type: string = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property", statement? : TypedNodeQuerySolution) {
-    super(service,uri,type,statement)           
   }
 
-  /**
-   * @method getSubProperties
+    /**
+   * @method getRelated
    * @remarks
-   * returns the sub properties of this property as an array of Property objects
-   * @param recurse - if true (default) only immediate subproperties are return otherwise the  hierarchy will be fully recursed
+   * Simple function to get all objects related to this node by a predicate
+   * @param predicate - the predicate relating to the objects that are returned
+   * @returns -  a RelatedResources object
   */
-  async getSubProperties(recurse:boolean = false) {
-    var path = ''
-    if (recurse) {
-      path = '*'
+    async getRelated(predicate?: string):Promise<RelatedResources> {
+     let predString = ''
+     if (predicate) {
+        predString = ` BIND (<${predicate}> AS ?predicate) .`
+      }
+      const query = `SELECT ?uri ?_type ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?_type} FILTER isIRI(?uri) }`
+      const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query)
+      if (!spOut?.results?.bindings) return {}
+      const output:RelatedResources = {}
+      spOut.results.bindings.forEach((statement:RelatedNodeQuerySolution) => {
+        const related = new RDFSResource(this.service,undefined,undefined,statement)
+        if (!(statement.predicate.value in output)) {
+          output[statement.predicate.value] = []
+        }
+        if (output[statement.predicate.value].indexOf(related) < 0) {
+          output[statement.predicate.value].push(related)
+        } 
+        
+      })
+      return output
     }
-    const query = `SELECT ?uri ?_type WHERE {?uri rdfs:subPropertyOf${path} <${this.uri}> . ?uri a ?_type}`
-    const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
-    var props = []
-    for (var statement of spOut.results.bindings) {
-      var cls = this.service.lookupClass(statement._type.value,RDFProperty)
-      var prop = new cls(this.service,undefined,undefined,statement)
-      props.push(prop)
+
+    /**
+     * @method getRelating 
+     * @remarks
+     * simple function to get all subjects relating to this node by a predicate - i.e. reverse relationships
+     *
+     * @param predicate - the predicate relating to the objects that are returned
+     * @returns a RelatedResources object
+    */
+    async getRelating(predicate: string):Promise<RelatedResources> {
+      let predString = ''
+      if (predicate) {
+        predString = ` BIND (<${predicate}> AS ?predicate) .`
+      }
+      const query = `SELECT ?uri ?_type ?predicate WHERE {${predString} ?uri ?predicate <${this.uri}> . OPTIONAL {?uri a ?_type} }`
+      const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query)
+      if (!spOut?.results?.bindings) return {}
+      const output:RelatedResources = {}
+      spOut.results.bindings.forEach((statement:RelatedNodeQuerySolution) => {
+        const related = new RDFSResource(this.service,undefined,undefined,statement)
+        if (!(statement.predicate.value in output)) {
+          output[statement.predicate.value] = []
+        }
+        if (output[statement.predicate.value].indexOf(related) < 0) {
+          output[statement.predicate.value].push(related)
+        } 
+      })
+      return output
     }
-    return props
-  }
+
+  /**
+   * @method getLiteralProperties
+   * @remarks
+   * Simple function to get all literals related to this node
+   *
+   * @param predicate - the predicate relating to the literal properties that are returned
+   * @returns - a RelatedLiterals object
+  */
+  async getLiterals(predicate?: string):Promise<RelatedLiterals> {
+    let predString = ''
+    if (predicate) {
+      predString = ` BIND (<${predicate}> AS ?predicate) .`
+     }
+ 
+     const query = `SELECT ?literal ?predicate WHERE {${predString} <${this.uri}> ?predicate ?literal . FILTER isLiteral(?literal) }`
+     const spOut = await this.service.runQuery<LiteralPropertyQuerySolution>(query)
+     if (!spOut?.results?.bindings) return {}
+     const output:RelatedLiterals = {}
+     spOut.results.bindings.forEach((statement:LiteralPropertyQuerySolution) => {
+       const lit:string = statement.literal.value
+       if (!(statement.predicate.value in output)) {
+         output[statement.predicate.value] = []
+       }
+       if (output[statement.predicate.value].indexOf(lit) < 0) {
+         output[statement.predicate.value].push(lit)
+       } 
+     })
+     return output
+   }
+
+  /**
+   * @method getLabels
+   * @remarks
+   * Simple function to get all rdfs labels
+   *
+   * @returns - an array of strings
+  */ 
+   async getLabels():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.rdfsLabel)
+    let labels:string[] = []
+    if (this.service.rdfsLabel in lits) {
+      labels = lits[this.service.rdfsLabel]
+    }
+    return labels
+   }
+
+  /**
+   * @method getComments
+   * @remarks
+   * Simple function to get all rdfs comments
+   *
+   * @returns - an array of strings
+  */ 
+  async getComments():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.rdfsComment)
+    let comments:string[] = []
+    if (this.service.rdfsComment in lits) {
+      comments = lits[this.service.rdfsComment]
+    }
+    return comments
+   }
+
+  /**
+   * @method getTitle
+   * @remarks
+   * Simple function to get all dublin core title - there should only be one, but sometimes you get multiple with different lang strings
+   *
+   * @returns - an array of strings
+  */ 
+  async getDcTitle():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcTitle)
+    let titles:string[] = []
+    if (this.service.dcTitle in lits) {
+      titles = lits[this.service.dcTitle]
+    }
+    if (titles.length > 1) {
+      console.warn(`More than one Dublin Core title tag on ${this.uri}`)
+    } 
+    return titles
+    
+   }
+
+  /**
+   * @method getDcPublished
+   * @remarks
+   * Simple function to get all dublin core published tags. There should only be one though
+   *
+   * @returns - an array of strings
+  */ 
+  async getDcPublished():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcPublished)
+    let pubs:string[] = []
+    if (this.service.dcPublished in lits) {
+      pubs = lits[this.service.dcPublished]
+    }
+    if (pubs.length > 1) {
+      console.warn(`More than one Dublin Core published tag on ${this.uri}`)
+    } 
+    return pubs
+   }
+
+  /**
+   * @method getDcCreated
+   * @remarks
+   * Simple function to get all dublin core published tags. There should only be one though
+   *
+   * @returns - an array of strings
+  */ 
+  async getDcCreated():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcCreated)
+    let pubs:string[] = []
+    if (this.service.dcCreated in lits) {
+      pubs = lits[this.service.dcCreated]
+    }
+    if (pubs.length > 1) {
+      console.warn(`More than one Dublin Core created tag on ${this.uri}`)
+    } 
+    return pubs
+   }
+
 }
+
   
-export default class RdfService {
+export class RdfService {
   /**
     * A fallback security label if none is specified
     */
   defaultSecurityLabel: string;
+  #writeEnabled: boolean;
   dataset: string;
   triplestoreUri: string;
   queryEndpoint: string; // should these be made a private method?
@@ -273,26 +457,25 @@ export default class RdfService {
     [key: string]: string;
   };
   rdfType: string;
-  rdfProperty: string;
-  rdfsClass: string;
+
   rdfsResource: string;
-  rdfsSubClassOf: string;
-  rdfsSubPropertyOf: string;
+
+
   rdfsLabel: string;
   rdfsComment: string;
-  rdfsDomain: string;
-  rdfsRange: string;
-  owlClass: string;
-  owlDatatypeProperty: string;
-  owlObjectProperty: string;
-  telicentStyle: string;
+
+  nodes: {
+    [key: string]: RDFSResource;
+  };
+
   dct : string;
   dcTitle : string;
   dcCreated : string;
   dcPublished : string;
   classLookup: {
-    [key: string]: any;
+    [key: string]: typeof RDFSResource;
   };
+
   /**
    * @method constructor 
    * @remarks
@@ -301,13 +484,15 @@ export default class RdfService {
    * @param {string} [dataset="ds"] - the dataset name in the triplestore
    * @param {string} [defaultUriStub="http://telicent.io/data/"] - the default stub to use when building GUID URIs
    * @param {string} [defaultSecurityLabel=""] - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
+   * @param {boolean} [write=false] - set to true if you want to update the data, default is false (read only)
   */
-  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ds", defaultNamespace = "http://telicent.io/data/", defaultSecurityLabel = "") {
+  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ds", defaultNamespace = "http://telicent.io/data/", defaultSecurityLabel = "", write=false) {
     this.defaultSecurityLabel = defaultSecurityLabel
     this.dataset = dataset
     this.triplestoreUri = triplestoreUri
     this.queryEndpoint = this.triplestoreUri + dataset + "/query?query="
     this.updateEndpoint = this.triplestoreUri + dataset + "/update"
+    this.#writeEnabled = write
 
     // why is this in the constructor if it is static?
     this.dc = "http://purl.org/dc/elements/1.1/"
@@ -316,21 +501,12 @@ export default class RdfService {
     this.rdfs = "http://www.w3.org/2000/01/rdf-schema#"
     this.owl = "http://www.w3.org/2002/07/owl#"
     this.telicent = "http://telicent.io/ontology/"
-
     this.rdfType = `${this.rdf}type`
-    this.rdfProperty = `${this.rdf}Property`
     this.rdfsResource = `${this.rdfs}Resource`
-    this.rdfsClass = `${this.rdfs}Class`
-    this.rdfsSubClassOf = `${this.rdfs}subClassOf`
-    this.rdfsSubPropertyOf = `${this.rdfs}subPropertyOf`
     this.rdfsLabel = `${this.rdfs}label`
     this.rdfsComment = `${this.rdfs}comment`
-    this.rdfsDomain = `${this.rdfs}domain`
-    this.rdfsRange = `${this.rdfs}range`
-    this.owlClass = `${this.owl}#Class`
-    this.owlDatatypeProperty = `${this.owl}DatatypeProperty`
-    this.owlObjectProperty = `${this.owl}ObjectProperty`
-    this.telicentStyle = `${this.telicent}style`
+
+
     this.dct = "http://purl.org/dc/terms/"   //@Dave -  DC items  to move up to the RdfService class. Didn't want to go messing with your code though
     this.dcTitle = `${this.dct}title`
     this.dcCreated = `${this.dct}created`
@@ -347,20 +523,10 @@ export default class RdfService {
     this.addPrefix("dct:", "http://purl.org/dc/terms/")
     this.classLookup = {}
     this.classLookup[this.rdfsResource] = RDFSResource
-    this.classLookup[this.rdfProperty] = RDFProperty
+    this.nodes = {}
   }
 
-  wrapPropertyList(results:QueryResponse<TypedNodeQuerySolution>) {
-    var props:RDFProperty[] = []
-    results.results.bindings.forEach((statement:TypedNodeQuerySolution) => {
-      var cls = this.lookupClass(statement._type.value,RDFProperty)
-      var prop = new cls(this,undefined,undefined,statement)
-      props.push(prop)
-    })
-    return props
-  }
-
-  lookupClass(clsUri:string,defaultCls:any) {
+  lookupClass(clsUri:string,defaultCls:typeof RDFSResource) {
     if (this.classLookup[clsUri])
       return this.classLookup[clsUri]
     else {
@@ -368,7 +534,7 @@ export default class RdfService {
     }
   }
 
-  getAllElements(param:boolean) {
+  getAllElements() {
     console.warn("This has been deprecated - who wants to get everything at once ?")
 
   }
@@ -448,7 +614,7 @@ export default class RdfService {
   */
   get sparqlPrefixes() {
     let prefixStr = ""
-    for (let prefix in this.prefixDict) {
+    for (const prefix in this.prefixDict) {
       prefixStr = prefixStr + `PREFIX ${prefix} <${this.prefixDict[prefix]}> `
     }
     return prefixStr
@@ -462,10 +628,9 @@ export default class RdfService {
    * @param namespace - a valid uri namespace - if none, the default will be used
    * @returns a random URI
   */
-  mintUri(namespace: string = this.defaultNamespace) {
+  mintUri(namespace: string = this.defaultNamespace):string {
     return namespace + crypto.randomUUID()
   }
-
 
   /**
    * @method runQuery
@@ -475,16 +640,22 @@ export default class RdfService {
    * @param string - A valid SPARQL query
    * @returns the results of the query in standard SPARQL JSON results format
   */
-  async runQuery<T>(query: string) {
+  async runQuery<T>(query: string):Promise<QueryResponse<T>> {
     if (isEmptyString(query)) throw Error("runQuery: A valid query is required");
-
-    const response = await fetch(this.queryEndpoint + encodeURIComponent(this.sparqlPrefixes + query))
+    const response = await fetch(this.queryEndpoint + encodeURIComponent(this.sparqlPrefixes + query),{'headers':{'Expects':'application/sparql-results+json'}})
     if (!response.ok) {
       throw response.statusText
     }
-
-    const results: QueryResponse<T> = await response.json()
+    const results:QueryResponse<T> = await response.json()
     return results
+  }
+
+  async checkTripleStore():Promise<boolean> {
+    const result = await this.runQuery<SPOQuerySolution>('ASK WHERE {}')
+    if ("boolean" in result) {
+      return true
+    }
+    return false
   }
 
 
@@ -497,31 +668,38 @@ export default class RdfService {
    * @param updateQuery - A valid SPARQL update query
    * @param securityLabel - the security label to apply to new data. If none provided, the default will be used. 
    * @returns the response text from the triplestore after running the update
-   * @throws Fetch query errors are not handled.
+   * @throws if the triplestore does not accept the update
   */
-  async runUpdate(updateQuery: string, securityLabel?: string) {
-    let sl = securityLabel ?? this.defaultSecurityLabel;
+  async runUpdate(updateQuery: string, securityLabel?: string):Promise<string> {
+    if (this.#writeEnabled) {
+      const sl = securityLabel ?? this.defaultSecurityLabel;
 
-    if (isEmptyString(sl)) {
-      console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
-    }
+      if (isEmptyString(sl)) {
+        console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
+      }
 
-    var postObject = {
-      method: 'POST',
-      headers: {//
-        'Accept': '*/*',
-        // 'Security-Label': sl, Temporarily removed because if this label is applied
-        //  it omits CORS headers from the pre-flight response
-        'Content-Type': 'application/sparql-update',
-      },
-      body: this.sparqlPrefixes + updateQuery
-    }
+      const postObject = {
+        method: 'POST',
+        headers: {//
+          'Accept': '*/*',
+          // 'Security-Label': sl, Temporarily removed because if this label is applied
+          //  it omits CORS headers from the pre-flight response
+          'Content-Type': 'application/sparql-update',
+        },
+        body: this.sparqlPrefixes + updateQuery
+      }
 
-    const response = await fetch(this.updateEndpoint, postObject)
-    if (!response.ok) {
-      throw response.statusText
+      const response = await fetch(this.updateEndpoint, postObject)
+      if (!response.ok) {
+        throw response.statusText
+      }
+      return response.text()
     }
-    return response.text()
+    else
+    {
+      console.warn( "service is in read only node, updates are not permitted")
+      return "service is in read only node, updates are not permitted"
+    }
   }
 
 
@@ -539,12 +717,13 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  #checkObject(object: string, objectType: IESObject = "URI", xsdDatatype?: XsdDataType) {
+  #checkObject(object: string, objectType: RDFBasetype = "URI", xsdDatatype?: XsdDataType):string {
+    let o:string = ''
     if (objectType === "URI") {
-      var o = `<${object}>`
+      o = `<${object}>`
     }
     else if (objectType == "LITERAL") {
-      var o = `"${object}"`
+      o = `"${object}"`
       if (xsdDatatype) {
         //      if ((xsdDatatype) && (xsdDatatype !== "")) {
         o = `${o}^^${xsdDatatype}`
@@ -574,9 +753,10 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  async insertTriple(subject: string, predicate: string, object: string, objectType?: IESObject, securityLabel?: string, xsdDatatype?: XsdDataType) {
-    var o = this.#checkObject(object, objectType, xsdDatatype)
-    return await this.runUpdate("INSERT DATA {<" + subject + "> <" + predicate + "> " + o + " . }", securityLabel)
+  async insertTriple(subject: string, predicate: string, object: string, objectType?: RDFBasetype, securityLabel?: string, xsdDatatype?: XsdDataType):Promise<string> {
+    const o = this.#checkObject(object, objectType, xsdDatatype)
+    const update = "INSERT DATA {<" + subject + "> <" + predicate + "> " + o + " . }"
+    return await this.runUpdate(update, securityLabel)
   }
 
   /**
@@ -595,8 +775,8 @@ export default class RdfService {
    * @throws
    * Thrown if the object type is unknown
   */
-  async deleteTriple(subject: string, predicate: string, object: string, objectType: IESObject, xsdDatatype?: XsdDataType) {
-    var o = this.#checkObject(object, objectType, xsdDatatype)
+  async deleteTriple(subject: string, predicate: string, object: string, objectType: RDFBasetype, xsdDatatype?: XsdDataType) {
+    const o = this.#checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate("DELETE DATA {<" + subject + "> <" + predicate + "> " + o + " . }")
   }
 
@@ -614,10 +794,11 @@ export default class RdfService {
   async deleteNode(uri: string, ignoreInboundReferences = false) {
     if (isEmptyString(uri)) throw Error(emptyUriErrorMessage)
 
-    await this.runUpdate("DELETE WHERE {<" + uri + "> ?p ?o . }")
+
     if (!ignoreInboundReferences) {
-      await this.runUpdate("DELETE WHERE {?s ?p <" + uri + ">}")
+      return await this.runUpdate("DELETE WHERE {?s ?p <" + uri + ">}")
     }
+    return await this.runUpdate("DELETE WHERE {<" + uri + "> ?p ?o . }")
   }
 
   /**
@@ -630,11 +811,11 @@ export default class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  async deleteRelationships(uri: string, predicate: string) {
+  async deleteRelationships(uri: string, predicate: string):Promise<string> {
     if (isEmptyString(uri)) throw Error(emptyUriErrorMessage)
     if (isEmptyString(predicate)) throw Error("Cannot have an empty predicate")
 
-    await this.runUpdate(`DELETE WHERE {<${uri}> <${predicate}> ?o . }`)
+    return await this.runUpdate(`DELETE WHERE {<${uri}> <${predicate}> ?o . }`)
   }
 
   /**
@@ -645,87 +826,15 @@ export default class RdfService {
    * @param cls - The class (uri of an rdfs:Class or owl:Class) that is to be instantiated
    * @param uri - The uri of the instantiated item - if unset, one will be constructed using the defaultUriStub
    * @param securityLabel - the security label to apply to new data. If none provided, the default will be used. 
-   * @returns  the URI of the instantiated item
+   * @returns  the resulting instance's URI as a string
   */
-  async instantiate(cls: string, uri?: string, securityLabel?: string) {
+  instantiate(cls: string, uri?: string, securityLabel?: string):string {
     if (isEmptyString(cls)) throw Error("Cannot have an empty cls");
 
     if (!uri) {
       uri = this.mintUri()
     }
-    await this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel)
+    this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel)
     return uri
   }
-
-
-
-  /**
-   * @method getRelated
-   * @remarks
-   * Simple function to get all objects related to the uri by a predicate
-   *
-   * @param uri - The uri of the subject
-   * @param predicate - the predicate relating to the objects that are returned
-   * @returns - an array of related items (each is a string - may be a URI or a literal)
-  */
-  async getRelated(uri: string, predicate: string):Promise<string[]> {
-    if (isEmptyString(uri)) throw new Error(emptyUriErrorMessage);
-    if (isEmptyString(predicate)) throw new Error(emptyPredicateErrorMessage);
-
-    const query = `SELECT ?related WHERE {<${uri}> ?pred ?related . ?pred <${this.rdfsSubPropertyOf}>* <${predicate}> .}`
-
-    const spOut = await this.runQuery<RelatedQuerySolution>(query)
-    if (!spOut?.results?.bindings) return []
-
-    const statements = spOut.results.bindings
-    const output = statements.map(statement => statement.related.value)
-    return output
-  }
-
-  /**
-   * @method getRelating 
-   * @remarks
-   * simple function to get all subjects relating to the uri by a predicate - i.e. reverse relationships
-   *
-   * @param uri - The uri of the subject
-   * @param predicate - the predicate relating to the objects that are returned
-   * @returns an array of relating items (URIs, as strings). By relating, we mean those that point back at the uri
-  */
-  async getRelating(uri: string, predicate: string):Promise<string[]> {
-    if (isEmptyString(uri)) throw new Error(emptyUriErrorMessage);
-    if (isEmptyString(predicate)) throw new Error(emptyPredicateErrorMessage)
-
-    const query = `SELECT ?relating WHERE {?relating ?pred <${uri}> . ?pred <${this.rdfsSubPropertyOf}>* <${predicate}> . }`
-    const spOut = await this.runQuery<RelatingQuerySolution>(query)
-    if (!(spOut?.results?.bindings)) return []
-
-    const statements:RelatingQuerySolution[] = spOut.results.bindings;
-    return statements.map(statement => statement.relating.value);
-  }
-
-  //#flatOut()
-  //Simplest, default format for SPARQL returns
-  //  #flatOut(spOut, returnFirstObj = false) {
-  //    output = []
-  //    if (spOut && spOut.results && spOut.results.bindings) {
-  //      for (var i in spOut.results.bindings) {
-  //        var stmt = spOut.results.bindings[i]
-  //        obj = {}
-  //        for (var j in spOut.head.vars) {
-  //          var v = spOut.head.vars[j]
-  //          if ((v in stmt) && (stmt[v])) {
-  //            obj[v] = stmt[v].value
-  //          }
-  //        }
-  //        output.push(stmt.relating.value)
-  //      }
-  //    }
-  //    if (returnFirstObj) {
-  //      return output[0]
-  //    }
-  //    else {
-  //      return output
-  //    }
-  //  }
 }
-
