@@ -473,7 +473,7 @@ export class RdfService {
   dcCreated : string;
   dcPublished : string;
   classLookup: {
-    [key: string]: typeof RDFSResource;
+    [key: string]: any;
   };
 
   /**
@@ -526,7 +526,7 @@ export class RdfService {
     this.nodes = {}
   }
 
-  lookupClass(clsUri:string,defaultCls:typeof RDFSResource) {
+  lookupClass(clsUri:string,defaultCls: any) {
     if (this.classLookup[clsUri])
       return this.classLookup[clsUri]
     else {

@@ -7,7 +7,7 @@
 
 import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "../RdfService";
 
-export {RDFSResource, QueryResponse, SPOQuerySolution} from "../RdfService"
+export {RDFSResource} from "../RdfService"
 
 
 export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
