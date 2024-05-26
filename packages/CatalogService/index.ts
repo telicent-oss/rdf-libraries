@@ -36,33 +36,16 @@ export class DCATResource extends RDFSResource {
      * @param {string} type - the type (class URI) of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
     */
     service: CatalogService
-    description: string
-    published:string
-    title:string
+
     constructor(service:CatalogService, uri?:string, title?:string, published?:string, type:string="http://www.w3.org/ns/dcat#Resource", statement?:DcatResourceQuerySolution) {
         super(service, uri, type, statement)
         this.service = service
-        this.description = ''
-        this.published = ''
-        this.title = ''
         if (statement != undefined) {
             this.uri = statement.uri.value
-            if (statement.title){
-                this.title = statement.title.value
-            }
-            else
-            {
+            if (!statement.title){
                 console.warn(`No title set for ${this.uri} in query response`)
             }
-            
-            if (statement.description) {
-                this.description = statement.description.value
-            }
-
-            if (statement.published) {
-                this.published = statement.published.value
-            }
-
+        
             if ((uri) || (title) || (published) || (type)) {
                 console.warn("individual parameters such as uri, title, etc. should not be set if the statement parameter is set")
             }
@@ -75,7 +58,6 @@ export class DCATResource extends RDFSResource {
             if (title == undefined) {
                 throw new Error("title must be provided for a new resource")
             }
-            this.title = title
 
             if ((title) && (title != "")) {
                 this.setTitle(title)
@@ -94,7 +76,9 @@ export class DCATDataService extends DCATResource {
 }
 
 export class DCATCatalog extends DCATDataset {
-
+    constructor(service:CatalogService, uri?:string, title?:string, published?:string, type:string="http://www.w3.org/ns/dcat#Resource", statement?:DcatResourceQuerySolution) {
+        super(service, uri, title, published, type, statement)
+}
 }
 
 

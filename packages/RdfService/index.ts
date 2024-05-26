@@ -229,11 +229,35 @@ export class RDFSResource {
    * @remarks
    * Adds a dublin core published to a node
    * @param {string} publishedDate - the title to be applied (simple text)
-   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+   * @param {boolean} deletePrevious - remove any existing published dates - defaults to true 
   */   
   async setPublished(publishedDate:string, deletePrevious:boolean = true) {
     if (isEmptyString(publishedDate)) throw new Error("invalid published date")
     this.addLiteral(this.service.dcPublished,publishedDate,deletePrevious)
+  }
+
+  /**
+   * @method setPrefLabel
+   * @remarks
+   * Adds a SKOS preferred label to a node - will overwrite all previous prefLabels by default
+   * @param {string} label - the label to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing labels - defaults to true 
+  */   
+  async setPrefLabel(label:string, deletePrevious:boolean = true) {
+    if (isEmptyString(label)) throw new Error("invalid skos:prefLabel")
+    this.addLiteral(`${this.service.skos}prefLabel`,label,deletePrevious)
+  }
+
+  /**
+   * @method setAltLabel
+   * @remarks
+   * Adds a SKOS alternative label to a node 
+   * @param {string} label - the title to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing labels - defaults to false 
+  */   
+  async setAltLabel(label:string, deletePrevious:boolean = false) {
+    if (isEmptyString(label)) throw new Error("invalid skos:altLabel")
+    this.addLiteral(`${this.service.skos}altLabel`,label,deletePrevious)
   }
 
   async countRelated(rel:string):Promise<number> {
@@ -360,6 +384,43 @@ export class RDFSResource {
     return labels
    }
 
+
+  /**
+   * @method getPrefLabels
+   * @remarks
+   * Simple function to get all skos preferred labels
+   *
+   * @returns - an array of strings
+  */ 
+  async getPrefLabel():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(`${this.service.skos}prefLabel`)
+    let labels:string[] = []
+    if (`${this.service.skos}prefLabel` in lits) {
+      labels = lits[`${this.service.skos}prefLabel`]
+    }
+    if (labels.length > 1) {
+      console.warn(`More than one SKOS preferred label on ${this.uri}`)
+    } 
+    return labels
+   }
+
+  /**
+   * @method getAltLabels
+   * @remarks
+   * Simple function to get all skos alternative labels
+   *
+   * @returns - an array of strings
+  */ 
+  async getAltLabels():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(`${this.service.skos}altLabel`)
+    let labels:string[] = []
+    if (`${this.service.skos}altLabel` in lits) {
+      labels = lits[`${this.service.skos}altLabel`]
+    }
+    return labels
+   }
+
+
   /**
    * @method getComments
    * @remarks
@@ -451,6 +512,7 @@ export class RdfService {
   xsd: string;
   rdf: string;
   rdfs: string;
+  skos: string;
   owl: string;
   telicent: string;
   prefixDict: {
@@ -500,6 +562,7 @@ export class RdfService {
     this.rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     this.rdfs = "http://www.w3.org/2000/01/rdf-schema#"
     this.owl = "http://www.w3.org/2002/07/owl#"
+    this.skos = "http://www.w3.org/2004/02/skos/core#"
     this.telicent = "http://telicent.io/ontology/"
     this.rdfType = `${this.rdf}type`
     this.rdfsResource = `${this.rdfs}Resource`
@@ -517,7 +580,8 @@ export class RdfService {
     this.addPrefix("dc:", this.dc)
     this.addPrefix("rdf:", this.rdf)
     this.addPrefix("rdfs:", this.rdfs)
-    this.addPrefix("owl:", this.owl)
+    this.addPrefix("rdfs:", this.rdfs)
+    this.addPrefix("skos:", this.skos)
     this.addPrefix("telicent:", this.telicent)
     this.addPrefix("foaf:", "http://xmlns.com/foaf/0.1/")
     this.addPrefix("dct:", "http://purl.org/dc/terms/")

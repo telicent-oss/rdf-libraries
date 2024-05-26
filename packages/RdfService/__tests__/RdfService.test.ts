@@ -18,6 +18,8 @@ const guid1 = `rdf1`;
 const guid2 = `rdf2`;
 const guid3 = `rdf3`;
 
+const g2RelCount = 5;
+const initialTripleCount = 11
 
 function delays(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -33,7 +35,7 @@ describe("RdfService", () => {
     rs.runUpdate(update);
 
     rs.insertTriple(
-      `${testDefaultNamespace}${guid2}`,
+      `${testDefaultNamespace}${guid1}`,
       `http://www.w3.org/1999/02/22-rdf-syntax-ns#type`,
       `http://www.w3.org/2000/01/rdf-schema#Resource`
     );
@@ -53,13 +55,32 @@ describe("RdfService", () => {
 
     g2.addComment("This is a comment on guid2");
     g2.addLabel("This is a label on guid2");
-    g3.addLabel("This is a label on guid3");
+    g3.setPrefLabel("This is a preferred label on guid3");
+    g3.setAltLabel("This is an alt label on guid3");
+    g3.setAltLabel("This is another alt label on guid3");
     await delays(2000);
   });
 
   it("should be running properly and connected to a triplestore", async () => {
-    let ats: boolean = await rs.checkTripleStore();
+    const ats: boolean = await rs.checkTripleStore();
     expect(ats).toBeTruthy();
+  });
+
+  it(`should have added the expected amount of triples: ${initialTripleCount}`, async () => {
+    //guid2 was created at the start of the tests using insertTriple method (includes two literals)
+    const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
+    expect.assertions(1);
+    const data = await rs.runQuery(query);
+    expect(data.results.bindings.length).toEqual(initialTripleCount);
+  });
+
+  it("should return specific label types (SKOS in this case)", async () => {
+    const g3: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid3}`,`http://www.w3.org/2000/01/rdf-schema#Resource`) 
+    const als = await g3.getAltLabels()
+    const pls = await g3.getPrefLabel()
+    expect(als.length).toEqual(2);
+    expect(pls.length).toEqual(1);
+    expect(pls[0]).toEqual("This is a preferred label on guid3")
   });
 
 
@@ -100,7 +121,7 @@ describe("RdfService", () => {
     const query = `SELECT ?p ?o WHERE { :${guid1} ?p ?o }`;
     expect.assertions(1);
     const data = await rs.runQuery(query);
-    expect(data.results.bindings.length).toEqual(1);
+    expect(data.results.bindings.length).toEqual(2);
   });
 
   it("should add a triple using the insertTriple method", async () => {
@@ -108,7 +129,7 @@ describe("RdfService", () => {
     const query = `SELECT ?p ?o WHERE { <${testDefaultNamespace}${guid2}> ?p ?o }`;
     expect.assertions(1);
     const data = await rs.runQuery(query);
-    expect(data.results.bindings.length).toEqual(5);
+    expect(data.results.bindings.length).toEqual(g2RelCount);
   });
 
   it("should find related items using getRelated", async () => {
