@@ -5,14 +5,15 @@
   * @author Ian Bailey
   */
 
-import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "../RdfService";
+import { inherits } from "util";
+import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "../RdfService";
 
-export {RDFSResource} from "../RdfService"
+export { RDFSResource } from "../RdfService"
 
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
     title: SPARQLResultBinding,
     description?: SPARQLResultBinding,
-    published?:SPARQLResultBinding,
+    published?: SPARQLResultBinding,
 }
 
 export interface DcatResourceFindSolution extends DcatResourceQuerySolution {
@@ -21,8 +22,8 @@ export interface DcatResourceFindSolution extends DcatResourceQuerySolution {
 
 
 export type RankWrapper = {
-    score?:Number,
-    item:DCATResource
+    score?: Number,
+    item: DCATResource
 }
 
 
@@ -33,25 +34,38 @@ export class DCATResource extends RDFSResource {
      * @param {DcatResourceQuerySolution} statement - SPARQL return binding - use this to initiate a DCATResource from a query response
      * @param {string} uri - the uri of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
      * @param {string} title - the title of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
+     * @param {string} published - ISO8601 string for the publication (defaults to now)
      * @param {string} type - the type (class URI) of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
+     * @param {DCATCatalog} catalog - optional catalog this resource belongs to
     */
     service: CatalogService
 
-    constructor(service:CatalogService, uri?:string, title?:string, published?:string, type:string="http://www.w3.org/ns/dcat#Resource", statement?:DcatResourceQuerySolution) {
+    constructor(service: CatalogService, uri?: string, title?: string, published: string = new Date().toISOString(), type: string = "http://www.w3.org/ns/dcat#Resource", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
+        let cached = false
+        if (uri) {
+            cached = service.inCache(uri)
+        }
         super(service, uri, type, statement)
         this.service = service
         if (statement != undefined) {
             this.uri = statement.uri.value
-            if (!statement.title){
+            if (!statement.title) {
                 console.warn(`No title set for ${this.uri} in query response`)
             }
-        
+
+            if (!statement.published) {
+                console.warn(`No published date set for ${this.uri} in query response`)
+            }
+
+
             if ((uri) || (title) || (published) || (type)) {
                 console.warn("individual parameters such as uri, title, etc. should not be set if the statement parameter is set")
             }
         }
-        else
-        {
+        else {
+            if (cached) {
+                return this
+            }
             if (uri == undefined) {
                 throw new Error("uri must be provided for a new resource")
             }
@@ -62,34 +76,99 @@ export class DCATResource extends RDFSResource {
             if ((title) && (title != "")) {
                 this.setTitle(title)
             }
-            let date = new Date();
-            //this.addLiteral(this.service.dcPublished,date.toISOString(),true)
+
+            this.setPublished(published)
+            if ((catalog) && (type == "http://www.w3.org/ns/dcat#Resource")) {
+                this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#resource`,this.uri)
+            }
         }
     }
 }
 
 export class DCATDataset extends DCATResource {
+    constructor(service: CatalogService, uri?: string, title?: string, published?: string, type: string = "http://www.w3.org/ns/dcat#Dataset", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
+        super(service, uri, title, published, type, catalog, statement)
+        if (catalog) {
+            this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#dataset`,this.uri)
+        }
+    }
 
 }
 export class DCATDataService extends DCATResource {
+    constructor(service: CatalogService, uri?: string, title?: string, published?: string, type: string = "http://www.w3.org/ns/dcat#DataService", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
+        super(service, uri, title, published, type, catalog, statement)
+        if (catalog) {
+            this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#service`,this.uri)
+        }
+    }
 
 }
 
 export class DCATCatalog extends DCATDataset {
-    constructor(service:CatalogService, uri?:string, title?:string, published?:string, type:string="http://www.w3.org/ns/dcat#Resource", statement?:DcatResourceQuerySolution) {
-        super(service, uri, title, published, type, statement)
-}
+    constructor(service: CatalogService, uri?: string, title?: string, published?: string, type: string = "http://www.w3.org/ns/dcat#Catalog", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
+        super(service, uri, title, published, type, catalog, statement)
+        if (catalog) {
+            this.addOwnedCatalog(catalog)
+        }
+    }
+
+    addOwnedCatalog(catalog:DCATCatalog) {
+        if (catalog) {
+            this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#catalog`,catalog.uri)
+        }
+    }
+    addOwnedDataset(dataset:DCATDataset) {
+        if (dataset) {
+            this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#dataset`,dataset.uri)
+        }
+    }
+    addOwnedService(service:DCATDataService) {
+        if (service) {
+            this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#service`,service.uri)
+        }
+    }
+
+    addOwnedResource(resource:DCATResource) {
+        switch(resource.constructor.name) {
+            case "DCATCatalog":
+                this.addOwnedCatalog(resource as DCATCatalog)
+                break;
+            case "DCATDataset":
+                this.addOwnedDataset(resource as DCATDataset)
+                break;
+            case "DCATDataService":
+                this.addOwnedService(resource as DCATDataService)
+                break;
+            default:
+                this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#resource`,this.uri)
+        }
+    }
+
+    async getOwnedResources(typeOfResource?:string) {
+        return this.service.getAllDCATResources(typeOfResource,this.uri)
+    }
+
+    async getOwnedCatalogs() {
+        return await this.getOwnedResources(`${this.service.dcatCatalog}`)
+    }
+    async getOwnedDatasets() {
+        return await this.getOwnedResources(`${this.service.dcatDataset}`)
+    }
+    async getOwnedServices() {
+        return await this.getOwnedResources(`${this.service.dcatDataService}`)
+    }
+
 }
 
 
 export class CatalogService extends RdfService {
-    dcat : string;
-    dcatCatalog : string;
-    dcatResource : string;
-    dcatDataset : string;
-    dcat_dataset : string;
-    dcatDataService : string;
-    dcat_service : string;
+    dcat: string;
+    dcatCatalog: string;
+    dcatResource: string;
+    dcatDataset: string;
+    dcat_dataset: string;
+    dcatDataService: string;
+    dcat_service: string;
     /**
      * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
      * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
@@ -97,9 +176,9 @@ export class CatalogService extends RdfService {
      * @param {string="http://telicent.io/ontology/"} defaultNamespace - the default stub to use when building GUID URIs
      * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
     */
-    constructor(triplestoreUri = "http://localhost:3030/",dataset="knowledge",defaultNamespace="http://telicent.io/catalog/", defaultSecurityLabel="", write=false) {
+    constructor(triplestoreUri = "http://localhost:3030/", dataset = "knowledge", defaultNamespace = "http://telicent.io/catalog/", defaultSecurityLabel = "", write = false) {
 
-        super(triplestoreUri,dataset,defaultNamespace, defaultSecurityLabel, write)
+        super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, write)
 
         this.dcat = "http://www.w3.org/ns/dcat#"
 
@@ -120,48 +199,47 @@ export class CatalogService extends RdfService {
 
 
 
-    compareScores(a:RankWrapper, b:RankWrapper) {
+    compareScores(a: RankWrapper, b: RankWrapper) {
         if ((!a.score) || (!b.score)) {
             return 0
         }
-        if (a.score < b.score){
+        if (a.score < b.score) {
             return 1
         }
-        if (a.score > b.score){
+        if (a.score > b.score) {
             return -1
         }
         return 0
     }
 
 
-    rankedWrap(queryReturn:QueryResponse<DcatResourceFindSolution>,matchingText:string) {
+    rankedWrap(queryReturn: QueryResponse<DcatResourceFindSolution>, matchingText: string) {
         let items = []
         let cls = DCATResource
-        let re = new RegExp(matchingText.toLowerCase(),"g")
-        let concatLit:string = ''
+        let re = new RegExp(matchingText.toLowerCase(), "g")
+        let concatLit: string = ''
         if ((matchingText) && (matchingText != "") && (queryReturn.results) && (queryReturn.results.bindings)) {
-            if ((queryReturn.head) && (queryReturn.head.vars))
-            {
-                for (let i in queryReturn.results.bindings ) {
+            if ((queryReturn.head) && (queryReturn.head.vars)) {
+                for (let i in queryReturn.results.bindings) {
                     let binding = queryReturn.results.bindings[i]
-                    if (binding._type){
+                    if (binding._type) {
                         let cls = this.classLookup[binding._type.value]
                     }
-                    let item = new cls(this,undefined,undefined,undefined,undefined,binding)
+                    let item = new cls(this, undefined, undefined, undefined, undefined, undefined, binding)
                     //The query concatenates all the matching literals in the result - we can then count the number of matches to provide a basic score for ranking search results.
                     let score = 0
                     if (binding.concatLit) {
-                        concatLit =  binding.concatLit.value
+                        concatLit = binding.concatLit.value
                         let match = concatLit.match(re)
                         if (match) {
                             score = match.length
                         } //Cosplay strong typing 
                     }
-                   
-                    var wrapper:RankWrapper = {item:item,score:score}
+
+                    var wrapper: RankWrapper = { item: item, score: score }
                     items.push(wrapper)
                 }
-            }   
+            }
         }
         return items.sort(this.compareScores)
     }
@@ -173,36 +251,48 @@ export class CatalogService extends RdfService {
      * @param {string} catalog - OPTIONAL - a full URI for the parent catalog. If set, this will only return datasets belonging to the catalog
      * @param {string} catalogRelation - OPTIONAL - prefixed property identifier. If set, this will only return datasets belonging to the catalog via catalogRelation
      * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
-    */    
-    async getAllDCATResources(cls:string,catalog?:string,catalogRelation?:string):Promise<DCATResource[]> {
-        let resources:DCATResource[] = []
+    */
+    async getAllDCATResources(cls?: string, catalog?: string, catalogRelation?: string): Promise<DCATResource[]> {
+        let resources: DCATResource[] = []
         let catalogSelect = ''
-        if ((catalog) && (catalogRelation)) {
-            catalogSelect = `<${catalog}> ${catalogRelation} ?uri .`
+        let relFilter = ''
+        if (!catalogRelation) {
+            catalogRelation = '?catRel'
+            relFilter = 'FILTER (?catRel in (dcat:resource, dcat:dataset, dcat:service, dcat:catalog))'
         }
+        else {
+            catalogRelation = `<${catalogRelation}>`
+        }
+        if (catalog)  {
+            catalogSelect = `<${catalog}> ${catalogRelation} ?uri .`
+        } 
         let typeSelect = ''
         if (cls) {
-            typeSelect = `BIND (${cls} as ?_type)`
+            typeSelect = `BIND (<${cls}> as ?_type)`
+        } else {
+            typeSelect = 'FILTER (?_type IN (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, dcat:DatasetSeries))'
         }
         let query = `
             SELECT ?uri ?_type ?title ?published ?description
             WHERE {
                 ${catalogSelect}
                 ${typeSelect}
-                ?uri a  ?_type.
+                ${relFilter}
+                ?uri a ?_type.
                 OPTIONAL {?uri dct:title ?title} 
                 OPTIONAL {?uri dct:published ?published} 
                 OPTIONAL {?uri dct:description ?description} 
             }`
+
         let results = await this.runQuery<DcatResourceQuerySolution>(query)
-        results.results.bindings.forEach((statement:DcatResourceQuerySolution) => {
+        results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
             var cls = DCATResource
             if (statement._type) {
-                cls = this.lookupClass(statement._type.value,DCATResource)
+                cls = this.lookupClass(statement._type.value, DCATResource)
             }
-            var dcr = new cls(this,undefined,undefined,undefined,undefined,statement)
+            var dcr = new cls(this, undefined, undefined, undefined, undefined, undefined, statement)
             resources.push(dcr)
-          })
+        })
         return resources
 
     }
@@ -210,36 +300,36 @@ export class CatalogService extends RdfService {
     /**
      * Returns all instances of dcat:Dataset
      * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
-    */    
-    async getAllDatasets():Promise<DCATDataset[]> {
+    */
+    async getAllDatasets(): Promise<DCATDataset[]> {
         return await this.getAllDCATResources("dcat:Dataset")
     }
 
     /**
      * Returns all instances of dcat:DataService
      * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
-    */    
-    async getDataServices():Promise<DCATDataService[]> {
+    */
+    async getDataServices(): Promise<DCATDataService[]> {
         return await this.getAllDCATResources("dcat:DataService")
     }
 
-        /**
-     * Returns all instances of dcat:DataService
-     * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
-    */    
-        async getAllCatalogs():Promise<DCATCatalog[]> {
-            return await this.getAllDCATResources("dcat:Catalog")
-        }
+    /**
+ * Returns all instances of dcat:DataService
+ * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
+*/
+    async getAllCatalogs(): Promise<DCATCatalog[]> {
+        return await this.getAllDCATResources("dcat:Catalog") as DCATCatalog[]
+    }
 
     /**
      * Performs a very basic string-matching search - this should be used if no search index is available. The method will return a very basic match count that can be used to rank results. 
      * @param {string} matchingText - The text string to find in the data
      * @param {Array} dcatTypes - OPTIONAL - the types of dcat items to search for - defaults to [dcat:Catalog, dcat:Dataset, dcat:DataService]
      * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
-    */  
-    async find(matchingText:string, dcatTypes:string[] = [this.dcatCatalog,this.dcatDataService,this.dcatDataset],inCatalog:DCATCatalog):Promise<RankWrapper[]> {
-        let typelist = '"'+dcatTypes.join('", "')+'"'
-        let re = new RegExp(matchingText.toLowerCase(),"g")
+    */
+    async find(matchingText: string, dcatTypes: string[] = [this.dcatCatalog, this.dcatDataService, this.dcatDataset], inCatalog: DCATCatalog): Promise<RankWrapper[]> {
+        let typelist = '"' + dcatTypes.join('", "') + '"'
+        let re = new RegExp(matchingText.toLowerCase(), "g")
         let catalogMatch = ''
         if (inCatalog) {
             catalogMatch = `<${inCatalog.uri}> ?catRel ?uri .`
@@ -259,7 +349,7 @@ export class CatalogService extends RdfService {
             } GROUP BY ?uri ?title ?published ?description ?_type
             `
         let results = await this.runQuery<DcatResourceFindSolution>(query)
-        return this.rankedWrap(results,matchingText)
+        return this.rankedWrap(results, matchingText)
     }
 
 

@@ -128,8 +128,8 @@ export class Diagram extends RDFSResource {
     } 
   }
 
-  async setUUID(uuid:string) {
-    this.addLiteral(this.service.telUUID,uuid,true)
+  async setUUID(uuid:string, securityLabel?:string) {
+    this.addLiteral(this.service.telUUID,uuid,securityLabel,"xsd:string",true)
   }
 
   async getDiagramElements() : Promise<DiagramElement[]> {
@@ -461,7 +461,7 @@ export class OWLClass extends RDFSClass {
    * @param service - a reference to the OntologyService being used
    * @param statement - if the object is being created from a query, pass in the TypedNodeQuerySolution to instantiate
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
-   * @param superClass - f not being created from a query, a superclass can optionally be specified - i.e. the new class will be a subclass of the superclass
+   * @param superClass - if not being created from a query, a superclass can optionally be specified - i.e. the new class will be a subclass of the superclass
   */
   public constructor(service: OntologyService, uri? : string, type: string=service.owlClass, superClass?:RDFSClass, statement? : TypedNodeQuerySolution) {
     super(service,uri,type,superClass,statement)     
@@ -534,6 +534,7 @@ export class OntologyService extends RdfService {
     this.classLookup[this.owlDatatypeProperty] = OWLDatatypeProperty
     this.classLookup[this.owlObjectProperty] = OWLObjectProperty
     this.classLookup[this.rdfsClass] = RDFSClass
+    this.addPrefix("owl:", this.owl)
   }
 
 

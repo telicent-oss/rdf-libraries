@@ -1,3 +1,5 @@
+import { time } from "console"
+
 /*
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
@@ -145,10 +147,14 @@ export class RDFSResource {
       if (uri) {
         this.uri = uri
         if (uri in this.service.nodes) { //we've already created an object for this item
-          const existingItem = this.service.nodes[uri]
+          const existingItem:RDFSResource = this.service.nodes[uri]
+          if (existingItem.constructor.name != this.constructor.name) {
+            throw Error(`Attempt to create a different type of object with uri ${uri}, existing: ${existingItem.constructor.name}, new: ${this.constructor.name}`)
+          }
           if ((type) && !(existingItem.types.includes(type)) ){
             existingItem.types.push(type)
           }
+          //console.warn(`Existing item: ${uri}`)
           return existingItem
         } 
       }
@@ -175,14 +181,10 @@ export class RDFSResource {
    * @param text - the literal to be assigned to the triple
    * @param {boolean} deletePrevious - remove any existing properties with that predicate type - defaults to false 
   */
-  async addLiteral(predicate: string, text: string, deletePrevious:boolean = false) {
+  async addLiteral(predicate: string, text: string, securityLabel?:string, xsdDatatype?: XsdDataType, deleteAllPrevious:boolean=false) {
     if (isEmptyString(predicate)) throw new Error("Cannot have an empty predicate")
     if (isEmptyString(text)) throw new Error("Cannot have empty text in a triple")
-
-    if (deletePrevious) {
-      await this.service.deleteRelationships(this.uri,predicate)
-    }
-    await this.service.insertTriple(this.uri, predicate, text, "LITERAL")
+    return await this.service.insertTriple(this.uri, predicate, text, "LITERAL",securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -193,9 +195,9 @@ export class RDFSResource {
    * @param {string} label - the literal text of the rdfs:label
    * @param {boolean} deletePrevious - remove any existing labels - defaults to false 
   */
-    async addLabel(label: string, deletePrevious:boolean = false) {
+    async addLabel(label: string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = false) {
       if (isEmptyString(label)) throw new Error("invalid label string")
-      await this.addLiteral(this.service.rdfsLabel,label,deletePrevious)
+      await this.addLiteral(this.service.rdfsLabel,label,securityLabel,xsdDatatype,deleteAllPrevious)
     }
   
   /**
@@ -206,9 +208,9 @@ export class RDFSResource {
    * @param {string} comment - the literal text of the rdfs:comment
    * @param {boolean} deletePrevious - remove any existing comments - defaults to false 
   */
-  async addComment(comment: string, deletePrevious:boolean = false) {
+  async addComment(comment: string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = false) {
     if (isEmptyString(comment)) throw new Error("invalid comment string")
-    await this.addLiteral(this.service.rdfsComment,comment,deletePrevious)
+    await this.addLiteral(this.service.rdfsComment,comment,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
 
@@ -219,9 +221,9 @@ export class RDFSResource {
    * @param {string} title - the title to be applied (simple text)
    * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
   */   
-  async setTitle(title:string, deletePrevious:boolean = true) {
+  async setTitle(title:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(title)) throw new Error("invalid title string")
-    this.addLiteral(this.service.dcTitle,title,deletePrevious)
+    this.addLiteral(this.service.dcTitle,title,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -231,9 +233,9 @@ export class RDFSResource {
    * @param {string} publishedDate - the title to be applied (simple text)
    * @param {boolean} deletePrevious - remove any existing published dates - defaults to true 
   */   
-  async setPublished(publishedDate:string, deletePrevious:boolean = true) {
+  async setPublished(publishedDate:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(publishedDate)) throw new Error("invalid published date")
-    this.addLiteral(this.service.dcPublished,publishedDate,deletePrevious)
+    this.addLiteral(this.service.dcPublished,publishedDate,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -243,9 +245,9 @@ export class RDFSResource {
    * @param {string} label - the label to be applied (simple text)
    * @param {boolean} deletePrevious - remove any existing labels - defaults to true 
   */   
-  async setPrefLabel(label:string, deletePrevious:boolean = true) {
+  async setPrefLabel(label:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(label)) throw new Error("invalid skos:prefLabel")
-    this.addLiteral(`${this.service.skos}prefLabel`,label,deletePrevious)
+    this.addLiteral(`${this.service.skos}prefLabel`,label,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -255,9 +257,9 @@ export class RDFSResource {
    * @param {string} label - the title to be applied (simple text)
    * @param {boolean} deletePrevious - remove any existing labels - defaults to false 
   */   
-  async setAltLabel(label:string, deletePrevious:boolean = false) {
+  async setAltLabel(label:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = false) {
     if (isEmptyString(label)) throw new Error("invalid skos:altLabel")
-    this.addLiteral(`${this.service.skos}altLabel`,label,deletePrevious)
+    this.addLiteral(`${this.service.skos}altLabel`,label,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   async countRelated(rel:string):Promise<number> {
@@ -537,6 +539,8 @@ export class RdfService {
   classLookup: {
     [key: string]: any;
   };
+  updateCount: number;
+
 
   /**
    * @method constructor 
@@ -555,6 +559,7 @@ export class RdfService {
     this.queryEndpoint = this.triplestoreUri + dataset + "/query?query="
     this.updateEndpoint = this.triplestoreUri + dataset + "/update"
     this.#writeEnabled = write
+    this.updateCount = 0
 
     // why is this in the constructor if it is static?
     this.dc = "http://purl.org/dc/elements/1.1/"
@@ -589,6 +594,16 @@ export class RdfService {
     this.classLookup[this.rdfsResource] = RDFSResource
     this.nodes = {}
   }
+
+  inCache(uri:string) {
+    if (uri in this.nodes) {
+      return true
+    }
+    else
+    {
+      return false
+    }
+  } 
 
   lookupClass(clsUri:string,defaultCls: any) {
     if (this.classLookup[clsUri])
@@ -734,7 +749,15 @@ export class RdfService {
    * @returns the response text from the triplestore after running the update
    * @throws if the triplestore does not accept the update
   */
-  async runUpdate(updateQuery: string, securityLabel?: string):Promise<string> {
+  async runUpdate(updateQueries: string[], securityLabel?: string):Promise<string> {
+    let updateQuery = this.sparqlPrefixes
+    updateQueries.forEach((query:string) => {
+      updateQuery = `${updateQuery}
+      ${query} ;
+      `
+      this.updateCount = this.updateCount + 1
+    })
+    
     if (this.#writeEnabled) {
       const sl = securityLabel ?? this.defaultSecurityLabel;
 
@@ -817,10 +840,14 @@ export class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  async insertTriple(subject: string, predicate: string, object: string, objectType?: RDFBasetype, securityLabel?: string, xsdDatatype?: XsdDataType):Promise<string> {
+  async insertTriple(subject: string, predicate: string, object: string, objectType?: RDFBasetype, securityLabel?: string, xsdDatatype?: XsdDataType,deleteAllPrevious:boolean=false):Promise<string> {
+    const updates:string[] = []
+    if (deleteAllPrevious) {
+      updates.push(`DELETE WHERE {<${subject}> <${predicate}> ?o}`)
+    }
     const o = this.#checkObject(object, objectType, xsdDatatype)
-    const update = "INSERT DATA {<" + subject + "> <" + predicate + "> " + o + " . }"
-    return await this.runUpdate(update, securityLabel)
+    updates.push(`INSERT DATA {<${subject}> <${predicate}> ${o} . }`)
+    return await this.runUpdate(updates, securityLabel)
   }
 
   /**
@@ -841,7 +868,7 @@ export class RdfService {
   */
   async deleteTriple(subject: string, predicate: string, object: string, objectType: RDFBasetype, xsdDatatype?: XsdDataType) {
     const o = this.#checkObject(object, objectType, xsdDatatype)
-    return await this.runUpdate("DELETE DATA {<" + subject + "> <" + predicate + "> " + o + " . }")
+    return await this.runUpdate(["DELETE DATA {<" + subject + "> <" + predicate + "> " + o + " . }"])
   }
 
   /**
@@ -860,9 +887,9 @@ export class RdfService {
 
 
     if (!ignoreInboundReferences) {
-      return await this.runUpdate("DELETE WHERE {?s ?p <" + uri + ">}")
+      return await this.runUpdate(["DELETE WHERE {?s ?p <" + uri + ">}"])
     }
-    return await this.runUpdate("DELETE WHERE {<" + uri + "> ?p ?o . }")
+    return await this.runUpdate(["DELETE WHERE {<" + uri + "> ?p ?o . }"])
   }
 
   /**
@@ -879,7 +906,7 @@ export class RdfService {
     if (isEmptyString(uri)) throw Error(emptyUriErrorMessage)
     if (isEmptyString(predicate)) throw Error("Cannot have an empty predicate")
 
-    return await this.runUpdate(`DELETE WHERE {<${uri}> <${predicate}> ?o . }`)
+    return await this.runUpdate([`DELETE WHERE {<${uri}> <${predicate}> ?o . }`])
   }
 
   /**

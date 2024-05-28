@@ -11,7 +11,7 @@ const rs = new RdfService(
   undefined,
   true
 );
-rs.runUpdate("DELETE WHERE {?s ?p ?o }"); //clear the dataset
+rs.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
 const rdfsResource = "http://www.w3.org/2000/01/rdf-schema#Resource";
 const testDefaultNamespace = "http://telicent.io/data/";
 const guid1 = `rdf1`;
@@ -28,11 +28,11 @@ function delays(ms: number) {
 describe("RdfService", () => {
 
   beforeAll(async () => {
-    rs.runUpdate("DELETE WHERE {?s ?p ?o }"); //clear the dataset
+    rs.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
     await delays(1000)
 
     const update = `INSERT DATA {:${guid1} rdf:type rdfs:Class . }`;
-    rs.runUpdate(update);
+    rs.runUpdate([update]);
 
     rs.insertTriple(
       `${testDefaultNamespace}${guid1}`,
