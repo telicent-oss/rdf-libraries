@@ -57,6 +57,15 @@ export interface RelatedQuerySolution extends SPARQLQuerySolution {
   pred: SPARQLResultBinding
 }
 
+export interface ResourceFindSolution extends TypedNodeQuerySolution {
+  concatLit: SPARQLResultBinding,
+}
+
+export type RankWrapper = {
+  score?: number,
+  item: RDFSResource
+}
+
 
 export type QueryResponse<T = SPARQLQuerySolution> = {
   "head": {
@@ -133,14 +142,19 @@ export class RDFSResource {
     if (statement) {
       if (statement.uri.value in this.service.nodes) { //we've already created an object for this item
         const existingItem = this.service.nodes[statement.uri.value]
-        if ((statement._type) && !(existingItem.types.includes(statement._type.value)) ){
-          existingItem.types.push(statement._type.value)
+        if (statement._type) {
+          const newTypes = statement._type.value.split(' ')
+          newTypes.forEach((typ:string) => {
+            if (!(existingItem.types.includes(typ))) {
+              existingItem.types.push(typ)
+            }
+          })
         }
         return existingItem
       } 
       this.uri = statement.uri.value
       if ((statement._type) && !(this.types.includes(statement._type.value))){
-        this.types.push(statement._type.value)
+        this.types = statement._type.value.split(' ')
       }      
       //no need to instantiate this data in the triplestore as it's already come from a query
     } else {
@@ -294,7 +308,7 @@ export class RDFSResource {
      if (predicate) {
         predString = ` BIND (<${predicate}> AS ?predicate) .`
       }
-      const query = `SELECT ?uri ?_type ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?_type} FILTER isIRI(?uri) }`
+      const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?type} FILTER isIRI(?uri) } GROUP BY ?uri ?predicate`
       const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query)
       if (!spOut?.results?.bindings) return {}
       const output:RelatedResources = {}
@@ -324,7 +338,7 @@ export class RDFSResource {
       if (predicate) {
         predString = ` BIND (<${predicate}> AS ?predicate) .`
       }
-      const query = `SELECT ?uri ?_type ?predicate WHERE {${predString} ?uri ?predicate <${this.uri}> . OPTIONAL {?uri a ?_type} }`
+      const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ?predicate WHERE {${predString} ?uri ?predicate <${this.uri}> . OPTIONAL {?uri a ?type} } GROUP BY ?uri ?predicate`
       const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query)
       if (!spOut?.results?.bindings) return {}
       const output:RelatedResources = {}
@@ -615,7 +629,6 @@ export class RdfService {
 
   getAllElements() {
     console.warn("This has been deprecated - who wants to get everything at once ?")
-
   }
 
   /**
@@ -928,4 +941,83 @@ export class RdfService {
     this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel)
     return uri
   }
+
+  /**
+     * Performs a very basic string-matching search - this should be used if no search index is available. The method will return a very basic match count that can be used to rank results. 
+     * @param {string} matchingText - The text string to find in the data
+     * @param {Array} dcatTypes - OPTIONAL - the types of dcat items to search for - defaults to [dcat:Catalog, dcat:Dataset, dcat:DataService]
+     * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
+    */
+  async find(matchingText: string, types?: string[]): Promise<RankWrapper[]> {
+    let typeMatch = ''
+    if (types) {
+      const typelist = '"' + types.join('", "') + '"'
+      typeMatch = `
+      BIND (STR(?type) AS ?typestr) .
+      FILTER (?typestr in (${typelist}) ) .
+      `
+    }
+    
+    //let re = new RegExp(matchingText.toLowerCase(), "g")
+
+    const query = `
+        SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) (group_concat(DISTINCT ?literal) as ?concatLit)
+        WHERE {
+            ?uri a ?type .
+            ?uri ?pred ?literal .
+            ${typeMatch}
+            FILTER CONTAINS(LCASE(?literal), "${matchingText.toLowerCase()}")
+        } GROUP BY ?uri
+        `
+    const results = await this.runQuery<ResourceFindSolution>(query)
+    return this.rankedWrap(results, matchingText)
+  }
+
+  compareScores(a: RankWrapper, b: RankWrapper) {
+    if ((!a.score) || (!b.score)) {
+        return 0
+    }
+    if (a.score < b.score) {
+        return 1
+    }
+    if (a.score > b.score) {
+        return -1
+    }
+    return 0
+  }
+
+  rankedWrap(queryReturn: QueryResponse<ResourceFindSolution>, matchingText: string) {
+    const items = []
+    let clss = RDFSResource
+    const re = new RegExp(matchingText.toLowerCase(), "g")
+    let concatLit: string = ''
+    if ((matchingText) && (matchingText != "") && (queryReturn.results) && (queryReturn.results.bindings)) {
+        if ((queryReturn.head) && (queryReturn.head.vars)) {
+            for (const i in queryReturn.results.bindings) {
+                const binding = queryReturn.results.bindings[i]       
+                if (binding._type) { 
+                  const types = binding._type.value.split(" ") 
+                  clss = this.lookupClass(types[0],RDFSResource)
+                }
+                else {
+                  clss = RDFSResource
+                }
+                const item = new clss(this, undefined, undefined, binding)
+                //The query concatenates all the matching literals in the result - we can then count the number of matches to provide a basic score for ranking search results.
+                let score = 0
+                if (binding.concatLit) {
+                    concatLit = binding.concatLit.value
+                    const match = concatLit.match(re)
+                    if (match) {
+                        score = match.length
+                    } //Cosplay strong typing 
+                }
+                const wrapper: RankWrapper = { item: item, score: score }
+                items.push(wrapper)
+            }
+        }
+    }
+    return items.sort(this.compareScores)
+  }
+
 }

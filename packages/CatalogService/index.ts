@@ -16,15 +16,7 @@ export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
     published?: SPARQLResultBinding,
 }
 
-export interface DcatResourceFindSolution extends DcatResourceQuerySolution {
-    concatLit: SPARQLResultBinding,
-}
 
-
-export type RankWrapper = {
-    score?: Number,
-    item: DCATResource
-}
 
 
 export class DCATResource extends RDFSResource {
@@ -176,21 +168,28 @@ export class vcardKind extends RDFSResource {
         super(service, uri, type, statement)  
         this.service = service
     }
+
     setFormattedName(name:string) {
-        return this.addLiteral(this.service.vcard, name)
+        return this.addLiteral(`${this.service.vcard}fn`, name)
+    }
+    setGivenName(name:string) {
+        return this.addLiteral(`${this.service.vcard}given-name`, name)
+    }
+    setFamilyName(name:string) {
+        return this.addLiteral(`${this.service.vcard}family-name`, name)
+    }
+    setEmail(emailAddress:string) {
+        return this.service.insertTriple(this.uri,`${this.service.vcard}hasEmail`, `mailto:`+emailAddress)
     }
 }
 
 export class vcardIndividual extends vcardKind {
-
 }
 
-export class vcardOrganization extends vcardKind {
-    
+export class vcardOrganization extends vcardKind {  
 }
 
 export class vcardGroup extends vcardKind {
-    
 }
 
 
@@ -230,53 +229,6 @@ export class CatalogService extends RdfService {
         this.classLookup[this.dcatCatalog] = DCATCatalog
         this.addPrefix("dcat:", this.dcat)
         this.addPrefix("vcard:", this.vcard)
-    }
-
-
-
-    compareScores(a: RankWrapper, b: RankWrapper) {
-        if ((!a.score) || (!b.score)) {
-            return 0
-        }
-        if (a.score < b.score) {
-            return 1
-        }
-        if (a.score > b.score) {
-            return -1
-        }
-        return 0
-    }
-
-
-    rankedWrap(queryReturn: QueryResponse<DcatResourceFindSolution>, matchingText: string) {
-        let items = []
-        let cls = DCATResource
-        let re = new RegExp(matchingText.toLowerCase(), "g")
-        let concatLit: string = ''
-        if ((matchingText) && (matchingText != "") && (queryReturn.results) && (queryReturn.results.bindings)) {
-            if ((queryReturn.head) && (queryReturn.head.vars)) {
-                for (let i in queryReturn.results.bindings) {
-                    let binding = queryReturn.results.bindings[i]
-                    if (binding._type) {
-                        let cls = this.classLookup[binding._type.value]
-                    }
-                    let item = new cls(this, undefined, undefined, undefined, undefined, undefined, binding)
-                    //The query concatenates all the matching literals in the result - we can then count the number of matches to provide a basic score for ranking search results.
-                    let score = 0
-                    if (binding.concatLit) {
-                        concatLit = binding.concatLit.value
-                        let match = concatLit.match(re)
-                        if (match) {
-                            score = match.length
-                        } //Cosplay strong typing 
-                    }
-
-                    var wrapper: RankWrapper = { item: item, score: score }
-                    items.push(wrapper)
-                }
-            }
-        }
-        return items.sort(this.compareScores)
     }
 
 
@@ -356,36 +308,7 @@ export class CatalogService extends RdfService {
         return await this.getAllDCATResources("dcat:Catalog") as DCATCatalog[]
     }
 
-    /**
-     * Performs a very basic string-matching search - this should be used if no search index is available. The method will return a very basic match count that can be used to rank results. 
-     * @param {string} matchingText - The text string to find in the data
-     * @param {Array} dcatTypes - OPTIONAL - the types of dcat items to search for - defaults to [dcat:Catalog, dcat:Dataset, dcat:DataService]
-     * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
-    */
-    async find(matchingText: string, dcatTypes: string[] = [this.dcatCatalog, this.dcatDataService, this.dcatDataset], inCatalog: DCATCatalog): Promise<RankWrapper[]> {
-        let typelist = '"' + dcatTypes.join('", "') + '"'
-        let re = new RegExp(matchingText.toLowerCase(), "g")
-        let catalogMatch = ''
-        if (inCatalog) {
-            catalogMatch = `<${inCatalog.uri}> ?catRel ?uri .`
-        }
-        let query = `
-            SELECT ?uri ?title ?published ?description ?_type (group_concat(DISTINCT ?literal) as ?concatLit)
-            WHERE {
-                ?uri a ?_type .
-                ?uri ?pred ?literal .
-                ${catalogMatch}
-                BIND (STR(?_type) AS ?typestr) .
-                FILTER (?typestr in (${typelist}) ) .
-                FILTER CONTAINS(LCASE(?literal), "${matchingText.toLowerCase()}")
-                OPTIONAL {?uri dct:title ?title} 
-                OPTIONAL {?uri dct:published ?published} 
-                OPTIONAL {?uri dct:description ?description} 
-            } GROUP BY ?uri ?title ?published ?description ?_type
-            `
-        let results = await this.runQuery<DcatResourceFindSolution>(query)
-        return this.rankedWrap(results, matchingText)
-    }
+    
 
 
 

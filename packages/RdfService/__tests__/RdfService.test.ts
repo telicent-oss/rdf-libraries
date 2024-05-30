@@ -54,7 +54,7 @@ describe("RdfService", () => {
     );
 
     g2.addComment("This is a comment on guid2");
-    g2.addLabel("This is a label on guid2");
+    g2.addLabel("This is a label on guid2 - we like labels");
     g3.setPrefLabel("This is a preferred label on guid3");
     g3.setAltLabel("This is an alt label on guid3");
     g3.setAltLabel("This is another alt label on guid3");
@@ -64,6 +64,11 @@ describe("RdfService", () => {
   it("should be running properly and connected to a triplestore", async () => {
     const ats: boolean = await rs.checkTripleStore();
     expect(ats).toBeTruthy();
+  });
+
+  it("should find basic text matches", async () => {
+    const found = await rs.find("label")
+    expect(found.length).toEqual(2)
   });
 
   it(`should have added the expected amount of triples: ${initialTripleCount}`, async () => {
