@@ -556,8 +556,6 @@ export class OntologyService extends RdfService {
           clss.push(rc)
         }
       }
-    
-      
     })
     return clss
   }
@@ -596,6 +594,44 @@ export class OntologyService extends RdfService {
       props.push(prop)
     }
     return props
+  }
+
+  /**
+   * @method getTopProperties 
+   * @remarks
+   * returns all properties in the ontology that have no subproperties
+   * @param includeOwlProperties - if true (default) this will return owl ObjectProperties and DatatypeProperties in addition to rdf Properties
+   * @returns an array of properties
+  */
+  async getTopProperties(includeOwlProperties: boolean = true):Promise<RDFProperty[]> {
+    return await this.getAllRdfProperties(includeOwlProperties,true)
+  }
+
+
+  /**
+   * @method getAllObjectProperties
+   * @remarks
+   * get all object properties (relationships)
+   */
+  async getAllObjectProperties():Promise<RDFProperty[]> {
+    const query = `
+      SELECT
+        ?uri ?_type
+      WHERE {
+        BIND (owl:ObjectProperty as ?_type)
+        ?uri a ?_type
+      }
+    `
+
+    const spOut = await this.runQuery<TypedNodeQuerySolution>(query)
+    const statements = spOut.results.bindings;
+    const properties:RDFProperty[] = []
+    statements.forEach((statement:TypedNodeQuerySolution) => {
+      const prop = new RDFProperty(this,undefined,undefined,statement)
+      properties.push(prop)
+    })
+
+    return properties
   }
 
   /**
@@ -741,30 +777,6 @@ export class OntologyService extends RdfService {
   }
 
 
-  /**
-   * @method getAllObjectProperties
-   * @remarks
-   * get all object properties (relationships)
-   */
-  async getAllObjectProperties():Promise<RDFProperty[]> {
-    const query = `
-      SELECT
-        ?uri ?_type
-      WHERE {
-        BIND (owl:ObjectProperty as ?_type)
-        ?uri a ?_type
-      }
-    `
-
-    const spOut = await this.runQuery<TypedNodeQuerySolution>(query)
-    const statements = spOut.results.bindings;
-    const properties:RDFProperty[] = []
-    statements.forEach((statement:TypedNodeQuerySolution) => {
-      const prop = new RDFProperty(this,undefined,undefined,statement)
-      properties.push(prop)
-    })
-
-    return properties
-  }
+  
 }
 

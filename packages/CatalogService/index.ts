@@ -52,12 +52,9 @@ export class DCATResource extends RDFSResource {
             if (!statement.title) {
                 console.warn(`No title set for ${this.uri} in query response`)
             }
-
             if (!statement.published) {
                 console.warn(`No published date set for ${this.uri} in query response`)
             }
-
-
             if ((uri) || (title) || (published) || (type)) {
                 console.warn("individual parameters such as uri, title, etc. should not be set if the statement parameter is set")
             }
@@ -81,6 +78,15 @@ export class DCATResource extends RDFSResource {
             if ((catalog) && (type == "http://www.w3.org/ns/dcat#Resource")) {
                 this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#resource`,this.uri)
             }
+        }
+    }
+
+    setPublisher(publisher:RDFSResource | string) {
+        if (publisher instanceof RDFSResource) {
+            this.service.insertTriple(this.uri,`${this.service.dc}publisher`, publisher.uri)
+        }
+        else {
+            this.service.insertTriple(this.uri,`${this.service.dc}publisher`, publisher)
         }
     }
 }
@@ -160,6 +166,33 @@ export class DCATCatalog extends DCATDataset {
 
 }
 
+export class vcardKind extends RDFSResource {
+    service: CatalogService
+    constructor(service: CatalogService, uri?: string, type: string = "http://www.w3.org/2006/vcard/ns#Kind", statement?: DcatResourceQuerySolution) {
+        let cached = false
+        if (uri) {
+            cached = service.inCache(uri)
+        }
+        super(service, uri, type, statement)  
+        this.service = service
+    }
+    setFormattedName(name:string) {
+        return this.addLiteral(this.service.vcard, name)
+    }
+}
+
+export class vcardIndividual extends vcardKind {
+
+}
+
+export class vcardOrganization extends vcardKind {
+    
+}
+
+export class vcardGroup extends vcardKind {
+    
+}
+
 
 export class CatalogService extends RdfService {
     dcat: string;
@@ -169,6 +202,7 @@ export class CatalogService extends RdfService {
     dcat_dataset: string;
     dcatDataService: string;
     dcat_service: string;
+    vcard: string;
     /**
      * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
      * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
@@ -181,6 +215,7 @@ export class CatalogService extends RdfService {
         super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, write)
 
         this.dcat = "http://www.w3.org/ns/dcat#"
+        this.vcard = "http://www.w3.org/2006/vcard/ns#"
 
         this.dcatResource = `${this.dcat}Resource`
         this.dcatCatalog = `${this.dcat}Catalog`
@@ -194,7 +229,7 @@ export class CatalogService extends RdfService {
         this.classLookup[this.dcatDataService] = DCATDataService
         this.classLookup[this.dcatCatalog] = DCATCatalog
         this.addPrefix("dcat:", this.dcat)
-
+        this.addPrefix("vcard:", this.vcard)
     }
 
 
