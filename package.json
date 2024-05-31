@@ -1,6 +1,6 @@
 {
   "name": "rdf-libraries",
-  "version": "0.0.8-rc1",
+  "version": "0.0.8-dev1",
   "description": "Simple client-side lib for working with RDF",
   "scripts": {
     "preinstall": "node ./scripts/enforcePnpm.js",
