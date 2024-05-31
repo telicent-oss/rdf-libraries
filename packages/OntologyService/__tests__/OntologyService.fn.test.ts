@@ -37,7 +37,7 @@ describe("testing functions within the ontology service", ()=>{
         // runQuery should be tested as part of the RDFService tests - return SUCCESSFULL_RESPONSE
         const runQueryMock = jest.spyOn(os, "runQuery").mockImplementation(()=> Promise.resolve(RESPONSE_getAllClasses_uri1))
         // this is the correct query - no filter and not including owl
-        const CORRECT_QUERY = "SELECT ?uri ?_type WHERE {BIND (rdfs:Class as ?_type . ?uri a ?_type ) . }"
+        const CORRECT_QUERY = "SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {BIND (rdfs:Class as ?type . ?uri a ?type ) . } GROUP BY ?uri"
         // run function
         const res = await os.getAllClasses(false)
         // check correct query is passed based on function call to runQuery

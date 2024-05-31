@@ -13,10 +13,11 @@ const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
 const owlClass = "http://www.w3.org/2002/07/owl#Class";
 const testDefaultNamespace = "http://telicent.io/data/";
 
-const initialNodeCount:number = 10
+const initialNodeCount:number = 6
+const finalNodeCount:number = 10
 const expectedTripleCount:number = 17
 
-function delays(ms: number) {
+function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
@@ -40,13 +41,13 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
     const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
     const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
+
     g2.addSubClass(g21);
     g21.addSubClass(g211);
 
     p1.addSubProperty(p2)
     p3.addSuperProperty(p2)
-    delays(2000)
-    os.getAllClasses(true)
+    delay(3000)
   });
 
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
@@ -54,11 +55,16 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     expect(ats).toBeTruthy();
   });
 
+  it("should cache classes appropriately", async () => {
+    expect(Object.keys(os.nodes).length).toEqual(initialNodeCount);
+    await os.getAllClasses(true) 
+    expect(Object.keys(os.nodes).length).toEqual(finalNodeCount);
+  });
+
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
-    
     const triples: QueryResponse<SPOQuerySolution> = await os.runQuery<SPOQuerySolution>("SELECT * WHERE {?s ?p ?o}");
     expect(triples.results.bindings.length).toEqual(expectedTripleCount);
-    expect(Object.keys(os.nodes).length).toEqual(initialNodeCount);
+    expect(Object.keys(os.nodes).length).toEqual(finalNodeCount);
   });
 
   it("should allow classes to be created", async () => {
@@ -74,30 +80,20 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     expect(g11.types.length).toEqual(1);
 
   });
-});
 
-describe("OntologyService - Check Created Data", () => {
-  beforeAll(async ()=>{
-    delays(3000) //give the triplestore a chance to index all the new data (should be milliseconds, but...ya know)
-  });
-
-
-
-  it("it should allow subclasses to be be created, and not accidently create any new Typescript objects while doing so", async () => {
-    const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
-    const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
-    const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
-    const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);
-
-    expect(Object.keys(os.nodes).length).toEqual(initialNodeCount);
-    await delays(2000);
+  it("it should not accidently create any new Typescript objects while doing so", async () => {
+    new RDFSClass(os, `${testDefaultNamespace}ONT1`);
+    new RDFSClass(os, `${testDefaultNamespace}ONT11`);
+    new RDFSClass(os, `${testDefaultNamespace}ONT12`);
+    new OWLClass(os, `${testDefaultNamespace}ONT121`);
+    expect(Object.keys(os.nodes).length).toEqual(finalNodeCount);
   });
 
   it('should detect two subproperty relationships that have been created', async () => {
     const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
     const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
     const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
-    expect(Object.keys(os.nodes).length).toEqual(initialNodeCount); // just make sure no extra properties got made
+    expect(Object.keys(os.nodes).length).toEqual(finalNodeCount); // just make sure no extra properties got made
     const p1subs:RDFProperty[] = await p1.getSubProperties()
     expect(p1subs.length).toEqual(1)
     expect(p1subs[0] === p2)
@@ -110,27 +106,21 @@ describe("OntologyService - Check Created Data", () => {
     const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
     const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
     const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
-    const g13 = new RDFSClass(os, `${testDefaultNamespace}ONT13`);
-    const g111 = new OWLClass(os, `${testDefaultNamespace}ONT111`);
     const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);
     const g1_subs = await g1.getSubClasses(false);
-    expect(g1_subs.length).toEqual(3);
+    expect(g1_subs.length).toEqual(2);
     expect(g1_subs.includes(g11)).toBeTruthy();
     expect(g1_subs.includes(g12)).toBeTruthy();
-    expect(g1_subs.includes(g13)).toBeTruthy();
 
     const g1_subs_rec = await g1.getSubClasses(true);
-    expect(g1_subs_rec.length).toEqual(5);
+    expect(g1_subs_rec.length).toEqual(3);
     expect(g1_subs_rec.includes(g11)).toBeTruthy();
     expect(g1_subs_rec.includes(g12)).toBeTruthy();
-    expect(g1_subs_rec.includes(g13)).toBeTruthy();
-    expect(g1_subs_rec.includes(g111)).toBeTruthy();
     expect(g1_subs_rec.includes(g121)).toBeTruthy();
   });
 
   it("should have more classes than top-most classes", async () => {
     const tops: RDFSClass[] = await os.getTopClasses();
-    console.log(tops)
     const all: RDFSClass[] = await os.getAllClasses();
     expect(all.length > tops.length).toBeTruthy;
     expect(tops.length).toEqual(2)
@@ -145,6 +135,10 @@ describe("OntologyService - Check Created Data", () => {
   it("should return default RDFSResource JS class for garbage URI", () => {
     const rr = os.lookupClass("doh", RDFSResource);
     expect(rr).toEqual(RDFSResource);
+  });
+
+  afterAll( ()=>{
+    delay(1000)
   });
   
 });

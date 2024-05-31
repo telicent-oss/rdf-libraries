@@ -242,7 +242,7 @@ export class RDFProperty extends RDFSResource {
     if (recurse) {
       path = '*'
     }
-    const query = `SELECT ?uri ?_type WHERE {?uri rdfs:subPropertyOf${path} <${this.uri}> . ?uri a ?_type}`
+    const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {?uri rdfs:subPropertyOf${path} <${this.uri}> . ?uri a ?type} GROUP BY ?uri`
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
     const props:RDFProperty[] = []
     let cls = RDFProperty
@@ -336,7 +336,7 @@ export class RDFSClass extends RDFSResource {
     if (recurse) {
       path = '*'
     }
-    const query = `SELECT ?uri ?_type WHERE {?uri rdfs:subClassOf${path} <${this.uri}> . ?uri a ?_type}`
+    const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {?uri rdfs:subClassOf${path} <${this.uri}> . ?uri a ?type} GROUP BY ?uri`
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
     return this.service.wrapClasses(spOut,this.uri)
   }
@@ -354,7 +354,7 @@ export class RDFSClass extends RDFSResource {
     async getSuperClasses(getInherited = false) {
       const pathOp = getInherited ? "*" : "";
   
-      const query = `SELECT ?uri ?_type WHERE {<${this.uri}> <${this.service.rdfsSubClassOf}>${pathOp} ?uri . ?uri a _type .}`
+      const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {<${this.uri}> <${this.service.rdfsSubClassOf}>${pathOp} ?uri . ?uri a type .} GROUP BY ?uri`
       const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
       return this.service.wrapClasses(spOut,this.uri)
     }
@@ -366,9 +366,9 @@ export class RDFSClass extends RDFSResource {
    * @param getInherited - set to true to get all the inherited property references
   */
   async getOwnedProperties(getInherited:boolean=false):Promise<RDFProperty[]> {
-    let query = `SELECT ?uri ?_type WHERE {?uri rdfs:domain <${this.uri}> }`
+    let query = `SELECT ?uri ?_type WHERE {?uri rdfs:domain <${this.uri}> . ?uri a ?_type }`
     if (getInherited) {
-      query = `SELECT ?uri ?_type WHERE {?uri rdfs:domain ?super . <${this.uri}> rdfs:subClassOf* ?super }.`
+      query = `SELECT ?uri ?_type WHERE {?uri rdfs:domain ?super . <${this.uri}> rdfs:subClassOf* ?super . ?uri a ?_type }`
     }
    
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
@@ -391,9 +391,9 @@ export class RDFSClass extends RDFSResource {
    * @param getInherited - set to true to get all the inherited property references
   */
   async getReferringProperties(getInherited:boolean=false):Promise<RDFProperty[]> {
-    let query = `SELECT ?uri ?_type WHERE {?uri rdfs:range <${this.uri}> }`
+    let query = `SELECT ?uri ?_type WHERE {?uri rdfs:range <${this.uri}> . ?uri a ?_type }`
     if (getInherited) {
-      query = `SELECT ?uri ?_type WHERE {?uri rdfs:range ?super . <${this.uri}> rdfs:subClassOf* ?super }.`
+      query = `SELECT ?uri ?_type WHERE {?uri rdfs:range ?super . <${this.uri}> rdfs:subClassOf* ?super . ?uri a ?_type }`
     }
     
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
@@ -550,7 +550,8 @@ export class OntologyService extends RdfService {
         else 
         {
           if (statement._type) {
-            cls = this.lookupClass(statement._type.value,RDFSClass)
+            const types = statement._type.value.split(" ") 
+            cls = this.lookupClass(types[0],RDFSClass)
           }
           const rc = new cls(this,undefined,undefined,undefined,statement)
           clss.push(rc)
@@ -650,12 +651,12 @@ export class OntologyService extends RdfService {
         }`
       }
   
-      let whereClause = `WHERE {BIND (rdfs:Class as ?_type . ?uri a ?_type ) . ${filter}}`
+      let whereClause = `WHERE {BIND (rdfs:Class as ?type . ?uri a ?type ) . ${filter}}`
       if (includeOwlClasses) {
-        whereClause = `WHERE {?uri a ?_type . FILTER (?_type IN (owl:Class, rdfs:Class)) . ${filter}}`
+        whereClause = `WHERE {?uri a ?type . FILTER (?type IN (owl:Class, rdfs:Class)) . ${filter}}`
       }
   
-      const query = `SELECT ?uri ?_type ${whereClause}`
+      const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ${whereClause} GROUP BY ?uri`
       const spOut = await this.runQuery<TypedNodeQuerySolution>(query)
       return this.wrapClasses(spOut)
     }
