@@ -17,6 +17,7 @@ export type HierarchyNodes = {
 export type HierarchyNode = {
   item: RDFSResource,
   labels: string[],
+  style?: Style,
   subs: HierarchyNode[],
   superCount: number
 }
@@ -185,6 +186,17 @@ export class RDFProperty extends RDFSResource {
    
   }
 
+  /**
+   * @method setStyle 
+   * @remarks
+   * sets the default style for a property. Deletes any previous styles
+   * @param styleObj - A style object for the class - call makeStyleObject to get one
+  */
+  setStyle(styleObj: Style) {
+    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
+    this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
+  }
+
   async setDomain(domain:RDFSClass,deletePrevious:boolean=true):Promise<string> {
     if (deletePrevious) {
       await this.service.deleteRelationships(this.uri,this.service.rdfsDomain)
@@ -342,6 +354,17 @@ export class RDFSClass extends RDFSResource {
         this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, superClass.uri)
       }
     }     
+  }
+
+  /**
+   * @method setStyle 
+   * @remarks
+   * sets the default style for a class. Deletes any previous styles
+   * @param styleObj - A style object for the class - call makeStyleObject to get one
+  */
+  setStyle(styleObj: Style) {
+    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
+    this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
   }
 
   /**
@@ -831,13 +854,18 @@ export class OntologyService extends RdfService {
           const types = statement._type.value.split(" ")
           cls = this.lookupClass(types[0],RDFSResource)
         }
-        const node:HierarchyNode = {item: new cls(this,undefined,undefined,statement), labels:[],subs:[],superCount:parseInt(statement.superCount.value)} 
+        const node:HierarchyNode = {item: new cls(this,undefined,undefined,statement), labels:[],subs:[],superCount:parseInt(statement.superCount.value),style:undefined} 
         if (statement.labels) {
           node.labels = statement.labels.value.split("||")
         }
         if (node.superCount < 1) {
           output.push(node)
         }
+        if (statement.styles) {
+          const stArray = statement.styles.value.split(" ")
+          node.style = JSON.parse(decodeURIComponent(stArray[0]))
+        }
+        if (node)
         dict[statement.uri.value] = node
 
       });

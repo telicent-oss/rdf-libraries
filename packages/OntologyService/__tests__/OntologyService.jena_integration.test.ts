@@ -1,5 +1,5 @@
 
-import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode  } from "../index";
+import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style  } from "../index";
 import { QueryResponse, SPOQuerySolution } from "../../RdfService/index";
 const os = new OntologyService(
   "http://localhost:3030/",
@@ -15,7 +15,7 @@ const testDefaultNamespace = "http://telicent.io/data/";
 
 const initialNodeCount:number = 6
 const finalNodeCount:number = 10
-const expectedTripleCount:number = 17
+const expectedTripleCount:number = 18
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -41,6 +41,9 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
     const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
     const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
+    const mystyle = new Style()
+    g2.setStyle(mystyle)
+    
 
     g2.addSubClass(g21);
     g21.addSubClass(g211);
