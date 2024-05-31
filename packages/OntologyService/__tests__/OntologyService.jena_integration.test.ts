@@ -1,5 +1,5 @@
 
-import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty,   } from "../index";
+import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode  } from "../index";
 import { QueryResponse, SPOQuerySolution } from "../../RdfService/index";
 const os = new OntologyService(
   "http://localhost:3030/",
@@ -135,6 +135,11 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
   it("should return default RDFSResource JS class for garbage URI", () => {
     const rr = os.lookupClass("doh", RDFSResource);
     expect(rr).toEqual(RDFSResource);
+  });
+
+  it("should get a hierarchy", async () => {
+    const hy:HierarchyNode[] = await os.getClassHierarchy()
+    expect(hy.length).toEqual(2)
   });
 
   afterAll( ()=>{

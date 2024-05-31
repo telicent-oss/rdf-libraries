@@ -10,6 +10,18 @@ import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, T
 export {RDFSResource} from "../RdfService"
 
 
+export type HierarchyNodes = {
+  [key: string]: HierarchyNode;
+}
+
+export type HierarchyNode = {
+  item: RDFSResource,
+  labels: string[],
+  subs: HierarchyNode[],
+  superCount: number
+}
+
+
 export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
   prop: SPARQLResultBinding,
   item: SPARQLResultBinding
@@ -31,6 +43,13 @@ export type DiagramListQuerySolution = {
   uri: SPARQLResultBinding,
   uuid: SPARQLResultBinding,
   title: SPARQLResultBinding
+}
+
+export interface HierarchyQuerySolution extends TypedNodeQuerySolution {
+  labels: SPARQLResultBinding,
+  subs: SPARQLResultBinding,
+  styles: SPARQLResultBinding,
+  superCount:SPARQLResultBinding,
 }
 
 export interface DiagramQuerySolution extends TypedNodeQuerySolution {
@@ -309,7 +328,7 @@ export class RDFSClass extends RDFSResource {
    * @param superClass - f not being created from a query, a superclass can optionally be specified - i.e. the new class will be a subclass of the superclass
   */
   service:OntologyService
-  public constructor(service: OntologyService, uri? : string, type: string=service.rdfsClass, superClass?:RDFSClass, statement? : TypedNodeQuerySolution) {
+  public constructor(service: OntologyService, uri? : string, type: string=service.rdfsClass, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
     super(service,uri,type,statement)
     this.service = service     
     if (statement) {
@@ -422,7 +441,7 @@ export class RDFSClass extends RDFSResource {
       uri = subClass
       this.service.insertTriple(uri, this.service.rdfsSubClassOf, this.uri)
       const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
-      return new RDFSClass(this.service,undefined,undefined,undefined,statement)
+      return new RDFSClass(this.service,undefined,undefined,statement)
     } else {
       uri = subClass.uri
       this.service.insertTriple(uri, this.service.rdfsSubClassOf, this.uri)
@@ -444,7 +463,7 @@ export class RDFSClass extends RDFSResource {
       uri = superClass
       this.service.insertTriple(this.uri, this.service.rdfsSubClassOf,uri)
       const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
-      return new RDFSClass(this.service,undefined,undefined,undefined,statement)
+      return new RDFSClass(this.service,undefined,undefined,statement)
     } else {
       uri = superClass.uri
       this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, uri)
@@ -463,8 +482,8 @@ export class OWLClass extends RDFSClass {
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
    * @param superClass - if not being created from a query, a superclass can optionally be specified - i.e. the new class will be a subclass of the superclass
   */
-  public constructor(service: OntologyService, uri? : string, type: string=service.owlClass, superClass?:RDFSClass, statement? : TypedNodeQuerySolution) {
-    super(service,uri,type,superClass,statement)     
+  public constructor(service: OntologyService, uri? : string, type: string=service.owlClass, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
+    super(service,uri,type,statement,superClass)     
   }
 
 }
@@ -553,7 +572,7 @@ export class OntologyService extends RdfService {
             const types = statement._type.value.split(" ") 
             cls = this.lookupClass(types[0],RDFSClass)
           }
-          const rc = new cls(this,undefined,undefined,undefined,statement)
+          const rc = new cls(this,undefined,undefined,statement)
           clss.push(rc)
         }
       }
@@ -777,6 +796,85 @@ export class OntologyService extends RdfService {
     }
   }
 
+  /**
+   * @method getHierarchy 
+   * @remarks
+   * fetches a complete hierarchy model using the constraints set in the parameters - the types of the items, and the hierarchical relationship
+   * @param filterString a comma separated list of the allowed node types (as prefixed URIs - prefix must be registered in the service)
+   * @param subRel the type of hierarchical relationship to use (as a prefixed URI - prefix must be registered in the service)
+   * @param defaultCls the default ontologyservice class to use if the correct one cannot be found
+   * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
+  */
+  protected async getHierarchy(filterString = "rdfs:Class, owl:Class",subRel = "rdfs:subClassOf", defaultCls= RDFSResource):Promise<HierarchyNode[]> {
+    const query:string = `SELECT 
+    ?uri 
+    (group_concat(DISTINCT ?type) as ?_type) 
+    (group_concat(DISTINCT ?sub) as ?subs) 
+    (group_concat(DISTINCT ?label; SEPARATOR="||") as ?labels) 
+    (group_concat(DISTINCT ?style) as ?styles) 
+    (count(distinct ?super) as ?superCount) 
+    WHERE {
+      ?uri a ?type .
+      FILTER (?type IN (${filterString}))
+      OPTIONAL {  ?sub ${subRel} ?uri }
+      OPTIONAL { ?uri ${subRel} ?super }
+      OPTIONAL { ?uri rdfs:label ?label }
+      OPTIONAL { ?uri telicent:style ?style }
+    } GROUP BY ?uri`
+    const spOut:QueryResponse<HierarchyQuerySolution> = await this.runQuery<HierarchyQuerySolution>(query)
+    const dict:HierarchyNodes = {}
+    const output:HierarchyNode[] = []
+    let cls = defaultCls
+    if (spOut.results?.bindings.length > 0) {
+      spOut.results.bindings.forEach((statement:HierarchyQuerySolution) => {
+        if (statement._type) {
+          const types = statement._type.value.split(" ")
+          cls = this.lookupClass(types[0],RDFSResource)
+        }
+        const node:HierarchyNode = {item: new cls(this,undefined,undefined,statement), labels:[],subs:[],superCount:parseInt(statement.superCount.value)} 
+        if (statement.labels) {
+          node.labels = statement.labels.value.split("||")
+        }
+        if (node.superCount < 1) {
+          output.push(node)
+        }
+        dict[statement.uri.value] = node
+
+      });
+      //second pass
+      spOut.results.bindings.forEach((statement:HierarchyQuerySolution) => {
+        const node:HierarchyNode = dict[statement.uri.value]
+        if (statement.subs) {
+          const subs:string[] = statement.subs.value.split(' ')
+          subs.forEach((sub:string) => {
+            const subNode:HierarchyNode = dict[sub]
+            node.subs.push(subNode)
+          });
+        }
+      });
+    }
+    return output
+  }
+
+  /**
+   * @method getClassHierarchy 
+   * @remarks
+   * fetches a complete hierarchy model of classes 
+   * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
+  */
+  async getClassHierarchy():Promise<HierarchyNode[]> {
+    return await this.getHierarchy("rdfs:Class, owl:Class","rdfs:subClassOf",RDFSClass)
+  }
+
+  /**
+   * @method getPropertyHierarchy 
+   * @remarks
+   * fetches a complete hierarchy model of properties 
+   * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
+  */
+  async getPropertyHierarchy():Promise<HierarchyNode[]> {
+    return await this.getHierarchy("rdf:Property, owl:ObjectProperty, owl:DatatypeProperty","rdfs:subClassOf",RDFProperty)
+  }
 
   
 }
