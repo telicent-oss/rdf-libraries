@@ -1,6 +1,6 @@
 
-import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style  } from "../index";
-import { QueryResponse, SPOQuerySolution } from "../../RdfService/index";
+import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style, QueryResponse, SPOQuerySolution } from "../index";
+
 const os = new OntologyService(
   "http://localhost:3030/",
   "ontology_test",

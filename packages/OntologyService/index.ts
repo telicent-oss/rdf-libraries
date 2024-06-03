@@ -5,9 +5,9 @@
   * @author Ian Bailey
   */
 
-import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/rdfservice";
+import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, SPOQuerySolution } from "@telicent-oss/rdfservice";
 
-export {RDFSResource} from "@telicent-oss/rdfservice"
+export {RDFSResource,QueryResponse, TypedNodeQuerySolution, SPOQuerySolution} from "@telicent-oss/rdfservice"
 
 
 export type HierarchyNodes = {

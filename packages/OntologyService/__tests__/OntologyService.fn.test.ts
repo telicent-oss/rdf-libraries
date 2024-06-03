@@ -1,5 +1,5 @@
-import { OntologyService, RDFSClass } from ".."
-import {QueryResponse, TypedNodeQuerySolution} from "../../RdfService/index"
+import { OntologyService, QueryResponse, TypedNodeQuerySolution } from "../index"
+
 
 // create a successful sparql result object - as expected to return
 // can check this by generating this data and sending queries to a database offline 
