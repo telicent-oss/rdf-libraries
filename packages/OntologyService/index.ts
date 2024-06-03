@@ -19,7 +19,7 @@ export type HierarchyNode = {
   labels: string[],
   style?: Style,
   subs: HierarchyNode[],
-  superCount: number
+  supers: HierarchyNode[]
 }
 
 export type PropertyDescription = {
@@ -58,7 +58,7 @@ export interface HierarchyQuerySolution extends TypedNodeQuerySolution {
   labels: SPARQLResultBinding,
   subs: SPARQLResultBinding,
   styles: SPARQLResultBinding,
-  superCount:SPARQLResultBinding,
+  supers:SPARQLResultBinding,
 }
 
 export interface DiagramQuerySolution extends TypedNodeQuerySolution {
@@ -354,6 +354,7 @@ export class OWLDatatypeProperty extends RDFProperty {
 }
 
 
+
 //A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
 export class RDFSClass extends RDFSResource {
   /**
@@ -522,6 +523,12 @@ export class RDFSClass extends RDFSResource {
   }
 }
 
+export class RDFSDatatype extends RDFSClass {
+  public constructor(service: OntologyService, uri? : string, type: string=service.rdfsDatatype, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
+    super(service,uri,type,statement,superClass)
+  }
+}
+
 export class OWLClass extends RDFSClass {
   /**
    * @method constructor
@@ -554,6 +561,7 @@ export class OntologyService extends RdfService {
   telTargetElem: string;
 
   rdfsClass: string;
+  rdfsDatatype: string;
   rdfsSubClassOf: string;
   rdfsDomain: string;
   rdfsRange: string;
@@ -589,6 +597,7 @@ export class OntologyService extends RdfService {
     this.telSourceElem = this.telicent + "sourceElem"
     this.telTargetElem = this.telicent + "targetElem"
     this.rdfsClass = `${this.rdfs}Class`
+    this.rdfsDatatype = `${this.rdfs}Datatype`
     this.rdfsSubClassOf = `${this.rdfs}subClassOf`
     this.rdfsDomain = `${this.rdfs}domain`
     this.rdfsRange = `${this.rdfs}range`
@@ -603,6 +612,7 @@ export class OntologyService extends RdfService {
     this.classLookup[this.owlDatatypeProperty] = OWLDatatypeProperty
     this.classLookup[this.owlObjectProperty] = OWLObjectProperty
     this.classLookup[this.rdfsClass] = RDFSClass
+    this.classLookup[this.rdfsDatatype] = RDFSDatatype
     this.addPrefix("owl:", this.owl)
   }
 
@@ -862,7 +872,7 @@ export class OntologyService extends RdfService {
     (group_concat(DISTINCT ?sub) as ?subs) 
     (group_concat(DISTINCT ?label; SEPARATOR="||") as ?labels) 
     (group_concat(DISTINCT ?style) as ?styles) 
-    (count(distinct ?super) as ?superCount) 
+    (group_concat(DISTINCT ?super) as ?supers) 
     WHERE {
       ?uri a ?type .
       FILTER (?type IN (${filterString}))
@@ -881,12 +891,9 @@ export class OntologyService extends RdfService {
           const types = statement._type.value.split(" ")
           cls = this.lookupClass(types[0],RDFSResource)
         }
-        const node:HierarchyNode = {item: new cls(this,undefined,undefined,statement), labels:[],subs:[],superCount:parseInt(statement.superCount.value),style:undefined} 
+        const node:HierarchyNode = {item: new cls(this,undefined,undefined,statement), labels:[],subs:[],supers:[],style:undefined} 
         if (statement.labels) {
           node.labels = statement.labels.value.split("||")
-        }
-        if (node.superCount < 1) {
-          output.push(node)
         }
         if (statement.styles) {
           const stArray = statement.styles.value.split(" ")
@@ -898,13 +905,23 @@ export class OntologyService extends RdfService {
           }
           
         }
-        if (node)
+        if (!(statement.supers)) {
+          //we've found an item at the top of its hierarchy, so add it to the output array
+          output.push(node)
+        }
         dict[statement.uri.value] = node
 
       });
-      //second pass
+      //second pass - now add all the subs and supers for each item
       spOut.results.bindings.forEach((statement:HierarchyQuerySolution) => {
         const node:HierarchyNode = dict[statement.uri.value]
+        if (statement.supers) {
+          const supers:string[] = statement.supers.value.split(' ')
+          supers.forEach((sup:string) => {
+            const superNode:HierarchyNode = dict[sup]
+            node.supers.push(superNode) 
+          });
+        }        
         if (statement.subs) {
           const subs:string[] = statement.subs.value.split(' ')
           subs.forEach((sub:string) => {
@@ -912,6 +929,7 @@ export class OntologyService extends RdfService {
             node.subs.push(subNode)
           });
         }
+
       });
     }
     return output
@@ -924,7 +942,7 @@ export class OntologyService extends RdfService {
    * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
   */
   async getClassHierarchy():Promise<HierarchyNode[]> {
-    return await this.getHierarchy("rdfs:Class, owl:Class","rdfs:subClassOf",RDFSClass)
+    return await this.getHierarchy("rdfs:Class, owl:Class, rdfs:Datatype","rdfs:subClassOf",RDFSClass)
   }
 
   /**
@@ -934,7 +952,7 @@ export class OntologyService extends RdfService {
    * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
   */
   async getPropertyHierarchy():Promise<HierarchyNode[]> {
-    return await this.getHierarchy("rdf:Property, owl:ObjectProperty, owl:DatatypeProperty","rdfs:subClassOf",RDFProperty)
+    return await this.getHierarchy("rdf:Property, owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:AsymmetricProperty, owl:DeprecatedProperty, owl:FunctionalProperty, owl:OntologyProperty, owl:InverseFunctionalProperty, owl:IrreflexiveProperty, owl:ReflexiveProperty,owl:SymmetricProperty, owl:TransitiveProperty","rdfs:subPropertyOf",RDFProperty)
   }
 
   

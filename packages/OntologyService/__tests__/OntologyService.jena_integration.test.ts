@@ -9,6 +9,16 @@ const os = new OntologyService(
   true
 );
 
+/*
+const os2 = new OntologyService(
+  "http://localhost:3030/",
+  "ontology",
+  undefined,
+  undefined,
+  false
+);
+*/
+
 const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
 const owlClass = "http://www.w3.org/2002/07/owl#Class";
 const testDefaultNamespace = "http://telicent.io/data/";
@@ -50,12 +60,24 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
     p1.addSubProperty(p2)
     p3.addSuperProperty(p2)
+
+
+
     delay(3000)
   });
 
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
     const ats: boolean = await os.checkTripleStore();
     expect(ats).toBeTruthy();
+    /*
+    const h = await os2.getClassHierarchy();
+    h.forEach((node) => {
+      node.subs.forEach((subNode) => {
+        if (subNode.item.uri == "http://www.w3.org/2000/01/rdf-schema#Literal") {
+          console.log(subNode)
+        }
+      });
+    })*/
   });
 
   it("should cache classes appropriately", async () => {
@@ -107,8 +129,8 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
   it("should detect that subclasses were created", async () => {
     const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
-    const desc = await g1.describe();
-    console.log(desc)
+   // const desc = await g1.describe();
+   // console.log(desc)
     const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
     const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
     const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);
@@ -144,8 +166,9 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
   it("should get a hierarchy", async () => {
     const hy:HierarchyNode[] = await os.getClassHierarchy()
-    console.log(hy)
     expect(hy.length).toEqual(2)
+    const phy:HierarchyNode[] = await os.getPropertyHierarchy()
+    expect(phy.length).toEqual(3)
   });
 
   afterAll( ()=>{
