@@ -45,6 +45,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     updates.push(`INSERT DATA {<${testDefaultNamespace}ONT12> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT1> . }`)
     updates.push(`INSERT DATA {<${testDefaultNamespace}ONT121> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT12> . }`)
     os.runUpdate(updates)
+    delay(1500)
     const g2 = new RDFSClass(os, `${testDefaultNamespace}ONT2`);
     const g21 = new OWLClass(os, `${testDefaultNamespace}ONT21`);
     const g211 = new OWLClass(os, `${testDefaultNamespace}ONT211`);
@@ -60,8 +61,6 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
     p1.addSubProperty(p2)
     p3.addSuperProperty(p2)
-
-
 
     delay(3000)
   });

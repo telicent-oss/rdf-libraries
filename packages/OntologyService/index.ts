@@ -19,7 +19,7 @@ export type HierarchyNode = {
   labels: string[],
   style?: Style,
   subs: HierarchyNode[],
-  supers: HierarchyNode[]
+  supers: HierarchyNode[],
 }
 
 export type PropertyDescription = {
@@ -58,7 +58,7 @@ export interface HierarchyQuerySolution extends TypedNodeQuerySolution {
   labels: SPARQLResultBinding,
   subs: SPARQLResultBinding,
   styles: SPARQLResultBinding,
-  supers:SPARQLResultBinding,
+  supers:SPARQLResultBinding
 }
 
 export interface DiagramQuerySolution extends TypedNodeQuerySolution {
