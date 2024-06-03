@@ -7,7 +7,7 @@
 
 import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/rdfservice";
 
-export {RDFSResource} from "../RdfService"
+export {RDFSResource} from "@telicent-oss/rdfservice"
 
 
 export type HierarchyNodes = {
