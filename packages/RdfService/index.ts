@@ -47,6 +47,13 @@ export interface SPOQuerySolution extends SPARQLQuerySolution {
   o: SPARQLResultBinding
 }
 
+export interface SPOOSQuerySolution extends SPOQuerySolution {
+  invP: SPARQLResultBinding,
+  invS: SPARQLResultBinding,
+  oType: SPARQLResultBinding,
+  invType: SPARQLResultBinding
+}
+
 export interface RelatingQuerySolution extends SPARQLQuerySolution {
   relating: SPARQLResultBinding,
   pred: SPARQLResultBinding
@@ -66,7 +73,6 @@ export type RankWrapper = {
   item: RDFSResource
 }
 
-
 export type QueryResponse<T = SPARQLQuerySolution> = {
   "head": {
     "vars": string[]
@@ -75,6 +81,22 @@ export type QueryResponse<T = SPARQLQuerySolution> = {
     "bindings": T[]
   },
   boolean?:boolean
+}
+
+export type ResourceDescription = {
+  outLinks: {
+    [key: string]: {
+      [key: string]: string[]
+    };
+  },
+  literals: {
+    [key: string]: string[];
+  }
+  inLinks: {
+    [key: string]: {
+      [key: string]: string[]
+    };
+  }
 }
 
 export type RelatedResources = {
@@ -353,6 +375,57 @@ export class RDFSResource {
       })
       return output
     }
+
+  async describe():Promise<ResourceDescription> {
+    const query:string = `SELECT ?s ?p ?o ?invP ?invS ?oType ?invType WHERE {
+      BIND (<${this.uri}> AS ?s) .
+      OPTIONAL {?s ?p ?o OPTIONAL {?o a ?oType} }
+      OPTIONAL {?invS ?invP ?s OPTIONAL {?invS a ?invType}}
+    }`
+    const description:ResourceDescription = {literals:{},inLinks:{},outLinks:{}}
+    const spOut =  await this.service.runQuery<SPOOSQuerySolution>(query)
+    spOut.results.bindings.forEach((statement:SPOOSQuerySolution) => {
+      if (statement.p) {
+        if (statement.p.type == "LITERAL") {
+          if (!(Object.keys(description.literals).includes(statement.p.value))) {
+            description.literals[statement.p.value] = [statement.o.value]
+          }
+          else {
+            if (!(description.literals[statement.p.value].includes(statement.o.value))) {
+              description.literals[statement.p.value].push(statement.o.value)
+            }
+          }
+        } 
+        if (statement.p.type == "URI") {
+          let pObj = []
+          if (!(Object.keys(description.outLinks).includes(statement.p.value))) {
+            description.outLinks[statement.p.value][statement.o.value] = []
+            pObj = description.outLinks[statement.p.value][statement.o.value]
+          }
+          else {
+            pObj = description.outLinks[statement.p.value][statement.o.value]
+            if (!(Object.keys(pObj).includes(statement.o.value))) {
+              pObj = []
+            }
+          }
+          if (statement.o) {
+            pObj.push(statement.o.value)
+          }
+        } 
+      }
+      if (statement.invP) {/*
+        if (!(Object.keys(description.inLinks).includes(statement.invP.value))) {
+          description.inLinks[statement.invP.value] = [statement.invS.value]
+        }
+        else {
+          if (!(description.inLinks[statement.invP.value].includes(statement.invS.value))) {
+            description.inLinks[statement.invP.value].push(statement.invS.value)
+          }
+        }*/
+      }
+    })
+    return description
+  }
 
   /**
    * @method getLiteralProperties

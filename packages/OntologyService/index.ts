@@ -22,6 +22,14 @@ export type HierarchyNode = {
   superCount: number
 }
 
+export type PropertyDescription = {
+  subProperties:RDFProperty[],
+  superProperties:RDFProperty[],
+  labels:string[],
+  comments:string[],
+  domains:RDFSClass[],
+  ranges:RDFSClass[]
+}
 
 export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
   prop: SPARQLResultBinding,
@@ -195,6 +203,25 @@ export class RDFProperty extends RDFSResource {
   setStyle(styleObj: Style) {
     const styleStr = encodeURIComponent(JSON.stringify(styleObj))
     this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
+  }
+
+  async describeProperty() {
+  /*  const description = await this.describe()
+    const propDesc:PropertyDescription = {subProperties:[],superProperties:[],labels:[],comments:[],domains:[],ranges:[]}
+    const outKeys = Object.keys(description.out)
+    if (outKeys.includes(this.service.rdfsLabel)) {
+      propDesc.labels = description.out[this.service.rdfsLabel]
+    }
+    if (outKeys.includes(this.service.rdfsComment)) {
+      propDesc.comments = description.out[this.service.rdfsComment]
+    }
+    if (outKeys.includes(this.service.rdfsSubPropertyOf)) {
+      description.out[this.service.rdfsSubPropertyOf].forEach((superURI:string) => {
+      //  super = new
+      });
+    }
+      */
+    
   }
 
   async setDomain(domain:RDFSClass,deletePrevious:boolean=true):Promise<string> {
@@ -863,7 +890,13 @@ export class OntologyService extends RdfService {
         }
         if (statement.styles) {
           const stArray = statement.styles.value.split(" ")
-          node.style = JSON.parse(decodeURIComponent(stArray[0]))
+          try {
+            node.style = JSON.parse(decodeURIComponent(stArray[0]))
+          }
+          catch {
+            console.warn(`Unable to decode style for URI ${statement.uri.value}`)
+          }
+          
         }
         if (node)
         dict[statement.uri.value] = node
