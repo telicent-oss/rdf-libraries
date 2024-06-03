@@ -5,7 +5,7 @@
   * @author Ian Bailey
   */
 
-import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "../RdfService";
+import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/rdfservice";
 
 export {RDFSResource} from "../RdfService"
 

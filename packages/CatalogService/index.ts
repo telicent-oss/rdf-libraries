@@ -6,9 +6,9 @@
   */
 
 import { inherits } from "util";
-import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "../RdfService";
+import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/rdfservice";
 
-export { RDFSResource } from "../RdfService"
+export { RDFSResource } from "@telicent-oss/rdfservice"
 
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
     title: SPARQLResultBinding,
