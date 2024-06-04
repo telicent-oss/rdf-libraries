@@ -128,8 +128,8 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
   it("should detect that subclasses were created", async () => {
     const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
-   // const desc = await g1.describe();
-   // console.log(desc)
+    const desc = await g1.describe();
+    console.log(desc)
     const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
     const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
     const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);

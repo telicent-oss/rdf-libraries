@@ -19,7 +19,7 @@ export type HierarchyNode = {
   labels: string[],
   style?: Style,
   subs: HierarchyNode[],
-  supers: HierarchyNode[],
+  supers: HierarchyNode[]
 }
 
 export type PropertyDescription = {
@@ -370,7 +370,7 @@ export class RDFSClass extends RDFSResource {
   service:OntologyService
   public constructor(service: OntologyService, uri? : string, type: string=service.rdfsClass, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
     super(service,uri,type,statement)
-    this.service = service     
+    this.service = service    
     if (statement) {
       if (superClass) {
         console.warn("Do not set superClass parameter if creating class from a query")
