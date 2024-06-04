@@ -20,10 +20,10 @@ importers:
         version: 7.24.6
       '@nx/jest':
         specifier: ^17.1.2
-        version: 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(ts-node@10.9.2)(typescript@5.4.5)
+        version: 17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))(typescript@5.4.5)
       '@nx/js':
         specifier: 17.1.2
-        version: 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)
+        version: 17.1.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)
       '@swc-node/register':
         specifier: ~1.6.7
         version: 1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5)
@@ -38,7 +38,7 @@ importers:
         version: 16.11.7
       '@typescript-eslint/eslint-plugin':
         specifier: 6.20.0
-        version: 6.20.0(@typescript-eslint/parser@6.20.0)(eslint@8.56.0)(typescript@5.4.5)
+        version: 6.20.0(@typescript-eslint/parser@6.20.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)
       '@typescript-eslint/parser':
         specifier: 6.20.0
         version: 6.20.0(eslint@8.56.0)(typescript@5.4.5)
@@ -53,13 +53,13 @@ importers:
         version: 8.0.3
       jest:
         specifier: ^29.7.0
-        version: 29.7.0(@types/node@16.11.7)(ts-node@10.9.2)
+        version: 29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
       jest-environment-jsdom:
         specifier: ^29.4.1
         version: 29.7.0
       nx:
         specifier: 17.1.2
-        version: 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+        version: 17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       prettier:
         specifier: ^2.6.2
         version: 2.8.8
@@ -68,7 +68,7 @@ importers:
         version: link:@nrwl/nx-plugin/testing
       ts-jest:
         specifier: ^29.1.1
-        version: 29.1.4(@babel/core@7.24.6)(babel-jest@29.7.0)(jest@29.7.0)(typescript@5.4.5)
+        version: 29.1.4(@babel/core@7.24.6)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.24.6))(jest@29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)))(typescript@5.4.5)
       ts-node:
         specifier: ^10.9.1
         version: 10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)
@@ -79,8 +79,8 @@ importers:
   packages/CatalogService:
     dependencies:
       '@telicent-oss/rdfservice':
-        specifier: '*'
-        version: 0.0.8-dev5
+        specifier: workspace:*
+        version: link:../RdfService
     devDependencies:
       '@microsoft/tsdoc':
         specifier: ^0.14.2
@@ -105,7 +105,7 @@ importers:
         version: link:@nrwl/nx-plugin/testing
       ts-jest:
         specifier: ^29.1.1
-        version: 29.1.4(@babel/core@7.24.6)(babel-jest@29.7.0)(jest@29.7.0)(typescript@5.4.5)
+        version: 29.1.4(@babel/core@7.24.6)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.24.6))(jest@29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)))(typescript@5.4.5)
       tsc:
         specifier: ^2.0.4
         version: 2.0.4
@@ -120,16 +120,16 @@ importers:
         version: 4.5.3(@types/node@16.11.7)
       vite-plugin-dts:
         specifier: ^3.6.3
-        version: 3.9.1(@types/node@16.11.7)(typescript@5.4.5)(vite@4.5.3)
+        version: 3.9.1(@types/node@16.11.7)(rollup@3.29.4)(typescript@5.4.5)(vite@4.5.3(@types/node@16.11.7))
       vite-tsconfig-paths:
         specifier: ^4.2.1
-        version: 4.3.2(typescript@5.4.5)(vite@4.5.3)
+        version: 4.3.2(typescript@5.4.5)(vite@4.5.3(@types/node@16.11.7))
 
   packages/OntologyService:
     dependencies:
       '@telicent-oss/rdfservice':
-        specifier: '*'
-        version: 0.0.8-dev5
+        specifier: workspace:*
+        version: link:../RdfService
     devDependencies:
       '@microsoft/tsdoc':
         specifier: ^0.14.2
@@ -154,7 +154,7 @@ importers:
         version: link:@nrwl/nx-plugin/testing
       ts-jest:
         specifier: ^29.1.1
-        version: 29.1.4(@babel/core@7.24.6)(babel-jest@29.7.0)(jest@29.7.0)(typescript@5.4.5)
+        version: 29.1.4(@babel/core@7.24.6)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.24.6))(jest@29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)))(typescript@5.4.5)
       tsc:
         specifier: ^2.0.4
         version: 2.0.4
@@ -169,10 +169,10 @@ importers:
         version: 4.5.3(@types/node@16.11.7)
       vite-plugin-dts:
         specifier: ^3.6.3
-        version: 3.9.1(@types/node@16.11.7)(typescript@5.4.5)(vite@4.5.3)
+        version: 3.9.1(@types/node@16.11.7)(rollup@3.29.4)(typescript@5.4.5)(vite@4.5.3(@types/node@16.11.7))
       vite-tsconfig-paths:
         specifier: ^4.2.1
-        version: 4.3.2(typescript@5.4.5)(vite@4.5.3)
+        version: 4.3.2(typescript@5.4.5)(vite@4.5.3(@types/node@16.11.7))
 
   packages/RdfService:
     dependencies:
@@ -209,7 +209,7 @@ importers:
         version: link:@nrwl/nx-plugin/testing
       ts-jest:
         specifier: ^29.1.1
-        version: 29.1.4(@babel/core@7.24.6)(babel-jest@29.7.0)(jest@29.7.0)(typescript@5.4.5)
+        version: 29.1.4(@babel/core@7.24.6)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.24.6))(jest@29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)))(typescript@5.4.5)
       tsc:
         specifier: ^2.0.4
         version: 2.0.4
@@ -224,10 +224,10 @@ importers:
         version: 4.5.3(@types/node@16.11.7)
       vite-plugin-dts:
         specifier: ^3.6.3
-        version: 3.9.1(@types/node@16.11.7)(typescript@5.4.5)(vite@4.5.3)
+        version: 3.9.1(@types/node@16.11.7)(rollup@3.29.4)(typescript@5.4.5)(vite@4.5.3(@types/node@16.11.7))
       vite-tsconfig-paths:
         specifier: ^4.2.1
-        version: 4.3.2(typescript@5.4.5)(vite@4.5.3)
+        version: 4.3.2(typescript@5.4.5)(vite@4.5.3(@types/node@16.11.7))
 
 packages:
 
@@ -1465,9 +1465,6 @@ packages:
 
   '@swc/types@0.1.7':
     resolution: {integrity: sha512-scHWahbHF0eyj3JsxG9CFJgFdFNaVQCNAimBlT6PzS3n/HptxqREjsm4OH6AN3lYcffZYSPxXW8ua2BEHp0lJQ==}
-
-  '@telicent-oss/rdfservice@0.0.8-dev5':
-    resolution: {integrity: sha512-KsdQnHQBoK6Y5kcIj6ukRNjp2yujH5H/tt/ZG4CaavYwiGh/rDC+kNhpzrt1t144BPytl+Mn3hJnF6yhk1aXkQ==}
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -4786,7 +4783,7 @@ snapshots:
       jest-util: 29.7.0
       slash: 3.0.0
 
-  '@jest/core@29.7.0(ts-node@10.9.2)':
+  '@jest/core@29.7.0(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))':
     dependencies:
       '@jest/console': 29.7.0
       '@jest/reporters': 29.7.0
@@ -4800,7 +4797,7 @@ snapshots:
       exit: 0.1.2
       graceful-fs: 4.2.11
       jest-changed-files: 29.7.0
-      jest-config: 29.7.0(@types/node@16.11.7)(ts-node@10.9.2)
+      jest-config: 29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
       jest-haste-map: 29.7.0
       jest-message-util: 29.7.0
       jest-regex-util: 29.6.3
@@ -5008,27 +5005,27 @@ snapshots:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.17.1
 
-  '@nrwl/devkit@17.1.2(nx@17.1.2)':
+  '@nrwl/devkit@17.1.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))':
     dependencies:
-      '@nx/devkit': 17.1.2(nx@17.1.2)
+      '@nx/devkit': 17.1.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
     transitivePeerDependencies:
       - nx
 
-  '@nrwl/devkit@17.3.2(nx@17.1.2)':
+  '@nrwl/devkit@17.3.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))':
     dependencies:
-      '@nx/devkit': 17.3.2(nx@17.1.2)
+      '@nx/devkit': 17.3.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
     transitivePeerDependencies:
       - nx
 
-  '@nrwl/devkit@17.3.2(nx@17.3.2)':
+  '@nrwl/devkit@17.3.2(nx@17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))':
     dependencies:
-      '@nx/devkit': 17.3.2(nx@17.3.2)
+      '@nx/devkit': 17.3.2(nx@17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
     transitivePeerDependencies:
       - nx
 
-  '@nrwl/jest@17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(ts-node@10.9.2)(typescript@5.4.5)':
+  '@nrwl/jest@17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))(typescript@5.4.5)':
     dependencies:
-      '@nx/jest': 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(ts-node@10.9.2)(typescript@5.4.5)
+      '@nx/jest': 17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))(typescript@5.4.5)
     transitivePeerDependencies:
       - '@babel/traverse'
       - '@swc-node/register'
@@ -5044,9 +5041,9 @@ snapshots:
       - typescript
       - verdaccio
 
-  '@nrwl/js@17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)':
+  '@nrwl/js@17.1.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)':
     dependencies:
-      '@nx/js': 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)
+      '@nx/js': 17.1.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)
     transitivePeerDependencies:
       - '@babel/traverse'
       - '@swc-node/register'
@@ -5059,9 +5056,9 @@ snapshots:
       - typescript
       - verdaccio
 
-  '@nrwl/js@17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)':
+  '@nrwl/js@17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)':
     dependencies:
-      '@nx/js': 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)
+      '@nx/js': 17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)
     transitivePeerDependencies:
       - '@babel/traverse'
       - '@swc-node/register'
@@ -5074,86 +5071,86 @@ snapshots:
       - typescript
       - verdaccio
 
-  '@nrwl/tao@17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)':
+  '@nrwl/tao@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)':
     dependencies:
-      nx: 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      nx: 17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       tslib: 2.6.2
     transitivePeerDependencies:
       - '@swc-node/register'
       - '@swc/core'
       - debug
 
-  '@nrwl/tao@17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)':
+  '@nrwl/tao@17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)':
     dependencies:
-      nx: 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      nx: 17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       tslib: 2.6.2
     transitivePeerDependencies:
       - '@swc-node/register'
       - '@swc/core'
       - debug
 
-  '@nrwl/workspace@17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)':
+  '@nrwl/workspace@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)':
     dependencies:
-      '@nx/workspace': 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      '@nx/workspace': 17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
     transitivePeerDependencies:
       - '@swc-node/register'
       - '@swc/core'
       - debug
 
-  '@nrwl/workspace@17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)':
+  '@nrwl/workspace@17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)':
     dependencies:
-      '@nx/workspace': 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      '@nx/workspace': 17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
     transitivePeerDependencies:
       - '@swc-node/register'
       - '@swc/core'
       - debug
 
-  '@nx/devkit@17.1.2(nx@17.1.2)':
+  '@nx/devkit@17.1.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))':
     dependencies:
-      '@nrwl/devkit': 17.1.2(nx@17.1.2)
+      '@nrwl/devkit': 17.1.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
       ejs: 3.1.10
       enquirer: 2.3.6
       ignore: 5.3.1
-      nx: 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      nx: 17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       semver: 7.5.3
       tmp: 0.2.3
       tslib: 2.6.2
 
-  '@nx/devkit@17.3.2(nx@17.1.2)':
+  '@nx/devkit@17.3.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))':
     dependencies:
-      '@nrwl/devkit': 17.3.2(nx@17.1.2)
+      '@nrwl/devkit': 17.3.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
       ejs: 3.1.10
       enquirer: 2.3.6
       ignore: 5.3.1
-      nx: 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      nx: 17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       semver: 7.6.2
       tmp: 0.2.3
       tslib: 2.6.2
       yargs-parser: 21.1.1
 
-  '@nx/devkit@17.3.2(nx@17.3.2)':
+  '@nx/devkit@17.3.2(nx@17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))':
     dependencies:
-      '@nrwl/devkit': 17.3.2(nx@17.3.2)
+      '@nrwl/devkit': 17.3.2(nx@17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
       ejs: 3.1.10
       enquirer: 2.3.6
       ignore: 5.3.1
-      nx: 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      nx: 17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       semver: 7.6.2
       tmp: 0.2.3
       tslib: 2.6.2
       yargs-parser: 21.1.1
 
-  '@nx/jest@17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(ts-node@10.9.2)(typescript@5.4.5)':
+  '@nx/jest@17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))(typescript@5.4.5)':
     dependencies:
       '@jest/reporters': 29.7.0
       '@jest/test-result': 29.7.0
-      '@nrwl/jest': 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(ts-node@10.9.2)(typescript@5.4.5)
-      '@nx/devkit': 17.3.2(nx@17.1.2)
-      '@nx/js': 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)
+      '@nrwl/jest': 17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))(typescript@5.4.5)
+      '@nx/devkit': 17.3.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
+      '@nx/js': 17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)
       '@phenomnomnominal/tsquery': 5.0.1(typescript@5.4.5)
       chalk: 4.1.2
       identity-obj-proxy: 3.0.0
-      jest-config: 29.7.0(@types/node@16.11.7)(ts-node@10.9.2)
+      jest-config: 29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
       jest-resolve: 29.7.0
       jest-util: 29.7.0
       minimatch: 9.0.3
@@ -5174,7 +5171,7 @@ snapshots:
       - typescript
       - verdaccio
 
-  '@nx/js@17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)':
+  '@nx/js@17.1.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)':
     dependencies:
       '@babel/core': 7.24.6
       '@babel/plugin-proposal-decorators': 7.24.6(@babel/core@7.24.6)
@@ -5183,13 +5180,13 @@ snapshots:
       '@babel/preset-env': 7.24.6(@babel/core@7.24.6)
       '@babel/preset-typescript': 7.24.6(@babel/core@7.24.6)
       '@babel/runtime': 7.24.6
-      '@nrwl/js': 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)
-      '@nx/devkit': 17.1.2(nx@17.1.2)
-      '@nx/workspace': 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      '@nrwl/js': 17.1.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)
+      '@nx/devkit': 17.1.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
+      '@nx/workspace': 17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       '@phenomnomnominal/tsquery': 5.0.1(typescript@5.4.5)
       babel-plugin-const-enum: 1.2.0(@babel/core@7.24.6)
       babel-plugin-macros: 2.8.0
-      babel-plugin-transform-typescript-metadata: 0.3.2(@babel/core@7.24.6)
+      babel-plugin-transform-typescript-metadata: 0.3.2(@babel/core@7.24.6)(@babel/traverse@7.24.6)
       chalk: 4.1.2
       columnify: 1.6.0
       detect-port: 1.6.1
@@ -5217,7 +5214,7 @@ snapshots:
       - supports-color
       - typescript
 
-  '@nx/js@17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)':
+  '@nx/js@17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)':
     dependencies:
       '@babel/core': 7.24.6
       '@babel/plugin-proposal-decorators': 7.24.6(@babel/core@7.24.6)
@@ -5226,13 +5223,13 @@ snapshots:
       '@babel/preset-env': 7.24.6(@babel/core@7.24.6)
       '@babel/preset-typescript': 7.24.6(@babel/core@7.24.6)
       '@babel/runtime': 7.24.6
-      '@nrwl/js': 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2)(typescript@5.4.5)
-      '@nx/devkit': 17.3.2(nx@17.1.2)
-      '@nx/workspace': 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      '@nrwl/js': 17.3.2(@babel/traverse@7.24.6)(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)(@types/node@16.11.7)(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))(typescript@5.4.5)
+      '@nx/devkit': 17.3.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
+      '@nx/workspace': 17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       '@phenomnomnominal/tsquery': 5.0.1(typescript@5.4.5)
       babel-plugin-const-enum: 1.2.0(@babel/core@7.24.6)
       babel-plugin-macros: 2.8.0
-      babel-plugin-transform-typescript-metadata: 0.3.2(@babel/core@7.24.6)
+      babel-plugin-transform-typescript-metadata: 0.3.2(@babel/core@7.24.6)(@babel/traverse@7.24.6)
       chalk: 4.1.2
       columnify: 1.6.0
       detect-port: 1.6.1
@@ -5320,13 +5317,13 @@ snapshots:
   '@nx/nx-win32-x64-msvc@17.3.2':
     optional: true
 
-  '@nx/workspace@17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)':
+  '@nx/workspace@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)':
     dependencies:
-      '@nrwl/workspace': 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
-      '@nx/devkit': 17.1.2(nx@17.1.2)
+      '@nrwl/workspace': 17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
+      '@nx/devkit': 17.1.2(nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
       chalk: 4.1.2
       enquirer: 2.3.6
-      nx: 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      nx: 17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       tslib: 2.6.2
       yargs-parser: 21.1.1
     transitivePeerDependencies:
@@ -5334,13 +5331,13 @@ snapshots:
       - '@swc/core'
       - debug
 
-  '@nx/workspace@17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)':
+  '@nx/workspace@17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)':
     dependencies:
-      '@nrwl/workspace': 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
-      '@nx/devkit': 17.3.2(nx@17.3.2)
+      '@nrwl/workspace': 17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
+      '@nx/devkit': 17.3.2(nx@17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107))
       chalk: 4.1.2
       enquirer: 2.3.6
-      nx: 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
+      nx: 17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       tslib: 2.6.2
       yargs-parser: 21.1.1
     transitivePeerDependencies:
@@ -5353,21 +5350,24 @@ snapshots:
       esquery: 1.5.0
       typescript: 5.4.5
 
-  '@rollup/pluginutils@5.1.0':
+  '@rollup/pluginutils@5.1.0(rollup@3.29.4)':
     dependencies:
       '@types/estree': 1.0.5
       estree-walker: 2.0.2
       picomatch: 2.3.1
+    optionalDependencies:
+      rollup: 3.29.4
 
   '@rushstack/node-core-library@4.0.2(@types/node@16.11.7)':
     dependencies:
-      '@types/node': 16.11.7
       fs-extra: 7.0.1
       import-lazy: 4.0.0
       jju: 1.4.0
       resolve: 1.22.8
       semver: 7.5.4
       z-schema: 5.0.5
+    optionalDependencies:
+      '@types/node': 16.11.7
 
   '@rushstack/rig-package@0.5.2':
     dependencies:
@@ -5377,8 +5377,9 @@ snapshots:
   '@rushstack/terminal@0.10.0(@types/node@16.11.7)':
     dependencies:
       '@rushstack/node-core-library': 4.0.2(@types/node@16.11.7)
-      '@types/node': 16.11.7
       supports-color: 8.1.1
+    optionalDependencies:
+      '@types/node': 16.11.7
 
   '@rushstack/ts-command-line@4.19.1(@types/node@16.11.7)':
     dependencies:
@@ -5475,12 +5476,6 @@ snapshots:
     dependencies:
       '@swc/counter': 0.1.3
 
-  '@telicent-oss/rdfservice@0.0.8-dev5':
-    dependencies:
-      global: 4.4.0
-      pnpm: 8.15.8
-      zod: 3.23.8
-
   '@tootallnate/once@2.0.0': {}
 
   '@tsconfig/node10@1.0.11': {}
@@ -5559,7 +5554,7 @@ snapshots:
     dependencies:
       '@types/yargs-parser': 21.0.3
 
-  '@typescript-eslint/eslint-plugin@6.20.0(@typescript-eslint/parser@6.20.0)(eslint@8.56.0)(typescript@5.4.5)':
+  '@typescript-eslint/eslint-plugin@6.20.0(@typescript-eslint/parser@6.20.0(eslint@8.56.0)(typescript@5.4.5))(eslint@8.56.0)(typescript@5.4.5)':
     dependencies:
       '@eslint-community/regexpp': 4.10.0
       '@typescript-eslint/parser': 6.20.0(eslint@8.56.0)(typescript@5.4.5)
@@ -5574,6 +5569,7 @@ snapshots:
       natural-compare: 1.4.0
       semver: 7.6.2
       ts-api-utils: 1.3.0(typescript@5.4.5)
+    optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
@@ -5586,6 +5582,7 @@ snapshots:
       '@typescript-eslint/visitor-keys': 6.20.0
       debug: 4.3.5
       eslint: 8.56.0
+    optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
@@ -5602,6 +5599,7 @@ snapshots:
       debug: 4.3.5
       eslint: 8.56.0
       ts-api-utils: 1.3.0(typescript@5.4.5)
+    optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
@@ -5618,6 +5616,7 @@ snapshots:
       minimatch: 9.0.3
       semver: 7.6.2
       ts-api-utils: 1.3.0(typescript@5.4.5)
+    optionalDependencies:
       typescript: 5.4.5
     transitivePeerDependencies:
       - supports-color
@@ -5679,8 +5678,9 @@ snapshots:
       minimatch: 9.0.4
       muggle-string: 0.3.1
       path-browserify: 1.0.1
-      typescript: 5.4.5
       vue-template-compiler: 2.7.16
+    optionalDependencies:
+      typescript: 5.4.5
 
   '@vue/shared@3.4.27': {}
 
@@ -5861,10 +5861,12 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  babel-plugin-transform-typescript-metadata@0.3.2(@babel/core@7.24.6):
+  babel-plugin-transform-typescript-metadata@0.3.2(@babel/core@7.24.6)(@babel/traverse@7.24.6):
     dependencies:
       '@babel/core': 7.24.6
       '@babel/helper-plugin-utils': 7.24.6
+    optionalDependencies:
+      '@babel/traverse': 7.24.6
 
   babel-preset-current-node-syntax@1.0.1(@babel/core@7.24.6):
     dependencies:
@@ -6036,13 +6038,13 @@ snapshots:
       path-type: 4.0.0
       yaml: 1.10.2
 
-  create-jest@29.7.0(@types/node@16.11.7)(ts-node@10.9.2):
+  create-jest@29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)):
     dependencies:
       '@jest/types': 29.6.3
       chalk: 4.1.2
       exit: 0.1.2
       graceful-fs: 4.2.11
-      jest-config: 29.7.0(@types/node@16.11.7)(ts-node@10.9.2)
+      jest-config: 29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
       jest-util: 29.7.0
       prompts: 2.4.2
     transitivePeerDependencies:
@@ -6105,7 +6107,9 @@ snapshots:
 
   decimal.js@10.4.3: {}
 
-  dedent@1.5.3: {}
+  dedent@1.5.3(babel-plugin-macros@2.8.0):
+    optionalDependencies:
+      babel-plugin-macros: 2.8.0
 
   deep-is@0.1.4: {}
 
@@ -6835,7 +6839,7 @@ snapshots:
       jest-util: 29.7.0
       p-limit: 3.1.0
 
-  jest-circus@29.7.0:
+  jest-circus@29.7.0(babel-plugin-macros@2.8.0):
     dependencies:
       '@jest/environment': 29.7.0
       '@jest/expect': 29.7.0
@@ -6844,7 +6848,7 @@ snapshots:
       '@types/node': 16.11.7
       chalk: 4.1.2
       co: 4.6.0
-      dedent: 1.5.3
+      dedent: 1.5.3(babel-plugin-macros@2.8.0)
       is-generator-fn: 2.1.0
       jest-each: 29.7.0
       jest-matcher-utils: 29.7.0
@@ -6861,16 +6865,16 @@ snapshots:
       - babel-plugin-macros
       - supports-color
 
-  jest-cli@29.7.0(@types/node@16.11.7)(ts-node@10.9.2):
+  jest-cli@29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)):
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.9.2)
+      '@jest/core': 29.7.0(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
       '@jest/test-result': 29.7.0
       '@jest/types': 29.6.3
       chalk: 4.1.2
-      create-jest: 29.7.0(@types/node@16.11.7)(ts-node@10.9.2)
+      create-jest: 29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
       exit: 0.1.2
       import-local: 3.1.0
-      jest-config: 29.7.0(@types/node@16.11.7)(ts-node@10.9.2)
+      jest-config: 29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
       jest-util: 29.7.0
       jest-validate: 29.7.0
       yargs: 17.7.2
@@ -6880,19 +6884,18 @@ snapshots:
       - supports-color
       - ts-node
 
-  jest-config@29.7.0(@types/node@16.11.7)(ts-node@10.9.2):
+  jest-config@29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)):
     dependencies:
       '@babel/core': 7.24.6
       '@jest/test-sequencer': 29.7.0
       '@jest/types': 29.6.3
-      '@types/node': 16.11.7
       babel-jest: 29.7.0(@babel/core@7.24.6)
       chalk: 4.1.2
       ci-info: 3.9.0
       deepmerge: 4.3.1
       glob: 7.2.3
       graceful-fs: 4.2.11
-      jest-circus: 29.7.0
+      jest-circus: 29.7.0(babel-plugin-macros@2.8.0)
       jest-environment-node: 29.7.0
       jest-get-type: 29.6.3
       jest-regex-util: 29.6.3
@@ -6905,6 +6908,8 @@ snapshots:
       pretty-format: 29.7.0
       slash: 3.0.0
       strip-json-comments: 3.1.1
+    optionalDependencies:
+      '@types/node': 16.11.7
       ts-node: 10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)
     transitivePeerDependencies:
       - babel-plugin-macros
@@ -7009,7 +7014,7 @@ snapshots:
       jest-util: 29.7.0
 
   jest-pnp-resolver@1.2.3(jest-resolve@29.7.0):
-    dependencies:
+    optionalDependencies:
       jest-resolve: 29.7.0
 
   jest-regex-util@29.6.3: {}
@@ -7147,12 +7152,12 @@ snapshots:
       merge-stream: 2.0.0
       supports-color: 8.1.1
 
-  jest@29.7.0(@types/node@16.11.7)(ts-node@10.9.2):
+  jest@29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)):
     dependencies:
-      '@jest/core': 29.7.0(ts-node@10.9.2)
+      '@jest/core': 29.7.0(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
       '@jest/types': 29.6.3
       import-local: 3.1.0
-      jest-cli: 29.7.0(@types/node@16.11.7)(ts-node@10.9.2)
+      jest-cli: 29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
     transitivePeerDependencies:
       - '@types/node'
       - babel-plugin-macros
@@ -7385,11 +7390,9 @@ snapshots:
 
   nwsapi@2.2.10: {}
 
-  nx@17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107):
+  nx@17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107):
     dependencies:
-      '@nrwl/tao': 17.1.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
-      '@swc-node/register': 1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5)
-      '@swc/core': 1.3.107
+      '@nrwl/tao': 17.1.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.6
@@ -7435,14 +7438,14 @@ snapshots:
       '@nx/nx-linux-x64-musl': 17.1.2
       '@nx/nx-win32-arm64-msvc': 17.1.2
       '@nx/nx-win32-x64-msvc': 17.1.2
+      '@swc-node/register': 1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5)
+      '@swc/core': 1.3.107
     transitivePeerDependencies:
       - debug
 
-  nx@17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107):
+  nx@17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107):
     dependencies:
-      '@nrwl/tao': 17.3.2(@swc-node/register@1.6.8)(@swc/core@1.3.107)
-      '@swc-node/register': 1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5)
-      '@swc/core': 1.3.107
+      '@nrwl/tao': 17.3.2(@swc-node/register@1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5))(@swc/core@1.3.107)
       '@yarnpkg/lockfile': 1.1.0
       '@yarnpkg/parsers': 3.0.0-rc.46
       '@zkochan/js-yaml': 0.0.6
@@ -7487,6 +7490,8 @@ snapshots:
       '@nx/nx-linux-x64-musl': 17.3.2
       '@nx/nx-win32-arm64-msvc': 17.3.2
       '@nx/nx-win32-x64-msvc': 17.3.2
+      '@swc-node/register': 1.6.8(@swc/core@1.3.107)(@swc/types@0.1.7)(typescript@5.4.5)
+      '@swc/core': 1.3.107
     transitivePeerDependencies:
       - debug
 
@@ -7951,13 +7956,11 @@ snapshots:
     dependencies:
       typescript: 5.4.5
 
-  ts-jest@29.1.4(@babel/core@7.24.6)(babel-jest@29.7.0)(jest@29.7.0)(typescript@5.4.5):
+  ts-jest@29.1.4(@babel/core@7.24.6)(@jest/transform@29.7.0)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.24.6))(jest@29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5)))(typescript@5.4.5):
     dependencies:
-      '@babel/core': 7.24.6
-      babel-jest: 29.7.0(@babel/core@7.24.6)
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
-      jest: 29.7.0(@types/node@16.11.7)(ts-node@10.9.2)
+      jest: 29.7.0(@types/node@16.11.7)(babel-plugin-macros@2.8.0)(ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5))
       jest-util: 29.7.0
       json5: 2.2.3
       lodash.memoize: 4.1.2
@@ -7965,11 +7968,15 @@ snapshots:
       semver: 7.6.2
       typescript: 5.4.5
       yargs-parser: 21.1.1
+    optionalDependencies:
+      '@babel/core': 7.24.6
+      '@jest/transform': 29.7.0
+      '@jest/types': 29.6.3
+      babel-jest: 29.7.0(@babel/core@7.24.6)
 
   ts-node@10.9.1(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
-      '@swc/core': 1.3.107
       '@tsconfig/node10': 1.0.11
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
@@ -7984,11 +7991,12 @@ snapshots:
       typescript: 5.4.5
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    optionalDependencies:
+      '@swc/core': 1.3.107
 
   ts-node@10.9.2(@swc/core@1.3.107)(@types/node@16.11.7)(typescript@5.4.5):
     dependencies:
       '@cspotcode/source-map-support': 0.8.1
-      '@swc/core': 1.3.107
       '@tsconfig/node10': 1.0.11
       '@tsconfig/node12': 1.0.11
       '@tsconfig/node14': 1.0.3
@@ -8003,11 +8011,13 @@ snapshots:
       typescript: 5.4.5
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    optionalDependencies:
+      '@swc/core': 1.3.107
 
   tsc@2.0.4: {}
 
   tsconfck@3.1.0(typescript@5.4.5):
-    dependencies:
+    optionalDependencies:
       typescript: 5.4.5
 
   tsconfig-paths@4.2.0:
@@ -8136,27 +8146,29 @@ snapshots:
 
   validator@13.12.0: {}
 
-  vite-plugin-dts@3.9.1(@types/node@16.11.7)(typescript@5.4.5)(vite@4.5.3):
+  vite-plugin-dts@3.9.1(@types/node@16.11.7)(rollup@3.29.4)(typescript@5.4.5)(vite@4.5.3(@types/node@16.11.7)):
     dependencies:
       '@microsoft/api-extractor': 7.43.0(@types/node@16.11.7)
-      '@rollup/pluginutils': 5.1.0
+      '@rollup/pluginutils': 5.1.0(rollup@3.29.4)
       '@vue/language-core': 1.8.27(typescript@5.4.5)
       debug: 4.3.5
       kolorist: 1.8.0
       magic-string: 0.30.10
       typescript: 5.4.5
-      vite: 4.5.3(@types/node@16.11.7)
       vue-tsc: 1.8.27(typescript@5.4.5)
+    optionalDependencies:
+      vite: 4.5.3(@types/node@16.11.7)
     transitivePeerDependencies:
       - '@types/node'
       - rollup
       - supports-color
 
-  vite-tsconfig-paths@4.3.2(typescript@5.4.5)(vite@4.5.3):
+  vite-tsconfig-paths@4.3.2(typescript@5.4.5)(vite@4.5.3(@types/node@16.11.7)):
     dependencies:
       debug: 4.3.5
       globrex: 0.1.2
       tsconfck: 3.1.0(typescript@5.4.5)
+    optionalDependencies:
       vite: 4.5.3(@types/node@16.11.7)
     transitivePeerDependencies:
       - supports-color
@@ -8164,11 +8176,11 @@ snapshots:
 
   vite@4.5.3(@types/node@16.11.7):
     dependencies:
-      '@types/node': 16.11.7
       esbuild: 0.18.20
       postcss: 8.4.38
       rollup: 3.29.4
     optionalDependencies:
+      '@types/node': 16.11.7
       fsevents: 2.3.3
 
   vscode-oniguruma@1.7.0: {}

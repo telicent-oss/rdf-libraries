@@ -31,9 +31,7 @@
   "publishConfig": {
     "registry": "https://www.npmjs.com/"
   },
-  "dependencies": {
-    "@telicent-oss/rdfservice": "*"
-  },
+  "dependencies":{"@telicent-oss/rdfservice":"workspace:*"},
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",
     "@types/jest": "^29.4.0",
