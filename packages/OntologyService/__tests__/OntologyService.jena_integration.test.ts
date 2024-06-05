@@ -9,16 +9,12 @@ const os = new OntologyService(
   true
 );
 
-/*
-const os2 = new OntologyService(
-  "http://localhost:3030/",
-  "ontology",
-  undefined,
-  undefined,
-  false
-);
+const testFullOntology = false
 
-*/
+
+
+
+
 
 const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
 const owlClass = "http://www.w3.org/2002/07/owl#Class";
@@ -70,15 +66,23 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
     const ats: boolean = await os.checkTripleStore();
     expect(ats).toBeTruthy();
-    /*
-    const h = await os2.getClassHierarchy();
-    h.forEach((node) => {
-      node.subs.forEach((subNode) => {
-        if (subNode.item.uri == "http://www.w3.org/2000/01/rdf-schema#Literal") {
-          console.log(subNode)
-        }
-      });
-    })*/
+    if (testFullOntology) {
+      const os2 = new OntologyService(
+        "http://localhost:3030/",
+        "ontology",
+        undefined,
+        undefined,
+        false
+      );
+      const h = await os2.getClassHierarchy();
+      h.forEach((node) => {
+        node.subs.forEach((subNode) => {
+          if (subNode.item.uri == "http://www.w3.org/2000/01/rdf-schema#Literal") {
+            console.log(subNode)
+          }
+        });
+      })
+    }
   });
 
   it("should cache classes appropriately", async () => {
@@ -126,9 +130,18 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const p2subs:RDFProperty[] = await p2.getSubProperties()
     expect(p2subs.length).toEqual(1)
     expect(p2subs[0] === p3)
-   // const prop = new OWLObjectProperty(os2,"http://ies.data.gov.uk/ontology/ies4#isPartOf")
-   // const desc = await prop.describe()
-   // console.log(desc)
+    if (testFullOntology) {
+      const os2 = new OntologyService(
+        "http://localhost:3030/",
+        "ontology",
+        undefined,
+        undefined,
+        false
+      );
+      const prop = new OWLObjectProperty(os2,"http://ies.data.gov.uk/ontology/ies4#isPartOf")
+      const desc = await prop.describe()
+      console.log(desc)
+    }
   })
 
   it("should detect that subclasses were created", async () => {
@@ -141,10 +154,23 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const g12_subs = await g12.getSubClasses(false);
     expect(g1_subs.length).toEqual(2);
     expect(g12_subs.length).toEqual(1);
-    //const entity = new RDFSClass(os2,"http://ies.data.gov.uk/ontology/ies4#Entity")
-  //  const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
-   // const desc = await entity.describe()
-  //  console.log(desc)
+    if (testFullOntology) {
+      const os2 = new OntologyService(
+        "http://localhost:3030/",
+        "ontology",
+        undefined,
+        undefined,
+        false
+      );
+      const entity = new RDFSClass(os2,"http://ies.data.gov.uk/ontology/ies4#Entity")
+      //const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
+      const desc = await entity.describe()
+      console.log(desc)
+      const phy = await os2.getClassHierarchy()
+
+    }
+
+
     expect(g1_subs.includes(g11)).toBeTruthy();
     expect(g1_subs.includes(g12)).toBeTruthy();
 
