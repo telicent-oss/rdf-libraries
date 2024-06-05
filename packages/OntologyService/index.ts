@@ -5,10 +5,41 @@
   * @author Ian Bailey
   */
 
-import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, SPOQuerySolution } from "@telicent-oss/rdfservice";
+import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, SPOQuerySolution, ResourceDescription, StringsDict } from "@telicent-oss/rdfservice";
 
 export {RDFSResource, type QueryResponse, type TypedNodeQuerySolution, type SPOQuerySolution} from "@telicent-oss/rdfservice"
 
+export type ResourceDict = {
+  [key: string]: RDFSResource[];
+}
+
+export type ClassDescription = {
+  style?: Style,
+  labels:string[],
+  comments:string[],
+  isDomainFor:RDFSClass[],
+  isRangeFor:RDFSClass[],
+  outLinks: ResourceDict,
+  literals: StringsDict,
+  inLinks: ResourceDict,
+  diagramElements:DiagramElement[],
+  superClasses:RDFSClass[],
+  subClasses:RDFSClass[]
+}
+
+export type PropertyDescription = {
+  style?: Style,
+  subProperties:RDFProperty[],
+  superProperties:RDFProperty[],
+  labels:string[],
+  comments:string[],
+  domains:RDFSClass[],
+  ranges:RDFSClass[],
+  diagramElements:DiagramElement[],
+  inLinks: ResourceDict,
+  outLinks: ResourceDict,
+  literals: StringsDict
+}
 
 export type HierarchyNodes = {
   [key: string]: HierarchyNode;
@@ -22,14 +53,7 @@ export type HierarchyNode = {
   supers: HierarchyNode[]
 }
 
-export type PropertyDescription = {
-  subProperties:RDFProperty[],
-  superProperties:RDFProperty[],
-  labels:string[],
-  comments:string[],
-  domains:RDFSClass[],
-  ranges:RDFSClass[]
-}
+
 
 export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
   prop: SPARQLResultBinding,
@@ -175,9 +199,37 @@ export class Diagram extends RDFSResource {
 
 }
 
+abstract class OntologyItem extends RDFSResource {
+  /**
+   * @method constructor
+   * @remarks
+   * Abstract class to cover items in OntologyService
+   * @param service - a reference to the OntologyService being used
+   * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
+   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
+   * @param type - if not being created from a query, provide type
+  */
+  service:OntologyService
+  public constructor(service: OntologyService, uri? : string, type: string = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)       
+    this.service = service    
+  }
+
+  /**
+   * @method setStyle 
+   * @remarks
+   * sets the default style for a property. Deletes any previous styles
+   * @param styleObj - A style object for the class - call makeStyleObject to get one
+  */
+    setStyle(styleObj: Style) {
+      const styleStr = encodeURIComponent(JSON.stringify(styleObj))
+      this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
+    }
+}
+
 
 //A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
-export class RDFProperty extends RDFSResource {
+export class RDFProperty extends OntologyItem {
   /**
    * @method constructor
    * @remarks
@@ -187,41 +239,75 @@ export class RDFProperty extends RDFSResource {
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
    * @param type - if not being created from a query, then type (e.g. rdf Property, owl ObjectProperty / DatatypeProperty) must be supplied - will add data to ontology
   */
-  service:OntologyService
   public constructor(service: OntologyService, uri? : string, type: string = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property", statement? : TypedNodeQuerySolution) {
     super(service,uri,type,statement)       
     this.service = service    
    
   }
 
-  /**
-   * @method setStyle 
-   * @remarks
-   * sets the default style for a property. Deletes any previous styles
-   * @param styleObj - A style object for the class - call makeStyleObject to get one
-  */
-  setStyle(styleObj: Style) {
-    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
-    this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
-  }
 
-  async describeProperty() {
-  /*  const description = await this.describe()
-    const propDesc:PropertyDescription = {subProperties:[],superProperties:[],labels:[],comments:[],domains:[],ranges:[]}
-    const outKeys = Object.keys(description.out)
-    if (outKeys.includes(this.service.rdfsLabel)) {
-      propDesc.labels = description.out[this.service.rdfsLabel]
-    }
-    if (outKeys.includes(this.service.rdfsComment)) {
-      propDesc.comments = description.out[this.service.rdfsComment]
-    }
-    if (outKeys.includes(this.service.rdfsSubPropertyOf)) {
-      description.out[this.service.rdfsSubPropertyOf].forEach((superURI:string) => {
-      //  super = new
-      });
-    }
-      */
-    
+
+  async describe():Promise<PropertyDescription> {
+    const rawDesc:ResourceDescription = await this.describeNode()
+    const out:PropertyDescription = {style:undefined,labels:[],comments:[],domains:[],ranges:[],diagramElements:[],superProperties:[],subProperties:[],inLinks:{},outLinks:{},literals:{}}
+    Object.keys(rawDesc.literals).forEach((predicate:string) => {
+      const lits:string[] = rawDesc.literals[predicate]
+      switch (predicate) {
+        case this.service.rdfsComment: {
+          out.comments = (lits)
+          break;
+        }  
+        case this.service.rdfsLabel: {
+          out.labels = (lits)
+          break;
+        }
+        case this.service.telicentStyle: {
+          out.style = JSON.parse(decodeURIComponent(lits[0]))
+          break;
+        }
+        default: {
+          out.literals[predicate] = lits
+        }
+      }
+    });
+    Object.keys(rawDesc.outLinks).forEach((predicate:string) => {
+      const outLink = rawDesc.outLinks[predicate]
+      switch (predicate) {
+        case this.service.rdfsSubPropertyOf: {
+          this.service.processObjectLink(outLink,predicate,out.superProperties)
+          break;
+        }
+        case this.service.rdfsRange: {
+          this.service.processObjectLink(outLink,predicate,out.ranges)
+          break;
+        }
+        case this.service.rdfsDomain: {
+          this.service.processObjectLink(outLink,predicate,out.domains)
+          break;
+        }        default: {
+          out.outLinks[predicate] = []
+          this.service.processObjectLink(outLink,predicate,out.outLinks[predicate])
+        }
+      }
+    });
+    Object.keys(rawDesc.inLinks).forEach((predicate:string) => {
+      const inLink = rawDesc.inLinks[predicate]
+      switch (predicate) {
+        case this.service.rdfsSubPropertyOf: {
+          this.service.processObjectLink(inLink,predicate,out.subProperties)
+          break;
+        }        
+        case this.service.telRepresents: {
+          this.service.processObjectLink(inLink,predicate,out.diagramElements)
+          break;
+        }
+        default: {
+          out.inLinks[predicate] = []
+          this.service.processObjectLink(inLink,predicate,out.inLinks[predicate])
+        }
+      }
+    });
+    return out
   }
 
   async setDomain(domain:RDFSClass,deletePrevious:boolean=true):Promise<string> {
@@ -325,8 +411,9 @@ export class OWLObjectProperty extends RDFProperty {
    * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
   */
-  public constructor(service: OntologyService, uri? : string, statement? : TypedNodeQuerySolution) {
-    super(service,uri,"http://www.w3.org/2002/07/owl#ObjectProperty",statement)           
+  public constructor(service: OntologyService, uri? : string, type: string = "http://www.w3.org/2002/07/owl#ObjectProperty", statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)   
+    this.service = service            
   }
 
   async setRange(range:RDFSClass, deletePrevious:boolean=true):Promise<string> {
@@ -344,8 +431,9 @@ export class OWLDatatypeProperty extends RDFProperty {
    * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
   */
-  public constructor(service: OntologyService, uri? : string, statement? : TypedNodeQuerySolution) { 
-    super(service,uri,"http://www.w3.org/2002/07/owl#DatatypeProperty",statement)           
+  public constructor(service: OntologyService, uri? : string, type:string="http://www.w3.org/2002/07/owl#DatatypeProperty", statement? : TypedNodeQuerySolution) { 
+    super(service,uri,type,statement)             
+    this.service = service      
   }
 
   async setRange(range:XsdDataType, deletePrevious:boolean=true):Promise<string> {
@@ -356,7 +444,7 @@ export class OWLDatatypeProperty extends RDFProperty {
 
 
 //A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
-export class RDFSClass extends RDFSResource {
+export class RDFSClass extends OntologyItem {
   /**
    * @method constructor
    * @remarks
@@ -373,7 +461,7 @@ export class RDFSClass extends RDFSResource {
     this.service = service    
     if (statement) {
       if (superClass) {
-        console.warn("Do not set superClass parameter if creating class from a query")
+        this.service.warn("Do not set superClass parameter if creating class from a query")
       }
     } 
     else
@@ -384,16 +472,72 @@ export class RDFSClass extends RDFSResource {
     }     
   }
 
-  /**
-   * @method setStyle 
-   * @remarks
-   * sets the default style for a class. Deletes any previous styles
-   * @param styleObj - A style object for the class - call makeStyleObject to get one
-  */
-  setStyle(styleObj: Style) {
-    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
-    this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
+
+
+  async describe():Promise<ClassDescription> {
+    const rawDesc:ResourceDescription = await this.describeNode()
+    const out:ClassDescription = {style:undefined,labels:[],comments:[],isDomainFor:[],isRangeFor:[],diagramElements:[],superClasses:[],subClasses:[],inLinks:{},outLinks:{},literals:{}}
+    Object.keys(rawDesc.literals).forEach((predicate:string) => {
+      const lits:string[] = rawDesc.literals[predicate]
+      switch (predicate) {
+        case this.service.rdfsComment: {
+          out.comments = (lits)
+          break;
+        }  
+        case this.service.rdfsLabel: {
+          out.labels = (lits)
+          break;
+        }
+        case this.service.telicentStyle: {
+          out.style = JSON.parse(decodeURIComponent(lits[0]))
+          break;
+        }
+        default: {
+          out.literals[predicate] = lits
+        }
+      }
+    });
+    Object.keys(rawDesc.outLinks).forEach((predicate:string) => {
+      const outLink = rawDesc.outLinks[predicate]
+      switch (predicate) {
+        case this.service.rdfsSubClassOf: {
+          this.service.processObjectLink(outLink,predicate,out.superClasses)
+          break;
+        }
+        default: {
+          out.outLinks[predicate] = []
+          this.service.processObjectLink(outLink,predicate,out.outLinks[predicate])
+        }
+      }
+    });
+    Object.keys(rawDesc.inLinks).forEach((predicate:string) => {
+      const inLink = rawDesc.inLinks[predicate]
+      switch (predicate) {
+        case this.service.rdfsSubClassOf: {
+          this.service.processObjectLink(inLink,predicate,out.subClasses)
+          break;
+        }        
+        case this.service.rdfsRange: {
+          this.service.processObjectLink(inLink,predicate,out.isRangeFor)
+          break;
+        }
+        case this.service.rdfsDomain: {
+          this.service.processObjectLink(inLink,predicate,out.isDomainFor)
+          break;
+        }
+        case this.service.telRepresents: {
+          this.service.processObjectLink(inLink,predicate,out.diagramElements)
+          break;
+        }
+        default: {
+          out.inLinks[predicate] = []
+          this.service.processObjectLink(inLink,predicate,out.inLinks[predicate])
+        }
+      }
+    });
+    return out
   }
+
 
   /**
    * @method getSubClasses
@@ -613,9 +757,20 @@ export class OntologyService extends RdfService {
     this.classLookup[this.owlObjectProperty] = OWLObjectProperty
     this.classLookup[this.rdfsClass] = RDFSClass
     this.classLookup[this.rdfsDatatype] = RDFSDatatype
+    this.classLookup[this.telDiagramElement] = DiagramElement
+    this.classLookup[this.telDiagram] = Diagram
     this.addPrefix("owl:", this.owl)
   }
 
+
+  processObjectLink(input:StringsDict,predicate:string,output:RDFSResource[],defaultCls = RDFSResource) {
+    Object.keys(input).forEach((obj:string) => {
+      const statement:TypedNodeQuerySolution = {uri:{value:obj,type:"uri"},_type:{value:input[obj].join(" "),type:"uri"}}
+      let cls = this.lookupClass(input[obj][0],defaultCls)
+      const newItem = new cls(this,undefined,undefined,statement)
+      output.push(newItem)
+    });
+  }
 
   wrapClasses(results:QueryResponse<TypedNodeQuerySolution>,exclude?:string) {
     const clss:RDFSClass[] = []
@@ -840,13 +995,13 @@ export class OntologyService extends RdfService {
     const statements = spOut.results.bindings
 
     if (statements.length > 1) {
-      console.warn(`More than one diagram found from getDiagram query with provided URI: ${uri}`)
+      this.warn(`More than one diagram found from getDiagram query with provided URI: ${uri}`)
       return undefined
     }
     else
     {
       if (statements.length < 1) {
-        console.warn(`No diagram with URI ${uri} found from getDiagram query`)
+        this.warn(`No diagram with URI ${uri} found from getDiagram query`)
         return undefined
       }
       else
@@ -901,7 +1056,7 @@ export class OntologyService extends RdfService {
             node.style = JSON.parse(decodeURIComponent(stArray[0]))
           }
           catch {
-            console.warn(`Unable to decode style for URI ${statement.uri.value}`)
+            this.warn(`Unable to decode style for URI ${statement.uri.value}`)
           }
           
         }

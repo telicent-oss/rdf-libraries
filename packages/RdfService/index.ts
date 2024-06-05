@@ -1,4 +1,5 @@
 import { time } from "console"
+import { object } from "zod"
 
 /*
   * @module RdfService @remarks 
@@ -83,19 +84,20 @@ export type QueryResponse<T = SPARQLQuerySolution> = {
   boolean?:boolean
 }
 
+export type StringsDict = {
+  [key: string]: string[]
+}
+
 export type ResourceDescription = {
   outLinks: {
-    [key: string]: {
-      [key: string]: string[]
-    };
+    [key: string]: StringsDict;
   },
-  literals: {
-    [key: string]: string[];
-  }
+  literals: StringsDict;
   inLinks: {
-    [key: string]: {
-      [key: string]: string[]
-    };
+    [key: string]: StringsDict;
+  },
+  furtherInLinks: {
+    [key: string]: StringsDict;
   }
 }
 
@@ -163,6 +165,7 @@ export class RDFSResource {
     this.service = service
     if (statement) {
       if (statement.uri.value in this.service.nodes) { //we've already created an object for this item
+        
         const existingItem = this.service.nodes[statement.uri.value]
         if (statement._type) {
           const newTypes = statement._type.value.split(' ')
@@ -190,7 +193,7 @@ export class RDFSResource {
           if ((type) && !(existingItem.types.includes(type)) ){
             existingItem.types.push(type)
           }
-          //console.warn(`Existing item: ${uri}`)
+          //this.service.warn(`Existing item: ${uri}`)
           return existingItem
         } 
       }
@@ -376,17 +379,21 @@ export class RDFSResource {
       return output
     }
 
-  async describe():Promise<ResourceDescription> {
-    const query:string = `SELECT ?s ?p ?o ?invP ?invS ?oType ?invType WHERE {
+  protected async describeNode(furtherInRel?:string):Promise<ResourceDescription> {
+    let invFurtherClause = ''
+    if (furtherInRel) {
+      invFurtherClause = ` . OPTIONAL {?invS <${furtherInRel}> ?invFurther}`
+    }
+    const query:string = `SELECT ?s ?p ?o ?invP ?invS ?oType ?invType ?invFurther WHERE {
       BIND (<${this.uri}> AS ?s) .
       OPTIONAL {?s ?p ?o OPTIONAL {?o a ?oType} }
       OPTIONAL {?invS ?invP ?s OPTIONAL {?invS a ?invType}}
     }`
-    const description:ResourceDescription = {literals:{},inLinks:{},outLinks:{}}
+    const description:ResourceDescription = {literals:{},inLinks:{},outLinks:{},furtherInLinks:{}}
     const spOut =  await this.service.runQuery<SPOOSQuerySolution>(query)
     spOut.results.bindings.forEach((statement:SPOOSQuerySolution) => {
       if (statement.p) {
-        if (statement.p.type == "LITERAL") {
+        if ((statement.o) && (statement.o.type.toUpperCase() == "LITERAL")) {
           if (!(Object.keys(description.literals).includes(statement.p.value))) {
             description.literals[statement.p.value] = [statement.o.value]
           }
@@ -396,32 +403,46 @@ export class RDFSResource {
             }
           }
         } 
-        if (statement.p.type == "URI") {
-          let pObj = []
+        else {
+          let pObj:StringsDict = {}
           if (!(Object.keys(description.outLinks).includes(statement.p.value))) {
-            description.outLinks[statement.p.value][statement.o.value] = []
-            pObj = description.outLinks[statement.p.value][statement.o.value]
+            description.outLinks[statement.p.value] = pObj
           }
           else {
-            pObj = description.outLinks[statement.p.value][statement.o.value]
-            if (!(Object.keys(pObj).includes(statement.o.value))) {
-              pObj = []
-            }
+            pObj = description.outLinks[statement.p.value]
           }
+          let oArray:string[] = []
           if (statement.o) {
-            pObj.push(statement.o.value)
+            if (!(Object.keys(pObj).includes(statement.o.value))) {
+              pObj[statement.o.value] = oArray
+            } else {
+              oArray =  pObj[statement.o.value]
+            }
+            if ((statement.oType) && !(oArray.includes(statement.oType.value))){
+              oArray.push(statement.oType.value)
+            }
           }
         } 
       }
-      if (statement.invP) {/*
+      if ((statement.invP) && (statement.invS)) {
+        let pObj:StringsDict = {}
         if (!(Object.keys(description.inLinks).includes(statement.invP.value))) {
-          description.inLinks[statement.invP.value] = [statement.invS.value]
+          description.inLinks[statement.invP.value] = pObj
         }
         else {
-          if (!(description.inLinks[statement.invP.value].includes(statement.invS.value))) {
-            description.inLinks[statement.invP.value].push(statement.invS.value)
+          pObj = description.inLinks[statement.invP.value]
+        }
+        let sArray:string[] = []
+        if (statement.o) {
+          if (!(Object.keys(pObj).includes(statement.invS.value))) {
+            pObj[statement.invS.value] = sArray
+          } else {
+            sArray =  pObj[statement.invS.value]
           }
-        }*/
+          if ((statement.invType) && !(sArray.includes(statement.invType.value))){
+            sArray.push(statement.invType.value)
+          }
+        }
       }
     })
     return description
@@ -488,7 +509,7 @@ export class RDFSResource {
       labels = lits[`${this.service.skos}prefLabel`]
     }
     if (labels.length > 1) {
-      console.warn(`More than one SKOS preferred label on ${this.uri}`)
+      this.service.warn(`More than one SKOS preferred label on ${this.uri}`)
     } 
     return labels
    }
@@ -540,7 +561,7 @@ export class RDFSResource {
       titles = lits[this.service.dcTitle]
     }
     if (titles.length > 1) {
-      console.warn(`More than one Dublin Core title tag on ${this.uri}`)
+      this.service.warn(`More than one Dublin Core title tag on ${this.uri}`)
     } 
     return titles
     
@@ -560,7 +581,7 @@ export class RDFSResource {
       pubs = lits[this.service.dcPublished]
     }
     if (pubs.length > 1) {
-      console.warn(`More than one Dublin Core published tag on ${this.uri}`)
+      this.service.warn(`More than one Dublin Core published tag on ${this.uri}`)
     } 
     return pubs
    }
@@ -579,7 +600,7 @@ export class RDFSResource {
       pubs = lits[this.service.dcCreated]
     }
     if (pubs.length > 1) {
-      console.warn(`More than one Dublin Core created tag on ${this.uri}`)
+      this.service.warn(`More than one Dublin Core created tag on ${this.uri}`)
     } 
     return pubs
    }
@@ -690,7 +711,11 @@ export class RdfService {
     {
       return false
     }
-  } 
+  }
+
+  warn(warning:string) {
+   // console.warn(warning)
+  }
 
   lookupClass(clsUri:string,defaultCls: any) {
     if (this.classLookup[clsUri])
@@ -701,7 +726,7 @@ export class RdfService {
   }
 
   getAllElements() {
-    console.warn("This has been deprecated - who wants to get everything at once ?")
+    this.warn("This has been deprecated - who wants to get everything at once ?")
   }
 
   /**
@@ -848,7 +873,7 @@ export class RdfService {
       const sl = securityLabel ?? this.defaultSecurityLabel;
 
       if (isEmptyString(sl)) {
-        console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
+        this.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
       }
 
       const postObject = {
@@ -870,7 +895,7 @@ export class RdfService {
     }
     else
     {
-      console.warn( "service is in read only node, updates are not permitted")
+      this.warn( "service is in read only node, updates are not permitted")
       return "service is in read only node, updates are not permitted"
     }
   }

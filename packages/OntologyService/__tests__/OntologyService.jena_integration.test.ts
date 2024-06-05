@@ -17,6 +17,7 @@ const os2 = new OntologyService(
   undefined,
   false
 );
+
 */
 
 const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
@@ -25,7 +26,7 @@ const testDefaultNamespace = "http://telicent.io/data/";
 
 const initialNodeCount:number = 6
 const finalNodeCount:number = 10
-const expectedTripleCount:number = 18
+const expectedTripleCount:number = 19
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -48,6 +49,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     delay(1500)
     const g2 = new RDFSClass(os, `${testDefaultNamespace}ONT2`);
     const g21 = new OWLClass(os, `${testDefaultNamespace}ONT21`);
+    g21.addLabel("G21")
     const g211 = new OWLClass(os, `${testDefaultNamespace}ONT211`);
     const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
     const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
@@ -124,17 +126,25 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const p2subs:RDFProperty[] = await p2.getSubProperties()
     expect(p2subs.length).toEqual(1)
     expect(p2subs[0] === p3)
+   // const prop = new OWLObjectProperty(os2,"http://ies.data.gov.uk/ontology/ies4#isPartOf")
+   // const desc = await prop.describe()
+   // console.log(desc)
   })
 
   it("should detect that subclasses were created", async () => {
     const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
-    const desc = await g1.describe();
-    console.log(desc)
     const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
     const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
+    const g21 = new OWLClass(os, `${testDefaultNamespace}ONT21`);
     const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);
     const g1_subs = await g1.getSubClasses(false);
+    const g12_subs = await g12.getSubClasses(false);
     expect(g1_subs.length).toEqual(2);
+    expect(g12_subs.length).toEqual(1);
+    //const entity = new RDFSClass(os2,"http://ies.data.gov.uk/ontology/ies4#Entity")
+  //  const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
+   // const desc = await entity.describe()
+  //  console.log(desc)
     expect(g1_subs.includes(g11)).toBeTruthy();
     expect(g1_subs.includes(g12)).toBeTruthy();
 
@@ -167,7 +177,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const hy:HierarchyNode[] = await os.getClassHierarchy()
     expect(hy.length).toEqual(2)
     const phy:HierarchyNode[] = await os.getPropertyHierarchy()
-    expect(phy.length).toEqual(3)
+    expect(phy.length).toEqual(1)
   });
 
   afterAll( ()=>{
