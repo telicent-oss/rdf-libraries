@@ -1026,7 +1026,7 @@ export class OntologyService extends RdfService {
     (group_concat(DISTINCT ?type) as ?_type) 
     (group_concat(DISTINCT ?sub) as ?subs) 
     (group_concat(DISTINCT ?label; SEPARATOR="||") as ?labels) 
-    (group_concat(DISTINCT ?style) as ?styles) 
+    (group_concat(DISTINCT ?style; SEPARATOR="||") as ?styles) 
     (group_concat(DISTINCT ?super) as ?supers) 
     WHERE {
       ?uri a ?type .
@@ -1051,7 +1051,7 @@ export class OntologyService extends RdfService {
           node.labels = statement.labels.value.split("||")
         }
         if (statement.styles) {
-          const stArray = statement.styles.value.split(" ")
+          const stArray = statement.styles.value.split("||")
           try {
             node.style = JSON.parse(decodeURIComponent(stArray[0]))
           }
