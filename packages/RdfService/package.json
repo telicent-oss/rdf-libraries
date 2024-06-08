@@ -51,6 +51,7 @@
   "dependencies": {
     "global": "^4.4.0",
     "pnpm": "^8.15.1",
+    "rdfstore":"0.9.17",
     "zod": "^3.22.4"
   }
 }

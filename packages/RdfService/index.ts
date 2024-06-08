@@ -1,5 +1,6 @@
 import { time } from "console"
 import { object } from "zod"
+//import { rdfstore} from "rdfstore"
 
 /*
   * @module RdfService @remarks 
@@ -14,8 +15,12 @@ const isEmptyString = (str: string) => !Boolean(str);
 
 export type RDFBasetype = "URI" | "LITERAL" | "BNODE";
 
+export type PrefixedURI = string;
+
+export type LongURI = string;
+
 export interface SPARQLResultBinding {
-  value: string;
+  value: LongURI | string;
   type: string;
 }
 
@@ -52,7 +57,8 @@ export interface SPOOSQuerySolution extends SPOQuerySolution {
   invP: SPARQLResultBinding,
   invS: SPARQLResultBinding,
   oType: SPARQLResultBinding,
-  invType: SPARQLResultBinding
+  invType: SPARQLResultBinding,
+  invFurther: SPARQLResultBinding
 }
 
 export interface RelatingQuerySolution extends SPARQLQuerySolution {
@@ -90,23 +96,21 @@ export type StringsDict = {
 
 export type ResourceDescription = {
   outLinks: {
-    [key: string]: StringsDict;
+    [key: LongURI]: StringsDict;
   },
   literals: StringsDict;
   inLinks: {
-    [key: string]: StringsDict;
+    [key: LongURI]: StringsDict;
   },
-  furtherInLinks: {
-    [key: string]: StringsDict;
-  }
+  furtherInLinks: string[]
 }
 
 export type RelatedResources = {
-  [key: string]: RDFSResource[];
+  [key: LongURI]: RDFSResource[];
 }
 
 export type RelatedLiterals = {
-  [key: string]: string[];
+  [key: LongURI]: string[];
 }
 
 
@@ -156,10 +160,10 @@ export type XsdDataType = "xsd:string" | //	Character strings (but not all Unico
 
 //A wrapper class for an RDFS Resource - i.e. typed node in the graph  
 export class RDFSResource {
-  uri: string;
-  types: string[];
+  uri: LongURI;
+  types: LongURI[];
   protected service: RdfService;
-  public constructor(service: RdfService, uri? : string, type:string = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
+  public constructor(service: RdfService, uri? : LongURI, type:LongURI = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
     this.uri = ''
     this.types = []
     this.service = service
@@ -169,7 +173,7 @@ export class RDFSResource {
         const existingItem = this.service.nodes[statement.uri.value]
         if (statement._type) {
           const newTypes = statement._type.value.split(' ')
-          newTypes.forEach((typ:string) => {
+          newTypes.forEach((typ:LongURI) => {
             if (!(existingItem.types.includes(typ))) {
               existingItem.types.push(typ)
             }
@@ -220,7 +224,7 @@ export class RDFSResource {
    * @param text - the literal to be assigned to the triple
    * @param {boolean} deletePrevious - remove any existing properties with that predicate type - defaults to false 
   */
-  async addLiteral(predicate: string, text: string, securityLabel?:string, xsdDatatype?: XsdDataType, deleteAllPrevious:boolean=false) {
+  async addLiteral(predicate: LongURI, text: string, securityLabel?:string, xsdDatatype?: XsdDataType, deleteAllPrevious:boolean=false) {
     if (isEmptyString(predicate)) throw new Error("Cannot have an empty predicate")
     if (isEmptyString(text)) throw new Error("Cannot have empty text in a triple")
     return await this.service.insertTriple(this.uri, predicate, text, "LITERAL",securityLabel,xsdDatatype,deleteAllPrevious)
@@ -301,7 +305,7 @@ export class RDFSResource {
     this.addLiteral(`${this.service.skos}altLabel`,label,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
-  async countRelated(rel:string):Promise<number> {
+  async countRelated(rel:LongURI):Promise<number> {
     const query = `SELECT (count(DISTINCT ?item) as ?count) WHERE {<${this.uri}> ${rel} ?item}`
     const queryReturn = await this.service.runQuery<CountQuerySolution>(query)
     if (queryReturn.results.bindings.length < 1) {
@@ -328,7 +332,7 @@ export class RDFSResource {
    * @param predicate - the predicate relating to the objects that are returned
    * @returns -  a RelatedResources object
   */
-    async getRelated(predicate?: string):Promise<RelatedResources> {
+    async getRelated(predicate?: LongURI):Promise<RelatedResources> {
      let predString = ''
      if (predicate) {
         predString = ` BIND (<${predicate}> AS ?predicate) .`
@@ -358,7 +362,7 @@ export class RDFSResource {
      * @param predicate - the predicate relating to the objects that are returned
      * @returns a RelatedResources object
     */
-    async getRelating(predicate: string):Promise<RelatedResources> {
+    async getRelating(predicate: LongURI):Promise<RelatedResources> {
       let predString = ''
       if (predicate) {
         predString = ` BIND (<${predicate}> AS ?predicate) .`
@@ -379,7 +383,7 @@ export class RDFSResource {
       return output
     }
 
-  protected async describeNode(furtherInRel?:string):Promise<ResourceDescription> {
+  protected async describeNode(furtherInRel?:LongURI):Promise<ResourceDescription> {
     let invFurtherClause = ''
     if (furtherInRel) {
       invFurtherClause = ` . OPTIONAL {?invS <${furtherInRel}> ?invFurther}`
@@ -387,9 +391,9 @@ export class RDFSResource {
     const query:string = `SELECT ?s ?p ?o ?invP ?invS ?oType ?invType ?invFurther WHERE {
       BIND (<${this.uri}> AS ?s) .
       OPTIONAL {?s ?p ?o OPTIONAL {?o a ?oType} }
-      OPTIONAL {?invS ?invP ?s OPTIONAL {?invS a ?invType}}
+      OPTIONAL {?invS ?invP ?s OPTIONAL {?invS a ?invType} ${invFurtherClause} }
     }`
-    const description:ResourceDescription = {literals:{},inLinks:{},outLinks:{},furtherInLinks:{}}
+    const description:ResourceDescription = {literals:{},inLinks:{},outLinks:{},furtherInLinks:[]}
     const spOut =  await this.service.runQuery<SPOOSQuerySolution>(query)
     spOut.results.bindings.forEach((statement:SPOOSQuerySolution) => {
       if (statement.p) {
@@ -411,7 +415,7 @@ export class RDFSResource {
           else {
             pObj = description.outLinks[statement.p.value]
           }
-          let oArray:string[] = []
+          let oArray:LongURI[] = []
           if (statement.o) {
             if (!(Object.keys(pObj).includes(statement.o.value))) {
               pObj[statement.o.value] = oArray
@@ -432,7 +436,7 @@ export class RDFSResource {
         else {
           pObj = description.inLinks[statement.invP.value]
         }
-        let sArray:string[] = []
+        let sArray:LongURI[] = []
         if (statement.o) {
           if (!(Object.keys(pObj).includes(statement.invS.value))) {
             pObj[statement.invS.value] = sArray
@@ -442,6 +446,9 @@ export class RDFSResource {
           if ((statement.invType) && !(sArray.includes(statement.invType.value))){
             sArray.push(statement.invType.value)
           }
+        }
+        if ((statement.invFurther) && !(description.furtherInLinks.includes(statement.invFurther.value))) {
+          description.furtherInLinks.push(statement.invFurther.value)
         }
       }
     })
@@ -456,7 +463,7 @@ export class RDFSResource {
    * @param predicate - the predicate relating to the literal properties that are returned
    * @returns - a RelatedLiterals object
   */
-  async getLiterals(predicate?: string):Promise<RelatedLiterals> {
+  async getLiterals(predicate?: LongURI):Promise<RelatedLiterals> {
     let predString = ''
     if (predicate) {
       predString = ` BIND (<${predicate}> AS ?predicate) .`
@@ -626,26 +633,26 @@ export class RdfService {
   owl: string;
   telicent: string;
   prefixDict: {
-    [key: string]: string;
+    [key: PrefixedURI]: LongURI;
   };
-  rdfType: string;
+  rdfType: LongURI;
 
-  rdfsResource: string;
+  rdfsResource: LongURI;
 
 
-  rdfsLabel: string;
-  rdfsComment: string;
+  rdfsLabel: LongURI;
+  rdfsComment: LongURI;
 
   nodes: {
-    [key: string]: RDFSResource;
+    [key: LongURI]: RDFSResource;
   };
 
-  dct : string;
-  dcTitle : string;
-  dcCreated : string;
-  dcPublished : string;
+  dct : LongURI;
+  dcTitle : LongURI;
+  dcCreated : LongURI;
+  dcPublished : LongURI;
   classLookup: {
-    [key: string]: any;
+    [key: LongURI]: any;
   };
   updateCount: number;
 
@@ -703,7 +710,7 @@ export class RdfService {
     this.nodes = {}
   }
 
-  inCache(uri:string) {
+  inCache(uri:LongURI) {
     if (uri in this.nodes) {
       return true
     }
@@ -717,7 +724,7 @@ export class RdfService {
    // console.warn(warning)
   }
 
-  lookupClass(clsUri:string,defaultCls: any) {
+  lookupClass(clsUri:LongURI,defaultCls: any) {
     if (this.classLookup[clsUri])
       return this.classLookup[clsUri]
     else {
@@ -737,18 +744,18 @@ export class RdfService {
    * @param prefix - a valid W3C prefix, with the : (colon) character at the end
    * @param uri - the URI represented by the prefix
   */
-  addPrefix(prefix: string, uri: string) {
+  addPrefix(prefix: PrefixedURI, uri: LongURI) {
     if (prefix.slice(-1) != ":") {
       throw noColonInPrefixException
     }
     this.prefixDict[prefix] = uri
   }
 
-  public set defaultNamespace(uri: string) {
+  public set defaultNamespace(uri: LongURI) {
     this.addPrefix(":", uri)
   }
 
-  public get defaultNamespace(): string {
+  public get defaultNamespace(): LongURI {
     return this.prefixDict[":"]
   }
 
@@ -760,7 +767,7 @@ export class RdfService {
    * @param uri - the URI represented by the prefix
    * @returns the prefix that matches the URI, if not found, the URI is returned 
   */
-  getPrefix(uri: string) {
+  getPrefix(uri: LongURI):string {
     const keys = Object.keys(this.prefixDict)
     const values = Object.values(this.prefixDict)
 
@@ -775,7 +782,7 @@ export class RdfService {
    * @param uri - the URI represented by the prefix
    * @returns the prefix that matches the URI, if not found, the URI is returned 
   */
-  shorten(uri: string) {
+  shorten(uri: LongURI):PrefixedURI | LongURI {
     const keys = Object.keys(this.prefixDict)
 
     const result = keys.find(key => uri.includes(this.prefixDict[key]));
@@ -790,7 +797,7 @@ export class RdfService {
    * @param prefix - the prefix for which you need the statement
    * @returns a formatted SPARQL prefix statement
   */
-  getSparqlPrefix(prefix: string) {
+  getSparqlPrefix(prefix: string):string {
     if (prefix in this.prefixDict) {
       return `PREFIX ${prefix} <${this.prefixDict[prefix]}> `
     }
@@ -818,7 +825,7 @@ export class RdfService {
    * @param namespace - a valid uri namespace - if none, the default will be used
    * @returns a random URI
   */
-  mintUri(namespace: string = this.defaultNamespace):string {
+  mintUri(namespace: string = this.defaultNamespace):LongURI {
     return namespace + crypto.randomUUID()
   }
 
@@ -951,7 +958,7 @@ export class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  async insertTriple(subject: string, predicate: string, object: string, objectType?: RDFBasetype, securityLabel?: string, xsdDatatype?: XsdDataType,deleteAllPrevious:boolean=false):Promise<string> {
+  async insertTriple(subject: LongURI, predicate: LongURI, object: LongURI | string, objectType?: RDFBasetype, securityLabel?: string, xsdDatatype?: XsdDataType,deleteAllPrevious:boolean=false):Promise<string> {
     const updates:string[] = []
     if (deleteAllPrevious) {
       updates.push(`DELETE WHERE {<${subject}> <${predicate}> ?o}`)
@@ -977,7 +984,7 @@ export class RdfService {
    * @throws
    * Thrown if the object type is unknown
   */
-  async deleteTriple(subject: string, predicate: string, object: string, objectType: RDFBasetype, xsdDatatype?: XsdDataType) {
+  async deleteTriple(subject: LongURI, predicate: LongURI, object: LongURI | string, objectType: RDFBasetype, xsdDatatype?: XsdDataType) {
     const o = this.#checkObject(object, objectType, xsdDatatype)
     return await this.runUpdate(["DELETE DATA {<" + subject + "> <" + predicate + "> " + o + " . }"])
   }
@@ -993,7 +1000,7 @@ export class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  async deleteNode(uri: string, ignoreInboundReferences = false) {
+  async deleteNode(uri: LongURI, ignoreInboundReferences = false) {
     if (isEmptyString(uri)) throw Error(emptyUriErrorMessage)
 
 
@@ -1013,7 +1020,7 @@ export class RdfService {
    * @throws 
    * Thrown if the object type is unknown
   */
-  async deleteRelationships(uri: string, predicate: string):Promise<string> {
+  async deleteRelationships(uri: LongURI, predicate: LongURI):Promise<string> {
     if (isEmptyString(uri)) throw Error(emptyUriErrorMessage)
     if (isEmptyString(predicate)) throw Error("Cannot have an empty predicate")
 
@@ -1030,23 +1037,23 @@ export class RdfService {
    * @param securityLabel - the security label to apply to new data. If none provided, the default will be used. 
    * @returns  the resulting instance's URI as a string
   */
-  instantiate(cls: string, uri?: string, securityLabel?: string):string {
-    if (isEmptyString(cls)) throw Error("Cannot have an empty cls");
+  instantiate(clsURI: LongURI, uri?: LongURI, securityLabel?: string):string {
+    if (isEmptyString(clsURI)) throw Error("Cannot have an empty cls");
 
     if (!uri) {
       uri = this.mintUri()
     }
-    this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel)
+    this.insertTriple(uri, this.rdfType, clsURI, undefined, securityLabel)
     return uri
   }
 
   /**
      * Performs a very basic string-matching search - this should be used if no search index is available. The method will return a very basic match count that can be used to rank results. 
      * @param {string} matchingText - The text string to find in the data
-     * @param {Array} dcatTypes - OPTIONAL - the types of dcat items to search for - defaults to [dcat:Catalog, dcat:Dataset, dcat:DataService]
+     * @param {Array} types - OPTIONAL - the types of items to search for 
      * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
     */
-  async find(matchingText: string, types?: string[]): Promise<RankWrapper[]> {
+  async find(matchingText: string, types?: LongURI[]): Promise<RankWrapper[]> {
     let typeMatch = ''
     if (types) {
       const typelist = '"' + types.join('", "') + '"'

@@ -5,12 +5,13 @@
   * @author Ian Bailey
   */
 
-import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, SPOQuerySolution, ResourceDescription, StringsDict } from "@telicent-oss/rdfservice";
+import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, SPOQuerySolution, ResourceDescription, StringsDict, LongURI, PrefixedURI } from "@telicent-oss/rdfservice";
 
 export {RDFSResource, type QueryResponse, type TypedNodeQuerySolution, type SPOQuerySolution} from "@telicent-oss/rdfservice"
 
+
 export type ResourceDict = {
-  [key: string]: RDFSResource[];
+  [key: LongURI]: RDFSResource[];
 }
 
 export type ClassDescription = {
@@ -24,7 +25,7 @@ export type ClassDescription = {
   inLinks: ResourceDict,
   diagramElements:DiagramElement[],
   superClasses:RDFSClass[],
-  subClasses:RDFSClass[]
+  subClasses:RDFSClass[],
 }
 
 export type PropertyDescription = {
@@ -38,11 +39,11 @@ export type PropertyDescription = {
   diagramElements:DiagramElement[],
   inLinks: ResourceDict,
   outLinks: ResourceDict,
-  literals: StringsDict
+  literals: StringsDict,
 }
 
 export type HierarchyNodes = {
-  [key: string]: HierarchyNode;
+  [key: LongURI]: HierarchyNode;
 }
 
 export type HierarchyNode = {
@@ -127,7 +128,7 @@ export class AppliedStyle {
 export class DiagramElement extends RDFSResource {
   style?: Style
   element?: RDFSResource
-  baseType?: string
+  baseType?: LongURI
 }
 
 export class DiagramProperty extends DiagramElement {
@@ -136,9 +137,9 @@ export class DiagramProperty extends DiagramElement {
 }
 
 export class DiagramRelationship {
-  source?: string
-  target?: string
-  relationship?: string
+  source?: LongURI
+  target?: LongURI
+  relationship?: LongURI
   style?: Style
 }
 
@@ -210,10 +211,13 @@ abstract class OntologyItem extends RDFSResource {
    * @param type - if not being created from a query, provide type
   */
   service:OntologyService
-  public constructor(service: OntologyService, uri? : string, type: string = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
     super(service,uri,type,statement)       
     this.service = service    
+
+    
   }
+
 
   /**
    * @method setStyle 
@@ -221,10 +225,33 @@ abstract class OntologyItem extends RDFSResource {
    * sets the default style for a property. Deletes any previous styles
    * @param styleObj - A style object for the class - call makeStyleObject to get one
   */
-    setStyle(styleObj: Style) {
-      const styleStr = encodeURIComponent(JSON.stringify(styleObj))
-      this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
-    }
+  setStyle(styleObj: Style) {
+    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
+    this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
+  }
+
+  /**
+   * @method getDiagrams 
+   * @remarks
+   * returns all the diagrams that feature this ontology item
+  */  
+  async getDiagrams():Promise<Diagram[]> {
+    const out:Diagram[] = []
+    const query:string = `SELECT ?uri (group_concat(DISTINCT ?uuids) as ?uuid) (group_concat(DISTINCT ?titles) as ?title)  (group_concat(DISTINCT ?type) as ?_type)
+      WHERE {
+        BIND (<${this.service.telDiagram}> as ?type) .
+        ?diagramObject <${this.service.telRepresents}> <${this.uri}> .
+        ?diagramObject <${this.service.telInDiagram}> ?uri .
+        ?uri a ?type .
+        OPTIONAL { ?uri <${this.service.dcTitle}> ?titles }
+        OPTIONAL { ?uri <${this.service.telUUID}> ?uuids }
+      } GROUP BY ?uri`
+    const spOut = await this.service.runQuery<DiagramQuerySolution>(query)
+    spOut.results.bindings.forEach((statement:DiagramQuerySolution) => {
+      out.push(new Diagram(this.service,undefined,undefined,undefined,statement))
+    })
+    return out
+  }
 }
 
 
@@ -239,16 +266,20 @@ export class RDFProperty extends OntologyItem {
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
    * @param type - if not being created from a query, then type (e.g. rdf Property, owl ObjectProperty / DatatypeProperty) must be supplied - will add data to ontology
   */
-  public constructor(service: OntologyService, uri? : string, type: string = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property", statement? : TypedNodeQuerySolution) {
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property", statement? : TypedNodeQuerySolution) {
     super(service,uri,type,statement)       
     this.service = service    
    
   }
 
+  async getNodes(nodeURIs:string[],optionalPredicates:string[]=[]):Promise<RDFSResource[]> {
+    const out:RDFSResource[] = []
 
+    return out
+  }
 
   async describe():Promise<PropertyDescription> {
-    const rawDesc:ResourceDescription = await this.describeNode()
+    const rawDesc:ResourceDescription = await this.describeNode("http://telicent.io/ontology/inDiagram")
     const out:PropertyDescription = {style:undefined,labels:[],comments:[],domains:[],ranges:[],diagramElements:[],superProperties:[],subProperties:[],inLinks:{},outLinks:{},literals:{}}
     Object.keys(rawDesc.literals).forEach((predicate:string) => {
       const lits:string[] = rawDesc.literals[predicate]
@@ -270,7 +301,7 @@ export class RDFProperty extends OntologyItem {
         }
       }
     });
-    Object.keys(rawDesc.outLinks).forEach((predicate:string) => {
+    Object.keys(rawDesc.outLinks).forEach((predicate:LongURI) => {
       const outLink = rawDesc.outLinks[predicate]
       switch (predicate) {
         case this.service.rdfsSubPropertyOf: {
@@ -290,7 +321,7 @@ export class RDFProperty extends OntologyItem {
         }
       }
     });
-    Object.keys(rawDesc.inLinks).forEach((predicate:string) => {
+    Object.keys(rawDesc.inLinks).forEach((predicate:LongURI) => {
       const inLink = rawDesc.inLinks[predicate]
       switch (predicate) {
         case this.service.rdfsSubPropertyOf: {
@@ -318,7 +349,7 @@ export class RDFProperty extends OntologyItem {
   }
 
   async setRange(range:RDFSClass | XsdDataType,deletePrevious:boolean=true):Promise<string> {
-    let uri = ""
+    let uri:LongURI = ""
     if (deletePrevious) {
       await this.service.deleteRelationships(this.uri,this.service.rdfsRange)
     }
@@ -338,8 +369,8 @@ export class RDFProperty extends OntologyItem {
    * @param subProperty - The property that is to be related to this using rdfs:subPropertyOf
    * @returns the subproperty as an RDFProperty
   */
-  async addSubProperty(subProperty: RDFProperty | string):Promise<RDFProperty> {
-    let uri:string = ''
+  async addSubProperty(subProperty: RDFProperty | LongURI):Promise<RDFProperty> {
+    let uri:LongURI = ''
     if (typeof subProperty === "string") {
       uri = subProperty
       this.service.insertTriple(uri, this.service.rdfsSubPropertyOf, this.uri)
@@ -360,8 +391,8 @@ export class RDFProperty extends OntologyItem {
    * @param superProperty - The property that is to be related to the this class using rdfs:subPropertyOf
    * @returns the superproperty as an RDFProperty
   */
-  async addSuperProperty(superProperty: RDFProperty | string):Promise<RDFProperty> {
-    let uri:string = ''
+  async addSuperProperty(superProperty: RDFProperty | LongURI):Promise<RDFProperty> {
+    let uri:LongURI = ''
     if (typeof superProperty === "string") {
       uri = superProperty
       this.service.insertTriple(this.uri, this.service.rdfsSubPropertyOf,uri)
@@ -411,7 +442,7 @@ export class OWLObjectProperty extends RDFProperty {
    * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
   */
-  public constructor(service: OntologyService, uri? : string, type: string = "http://www.w3.org/2002/07/owl#ObjectProperty", statement? : TypedNodeQuerySolution) {
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI = "http://www.w3.org/2002/07/owl#ObjectProperty", statement? : TypedNodeQuerySolution) {
     super(service,uri,type,statement)   
     this.service = service            
   }
@@ -431,7 +462,7 @@ export class OWLDatatypeProperty extends RDFProperty {
    * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
   */
-  public constructor(service: OntologyService, uri? : string, type:string="http://www.w3.org/2002/07/owl#DatatypeProperty", statement? : TypedNodeQuerySolution) { 
+  public constructor(service: OntologyService, uri? : LongURI, type:LongURI="http://www.w3.org/2002/07/owl#DatatypeProperty", statement? : TypedNodeQuerySolution) { 
     super(service,uri,type,statement)             
     this.service = service      
   }
@@ -456,7 +487,7 @@ export class RDFSClass extends OntologyItem {
    * @param superClass - f not being created from a query, a superclass can optionally be specified - i.e. the new class will be a subclass of the superclass
   */
   service:OntologyService
-  public constructor(service: OntologyService, uri? : string, type: string=service.rdfsClass, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.rdfsClass, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
     super(service,uri,type,statement)
     this.service = service    
     if (statement) {
@@ -475,7 +506,8 @@ export class RDFSClass extends OntologyItem {
 
 
   async describe():Promise<ClassDescription> {
-    const rawDesc:ResourceDescription = await this.describeNode()
+    const rawDesc:ResourceDescription = await this.describeNode("http://telicent.io/ontology/inDiagram")
+    console.log(rawDesc)
     const out:ClassDescription = {style:undefined,labels:[],comments:[],isDomainFor:[],isRangeFor:[],diagramElements:[],superClasses:[],subClasses:[],inLinks:{},outLinks:{},literals:{}}
     Object.keys(rawDesc.literals).forEach((predicate:string) => {
       const lits:string[] = rawDesc.literals[predicate]
@@ -497,7 +529,7 @@ export class RDFSClass extends OntologyItem {
         }
       }
     });
-    Object.keys(rawDesc.outLinks).forEach((predicate:string) => {
+    Object.keys(rawDesc.outLinks).forEach((predicate:LongURI) => {
       const outLink = rawDesc.outLinks[predicate]
       switch (predicate) {
         case this.service.rdfsSubClassOf: {
@@ -510,7 +542,7 @@ export class RDFSClass extends OntologyItem {
         }
       }
     });
-    Object.keys(rawDesc.inLinks).forEach((predicate:string) => {
+    Object.keys(rawDesc.inLinks).forEach((predicate:LongURI) => {
       const inLink = rawDesc.inLinks[predicate]
       switch (predicate) {
         case this.service.rdfsSubClassOf: {
@@ -630,8 +662,8 @@ export class RDFSClass extends OntologyItem {
    * @param subClass - The subclass that is to be related to this using rdfs:subClassOf
    * @returns the subclass as an RDFSClass
   */
-  async addSubClass(subClass: RDFSClass | string):Promise<RDFSClass> {
-    let uri:string = ''
+  async addSubClass(subClass: RDFSClass | LongURI):Promise<RDFSClass> {
+    let uri:LongURI = ''
     if (typeof subClass === "string") {
       uri = subClass
       this.service.insertTriple(uri, this.service.rdfsSubClassOf, this.uri)
@@ -652,8 +684,8 @@ export class RDFSClass extends OntologyItem {
    * @param superClass - The superclass that is to be related to the this class using rdfs:subClassOf
    * @returns the superclass as an RDFSClass
   */
-  async addSuperClass(superClass: RDFSClass | string):Promise<RDFSClass> {
-    let uri:string = ''
+  async addSuperClass(superClass: RDFSClass | LongURI):Promise<RDFSClass> {
+    let uri:LongURI = ''
     if (typeof superClass === "string") {
       uri = superClass
       this.service.insertTriple(this.uri, this.service.rdfsSubClassOf,uri)
@@ -668,7 +700,7 @@ export class RDFSClass extends OntologyItem {
 }
 
 export class RDFSDatatype extends RDFSClass {
-  public constructor(service: OntologyService, uri? : string, type: string=service.rdfsDatatype, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.rdfsDatatype, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
     super(service,uri,type,statement,superClass)
   }
 }
@@ -683,38 +715,38 @@ export class OWLClass extends RDFSClass {
    * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
    * @param superClass - if not being created from a query, a superclass can optionally be specified - i.e. the new class will be a subclass of the superclass
   */
-  public constructor(service: OntologyService, uri? : string, type: string=service.owlClass, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.owlClass, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
     super(service,uri,type,statement,superClass)     
   }
 
 }
 
 export class OntologyService extends RdfService {
-  telDiagram: string;
-  telUUID: string;
-  telElementStyle: string;
-  telInDiagram: string;
-  telRepresents: string;
-  telBaseType: string;
-  telDiagramElement: string;
-  telDiagramRelationship: string;
-  telDiagramPropertyDefinition: string
-  telRouting:string
-  telDisplayAs:string
-  telSourceElem: string;
-  telTargetElem: string;
+  telDiagram: LongURI;
+  telUUID: LongURI;
+  telElementStyle: LongURI;
+  telInDiagram: LongURI;
+  telRepresents: LongURI;
+  telBaseType: LongURI;
+  telDiagramElement: LongURI;
+  telDiagramRelationship: LongURI;
+  telDiagramPropertyDefinition: LongURI
+  telRouting:LongURI
+  telDisplayAs:LongURI
+  telSourceElem: LongURI;
+  telTargetElem: LongURI;
 
-  rdfsClass: string;
-  rdfsDatatype: string;
-  rdfsSubClassOf: string;
-  rdfsDomain: string;
-  rdfsRange: string;
-  rdfProperty: string;
-  rdfsSubPropertyOf: string;
-  owlClass: string;
-  owlDatatypeProperty: string;
-  owlObjectProperty: string;
-  telicentStyle: string;
+  rdfsClass: LongURI;
+  rdfsDatatype: LongURI;
+  rdfsSubClassOf: LongURI;
+  rdfsDomain: LongURI;
+  rdfsRange: LongURI;
+  rdfProperty: LongURI;
+  rdfsSubPropertyOf: LongURI;
+  owlClass: LongURI;
+  owlDatatypeProperty: LongURI;
+  owlObjectProperty: LongURI;
+  telicentStyle: LongURI;
 
   /**
    * @method constructor
@@ -763,8 +795,8 @@ export class OntologyService extends RdfService {
   }
 
 
-  processObjectLink(input:StringsDict,predicate:string,output:RDFSResource[],defaultCls = RDFSResource) {
-    Object.keys(input).forEach((obj:string) => {
+  processObjectLink(input:StringsDict,predicate:LongURI,output:RDFSResource[],defaultCls = RDFSResource) {
+    Object.keys(input).forEach((obj:LongURI) => {
       const statement:TypedNodeQuerySolution = {uri:{value:obj,type:"uri"},_type:{value:input[obj].join(" "),type:"uri"}}
       let cls = this.lookupClass(input[obj][0],defaultCls)
       const newItem = new cls(this,undefined,undefined,statement)
@@ -772,7 +804,7 @@ export class OntologyService extends RdfService {
     });
   }
 
-  wrapClasses(results:QueryResponse<TypedNodeQuerySolution>,exclude?:string) {
+  wrapClasses(results:QueryResponse<TypedNodeQuerySolution>,exclude?:LongURI) {
     const clss:RDFSClass[] = []
     let cls = RDFSClass
     results.results.bindings.forEach((statement:TypedNodeQuerySolution) => {
@@ -913,7 +945,7 @@ export class OntologyService extends RdfService {
    * @param classes - An array of URIs (strings) of the classes whose styles are required
    * @returns a dictionary keyed by the class URIs, with the values being style objects
   */
-  async getStyles(classes: string[] = []):Promise<AppliedStyle[]> {
+  async getStyles(classes: LongURI[] = []):Promise<AppliedStyle[]> {
     let filter = ""
 
     if (classes.length > 0) {
@@ -941,7 +973,7 @@ export class OntologyService extends RdfService {
    * @param uri - The URI of the class that have the style assigned
    * @param styleObj - A style object for the class - call makeStyleObject to get one
   */
-  setStyle(uri: string, styleObj: Style) {
+  setStyle(uri: LongURI, styleObj: Style) {
     const styleStr = encodeURIComponent(JSON.stringify(styleObj))
     this.deleteRelationships(uri, this.telicentStyle)
     this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL")
@@ -980,7 +1012,7 @@ export class OntologyService extends RdfService {
    * @param   the uri of the diagram
    * @returns an object containing all the information about the diagram
   */
-  async getDiagram(uri: string) {
+  async getDiagram(uri: LongURI) {
 
     const query = `
         SELECT ?uri ?_type ?uuid ?title  WHERE {
