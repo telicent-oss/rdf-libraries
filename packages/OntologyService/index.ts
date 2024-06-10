@@ -231,6 +231,11 @@ abstract class OntologyItem extends RDFSResource {
     this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
   }
 
+  //dummy function to be overriden by subclasses
+  async describe():Promise<any> {
+    return undefined
+  }
+
   /**
    * @method getDiagrams 
    * @remarks
