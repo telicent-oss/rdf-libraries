@@ -161,11 +161,11 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       const entity = new RDFSClass(os2,"http://ies.data.gov.uk/ontology/ies4#Entity")
       //const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
       const desc = await entity.describe()
-      console.log(desc)
+      //console.log(desc)
       const diags = await entity.getDiagrams()
-      console.log(diags)
+      //console.log(diags)
       const phy = await os2.getClassHierarchy()
-
+      console.log(phy)
     }
 
     expect(g1_subs.includes(g11)).toBeTruthy();
