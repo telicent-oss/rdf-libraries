@@ -71,7 +71,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       );
       const h = await os2.getClassHierarchy();
       h.forEach((node) => {
-        node.subs.forEach((subNode) => {
+        node.children.forEach((subNode) => {
           if (subNode.item.uri == "http://www.w3.org/2000/01/rdf-schema#Literal") {
             console.log(subNode)
           }
