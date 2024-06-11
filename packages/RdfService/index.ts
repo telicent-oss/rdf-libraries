@@ -670,7 +670,7 @@ export class RdfService {
   constructor(triplestoreUri = "http://localhost:3030/", dataset = "ds", defaultNamespace = "http://telicent.io/data/", defaultSecurityLabel = "", write=false) {
     this.defaultSecurityLabel = defaultSecurityLabel
     this.dataset = dataset
-    this.triplestoreUri = triplestoreUri
+    this.triplestoreUri = `${triplestoreUri}${triplestoreUri.endsWith("/") ? "" : "/"}`
     this.queryEndpoint = this.triplestoreUri + dataset + "/query?query="
     this.updateEndpoint = this.triplestoreUri + dataset + "/update"
     this.#writeEnabled = write
