@@ -1125,4 +1125,8 @@ export class RdfService {
     return items.sort(this.compareScores)
   }
 
+  makeTypedStatement(uri:LongURI,_type:LongURI):TypedNodeQuerySolution {
+    return {uri:{value:uri,type:"URI"},_type:{value:_type,type:"URI"}}
+  }
+
 }

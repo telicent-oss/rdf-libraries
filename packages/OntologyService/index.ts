@@ -93,7 +93,16 @@ export interface DiagramQuerySolution extends TypedNodeQuerySolution {
 }
 
 export interface DiagramElementQuerySolution extends TypedNodeQuerySolution {
-  style: SPARQLResultBinding
+  style?: SPARQLResultBinding
+  baseType? : SPARQLResultBinding
+  element : SPARQLResultBinding
+}
+
+export interface DiagramRelationshipQuerySolution extends TypedNodeQuerySolution {
+  style?: SPARQLResultBinding
+  source: SPARQLResultBinding
+  target : SPARQLResultBinding
+  element : SPARQLResultBinding
 }
 
 export class Style  {
@@ -137,11 +146,11 @@ export class DiagramProperty extends DiagramElement {
   range?: DiagramElement
 }
 
-export class DiagramRelationship {
-  source?: LongURI
-  target?: LongURI
-  relationship?: LongURI
-  style?: Style
+export type DiagramRelationship = {
+  source: DiagramElement,
+  target: DiagramElement,
+  relationship: LongURI,
+  style: Object
 }
 
 
@@ -186,18 +195,70 @@ export class Diagram extends RDFSResource {
     this.addLiteral(this.service.telUUID,uuid,securityLabel,"xsd:string",true)
   }
 
+
   async getDiagramElements() : Promise<DiagramElement[]> {
-    const query = `SELECT `
+    const query = `SELECT ?uri ?_type ?style ?element ?baseType
+      WHERE {
+        BIND (<${this.service.telDiagramElement}> as ?_type) .
+        ?uri a ?_type .
+        ?uri <${this.service.telInDiagram}> <${this.uri}> .
+        ?uri <${this.service.telRepresents}> ?element .
+        OPTIONAL {?uri <${this.service.telBaseType}> ?baseType }
+        OPTIONAL {?uri <${this.service.telElementStyle}> ?style }
+      }`
     const spOut = await this.service.runQuery<DiagramElementQuerySolution>(query)
     const elems:DiagramElement[] = []
     spOut.results.bindings.forEach((statement:DiagramElementQuerySolution) => {
-     // const style:Style = JSON.parse(decodeURIComponent(statement.style.value))
-      elems.push(new DiagramElement(this.service,undefined,undefined,statement))
+      const elem:DiagramElement = new DiagramElement(this.service,undefined,undefined,statement)
+      if (statement.baseType) {
+        elem.baseType = statement.baseType.value
+      } else {
+        elem.baseType = this.service.rdfsResource
+      }
+      const cls = this.service.lookupClass(elem.baseType,this.service.rdfsResource)
+      if (statement.element.value in this.service.nodes) {
+        elem.element = this.service.nodes[statement.element.value]
+      } else {
+        elem.element = new cls(this.service,undefined,undefined,this.service.makeTypedStatement(statement.element.value,elem.baseType))
+      }
+      if (statement.style) {
+        elem.style = JSON.parse(decodeURIComponent(statement.style.value))
+      }
+      elems.push(elem)
     })
     return elems
   }
+/*
+  async getDiagramRelations() : Promise<DiagramRelationship[]> {
+    const query = `SELECT ?uri ?_type ?source ?target ?style ?rel 
+      WHERE {
+        BIND (<${this.service.telDiagramRelationship}> as ?_type) .
+        ?uri a ?_type .
+        ?uri <${this.service.telInDiagram}> <${this.uri}> .
+        ?uri <${this.service.telRepresents}> ?rel .
+        ?uri <${this.service.telSourceElem}> ?source
+        ?uri <${this.service.telTargetElem}> ?target
+        OPTIONAL {?uri <${this.service.telRelationshipStyle}> ?style }
+      }`
+    const spOut = await this.service.runQuery<DiagramRelationshipQuerySolution>(query)
+    const rels:DiagramElement[] = []
+    spOut.results.bindings.forEach((statement:DiagramElementQuerySolution) => {
+      const rel:DiagramRelationship = {source:statement.source.}
 
- // { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} }
+      const cls = this.service.lookupClass(rel.baseType,this.service.rdfsResource)
+      if (statement.element.value in this.service.nodes) {
+        rel.element = this.service.nodes[statement.element.value]
+      } else {
+        rel.element = new cls(this.service,undefined,undefined,this.service.makeTypedStatement(statement.element.value,rel.baseType))
+      }
+      if (statement.style) {
+        rel.style = JSON.parse(decodeURIComponent(statement.style.value))
+      }
+      rels.push(rel)
+    })
+    return rels
+  }
+*/
 
 }
 
@@ -513,7 +574,7 @@ export class RDFSClass extends OntologyItem {
 
   async describe():Promise<ClassDescription> {
     const rawDesc:ResourceDescription = await this.describeNode("http://telicent.io/ontology/inDiagram")
-    console.log(rawDesc)
+    //console.log(rawDesc)
     const out:ClassDescription = {style:undefined,labels:[],comments:[],isDomainFor:[],isRangeFor:[],diagramElements:[],superClasses:[],subClasses:[],inLinks:{},outLinks:{},literals:{}}
     Object.keys(rawDesc.literals).forEach((predicate:string) => {
       const lits:string[] = rawDesc.literals[predicate]
@@ -731,6 +792,7 @@ export class OntologyService extends RdfService {
   telDiagram: LongURI;
   telUUID: LongURI;
   telElementStyle: LongURI;
+  telRelationshipStyle: LongURI;
   telInDiagram: LongURI;
   telRepresents: LongURI;
   telBaseType: LongURI;
@@ -768,6 +830,7 @@ export class OntologyService extends RdfService {
     this.telDiagram = this.telicent + "Diagram"
     this.telUUID = this.telicent + "uuid"
     this.telElementStyle = this.telicent + "elementStyle"
+    this.telRelationshipStyle = this.telicent + "relationshipStyle"
     this.telInDiagram = this.telicent + "inDiagram"
     this.telRepresents = this.telicent + "represents"
     this.telBaseType = this.telicent + "baseType"
@@ -1095,7 +1158,7 @@ export class OntologyService extends RdfService {
           cls = this.lookupClass(types[0],defaultCls)
         }
         const item = new cls(this,undefined,undefined,statement)
-        const node:HierarchyNode = {item:item, id:item.uri, label:'', rdfsLabels:[],children:[],parents:[],style:undefined,expanded:false} 
+        const node:HierarchyNode = {item:item, id:statement.uri.value, label:'', rdfsLabels:[],children:[],parents:[],style:undefined,expanded:false} 
         if (statement.labels) {
           node.rdfsLabels = statement.labels.value.split("||")
         }
@@ -1123,7 +1186,7 @@ export class OntologyService extends RdfService {
           node.label = node.rdfsLabels[0]
         }
         else {
-          node.label = this.shorten(node.item.uri)
+          node.label = this.shorten(statement.uri.value)
         }
         if (statement.supers) {
           const supers:string[] = statement.supers.value.split(' ')

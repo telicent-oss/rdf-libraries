@@ -1,5 +1,5 @@
 
-import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style, QueryResponse, SPOQuerySolution } from "../index";
+import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style, QueryResponse, SPOQuerySolution, Diagram, DiagramElement } from "../index";
 
 const os = new OntologyService(
   "http://localhost:3030/",
@@ -9,7 +9,7 @@ const os = new OntologyService(
   true
 );
 
-const testFullOntology = false
+const testFullOntology = true
 
 const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
 const owlClass = "http://www.w3.org/2002/07/owl#Class";
@@ -73,7 +73,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       h.forEach((node) => {
         node.children.forEach((subNode) => {
           if (subNode.item.uri == "http://www.w3.org/2000/01/rdf-schema#Literal") {
-            console.log(subNode)
+            //console.log(subNode)
           }
         });
       })
@@ -135,7 +135,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       );
       const prop = new OWLObjectProperty(os2,"http://ies.data.gov.uk/ontology/ies4#isPartOf")
       const desc = await prop.describe()
-      console.log(desc)
+      //console.log(desc)
 
     }
   })
@@ -162,10 +162,13 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       //const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
       const desc = await entity.describe()
       //console.log(desc)
-      const diags = await entity.getDiagrams()
+      const diags:Diagram[] = await entity.getDiagrams()
+      const diag:Diagram = diags[0]
+      const elems = await diag.getDiagramElements()
+      console.log(elems[0])
       //console.log(diags)
       const phy = await os2.getClassHierarchy()
-      console.log(phy)
+      //console.log(phy)
     }
 
     expect(g1_subs.includes(g11)).toBeTruthy();
