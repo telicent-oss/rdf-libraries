@@ -162,10 +162,11 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       //const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
       const desc = await entity.describe()
       //console.log(desc)
-      const diags:Diagram[] = await entity.getDiagrams()
+      const diags:Diagram[] = await os2.getAllDiagrams()
+      console.log(diags)
       const diag:Diagram = diags[0]
       const elems = await diag.getDiagramElements()
-      console.log(elems[0])
+      //console.log(elems[0])
       //console.log(diags)
       const phy = await os2.getClassHierarchy()
       //console.log(phy)

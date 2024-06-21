@@ -174,7 +174,7 @@ export class Diagram extends RDFSResource {
         this.uuid = statement.uuid.value
       }
       if (statement.title) {
-        this.uuid = statement.title.value
+        this.title = statement.title.value
       }
     }  
     else {
@@ -1057,9 +1057,11 @@ export class OntologyService extends RdfService {
   async getAllDiagrams() {
     const query = `SELECT ?uri ?uuid ?title WHERE {
             ?uri a <${this.telDiagram}> . 
-            {?uri <${this.telUUID}> ?uuid} 
-            {?uri <${this.dcTitle}> ?title } 
+            OPTIONAL {?uri <${this.telUUID}> ?uuid} 
+            ?uri <${this.dcTitle}> ?title .
         }`
+
+    console.log(query)
     const spOut = await this.runQuery<DiagramQuerySolution>(query)
 
     const statements = spOut.results.bindings

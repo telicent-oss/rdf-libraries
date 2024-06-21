@@ -678,6 +678,7 @@ export class RdfService {
 
     // why is this in the constructor if it is static?
     this.dc = "http://purl.org/dc/elements/1.1/"
+    this.dct = "http://purl.org/dc/terms/"   //@Dave -  DC items  to move up to the RdfService class. Didn't want to go messing with your code though
     this.xsd = "http://www.w3.org/2001/XMLSchema#"
     this.rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"
     this.rdfs = "http://www.w3.org/2000/01/rdf-schema#"
@@ -690,7 +691,6 @@ export class RdfService {
     this.rdfsComment = `${this.rdfs}comment`
 
 
-    this.dct = "http://purl.org/dc/terms/"   //@Dave -  DC items  to move up to the RdfService class. Didn't want to go messing with your code though
     this.dcTitle = `${this.dct}title`
     this.dcCreated = `${this.dct}created`
     this.dcPublished = `${this.dct}published`
