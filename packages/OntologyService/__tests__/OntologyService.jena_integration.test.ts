@@ -9,7 +9,7 @@ const os = new OntologyService(
   true
 );
 
-const testFullOntology = true
+const testFullOntology = false
 
 const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
 const owlClass = "http://www.w3.org/2002/07/owl#Class";
@@ -163,10 +163,10 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       const desc = await entity.describe()
       //console.log(desc)
       const diags:Diagram[] = await os2.getAllDiagrams()
-      console.log(diags)
       const diag:Diagram = diags[0]
       const elems = await diag.getDiagramElements()
-      //console.log(elems[0])
+      const rels = await diag.getDiagramRelations()
+      console.log(rels)
       //console.log(diags)
       const phy = await os2.getClassHierarchy()
       //console.log(phy)

@@ -102,7 +102,7 @@ export interface DiagramRelationshipQuerySolution extends TypedNodeQuerySolution
   style?: SPARQLResultBinding
   source: SPARQLResultBinding
   target : SPARQLResultBinding
-  element : SPARQLResultBinding
+  rel : SPARQLResultBinding
 }
 
 export class Style  {
@@ -147,28 +147,23 @@ export class DiagramProperty extends DiagramElement {
 }
 
 export type DiagramRelationship = {
-  source: DiagramElement,
-  target: DiagramElement,
-  relationship: LongURI,
-  style: Object
+  uri: LongURI,
+  source?: DiagramElement,
+  target?: DiagramElement,
+  relationship?: LongURI,
+  style?: Object
 }
 
 
 export class Diagram extends RDFSResource {
   uuid: string
   title: string
-  diagramElements: DiagramElement[]
-  diagramProperties: DiagramProperty[]
-  diagramRelations: DiagramRelationship[]
   service: OntologyService
   public constructor(service: OntologyService, uri?:string, uuid?:string, title?:string, statement?:DiagramQuerySolution) {
     super(service,uri,service.telDiagram,statement)   
     this.service = service
     this.uuid = ""
     this.title = ""
-    this.diagramElements = []
-    this.diagramProperties = []
-    this.diagramRelations = []
     if (statement) {
       if (statement.uuid) {
         this.uuid = statement.uuid.value
@@ -228,7 +223,7 @@ export class Diagram extends RDFSResource {
     })
     return elems
   }
-/*
+
   async getDiagramRelations() : Promise<DiagramRelationship[]> {
     const query = `SELECT ?uri ?_type ?source ?target ?style ?rel 
       WHERE {
@@ -236,21 +231,27 @@ export class Diagram extends RDFSResource {
         ?uri a ?_type .
         ?uri <${this.service.telInDiagram}> <${this.uri}> .
         ?uri <${this.service.telRepresents}> ?rel .
-        ?uri <${this.service.telSourceElem}> ?source
-        ?uri <${this.service.telTargetElem}> ?target
+        ?uri <${this.service.telSourceElem}> ?source .
+        ?uri <${this.service.telTargetElem}> ?target .
         OPTIONAL {?uri <${this.service.telRelationshipStyle}> ?style }
       }`
-    const spOut = await this.service.runQuery<DiagramRelationshipQuerySolution>(query)
-    const rels:DiagramElement[] = []
-    spOut.results.bindings.forEach((statement:DiagramElementQuerySolution) => {
-      const rel:DiagramRelationship = {source:statement.source.}
 
-      const cls = this.service.lookupClass(rel.baseType,this.service.rdfsResource)
-      if (statement.element.value in this.service.nodes) {
-        rel.element = this.service.nodes[statement.element.value]
+    const spOut = await this.service.runQuery<DiagramRelationshipQuerySolution>(query)
+    const rels:DiagramRelationship[] = []
+    spOut.results.bindings.forEach((statement:DiagramRelationshipQuerySolution) => {
+      let rel:DiagramRelationship = {uri:statement.uri.value}
+      if (statement.source.value in this.service.nodes) {
+        rel.source = this.service.nodes[statement.source.value]
       } else {
-        rel.element = new cls(this.service,undefined,undefined,this.service.makeTypedStatement(statement.element.value,rel.baseType))
+        rel.source = new DiagramElement(this.service,undefined,undefined,this.service.makeTypedStatement(statement.source.value,this.service.telDiagramElement))
       }
+      if (statement.target.value in this.service.nodes) {
+        rel.target = this.service.nodes[statement.target.value]
+      } else {
+        rel.target = new DiagramElement(this.service,undefined,undefined,this.service.makeTypedStatement(statement.target.value,this.service.telDiagramElement))
+      }
+      rel.relationship = statement.rel.value 
+
       if (statement.style) {
         rel.style = JSON.parse(decodeURIComponent(statement.style.value))
       }
@@ -258,8 +259,6 @@ export class Diagram extends RDFSResource {
     })
     return rels
   }
-*/
-
 }
 
 abstract class OntologyItem extends RDFSResource {
