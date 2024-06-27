@@ -373,6 +373,7 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:description ?description} 
             } GROUP BY ?uri ?title ?published ?description ?_type
             `
+            console.info(`find`, query);
         let results = await this.runQuery<DcatResourceFindSolution>(query)
         return this.rankedWrap(results, matchingText)
     }

@@ -12,14 +12,12 @@ import {
   SERVICE_URI,
   CATALOG_URI,
   DataResourceSchema,
-  ResourceType,
   instanceFromResourceFactory,
   getAllResourceTriples,
   uiDataResourceFromInstance,
   typeStatementMatcherWithId,
   DCATResourceSchema,
 } from "./common";
-import { tryInstantiate } from "./tryInstantiate";
 import { printJSON } from "./utils/printJSON";
 import { tryCatch } from "./utils/tryCatch";
 
@@ -33,17 +31,6 @@ export const searchFactory = (service: CatalogService) => {
   return async function search(
     params: SearchParamsType
   ): Promise<Array<z.infer<typeof DataResourceSchema>>> {
-    // REQUIREMENT 7.2 Search by input text
-    // Ok. I'll simply implement the `CatalogService.find`
-    // THen if I get time I'll update find to work with DataSet and DataService
-    /**
-     * ```ts
-     * if (params.searchText) {
-     *   const cat = new DCATCatalog(service, catId)
-     *   return await cat.find().map(el => el.item);
-     */
-    // CONCLUSION ~1hr WITH LIMITATIONS: Does not work with DataSet and DataService
-
     if (params.dataResourceFilter === "all") {
       return Promise.all(
         (await getAllResourceTriples(service))
@@ -51,8 +38,6 @@ export const searchFactory = (service: CatalogService) => {
           .map(uiDataResourceFromInstance)
       );
     }
-
-    // REQUIREMENT 6.5 Search by dataResourceFilter: selected data-resources
     const id = params.dataResourceFilter;
     const resourceTriples = await getAllResourceTriples(service);
     const triple = resourceTriples.find(typeStatementMatcherWithId(id));
@@ -65,25 +50,29 @@ export const searchFactory = (service: CatalogService) => {
         `Expected to find id:${id} in ${printJSON(resourceTriples)}`
       );
     }
+
     if (type === CATALOG_URI) {
       const instance = new DCATCatalog(service, id);
+      if (params.searchText) {
+        // REQUIREMENT 7.2 Search by input text
+        const found = await service.find(
+          params.searchText,
+          undefined,
+          instance
+        );
+        const foundForUI = found
+          .map((el) => el.item)
+          .map(uiDataResourceFromInstance);
+          console.info(foundForUI.length);
+        return Promise.all(foundForUI);
+      }
+
+      // REQUIREMENT 6.5 Search by dataResourceFilter: selected data-resources
       const ownedInstances = await instance.getOwnedResources();
       const results = [instance, ...ownedInstances];
-      console.info(ownedInstances.length, id, ownedInstances, resourceTriples)
+      console.info(ownedInstances.length, id, ownedInstances, resourceTriples);
       return Promise.all(results.map(uiDataResourceFromInstance));
     }
-
-    /**
-     * ```ts
-     * const id = params.dataResourceFilter[0];
-     * const triples = lookup if not existing (inefficient but fine for demo)
-     * const type = triples.find(tripleWithId(id))
-     * tryInstantiate({ UriToClass, type: uri, service, id});
-     * ```
-     * CONCLUSION: ~1hr
-     */
-    //
-    //
 
     // REQUIREMENTS 8.1 Search by user-owned data-resources
     /**
