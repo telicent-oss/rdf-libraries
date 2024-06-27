@@ -12,8 +12,10 @@ export type SearchParamsType = z.infer<typeof SearchParamsSchema>;
 export interface Api {
     // TODO Fix unknown
     search: (params:SearchParamsType) => Promise<unknown>;
+    _service: CatalogService;
 }
 
 export const apiFactory = (service: CatalogService): Api => ({
-    search: searchFactory(service)
+    search: searchFactory(service),
+    _service: service,
 });

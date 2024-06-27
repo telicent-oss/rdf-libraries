@@ -8,6 +8,7 @@
     "dist"
   ],
   "module": "./dist/catalogservice.mjs",
+  "// TODO": "link directs to src",
   "exports": {
     ".": {
       "import": "./dist/catalogservice.mjs",

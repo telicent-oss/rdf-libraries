@@ -1,4 +1,5 @@
 export * from './schema';
+export * from './types';
 /*
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
@@ -152,8 +153,12 @@ export class RDFSResource {
         this.uri = uri
         if (uri in this.service.nodes) { //we've already created an object for this item
           const existingItem:RDFSResource = this.service.nodes[uri]
-          if (existingItem.constructor.name != this.constructor.name) {
-            throw Error(`Attempt to create a different type of object with uri ${uri}, existing: ${existingItem.constructor.name}, new: ${this.constructor.name}`)
+          // Comparing constructor names like so:
+          //      if (existingItem.constructor.name != this.constructor.name) {
+          // didn't work when code was minified - as the name of hte class was minified. 
+          // In JS, function are first class citizens. Classes are lipstick on a pig.
+          if (existingItem.constructor != this.constructor) {
+            throw Error(`Attempt to create a different type of object with uri ${uri}, existing: ${existingItem.constructor}, new: ${this.constructor}`)
           }
           if ((type) && !(existingItem.types.includes(type)) ){
             existingItem.types.push(type)
