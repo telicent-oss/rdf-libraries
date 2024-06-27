@@ -13,6 +13,11 @@
       "import": "./dist/rdfservice.mjs",
       "require": "./dist/rdfservice.umd.js",
       "types": "./dist/types.d.ts"
+    },
+    "./index": {
+      "import": "./dist/rdfservice.mjs",
+      "require": "./dist/rdfservice.umd.js",
+      "types": "./dist/types.d.ts"
     }
   },
   "types": "./dist/types.d.ts",

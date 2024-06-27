@@ -245,10 +245,14 @@ export class RDFProperty extends RDFSResource {
     const query = `SELECT ?uri ?_type WHERE {?uri rdfs:subPropertyOf${path} <${this.uri}> . ?uri a ?_type}`
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
     const props:RDFProperty[] = []
-    let cls = RDFProperty
     for (const statement of spOut.results.bindings) {
+      // TODO fix tyeps
+      let cls:typeof RDFProperty = RDFProperty;
       if (statement._type) {
-        cls = this.service.lookupClass(statement._type.value,RDFProperty)
+        cls = this.service.lookupClass(statement._type.value,RDFProperty) as unknown as typeof RDFProperty
+      }
+      if (!cls) {
+        throw new TypeError(`cls needs to be defined: ${cls}`)
       }
       const prop = new cls(this.service,undefined,undefined,statement)
       props.push(prop)
@@ -376,7 +380,8 @@ export class RDFSClass extends RDFSResource {
     let cls = RDFProperty
     for (const statement of spOut.results.bindings) {
       if (statement._type) {
-        cls = this.service.lookupClass(statement._type.value,RDFProperty)
+        // TODO fix types
+        cls = this.service.lookupClass(statement._type.value, RDFProperty) as unknown as typeof RDFProperty
       }
       const prop = new cls(this.service,undefined,undefined,statement)
       props.push(prop)
@@ -401,7 +406,8 @@ export class RDFSClass extends RDFSResource {
     let cls = RDFProperty
     for (const statement of spOut.results.bindings) {
       if (statement._type) {
-        cls = this.service.lookupClass(statement._type.value,RDFProperty)
+        // TODO fix types
+        cls = this.service.lookupClass(statement._type.value,RDFProperty) as unknown as typeof RDFProperty
       }
       const prop = new cls(this.service,undefined,undefined,statement)
       props.push(prop)
@@ -550,7 +556,7 @@ export class OntologyService extends RdfService {
         else 
         {
           if (statement._type) {
-            cls = this.lookupClass(statement._type.value,RDFSClass)
+            cls = this.lookupClass(statement._type.value,RDFSClass) as unknown as typeof RDFSClass
           }
           const rc = new cls(this,undefined,undefined,undefined,statement)
           clss.push(rc)
@@ -590,7 +596,7 @@ export class OntologyService extends RdfService {
     let cls = RDFProperty
     for (const statement of spOut.results.bindings) {
       if (statement._type) {
-        cls = this.lookupClass(statement._type.value,RDFProperty)
+        cls = this.lookupClass(statement._type.value,RDFProperty) as unknown as typeof RDFProperty
       }
       const prop = new cls(this,undefined,undefined,statement)
       props.push(prop)

@@ -21,7 +21,10 @@
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@telicent-oss/rdfservice": ["./packages/RdfService"],
+      "@telicent-oss/catalogservice": ["./packages/CatalogService"],
+    }
   },
   "exclude": [
     "node_modules",

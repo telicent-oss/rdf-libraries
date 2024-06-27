@@ -6,9 +6,10 @@
   */
 
 import { inherits } from "util";
-import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "../RdfService";
+import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/rdfservice/index";
 
-export { RDFSResource } from "../RdfService"
+export { RDFSResource } from "@telicent-oss/rdfservice/index"
+export * from "./setup"
 
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
     title: SPARQLResultBinding,
@@ -105,15 +106,28 @@ export class DCATDataService extends DCATResource {
 }
 
 export class DCATCatalog extends DCATDataset {
-    constructor(service: CatalogService, uri?: string, title?: string, published?: string, type: string = "http://www.w3.org/ns/dcat#Catalog", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
+    constructor(
+        service: CatalogService, 
+        uri?: string, 
+        title?: string, 
+        published?: string, 
+
+        type: string = "http://www.w3.org/ns/dcat#Catalog", 
+        catalog?:DCATCatalog, 
+        statement?: DcatResourceQuerySolution
+    ) {
         super(service, uri, title, published, type, catalog, statement)
-        if (catalog) {
+        // NOTE: catalog not called in test...perhaps service invokes with context of nodes?
+        if (catalog) { 
+            // TODO: Move async to load() fn 
+            // (or in a pinch, create property await (new DCATCatalog()).async)
             this.addOwnedCatalog(catalog)
         }
     }
 
     addOwnedCatalog(catalog:DCATCatalog) {
         if (catalog) {
+            // TODO return
             this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#catalog`,catalog.uri)
         }
     }
@@ -288,7 +302,7 @@ export class CatalogService extends RdfService {
         results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
             var cls = DCATResource
             if (statement._type) {
-                cls = this.lookupClass(statement._type.value, DCATResource)
+                cls = (this.lookupClass(statement._type.value, DCATResource) as unknown) as typeof DCATResource
             }
             var dcr = new cls(this, undefined, undefined, undefined, undefined, undefined, statement)
             resources.push(dcr)

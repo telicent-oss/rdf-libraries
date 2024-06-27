@@ -45,7 +45,7 @@ Some useful `nx` commands
 npx nx affected:build # build impacted packages
 npx nx affected:test # run tests on impacted packages
 npx nx affected:generate-docs # gen docs on impacted packages
-npx nx @telicent-oss/rdfservice:build # Build rdfservice package only
+# npx nx @telicent-oss/rdfservice:build # Build rdfservice package only
 npx nx @telicent-oss/ontologyservice:test  # Test ontologyservice package only
 npx nx run @telicent-oss/rdfservice:lint # Run "lint" from ./packages/rdfservice/package.json
 npx nx test @telicent-oss/ontologyservice --watch -t setStyles # flags work

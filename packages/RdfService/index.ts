@@ -1,5 +1,4 @@
-import { time } from "console"
-
+export * from './schema';
 /*
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
@@ -125,19 +124,24 @@ export type XsdDataType = "xsd:string" | //	Character strings (but not all Unico
 export class RDFSResource {
   uri: string;
   types: string[];
+  statement?: TypedNodeQuerySolution;
   protected service: RdfService;
+  // TODO makes args and option object
   public constructor(service: RdfService, uri? : string, type:string = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
     this.uri = ''
     this.types = []
     this.service = service
+    this.statement = statement
     if (statement) {
-      if (statement.uri.value in this.service.nodes) { //we've already created an object for this item
+      if (statement.uri.value in this.service.nodes) { // we've already created an object for this item
         const existingItem = this.service.nodes[statement.uri.value]
         if ((statement._type) && !(existingItem.types.includes(statement._type.value)) ){
           existingItem.types.push(statement._type.value)
         }
         return existingItem
-      } 
+      } else {
+        // TODO handle object not created
+      }
       this.uri = statement.uri.value
       if ((statement._type) && !(this.types.includes(statement._type.value))){
         this.types.push(statement._type.value)
@@ -224,6 +228,18 @@ export class RDFSResource {
   async setTitle(title:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(title)) throw new Error("invalid title string")
     this.addLiteral(this.service.dcTitle,title,securityLabel,xsdDatatype,deleteAllPrevious)
+  }
+  /**
+   * @method setDescription 
+   * @remarks
+   * Adds a dublin core description to a node
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description}
+   * @param {string} description - the description to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async setDescription(description:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+    if (isEmptyString(description)) throw new Error("invalid description string")
+    this.addLiteral(this.service.dcDescription,description,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -456,7 +472,27 @@ export class RDFSResource {
       console.warn(`More than one Dublin Core title tag on ${this.uri}`)
     } 
     return titles
-    
+   }
+
+     /**
+   * @method getDescription
+   * @remarks
+   * Simple function to get all dublin core descriptions
+   * There should only be one, but sometimes you get multiple with different lang strings
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description}
+   *
+   * @returns - an array of strings
+  */ 
+  async getDcDescription():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcDescription)
+    let descriptions:string[] = []
+    if (this.service.dcDescription in lits) {
+      descriptions = lits[this.service.dcDescription]
+    }
+    if (descriptions.length > 1) {
+      console.warn(`More than one Dublin Core description tag on ${this.uri}`)
+    } 
+    return descriptions
    }
 
   /**
@@ -534,10 +570,11 @@ export class RdfService {
 
   dct : string;
   dcTitle : string;
+  dcDescription : string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description
   dcCreated : string;
   dcPublished : string;
   classLookup: {
-    [key: string]: any;
+    [key: string]: unknown;
   };
   updateCount: number;
 
@@ -577,6 +614,7 @@ export class RdfService {
 
     this.dct = "http://purl.org/dc/terms/"   //@Dave -  DC items  to move up to the RdfService class. Didn't want to go messing with your code though
     this.dcTitle = `${this.dct}title`
+    this.dcDescription = `${this.dct}description`
     this.dcCreated = `${this.dct}created`
     this.dcPublished = `${this.dct}published`
     this.prefixDict = {}
@@ -605,7 +643,7 @@ export class RdfService {
     }
   } 
 
-  lookupClass(clsUri:string,defaultCls: any) {
+  lookupClass(clsUri:string,defaultCls: unknown) {
     if (this.classLookup[clsUri])
       return this.classLookup[clsUri]
     else {

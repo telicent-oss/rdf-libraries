@@ -13,6 +13,11 @@
       "import": "./dist/catalogservice.mjs",
       "require": "./dist/catalogservice.umd.js",
       "types": "./dist/types.d.ts"
+    },
+    "./index": {
+      "import": "./dist/catalogservice.mjs",
+      "require": "./dist/catalogservice.umd.js",
+      "types": "./dist/types.d.ts"
     }
   },
   "types": "./dist/types.d.ts",
@@ -32,7 +37,8 @@
     "registry": "https://www.npmjs.com/"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "*"
+    "@telicent-oss/rdfservice": "workspace:*",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",
