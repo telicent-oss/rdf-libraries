@@ -241,6 +241,7 @@ describe("CatalogService", () => {
     expect(cat.statement).toMatchInlineSnapshot(`undefined`);
     const d1 = new DCATDataset(cs, dataset1);
     const ds1 = new DCATDataService(cs, dataservice1);
+    // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
     const ownedResources = await cat.getOwnedResources();
     expect(ownedResources.length).toEqual(2);
     const objs: DCATResource[] = [];

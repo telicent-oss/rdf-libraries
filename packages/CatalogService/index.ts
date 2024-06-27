@@ -159,6 +159,8 @@ export class DCATCatalog extends DCATDataset {
     }
 
     async getOwnedResources(typeOfResource?:string) {
+        // REQUIREMENT 6.2 Search by dataResourceFilter: selected data-resources
+        // Hm. I don't _think_ I need to differentiate owned resources by type.
         return this.service.getAllDCATResources(typeOfResource,this.uri)
     }
 
@@ -282,6 +284,8 @@ export class CatalogService extends RdfService {
         } 
         let typeSelect = ''
         if (cls) {
+            // REQUIREMENT 6.3 Search by dataResourceFilter: selected data-resources
+            // Perfect. cls is optional.
             typeSelect = `BIND (<${cls}> as ?_type)`
         } else {
             typeSelect = 'FILTER (?_type IN (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, dcat:DatasetSeries))'
@@ -307,6 +311,8 @@ export class CatalogService extends RdfService {
             var dcr = new cls(this, undefined, undefined, undefined, undefined, undefined, statement)
             resources.push(dcr)
         })
+        // REQUIREMENT 6.4 Search by dataResourceFilter: selected data-resources
+        // I don't see any sort clause, but I assume the returned sort order will be sensible; Or can be made sensible.
         return resources
 
     }
@@ -341,6 +347,8 @@ export class CatalogService extends RdfService {
      * @param {Array} dcatTypes - OPTIONAL - the types of dcat items to search for - defaults to [dcat:Catalog, dcat:Dataset, dcat:DataService]
      * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
     */
+   // REQUIREMENT 7.1 Search by input text
+   // Code. Hm. This looks like it won't take search and dataresource owner....
     async find(matchingText: string, dcatTypes: string[] = [this.dcatCatalog, this.dcatDataService, this.dcatDataset], inCatalog: DCATCatalog): Promise<RankWrapper[]> {
         let typelist = '"' + dcatTypes.join('", "') + '"'
         let re = new RegExp(matchingText.toLowerCase(), "g")
