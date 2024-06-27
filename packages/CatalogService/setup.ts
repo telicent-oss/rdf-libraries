@@ -16,7 +16,7 @@ const MOCK_TEXT = {
     desc: `Cornwall Wind Detector data via JSON REST API. Real-time, API-token controlled access for environmental scientists and meteorologists.`,
   },
   dataset: {
-    title: `Q121 Reports`,
+    title: `Dataset: Q1 2021`,
     desc: `Q1 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development.`,
   }
 }

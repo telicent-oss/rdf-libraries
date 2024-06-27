@@ -11,11 +11,6 @@ import { HumanError } from "../../utils/HumanError";
 import { printJSON } from "./utils/printJSON";
 
 // START COPY telicent-data-catalogue-frontend
-export const SearchParamsSchema = z.object({
-  dataResourceFilter: z.union([z.literal("all"), z.string()]), // TODO Array
-  searchText: z.string(),
-});
-export type SearchParamsType = z.infer<typeof SearchParamsSchema>;
 // TODO name UIResource? UIDCATResource?
 export const DataResourceSchema = z.object({
   title: z.string(),
@@ -24,6 +19,15 @@ export const DataResourceSchema = z.object({
   type: z.enum(["Catalog", "DataService", "Dataset"]),
 });
 export type DataResourceType = z.infer<typeof DataResourceSchema>;
+
+export const DataResourceArraySchema = z.array(DataResourceSchema);
+export type DataResourceArrayType = z.infer<typeof DataResourceArraySchema>;
+
+export const SearchParamsSchema = z.object({
+  dataResourceFilters: z.array(z.union([z.literal("all"), z.string()])),
+  searchText: z.string(),
+});
+export type SearchParamsType = z.infer<typeof SearchParamsSchema>;
 
 const TreeViewBaseItemSchema: z.ZodSchema<{
   id: string;
@@ -206,3 +210,12 @@ export const uiDataResourceFromInstance =
       type: el.types[0].split("#")[1],
     });
   };
+
+
+  export const transformDataResourceFilters = (val:SearchParamsType['dataResourceFilters']) => {
+    // TODO! move Owned to its own field in url
+    const isOwned = val.includes('Owned');
+    const dataResourceFilter = val.filter(el => el !== 'Owned')?.[0];
+    return { isOwned, dataResourceFilter };
+
+  }

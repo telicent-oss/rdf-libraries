@@ -6,7 +6,6 @@ import {
   DCATDataset,
 } from "../../index";
 
-import { SearchParamsType } from "../DataCatalogueFrontend";
 import {
   DATASET_URI,
   SERVICE_URI,
@@ -17,6 +16,8 @@ import {
   uiDataResourceFromInstance,
   typeStatementMatcherWithId,
   DCATResourceSchema,
+  SearchParamsType,
+  transformDataResourceFilters,
 } from "./common";
 import { printJSON } from "./utils/printJSON";
 import { tryCatch } from "./utils/tryCatch";
@@ -31,14 +32,15 @@ export const searchFactory = (service: CatalogService) => {
   return async function search(
     params: SearchParamsType
   ): Promise<Array<z.infer<typeof DataResourceSchema>>> {
-    if (params.dataResourceFilter === "all") {
+    const { isOwned, dataResourceFilter } = transformDataResourceFilters(params.dataResourceFilters);
+    if (dataResourceFilter === "all") {
       return Promise.all(
         (await getAllResourceTriples(service))
           .map(instanceFromResourceFactory({ service, UriToClass }))
           .map(uiDataResourceFromInstance)
       );
     }
-    const id = params.dataResourceFilter;
+    const id = dataResourceFilter;
     const resourceTriples = await getAllResourceTriples(service);
     const triple = resourceTriples.find(typeStatementMatcherWithId(id));
     const type = tryCatch(
@@ -87,7 +89,7 @@ export const searchFactory = (service: CatalogService) => {
      *
      */
     throw Error(
-      `Only dataResourceFilter: "all" and type "Catalog" supported for now, instead got: "${params.dataResourceFilter}" `
+      `Only dataResourceFilter: "all" and type "Catalog" supported for now, instead got: "${dataResourceFilter}" `
     );
   };
 };
