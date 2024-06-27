@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RDFTripleSchema } from "@telicent-oss/rdfservice/index";
+import { RDFTripleSchema, RDFTripleType } from "@telicent-oss/rdfservice/index";
 import {
   CatalogService,
   DCATCatalog,
@@ -7,6 +7,8 @@ import {
   DCATDataService,
 } from "../../index";
 import { tryInstantiate } from "./tryInstantiate";
+import { HumanError } from "../../utils/HumanError";
+import { printJSON } from "./utils/printJSON";
 
 // START COPY telicent-data-catalogue-frontend
 export const SearchParamsSchema = z.object({
@@ -14,6 +16,7 @@ export const SearchParamsSchema = z.object({
   searchText: z.string(),
 });
 export type SearchParamsType = z.infer<typeof SearchParamsSchema>;
+// TODO name UIResource? UIDCATResource?
 export const DataResourceSchema = z.object({
   title: z.string(),
   id: z.string(),
@@ -64,7 +67,7 @@ export const DATASET_URI = "http://www.w3.org/ns/dcat#Dataset";
 export const SERVICE_URI = "http://www.w3.org/ns/dcat#DataService";
 export const CATALOG_URI = "http://www.w3.org/ns/dcat#Catalog";
 
-export const ResourceUriSchema = z.union([
+export const DCATResourceSchema = z.union([
   z.literal(DATASET_URI),
   z.literal(SERVICE_URI),
   z.literal(CATALOG_URI),
@@ -82,6 +85,21 @@ const UriToClass = {
   [CATALOG_URI]: DCATCatalog,
 };
 type UriToClassType = typeof UriToClass;
+
+/**
+ *
+ * @param entityUri
+ * @returns
+ */
+export const typeStatementMatcherWithId =
+  (id: string) =>
+  /**
+   *
+   * @param rdfTriple
+   * @returns
+   */
+  ({ s, p }: RDFTripleType) =>
+    s.value === id && p.value === RDF_TYPE_URI;
 
 export const createEntitySchema = (entityUri: RESOURCE_URI) =>
   RDFTripleSchema.refine(
@@ -127,13 +145,20 @@ export const instanceFromResourceFactory =
   (el: ResourceType) => {
     const { UriToClass, service } = options;
     const { s, p, o } = ResourceSchema.parse(el);
-    const uri = ResourceUriSchema.parse(el.o.value);
-    return tryInstantiate({
-      UriToClass,
-      type: uri,
-      service,
-      id: s.value,
-    });
+    try {
+      const uri = DCATResourceSchema.parse(el.o.value);
+      return tryInstantiate({
+        UriToClass,
+        type: uri,
+        service,
+        id: s.value,
+      });
+
+    } catch (err) {
+      throw err instanceof Error
+      ? new HumanError(`expected DCATResource in ${printJSON(el)}, ${err}`, err)
+      : err;
+    }
   };
 
 /**

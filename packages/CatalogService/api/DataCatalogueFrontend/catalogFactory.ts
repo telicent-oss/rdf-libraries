@@ -30,7 +30,6 @@ export const catalogFactory = (service: CatalogService) => {
         SELECT ?s ?p ?o 
         WHERE { ?s ?p ?o }
       `);
-    console.log("cf.res", res);
     const triples = RDFResponse.parse(res).results.bindings.map((el) =>
       RDFTripleSchema.parse(el)
     );
@@ -42,26 +41,11 @@ export const catalogFactory = (service: CatalogService) => {
     
     const RESOURCE = "http://www.w3.org/ns/dcat#resource";
     const CONNECTIONS_REVERSE = [RESOURCE];
-    console.log(
-      "cf.triples filtered",
-      triples.filter((e) =>
-        CONNECTIONS.some((el) => JSON.stringify(e).includes(el))
-      )
-    );
-
-
-    console.log(
-      "cf.triples",
-      JSON.stringify(triples, null, 2)
-    );
-
     const tree = transformRdfToTree({
       triples,
       edgePredicate: (triple) => CONNECTIONS.includes(triple.p.value),
       reverseEdgePredicate: (triple) => CONNECTIONS_REVERSE.includes(triple.p.value),
     });
-    console.log("cf.tree", tree);
-
     return [await enrichRdfTree({ tree, service, triples })];
   };
 };

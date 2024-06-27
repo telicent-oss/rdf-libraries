@@ -40,6 +40,8 @@ export class DCATResource extends RDFSResource {
      * @param {DCATCatalog} catalog - optional catalog this resource belongs to
     */
     service: CatalogService
+    // TODO remove
+    public workAsync: Promise<unknown>[] = [];
 
     constructor(service: CatalogService, uri?: string, title?: string, published: string = new Date().toISOString(), type: string = "http://www.w3.org/ns/dcat#Resource", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
         let cached = false
@@ -98,8 +100,9 @@ export class DCATDataset extends DCATResource {
 export class DCATDataService extends DCATResource {
     constructor(service: CatalogService, uri?: string, title?: string, published?: string, type: string = "http://www.w3.org/ns/dcat#DataService", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
         super(service, uri, title, published, type, catalog, statement)
+        
         if (catalog) {
-            this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#service`,this.uri)
+            this.workAsync.push(this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#service`,this.uri))
         }
     }
 
@@ -128,17 +131,17 @@ export class DCATCatalog extends DCATDataset {
     addOwnedCatalog(catalog:DCATCatalog) {
         if (catalog) {
             // TODO return
-            this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#catalog`,catalog.uri)
+            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#catalog`,catalog.uri))
         }
     }
     addOwnedDataset(dataset:DCATDataset) {
         if (dataset) {
-            this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#dataset`,dataset.uri)
+            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#dataset`,dataset.uri))
         }
     }
     addOwnedService(service:DCATDataService) {
         if (service) {
-            this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#service`,service.uri)
+            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#service`,service.uri))
         }
     }
 
@@ -154,7 +157,7 @@ export class DCATCatalog extends DCATDataset {
                 this.addOwnedService(resource as DCATDataService)
                 break;
             default:
-                this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#resource`,this.uri)
+                this.workAsync.push(this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#resource`,this.uri))
         }
     }
 
@@ -301,7 +304,7 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:published ?published} 
                 OPTIONAL {?uri dct:description ?description} 
             }`
-
+        console.info(`getAllDCATResources`, query);
         let results = await this.runQuery<DcatResourceQuerySolution>(query)
         results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
             var cls = DCATResource

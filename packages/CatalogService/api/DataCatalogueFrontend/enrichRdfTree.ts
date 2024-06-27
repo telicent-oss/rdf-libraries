@@ -1,6 +1,6 @@
 import { RDFTripleType } from "@telicent-oss/rdfservice/index";
 import { DCATDataset, DCATDataService, DCATCatalog } from "../../index";
-import { DATASET_URI, SERVICE_URI, CATALOG_URI, RDF_TYPE_URI, ResourceUriSchema, TreeViewBaseItemType } from "./common";
+import { DATASET_URI, SERVICE_URI, CATALOG_URI, RDF_TYPE_URI, DCATResourceSchema, TreeViewBaseItemType } from "./common";
 import { CatalogService } from "../../index";
 import { tryInstantiate } from "./tryInstantiate";
 
@@ -26,7 +26,7 @@ export const enrichRdfTree = async (
       UriToClass,
       service: options.service,
       id: leaf.id,
-      type: ResourceUriSchema
+      type: DCATResourceSchema
         .parse(
           options
           .triples

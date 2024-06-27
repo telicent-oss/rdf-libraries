@@ -7,8 +7,6 @@ import {
 } from "../index";
 import { makeStatic } from "./makeStatic";
 
-
-
 const cs = new CatalogService(
   "http://localhost:3030/",
   "catalog",
@@ -33,18 +31,13 @@ function delays(ms: number) {
 describe("CatalogService", () => {
   beforeAll(async () => {
     await cs.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
-    await delays(1000);
     // TODO hm, nice to have easy way to access sparql log from Service
     // const log = cs.getSparqlLog();
     // new DCATCatalog(...)
     // expectDiff(log, cs.getSparqlLog()).toMatchInlineSnapshot()
 
-    const cat = new DCATCatalog(
-      cs,
-      cat1,
-      "Catalog One",
-      "2022-01-01"
-    );
+    const cat = new DCATCatalog(cs, cat1, "Catalog One", "2022-01-01");
+    await Promise.all(cat.workAsync);
     const d1 = new DCATDataset(
       cs,
       dataset1,
@@ -53,6 +46,7 @@ describe("CatalogService", () => {
       undefined,
       cat
     );
+    await Promise.all(d1.workAsync);
     const ds1 = new DCATDataService(
       cs,
       dataservice1,
@@ -60,9 +54,10 @@ describe("CatalogService", () => {
       undefined,
       undefined
     );
-    ds1.setPublished("2022-01-03");
+    await Promise.all(ds1.workAsync);
+    await ds1.setPublished("2022-01-03");
     cat.addOwnedResource(ds1);
-    await delays(3000);
+    await Promise.all(cat.workAsync);
   });
 
   it("should be running properly and connected to a triplestore", async () => {
@@ -238,11 +233,20 @@ describe("CatalogService", () => {
 
   it("Should find catalog-owned items", async () => {
     const cat = new DCATCatalog(cs, cat1);
+    await Promise.all(cat.workAsync); // TODO remove; Just paranoid
     expect(cat.statement).toMatchInlineSnapshot(`undefined`);
     const d1 = new DCATDataset(cs, dataset1);
+    await Promise.all(d1.workAsync); // TODO remove; Just paranoid
     const ds1 = new DCATDataService(cs, dataservice1);
+    await Promise.all(ds1.workAsync); // TODO remove; Just paranoid
     // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
     const ownedResources = await cat.getOwnedResources();
+    expect(ownedResources.map((el) => el.uri)).toMatchInlineSnapshot(`
+      [
+        "http://telicent.io/data/dataset1",
+        "http://telicent.io/data/dataservice1",
+      ]
+    `);
     expect(ownedResources.length).toEqual(2);
     const objs: DCATResource[] = [];
     for (const key in ownedResources) {

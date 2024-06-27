@@ -27,18 +27,15 @@ export const setup = async ({
   const dataset1 = `${testDefaultNamespace}dataset1`;
   const dataservice1 = `${testDefaultNamespace}dataservice1`;
 
-  function delays(waitMs: number) {
-    return new Promise((resolve) => setTimeout(resolve, waitMs));
-  }
+  
   await catalogService.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
-  await delays(1000);
-
   const cat = new DCATCatalog(
     catalogService,
     cat1,
     "Catalog One",
     "2022-01-01"
   );
+  await Promise.all(cat.workAsync);
   const d1 = new DCATDataset(
     catalogService,
     dataset1,
@@ -47,6 +44,7 @@ export const setup = async ({
     undefined,
     cat
   );
+  await Promise.all(d1.workAsync);
   const ds1 = new DCATDataService(
     catalogService,
     dataservice1,
@@ -54,9 +52,10 @@ export const setup = async ({
     undefined,
     undefined
   );
-  ds1.setPublished("2022-01-03");
+  await Promise.all(ds1.workAsync);
+  await ds1.setPublished("2022-01-03");
   cat.addOwnedResource(ds1);
-  await delays(3000);
+  await Promise.all(cat.workAsync);
   await catalogService.checkTripleStore();
   return apiFactory(catalogService);
 };
