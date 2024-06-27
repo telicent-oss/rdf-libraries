@@ -18,25 +18,25 @@ export type DataResourceType = z.infer<typeof DataResourceSchema>;
 const TreeViewBaseItemSchema: z.ZodSchema<{
   id: string;
   label: string;
-  children?: Array<{
+  children: Array<{
     id: string;
     label: string;
-    children?: any[];
+    children: any[];
   }>;
 }> = z.lazy(() =>
   z.object({
     id: z.string(),
     label: z.string(),
-    children: z.array(TreeViewBaseItemSchema).optional(),
+    children: z.array(TreeViewBaseItemSchema),
   })
 );
 
-export const TreeViewItemSchema = z.array(TreeViewBaseItemSchema);
-// TODO export type TreeViewItemType = z.infer<typeof TreeViewItemSchema>;
-export type TreeViewItemType = {
+export const TreeViewItemArraySchema = z.array(TreeViewBaseItemSchema);
+// TODO export type TreeViewBaseItemType = z.infer<typeof TreeViewItemArraySchema>;
+export type TreeViewBaseItemType = {
   id: string;
   label: string;
-  children?: TreeViewItemType[];
+  children: TreeViewBaseItemType[];
 };
 // END COPY
 

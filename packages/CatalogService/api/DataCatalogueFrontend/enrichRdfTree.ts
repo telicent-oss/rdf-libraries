@@ -1,17 +1,17 @@
 import { RDFTripleType } from "@telicent-oss/rdfservice/index";
 import { DCATDataset, DCATDataService, DCATCatalog } from "../../index";
-import { DATASET_URI, SERVICE_URI, CATALOG_URI, RDF_TYPE_URI, ResourceUriSchema, TreeViewItemType } from "./common";
+import { DATASET_URI, SERVICE_URI, CATALOG_URI, RDF_TYPE_URI, ResourceUriSchema, TreeViewBaseItemType } from "./common";
 import { CatalogService } from "../../index";
 import { tryInstantiate } from "./tryInstantiate";
 
-type Transform = (leaf:TreeViewItemType) => Promise<TreeViewItemType>;
+type Transform = (leaf:TreeViewBaseItemType) => Promise<TreeViewBaseItemType>;
 
 export const enrichRdfTree = async (
   options: {
-    tree: TreeViewItemType;
+    tree: TreeViewBaseItemType;
     service: CatalogService;
     triples: RDFTripleType[];
-  }): Promise<TreeViewItemType> => {
+  }): Promise<TreeViewBaseItemType> => {
 
   // TODO Can I move elsewhere
   const UriToClass = {
@@ -52,7 +52,7 @@ export const enrichRdfTree = async (
   }
   
   // Recursive function to traverse and transform each node
-  const traverseAndTransform = async (node: TreeViewItemType): Promise<TreeViewItemType> => {
+  const traverseAndTransform = async (node: TreeViewBaseItemType): Promise<TreeViewBaseItemType> => {
     // Apply work to the current node
     const transformedNode = await work(node);
 
