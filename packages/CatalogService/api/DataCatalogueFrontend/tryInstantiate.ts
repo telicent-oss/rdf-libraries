@@ -3,7 +3,7 @@ import {
   DCATDataService,
   DCATCatalog,
   CatalogService,
-} from "../../dist/types";
+} from "../../index";
 import { HumanError } from "../../utils/HumanError";
 import { DATASET_URI, SERVICE_URI, CATALOG_URI, RESOURCE_URI } from "./common";
 

@@ -1,5 +1,12 @@
 import { z } from "zod";
 import { RDFTripleSchema } from "@telicent-oss/rdfservice/index";
+import {
+  CatalogService,
+  DCATCatalog,
+  DCATDataset,
+  DCATDataService,
+} from "../../index";
+import { tryInstantiate } from "./tryInstantiate";
 
 // START COPY telicent-data-catalogue-frontend
 export const SearchParamsSchema = z.object({
@@ -68,6 +75,14 @@ export type RESOURCE_URI =
   | typeof SERVICE_URI
   | typeof CATALOG_URI;
 
+// TODO used for types only; Until work out odd minification behavior
+const UriToClass = {
+  [DATASET_URI]: DCATDataset,
+  [SERVICE_URI]: DCATDataService,
+  [CATALOG_URI]: DCATCatalog,
+};
+type UriToClassType = typeof UriToClass;
+
 export const createEntitySchema = (entityUri: RESOURCE_URI) =>
   RDFTripleSchema.refine(
     ({ o, p }) => o.value === entityUri && p.value === RDF_TYPE_URI,
@@ -90,3 +105,79 @@ export const ResourceSchema = z.union([
 
 export type ResourceType = z.infer<typeof ResourceSchema>;
 
+export const getAllResourceTriples = async (service: CatalogService) =>
+  RDFResponse.parse(
+    await service.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`)
+  )
+    .results.bindings.filter((el) => ResourceSchema.safeParse(el).success)
+    .map((el) => ResourceSchema.parse(el));
+
+/**
+ *
+ * @param options
+ * @returns
+ */
+export const instanceFromResourceFactory =
+  (options: { UriToClass: UriToClassType; service: CatalogService }) =>
+  /**
+   *
+   * @param el
+   * @returns
+   */
+  (el: ResourceType) => {
+    const { UriToClass, service } = options;
+    const { s, p, o } = ResourceSchema.parse(el);
+    const uri = ResourceUriSchema.parse(el.o.value);
+    return tryInstantiate({
+      UriToClass,
+      type: uri,
+      service,
+      id: s.value,
+    });
+  };
+
+/**
+ *
+ * @param options
+ * @returns
+ */
+export const uiDataResourceFromInstance =
+  /**
+   *
+   * @param el
+   * @returns
+   */
+  async (el: DCATDataset | DCATDataService | DCATCatalog) => {
+    // TODO More validation ceremony for (sometimes stricter) frontend v.s. RDF/schema specs
+    if (el.types.length !== 1) {
+      throw new TypeError(
+        `Expected types.length of ${el.uri} to be 1, instead got ${
+          el.types.length
+        }:${el.types.join(", ")})`
+      );
+    }
+    const dcTitle = await el.getDcTitle();
+    if (dcTitle.length > 1) {
+      console.warn(
+        `Data Catalogue frontend only supports 1 title, instead got ${
+          dcTitle.length
+        }: ${dcTitle.join(", ")}`
+      );
+    }
+
+    const dcDescription = await el.getDcDescription();
+    if (dcDescription.length > 1) {
+      console.warn(
+        `Data Catalogue frontend only supports 1 description, instead got ${
+          dcDescription.length
+        }: ${dcDescription.join(", ")}`
+      );
+    }
+    // TODO Likley convert #ids to lowercase for frontend (if uris are case insensitive either in spec or in reality)
+    return DataResourceSchema.parse({
+      id: el.uri,
+      title: dcTitle[0],
+      description: dcDescription[0] || "",
+      type: el.types[0].split("#")[1],
+    });
+  };
