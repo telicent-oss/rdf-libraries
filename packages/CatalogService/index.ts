@@ -376,7 +376,8 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:published ?published} 
                 OPTIONAL {?uri dct:description ?description} 
                 OPTIONAL {?uri dct:creator ?creator} 
-            } GROUP BY ?uri ?title ?published ?description ?creator ?_type
+                OPTIONAL {?uri dct:rights ?rights} 
+            } GROUP BY ?uri ?title ?published ?description ?creator ?rights ?_type
             `
             console.info(`find`, query);
         let results = await this.runQuery<DcatResourceFindSolution>(query)
