@@ -1,32 +1,27 @@
 import {
   CatalogService,
-  DCATCatalog,
-  DCATDataService,
-  DCATDataset,
 } from "../../index";
 import { transformRdfToTree } from "./transformRdfToTree";
 import { enrichRdfTree } from "./enrichRdfTree";
-import maybeTriples from "../../__tests__/transformRdfToTree.test.mock";
 import {
   DATASET_URI,
   SERVICE_URI,
   CATALOG_URI,
   TreeViewBaseItemType,
-  RDFResponse,
-  ResourceSchema,
   SearchParamsType,
   transformDataResourceFilters,
   getAllRDFTriples,
+  RESOURCE_URI,
 } from "./common";
 import { RDFTripleSchema } from "@telicent-oss/rdfservice/index";
 
 export const catalogFactory = (service: CatalogService) => {
   // TODO why must UriToClass be defined within searchFactory?
-  const UriToClass = {
-    [DATASET_URI]: DCATDataset,
-    [SERVICE_URI]: DCATDataService,
-    [CATALOG_URI]: DCATCatalog,
-  };
+  // const UriToClass = {
+  //   [DATASET_URI]: DCATDataset,
+  //   [SERVICE_URI]: DCATDataService,
+  //   [CATALOG_URI]: DCATCatalog,
+  // };
   // TODO!!! should really handle arrays of trees!!!
   return async function catalog(
     params: SearchParamsType
@@ -42,13 +37,8 @@ export const catalogFactory = (service: CatalogService) => {
       RDFTripleSchema.parse(el)
     );
 
-    const DATASET = "http://www.w3.org/ns/dcat#dataset";
-    const SERVICE = "http://www.w3.org/ns/dcat#service";
-    const CATALOG = "http://www.w3.org/ns/dcat#catalog";
-    const CONNECTIONS = [DATASET, SERVICE, CATALOG];
-
-    const RESOURCE = "http://www.w3.org/ns/dcat#resource";
-    const CONNECTIONS_REVERSE = [RESOURCE];
+    const CONNECTIONS = [DATASET_URI, SERVICE_URI, CATALOG_URI];    
+    const CONNECTIONS_REVERSE = [RESOURCE_URI];
     const tree = transformRdfToTree({
       triples,
       edgePredicate: (triple) => CONNECTIONS.includes(triple.p.value),

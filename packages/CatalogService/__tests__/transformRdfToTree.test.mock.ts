@@ -20,7 +20,7 @@ export default [
     },
     "p": {
       "type": "uri",
-      "value": "http://www.w3.org/ns/dcat#service", // cat -> service
+      "value": "http://www.w3.org/ns/dcat#Service", // cat -> service
     },
     "s": {
       "type": "uri",
@@ -62,7 +62,7 @@ export default [
     },
     "p": {
       "type": "uri",
-      "value": "http://www.w3.org/ns/dcat#dataset", // cat1 -> dataset1
+      "value": "http://www.w3.org/ns/dcat#Dataset", // cat1 -> dataset1
     },
     "s": {
       "type": "uri",

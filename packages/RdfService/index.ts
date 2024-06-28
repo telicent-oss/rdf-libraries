@@ -1,5 +1,7 @@
 export * from './schema';
 export * from './types';
+
+const DEVELOPMENT = false; // TODO! Read from config
 /*
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
@@ -875,7 +877,9 @@ export class RdfService {
       const sl = securityLabel ?? this.defaultSecurityLabel;
 
       if (isEmptyString(sl)) {
-        console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
+        if (!DEVELOPMENT)  {
+          // console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
+        }
       }
 
       const postObject = {

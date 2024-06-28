@@ -48,7 +48,7 @@ export default  [
     },
     "p": {
       "type": "uri",
-      "value": "http://www.w3.org/ns/dcat#dataset"
+      "value": "http://www.w3.org/ns/dcat#Dataset"
     },
     "s": {
       "type": "uri",
@@ -104,7 +104,7 @@ export default  [
     },
     "p": {
       "type": "uri",
-      "value": "http://www.w3.org/ns/dcat#resource"
+      "value": "http://www.w3.org/ns/dcat#Resource"
     },
     "s": {
       "type": "uri",

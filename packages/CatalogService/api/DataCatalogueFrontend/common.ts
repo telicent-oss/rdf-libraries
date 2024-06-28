@@ -73,6 +73,7 @@ export const RDF_TYPE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
 export const DATASET_URI = "http://www.w3.org/ns/dcat#Dataset";
 export const SERVICE_URI = "http://www.w3.org/ns/dcat#DataService";
 export const CATALOG_URI = "http://www.w3.org/ns/dcat#Catalog";
+export const RESOURCE_URI = "http://www.w3.org/ns/dcat#Resource";
 
 export const DCATResourceSchema = z.union([
   z.literal(DATASET_URI),
@@ -80,7 +81,7 @@ export const DCATResourceSchema = z.union([
   z.literal(CATALOG_URI),
 ]);
 
-export type RESOURCE_URI =
+export type RESOURCE_URI_TYPE =
   | typeof DATASET_URI
   | typeof SERVICE_URI
   | typeof CATALOG_URI;
@@ -108,7 +109,7 @@ export const typeStatementMatcherWithId =
   ({ s, p }: RDFTripleType) =>
     s.value === id && p.value === RDF_TYPE_URI;
 
-export const createEntitySchema = (entityUri: RESOURCE_URI) =>
+export const createEntitySchema = (entityUri: RESOURCE_URI_TYPE) =>
   RDFTripleSchema.refine(
     ({ o, p }) => o.value === entityUri && p.value === RDF_TYPE_URI,
     {
@@ -141,7 +142,10 @@ export const getAllRDFTriples = async (options: {
     await options.service.runQuery(`
       SELECT ?s ?p ?o
       WHERE {
-        ${options.hasAccess ? `?s dct:rights "${session.user.name}" .` : ""}
+        ${options.hasAccess 
+          // REQUIREMENTS 8.1 Search by user-owned data-resources
+          ? `?s dct:rights "${session.user.name}" .` 
+          : ""}
         ?s ?p ?o
       }`)
   );
@@ -153,8 +157,8 @@ export const getAllResourceTriples = async (options: {
   (await getAllRDFTriples(options)).results.bindings
     .filter(
       (el) =>
-        ResourceSchema.safeParse(el).success ||
-        console.log(`removing ${printJSON(el)}`)
+        ResourceSchema.safeParse(el).success 
+      // || console.log(`removing ${printJSON(el)}`)
     )
     .map((el) => ResourceSchema.parse(el));
 

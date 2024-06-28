@@ -1,3 +1,15 @@
 {
   "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "module": "ESNext", // Important for ESM support
+    "target": "ESNext", // Compile to a modern ECMAScript version
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "strict": true,
+    "skipLibCheck": true
+  },
+  "ts-node": {
+    "esm": true
+  }
 }

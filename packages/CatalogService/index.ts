@@ -84,30 +84,56 @@ export class DCATResource extends RDFSResource {
 
             this.setPublished(published)
             if ((catalog) && (type == "http://www.w3.org/ns/dcat#Resource")) {
-                this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#resource`,this.uri)
+                this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri)
             }
         }
     }
 }
 
 export class DCATDataset extends DCATResource {
-    constructor(service: CatalogService, uri?: string, title?: string, published?: string, type: string = "http://www.w3.org/ns/dcat#Dataset", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
-        super(service, uri, title, published, type, catalog, statement)
-        if (catalog) {
-            this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#dataset`,this.uri)
-        }
+  constructor(
+    service: CatalogService,
+    uri?: string,
+    title?: string,
+    published?: string,
+    type: string = "http://www.w3.org/ns/dcat#Dataset",
+    catalog?: DCATCatalog,
+    statement?: DcatResourceQuerySolution
+  ) {
+    super(service, uri, title, published, type, catalog, statement);
+    if (catalog) {
+      // TODO Hm....catalog.....................................
+      this.service.insertTriple(
+        catalog.uri,
+        `http://www.w3.org/ns/dcat#Dataset`,
+        this.uri
+      );
     }
-
+  }
 }
 export class DCATDataService extends DCATResource {
-    constructor(service: CatalogService, uri?: string, title?: string, published?: string, type: string = "http://www.w3.org/ns/dcat#DataService", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
-        super(service, uri, title, published, type, catalog, statement)
-        
-        if (catalog) {
-            this.workAsync.push(this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#service`,this.uri))
-        }
-    }
+  constructor(
+    service: CatalogService,
+    uri?: string,
+    title?: string,
+    published?: string,
+    type: string = "http://www.w3.org/ns/dcat#DataService",
+    catalog?: DCATCatalog,
+    statement?: DcatResourceQuerySolution
+  ) {
+    super(service, uri, title, published, type, catalog, statement);
 
+    if (catalog) {// TODO.................hmmmm......
+      this.workAsync.push(
+        this.service.insertTriple(
+          catalog.uri,
+        //   `http://www.w3.org/ns/dcat#Service`,
+          `http://www.w3.org/ns/dcat#DataService`,
+          this.uri
+        )
+      );
+    }
+  }
 }
 
 export class DCATCatalog extends DCATDataset {
@@ -133,17 +159,17 @@ export class DCATCatalog extends DCATDataset {
     addOwnedCatalog(catalog:DCATCatalog) {
         if (catalog) {
             // TODO return
-            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#catalog`,catalog.uri))
+            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Catalog`,catalog.uri))
         }
     }
     addOwnedDataset(dataset:DCATDataset) {
         if (dataset) {
-            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#dataset`,dataset.uri))
+            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Dataset`,dataset.uri))
         }
     }
     addOwnedService(service:DCATDataService) {
         if (service) {
-            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#service`,service.uri))
+            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#DataService`,service.uri))
         }
     }
 
@@ -159,7 +185,7 @@ export class DCATCatalog extends DCATDataset {
                 this.addOwnedService(resource as DCATDataService)
                 break;
             default:
-                this.workAsync.push(this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#resource`,this.uri))
+                this.workAsync.push(this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri))
         }
     }
 
@@ -187,6 +213,7 @@ export class CatalogService extends RdfService {
     dcatCatalog: string;
     dcatResource: string;
     dcatDataset: string;
+    // TODO hm, clue to dataset bug?
     dcat_dataset: string;
     dcatDataService: string;
     dcat_service: string;
@@ -206,7 +233,7 @@ export class CatalogService extends RdfService {
         this.dcatResource = `${this.dcat}Resource`
         this.dcatCatalog = `${this.dcat}Catalog`
         this.dcatDataset = `${this.dcat}Dataset`
-        this.dcat_dataset = `${this.dcat}dataset`
+        this.dcat_dataset = `${this.dcat}dataset` // TODO WARNING NOT Dataset
         this.dcatDataService = `${this.dcat}DataService`
         this.dcat_service = `${this.dcat}service`
 
@@ -279,7 +306,7 @@ export class CatalogService extends RdfService {
         let relFilter = ''
         if (!catalogRelation) {
             catalogRelation = '?catRel'
-            relFilter = 'FILTER (?catRel in (dcat:resource, dcat:dataset, dcat:service, dcat:catalog))'
+            relFilter = 'FILTER (?catRel in (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog))'
         }
         else {
             catalogRelation = `<${catalogRelation}>`

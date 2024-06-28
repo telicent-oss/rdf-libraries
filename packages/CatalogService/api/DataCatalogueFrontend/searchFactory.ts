@@ -21,6 +21,7 @@ import {
 } from "./common";
 import { printJSON } from "./utils/printJSON";
 import { tryCatch } from "./utils/tryCatch";
+import { tryInstantiate } from "./tryInstantiate";
 
 export const searchFactory = (service: CatalogService) => {
   // TODO why must UriToClass be defined within searchFactory?
@@ -32,65 +33,67 @@ export const searchFactory = (service: CatalogService) => {
   return async function search(
     params: SearchParamsType
   ): Promise<Array<z.infer<typeof DataResourceSchema>>> {
-    const { hasAccess, dataResourceFilter } = transformDataResourceFilters(params.dataResourceFilters);
+    const { hasAccess, dataResourceFilter } = transformDataResourceFilters(
+      params.dataResourceFilters
+    );
 
     if (dataResourceFilter === "all") {
-      return Promise.all(
+      // REQUIREMENT All
+      const result = Promise.all(
         (await getAllResourceTriples({ service, hasAccess }))
           .map(instanceFromResourceFactory({ service, UriToClass }))
           .map(uiDataResourceFromInstance)
       );
+      console.info(`REQUIREMENT All`);
+      return result; // 🛑 exit.....
     }
+
     const id = dataResourceFilter;
-    const resourceTriples = await getAllResourceTriples({ service });
+    const resourceTriples = await getAllResourceTriples({ service, hasAccess });
     const triple = resourceTriples.find(typeStatementMatcherWithId(id));
     const type = tryCatch(
       () => DCATResourceSchema.parse(triple?.o.value),
       ` id:${id} & type:(DCATResource) in ${printJSON(resourceTriples)}`
     );
     if (type === undefined) {
-      throw new Error(
-        `Expected to find id:${id} in ${printJSON(resourceTriples)}`
-      );
+      throw new Error(`Expected id:${id} in ${printJSON(resourceTriples)}`);
     }
 
     if (type === CATALOG_URI) {
+      // REQUIREMENT 6.5 Search by dataResourceFilter: selected data-resources
       const cat = new DCATCatalog(service, id);
+
       if (params.searchText) {
         // REQUIREMENT 7.2 Search by input text
-        const found = await service.find(
-          params.searchText,
-          undefined,
-          cat
-        );
+        const found = await service.find(params.searchText, undefined, cat);
         const foundForUI = found
           .map((el) => el.item)
           .map(uiDataResourceFromInstance);
-          console.info(foundForUI.length);
-        return Promise.all(foundForUI);
+        console.info(foundForUI.length);
+        console.info(`7.2 Search by input text`);
+        return Promise.all(foundForUI); // 🛑 exit.....
       }
 
-      // REQUIREMENT 6.5 Search by dataResourceFilter: selected data-resources
       const ownedInstances = await cat.getOwnedResources();
+      // TODO add owned
       const results = [cat, ...ownedInstances];
-      console.info(ownedInstances.length, id, ownedInstances, resourceTriples);
-      return Promise.all(results.map(uiDataResourceFromInstance));
+      console.info(`
+        Owner: ${id}
+        Owned: ${ownedInstances.length}
+        `);
+      console.info(
+        ` 6.5 Search by dataResourceFilter: selected data-resources`
+      );
+      return Promise.all(results.map(uiDataResourceFromInstance)); // 🛑 exit.....
     }
+    // TODO for now just return selected
+    const instance = await tryInstantiate({ UriToClass, type, id, service })
+    const ui = await uiDataResourceFromInstance(instance);
+    return [ui];
 
-    // REQUIREMENTS 8.1 Search by user-owned data-resources
-    /**
-     * Hm. doesn't exist.
-     * Fine.
-     * 1. add creator into each RDFService
-     * 2. In selectFactory & catalogFactory, update WHERE clauses to include creator (if it exists)
-     * ... That should be it, as the rest of my logic iterates off the output
-     *
-     * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/terms/creator/}
-     * CONCLUSION: ~2hrs
-     *
-     */
-    throw Error(
-      `Only dataResourceFilter: "all" and type "Catalog" supported for now, instead got: "${dataResourceFilter}" `
-    );
+
+    // throw Error(
+    //   `Only dataResourceFilter: "all" and type "Catalog" supported for now, instead got: "${dataResourceFilter}" `
+    // );
   };
 };

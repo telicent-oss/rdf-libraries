@@ -1,3 +1,4 @@
+import "jest-fetch-mock";
 import {
   CatalogService,
   DCATCatalog,
@@ -75,11 +76,11 @@ describe("CatalogService", () => {
           {
             "o": {
               "type": "uri",
-              "value": "http://www.w3.org/ns/dcat#Catalog",
+              "value": "http://telicent.io/data/dataset1",
             },
             "p": {
               "type": "uri",
-              "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+              "value": "http://www.w3.org/ns/dcat#Dataset",
             },
             "s": {
               "type": "uri",
@@ -93,7 +94,21 @@ describe("CatalogService", () => {
             },
             "p": {
               "type": "uri",
-              "value": "http://www.w3.org/ns/dcat#service",
+              "value": "http://www.w3.org/ns/dcat#DataService",
+            },
+            "s": {
+              "type": "uri",
+              "value": "http://telicent.io/data/cat1",
+            },
+          },
+          {
+            "o": {
+              "type": "uri",
+              "value": "http://www.w3.org/ns/dcat#Catalog",
+            },
+            "p": {
+              "type": "uri",
+              "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
             },
             "s": {
               "type": "uri",
@@ -122,20 +137,6 @@ describe("CatalogService", () => {
             "p": {
               "type": "uri",
               "value": "http://purl.org/dc/terms/published",
-            },
-            "s": {
-              "type": "uri",
-              "value": "http://telicent.io/data/cat1",
-            },
-          },
-          {
-            "o": {
-              "type": "uri",
-              "value": "http://telicent.io/data/dataset1",
-            },
-            "p": {
-              "type": "uri",
-              "value": "http://www.w3.org/ns/dcat#dataset",
             },
             "s": {
               "type": "uri",
@@ -235,12 +236,12 @@ describe("CatalogService", () => {
     const cat = new DCATCatalog(cs, cat1);
     await Promise.all(cat.workAsync); // TODO remove; Just paranoid
     expect(cat.statement).toMatchInlineSnapshot(`undefined`);
+    // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
+    const ownedResources = await cat.getOwnedResources();
     const d1 = new DCATDataset(cs, dataset1);
     await Promise.all(d1.workAsync); // TODO remove; Just paranoid
     const ds1 = new DCATDataService(cs, dataservice1);
     await Promise.all(ds1.workAsync); // TODO remove; Just paranoid
-    // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
-    const ownedResources = await cat.getOwnedResources();
     expect(ownedResources.map((el) => el.uri)).toMatchInlineSnapshot(`
       [
         "http://telicent.io/data/dataset1",

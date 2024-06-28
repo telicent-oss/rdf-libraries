@@ -5,7 +5,7 @@ import {
   CatalogService,
 } from "../../index";
 import { HumanError } from "../../utils/HumanError";
-import { DATASET_URI, SERVICE_URI, CATALOG_URI, RESOURCE_URI } from "./common";
+import { DATASET_URI, SERVICE_URI, CATALOG_URI, RESOURCE_URI_TYPE } from "./common";
 
 export const tryInstantiate = ({
   UriToClass,
@@ -18,7 +18,7 @@ export const tryInstantiate = ({
     [SERVICE_URI]: typeof DCATDataService;
     [CATALOG_URI]: typeof DCATCatalog;
   };
-  type: RESOURCE_URI;
+  type: RESOURCE_URI_TYPE;
   id: string;
   service: CatalogService;
 }) => {
