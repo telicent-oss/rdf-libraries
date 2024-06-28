@@ -248,6 +248,31 @@ export class RDFSResource {
   }
 
   /**
+   * @method setCreator 
+   * @remarks
+   * Adds a dublin core creator to a node
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/creator}
+   * @param {string} creator - the creator to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async setCreator(creator:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+    if (isEmptyString(creator)) throw new Error("invalid creator string")
+    this.addLiteral(this.service.dcCreator,creator,securityLabel,xsdDatatype,deleteAllPrevious)
+  }
+  /**
+   * @method setRights 
+   * @remarks
+   * Adds a dublin core rights to a node
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/rights}
+   * @param {string} rights - the rights to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async setRights(rights:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+    if (isEmptyString(rights)) throw new Error("invalid rights string")
+    this.addLiteral(this.service.dcRights,rights,securityLabel,xsdDatatype,deleteAllPrevious)
+  }
+
+  /**
    * @method setPublished
    * @remarks
    * Adds a dublin core published to a node
@@ -479,7 +504,7 @@ export class RDFSResource {
     return titles
    }
 
-     /**
+  /**
    * @method getDescription
    * @remarks
    * Simple function to get all dublin core descriptions
@@ -498,6 +523,45 @@ export class RDFSResource {
       console.warn(`More than one Dublin Core description tag on ${this.uri}`)
     } 
     return descriptions
+   }
+
+  /**
+   * @method getRights
+   * @remarks
+   * Simple function to get all dublin core rights
+   * There should only be one, but sometimes you get multiple with different lang strings
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description}
+   *
+   * @returns - an array of strings
+  */ 
+  async getDcRights():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcRights)
+    let rights:string[] = []
+    if (this.service.dcRights in lits) {
+      rights = lits[this.service.dcRights]
+    }
+    return rights
+   }
+
+  /**
+   * @method getCreator
+   * @remarks
+   * Simple function to get all dublin core creators
+   * There should only be one, but sometimes you get multiple with different lang strings
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description}
+   *
+   * @returns - an array of strings
+  */ 
+  async getDcCreator():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcCreator)
+    let creators:string[] = []
+    if (this.service.dcCreator in lits) {
+      creators = lits[this.service.dcCreator]
+    }
+    if (creators.length > 1) {
+      console.warn(`More than one Dublin Core creator tag on ${this.uri}`)
+    } 
+    return creators
    }
 
   /**
@@ -576,6 +640,10 @@ export class RdfService {
   dct : string;
   dcTitle : string;
   dcDescription : string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description
+  // TODO QUESTION: Should these be dctCreator?. Feel like we need a value object { prefix: DublineCoreUri, id:  DublineCoreTerms} | { prefix, id }
+  dcCreator : string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/creator
+  // TODO! Perhaps misusing "rights" temporarily for demo
+  dcRights : string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/rights
   dcCreated : string;
   dcPublished : string;
   classLookup: {
@@ -620,6 +688,8 @@ export class RdfService {
     this.dct = "http://purl.org/dc/terms/"   //@Dave -  DC items  to move up to the RdfService class. Didn't want to go messing with your code though
     this.dcTitle = `${this.dct}title`
     this.dcDescription = `${this.dct}description`
+    this.dcCreator = `${this.dct}creator`
+    this.dcRights = `${this.dct}rights`
     this.dcCreated = `${this.dct}created`
     this.dcPublished = `${this.dct}published`
     this.prefixDict = {}

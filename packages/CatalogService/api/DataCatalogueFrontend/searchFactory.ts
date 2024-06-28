@@ -32,16 +32,17 @@ export const searchFactory = (service: CatalogService) => {
   return async function search(
     params: SearchParamsType
   ): Promise<Array<z.infer<typeof DataResourceSchema>>> {
-    const { isOwned, dataResourceFilter } = transformDataResourceFilters(params.dataResourceFilters);
+    const { hasAccess, dataResourceFilter } = transformDataResourceFilters(params.dataResourceFilters);
+
     if (dataResourceFilter === "all") {
       return Promise.all(
-        (await getAllResourceTriples(service))
+        (await getAllResourceTriples({ service, hasAccess }))
           .map(instanceFromResourceFactory({ service, UriToClass }))
           .map(uiDataResourceFromInstance)
       );
     }
     const id = dataResourceFilter;
-    const resourceTriples = await getAllResourceTriples(service);
+    const resourceTriples = await getAllResourceTriples({ service });
     const triple = resourceTriples.find(typeStatementMatcherWithId(id));
     const type = tryCatch(
       () => DCATResourceSchema.parse(triple?.o.value),
@@ -54,13 +55,13 @@ export const searchFactory = (service: CatalogService) => {
     }
 
     if (type === CATALOG_URI) {
-      const instance = new DCATCatalog(service, id);
+      const cat = new DCATCatalog(service, id);
       if (params.searchText) {
         // REQUIREMENT 7.2 Search by input text
         const found = await service.find(
           params.searchText,
           undefined,
-          instance
+          cat
         );
         const foundForUI = found
           .map((el) => el.item)
@@ -70,8 +71,8 @@ export const searchFactory = (service: CatalogService) => {
       }
 
       // REQUIREMENT 6.5 Search by dataResourceFilter: selected data-resources
-      const ownedInstances = await instance.getOwnedResources();
-      const results = [instance, ...ownedInstances];
+      const ownedInstances = await cat.getOwnedResources();
+      const results = [cat, ...ownedInstances];
       console.info(ownedInstances.length, id, ownedInstances, resourceTriples);
       return Promise.all(results.map(uiDataResourceFromInstance));
     }

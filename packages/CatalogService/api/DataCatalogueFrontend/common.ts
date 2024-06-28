@@ -16,6 +16,9 @@ export const DataResourceSchema = z.object({
   title: z.string(),
   id: z.string(),
   description: z.string(),
+  creator: z.string(),
+  userHasAccess: z.boolean(),
+  publishDate: z.string(),
   type: z.enum(["Catalog", "DataService", "Dataset"]),
 });
 export type DataResourceType = z.infer<typeof DataResourceSchema>;
@@ -127,11 +130,32 @@ export const ResourceSchema = z.union([
 
 export type ResourceType = z.infer<typeof ResourceSchema>;
 
-export const getAllResourceTriples = async (service: CatalogService) =>
+// TODO
+const session = { user: { name: "James Hardacre" } };
+
+export const getAllRDFTriples = async (options: {
+  service: CatalogService;
+  hasAccess?: boolean;
+}) =>
   RDFResponse.parse(
-    await service.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`)
-  )
-    .results.bindings.filter((el) => ResourceSchema.safeParse(el).success)
+    await options.service.runQuery(`
+      SELECT ?s ?p ?o
+      WHERE {
+        ${options.hasAccess ? `?s dct:rights "${session.user.name}" .` : ""}
+        ?s ?p ?o
+      }`)
+  );
+
+export const getAllResourceTriples = async (options: {
+  service: CatalogService;
+  hasAccess?: boolean;
+}) =>
+  (await getAllRDFTriples(options)).results.bindings
+    .filter(
+      (el) =>
+        ResourceSchema.safeParse(el).success ||
+        console.log(`removing ${printJSON(el)}`)
+    )
     .map((el) => ResourceSchema.parse(el));
 
 /**
@@ -157,11 +181,13 @@ export const instanceFromResourceFactory =
         service,
         id: s.value,
       });
-
     } catch (err) {
       throw err instanceof Error
-      ? new HumanError(`expected DCATResource in ${printJSON(el)}, ${err}`, err)
-      : err;
+        ? new HumanError(
+            `expected DCATResource in ${printJSON(el)}, ${err}`,
+            err
+          )
+        : err;
     }
   };
 
@@ -201,21 +227,40 @@ export const uiDataResourceFromInstance =
           dcDescription.length
         }: ${dcDescription.join(", ")}`
       );
+    
     }
+    const dcRights = (await el.getDcRights());
+    if (dcRights?.length) {
+      console.warn(
+        `Data Catalogue frontend expects dcRights to exit, instead got ${
+          dcRights
+        }`
+      );
+    }
+    const userHasAccess = dcRights.includes(session.user.name); // TODO mock
+
+    const dcCreator = await el.getDcCreator();
+    const dcPublished = await el.getDcPublished();
     // TODO Likley convert #ids to lowercase for frontend (if uris are case insensitive either in spec or in reality)
     return DataResourceSchema.parse({
       id: el.uri,
       title: dcTitle[0],
       description: dcDescription[0] || "",
+      creator: dcCreator[0] || "Standard McDefaultFace",
+      userHasAccess,
+      publishDate: dcPublished[0] || "-",
       type: el.types[0].split("#")[1],
     });
   };
 
-
-  export const transformDataResourceFilters = (val:SearchParamsType['dataResourceFilters']) => {
-    // TODO! move Owned to its own field in url
-    const isOwned = val.includes('Owned');
-    const dataResourceFilter = val.filter(el => el !== 'Owned')?.[0];
-    return { isOwned, dataResourceFilter };
-
-  }
+export const transformDataResourceFilters = (
+  val: SearchParamsType["dataResourceFilters"]
+) => {
+  // TODO sync with frontend (currently copied from frontend)
+  const OWNED_FACET = { id: "all-owned-datasets", label: "Owned" };
+  // TODO! move Owned to its own field in url
+  const hasAccess = val.includes(OWNED_FACET.label);
+  const dataResourceFilter = val.filter((el) => el !== OWNED_FACET.label)?.[0];
+  console.info("hasAccess", hasAccess);
+  return { hasAccess, dataResourceFilter };
+};

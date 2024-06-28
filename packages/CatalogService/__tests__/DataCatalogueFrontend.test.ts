@@ -11,7 +11,7 @@ describe("DataCatalogueFrontend", () => {
     expect(api.search).toBeDefined();
   });
   it("can search", async () => {
-    expect(await api.search({ dataResourceFilter: "all", searchText: "" }))
+    expect(await api.search({ dataResourceFilters: ["all"], searchText: "" }))
       .toMatchInlineSnapshot(`
       [
         {

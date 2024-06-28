@@ -14,6 +14,8 @@ export * from "./setup"
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
     title: SPARQLResultBinding,
     description?: SPARQLResultBinding,
+    creator?: SPARQLResultBinding,
+    rights?: SPARQLResultBinding, // TODO! Perhaps misusing "rights" temporarily for demo
     published?: SPARQLResultBinding,
 }
 
@@ -294,7 +296,7 @@ export class CatalogService extends RdfService {
             typeSelect = 'FILTER (?_type IN (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, dcat:DatasetSeries))'
         }
         let query = `
-            SELECT ?uri ?_type ?title ?published ?description
+            SELECT ?uri ?_type ?title ?published ?description ?creator ?rights
             WHERE {
                 ${catalogSelect}
                 ${typeSelect}
@@ -303,6 +305,8 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:title ?title} 
                 OPTIONAL {?uri dct:published ?published} 
                 OPTIONAL {?uri dct:description ?description} 
+                OPTIONAL {?uri dct:creator ?creator} 
+                OPTIONAL {?uri dct:rights ?rights} 
             }`
         console.info(`getAllDCATResources`, query);
         let results = await this.runQuery<DcatResourceQuerySolution>(query)
@@ -360,7 +364,7 @@ export class CatalogService extends RdfService {
             catalogMatch = `<${inCatalog.uri}> ?catRel ?uri .`
         }
         let query = `
-            SELECT ?uri ?title ?published ?description ?_type (group_concat(DISTINCT ?literal) as ?concatLit)
+            SELECT ?uri ?title ?published ?description ?creator ?rights ?_type (group_concat(DISTINCT ?literal) as ?concatLit)
             WHERE {
                 ?uri a ?_type .
                 ?uri ?pred ?literal .
@@ -371,7 +375,8 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:title ?title} 
                 OPTIONAL {?uri dct:published ?published} 
                 OPTIONAL {?uri dct:description ?description} 
-            } GROUP BY ?uri ?title ?published ?description ?_type
+                OPTIONAL {?uri dct:creator ?creator} 
+            } GROUP BY ?uri ?title ?published ?description ?creator ?_type
             `
             console.info(`find`, query);
         let results = await this.runQuery<DcatResourceFindSolution>(query)
