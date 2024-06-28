@@ -25,7 +25,7 @@ app.post('/search', async (req, res) => {
         const results = await api.search(req.body);
         res.json(results);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error' + error });
     }
 });
 
@@ -35,7 +35,7 @@ app.post('/catalog', async (req, res) => {
         const results = await api.catalog(req.body);
         res.json(results);
     } catch (error) {
-        res.status(500).json({ error: 'Internal Server Error' });
+        res.status(500).json({ error: 'Internal Server Error' + error });
     }
 });
 

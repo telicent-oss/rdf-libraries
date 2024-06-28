@@ -37,7 +37,7 @@ export const searchFactory = (service: CatalogService) => {
       params.dataResourceFilters
     );
 
-    if (dataResourceFilter === "all") {
+    if (dataResourceFilter === "all" || !dataResourceFilter) {
       // REQUIREMENT All
       const result = Promise.all(
         (await getAllResourceTriples({ service, hasAccess }))

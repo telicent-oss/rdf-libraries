@@ -15,23 +15,23 @@ export const MOCK = {
     description: `2020 Royal Engineers’ Cornwall focused data catalog. Includes real-time IoT telemetry and historical archives for environmental and technological research.`,
     creator: `Mario Giacomelli`,
     rights: `James Hardacre`,
-    published: `12/3/2020`,
+    published: `2020-3-12`,
   },
   dataservice1: {
     id: `${ns}dataservice1`,
     title: `Service: Wind Feed`,
     description: `Cornwall Wind Detector data via JSON REST API. Real-time, API-token controlled access for analysis by environmental scientists and meteorologists.`,
-    creator: `James Hardacre`,
+    creator: `Oleg Novak`,
     rights: `James Hardacre`,
-    published: `3/4/2023`,
+    published: `2023-2-3`,
   },
   dataset1: {
     id: `${ns}dataset1`,
     title: `Dataset: Q1 2021`,
     description: `Q1 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development.`,
     creator: `Kiki Sato`,
-    rights: `Kiki Sato`,
-    published: `3/4/2021`,
+    rights: `Damir Sato`,
+    published: `2021-4-5`,
   },
 };
 export const setup = async ({

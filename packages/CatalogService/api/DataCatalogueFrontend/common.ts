@@ -18,6 +18,7 @@ export const DataResourceSchema = z.object({
   description: z.string(),
   creator: z.string(),
   userHasAccess: z.boolean(),
+  owner: z.string(),
   publishDate: z.string(),
   type: z.enum(["Catalog", "DataService", "Dataset"]),
 });
@@ -234,9 +235,9 @@ export const uiDataResourceFromInstance =
     
     }
     const dcRights = (await el.getDcRights());
-    if (dcRights?.length) {
+    if (!dcRights?.length) {
       console.warn(
-        `Data Catalogue frontend expects dcRights to exit, instead got ${
+        `Data Catalogue frontend expects dcRights to exist, instead got ${
           dcRights
         }`
       );
@@ -252,6 +253,7 @@ export const uiDataResourceFromInstance =
       description: dcDescription[0] || "",
       creator: dcCreator[0] || "Standard McDefaultFace",
       userHasAccess,
+      owner: dcRights[0] || "-",
       publishDate: dcPublished[0] || "-",
       type: el.types[0].split("#")[1],
     });
