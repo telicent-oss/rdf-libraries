@@ -1,5 +1,5 @@
 
-import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style, QueryResponse, SPOQuerySolution, Diagram, DiagramElement } from "../index";
+import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style, QueryResponse, SPOQuerySolution, Diagram, DiagramElement, DiagramProperty } from "../index";
 
 const os = new OntologyService(
   "http://localhost:3030/",
@@ -8,8 +8,9 @@ const os = new OntologyService(
   undefined,
   true
 );
+os.setWarnings = false
 
-const testFullOntology = false
+const testFullOntology = true
 
 const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
 const owlClass = "http://www.w3.org/2002/07/owl#Class";
@@ -69,6 +70,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         undefined,
         false
       );
+      os2.setWarnings = false
       const h = await os2.getClassHierarchy();
       h.forEach((node) => {
         node.children.forEach((subNode) => {
@@ -133,10 +135,8 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         undefined,
         false
       );
+      os2.setWarnings = false
       const prop = new OWLObjectProperty(os2,"http://ies.data.gov.uk/ontology/ies4#isPartOf")
-      const desc = await prop.describe()
-      //console.log(desc)
-
     }
   })
 
@@ -158,18 +158,21 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         undefined,
         false
       );
+      os2.setWarnings = false
       const entity = new RDFSClass(os2,"http://ies.data.gov.uk/ontology/ies4#Entity")
       //const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
-      const desc = await entity.describe()
-      //console.log(desc)
+
       const diags:Diagram[] = await os2.getAllDiagrams()
       const diag:Diagram = diags[0]
       const elems = await diag.getDiagramElements()
+     // elems.forEach((elem:DiagramElement) => {
+     //   console.log(elem.uri, elem.types, elem.baseType, elem.constructor.name)
+    //  })
       const rels = await diag.getDiagramRelations()
-      console.log(rels)
-      //console.log(diags)
+
+
       const phy = await os2.getClassHierarchy()
-      //console.log(phy)
+
     }
 
     expect(g1_subs.includes(g11)).toBeTruthy();

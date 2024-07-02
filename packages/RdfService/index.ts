@@ -169,7 +169,6 @@ export class RDFSResource {
     this.service = service
     if (statement) {
       if (statement.uri.value in this.service.nodes) { //we've already created an object for this item
-        
         const existingItem = this.service.nodes[statement.uri.value]
         if (statement._type) {
           const newTypes = statement._type.value.split(' ')
@@ -621,6 +620,7 @@ export class RdfService {
     */
   defaultSecurityLabel: string;
   #writeEnabled: boolean;
+  showWarnings: boolean;
   dataset: string;
   triplestoreUri: string;
   queryEndpoint: string; // should these be made a private method?
@@ -675,6 +675,7 @@ export class RdfService {
     this.updateEndpoint = this.triplestoreUri + dataset + "/update"
     this.#writeEnabled = write
     this.updateCount = 0
+    this.showWarnings = true
 
     // why is this in the constructor if it is static?
     this.dc = "http://purl.org/dc/elements/1.1/"
@@ -720,8 +721,15 @@ export class RdfService {
     }
   }
 
+  public set setWarnings(sw: boolean) {
+    this.showWarnings = sw
+  }
+
   warn(warning:string) {
-   // console.warn(warning)
+    if (this.showWarnings) {
+      console.warn(warning)
+    }
+    
   }
 
   lookupClass(clsUri:LongURI,defaultCls: any) {

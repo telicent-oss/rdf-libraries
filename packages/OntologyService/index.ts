@@ -98,6 +98,11 @@ export interface DiagramElementQuerySolution extends TypedNodeQuerySolution {
   element : SPARQLResultBinding
 }
 
+export interface DiagramPropertyQuerySolution extends DiagramElementQuerySolution {
+  domain?: SPARQLResultBinding
+  range? : SPARQLResultBinding
+}
+
 export interface DiagramRelationshipQuerySolution extends TypedNodeQuerySolution {
   style?: SPARQLResultBinding
   source: SPARQLResultBinding
@@ -135,24 +140,7 @@ export class AppliedStyle {
   }
 }
 
-export class DiagramElement extends RDFSResource {
-  style?: Style
-  element?: RDFSResource
-  baseType?: LongURI
-}
 
-export class DiagramProperty extends DiagramElement {
-  domain?: DiagramElement
-  range?: DiagramElement
-}
-
-export type DiagramRelationship = {
-  uri: LongURI,
-  source?: DiagramElement,
-  target?: DiagramElement,
-  relationship?: LongURI,
-  style?: Object
-}
 
 
 export class Diagram extends RDFSResource {
@@ -194,17 +182,23 @@ export class Diagram extends RDFSResource {
   async getDiagramElements() : Promise<DiagramElement[]> {
     const query = `SELECT ?uri ?_type ?style ?element ?baseType
       WHERE {
-        BIND (<${this.service.telDiagramElement}> as ?_type) .
         ?uri a ?_type .
+        FILTER  (?_type IN (<${this.service.telDiagramElement}>,<${this.service.telDiagramPropertyDefinition}>))
         ?uri <${this.service.telInDiagram}> <${this.uri}> .
         ?uri <${this.service.telRepresents}> ?element .
         OPTIONAL {?uri <${this.service.telBaseType}> ?baseType }
         OPTIONAL {?uri <${this.service.telElementStyle}> ?style }
       }`
     const spOut = await this.service.runQuery<DiagramElementQuerySolution>(query)
+    
     const elems:DiagramElement[] = []
     spOut.results.bindings.forEach((statement:DiagramElementQuerySolution) => {
-      const elem:DiagramElement = new DiagramElement(this.service,undefined,undefined,statement)
+      let deClsUri = this.service.telDiagramElement
+      if (statement._type) {
+        deClsUri = statement._type.value
+      }
+      const deCls = this.service.lookupClass(deClsUri,this.service.telDiagramElement)
+      const elem = new deCls(this.service,undefined,undefined,statement)
       if (statement.baseType) {
         elem.baseType = statement.baseType.value
       } else {
@@ -224,6 +218,7 @@ export class Diagram extends RDFSResource {
     return elems
   }
 
+
   async getDiagramRelations() : Promise<DiagramRelationship[]> {
     const query = `SELECT ?uri ?_type ?source ?target ?style ?rel 
       WHERE {
@@ -239,14 +234,14 @@ export class Diagram extends RDFSResource {
     const spOut = await this.service.runQuery<DiagramRelationshipQuerySolution>(query)
     const rels:DiagramRelationship[] = []
     spOut.results.bindings.forEach((statement:DiagramRelationshipQuerySolution) => {
-      let rel:DiagramRelationship = {uri:statement.uri.value}
+      const rel:DiagramRelationship = {uri:statement.uri.value}
       if (statement.source.value in this.service.nodes) {
-        rel.source = this.service.nodes[statement.source.value]
+        rel.source = this.service.nodes[statement.source.value] as DiagramElement
       } else {
         rel.source = new DiagramElement(this.service,undefined,undefined,this.service.makeTypedStatement(statement.source.value,this.service.telDiagramElement))
       }
       if (statement.target.value in this.service.nodes) {
-        rel.target = this.service.nodes[statement.target.value]
+        rel.target = this.service.nodes[statement.target.value] as DiagramElement
       } else {
         rel.target = new DiagramElement(this.service,undefined,undefined,this.service.makeTypedStatement(statement.target.value,this.service.telDiagramElement))
       }
@@ -320,6 +315,34 @@ abstract class OntologyItem extends RDFSResource {
   }
 }
 
+export class DiagramElement extends OntologyItem {
+  style?: Style
+  element?: RDFSResource
+  baseType?: LongURI
+  service:OntologyService
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.telDiagramElement, statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)
+    this.service = service       
+  }
+}
+
+export class DiagramProperty extends DiagramElement {
+  domain?: DiagramElement
+  range?: DiagramElement
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.telDiagramPropertyDefinition, statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)
+    this.service = service   
+  }
+}
+
+export type DiagramRelationship = {
+  uri: LongURI,
+  source?: DiagramElement,
+  target?: DiagramElement,
+  relationship?: LongURI,
+  style?: Object
+}
+
 
 //A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
 export class RDFProperty extends OntologyItem {
@@ -335,7 +358,7 @@ export class RDFProperty extends OntologyItem {
   public constructor(service: OntologyService, uri? : LongURI, type: LongURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property", statement? : TypedNodeQuerySolution) {
     super(service,uri,type,statement)       
     this.service = service    
-   
+
   }
 
   async getNodes(nodeURIs:string[],optionalPredicates:string[]=[]):Promise<RDFSResource[]> {
@@ -573,7 +596,6 @@ export class RDFSClass extends OntologyItem {
 
   async describe():Promise<ClassDescription> {
     const rawDesc:ResourceDescription = await this.describeNode("http://telicent.io/ontology/inDiagram")
-    //console.log(rawDesc)
     const out:ClassDescription = {style:undefined,labels:[],comments:[],isDomainFor:[],isRangeFor:[],diagramElements:[],superClasses:[],subClasses:[],inLinks:{},outLinks:{},literals:{}}
     Object.keys(rawDesc.literals).forEach((predicate:string) => {
       const lits:string[] = rawDesc.literals[predicate]
@@ -740,8 +762,9 @@ export class RDFSClass extends OntologyItem {
       this.service.insertTriple(uri, this.service.rdfsSubClassOf, this.uri)
       return subClass
     }
-    
   }
+
+
 
   /**
    * @method addSuperClass
@@ -859,6 +882,7 @@ export class OntologyService extends RdfService {
     this.classLookup[this.rdfsDatatype] = RDFSDatatype
     this.classLookup[this.telDiagramElement] = DiagramElement
     this.classLookup[this.telDiagram] = Diagram
+    this.classLookup[this.telDiagramPropertyDefinition] = DiagramProperty
     this.addPrefix("owl:", this.owl)
   }
 
@@ -866,7 +890,7 @@ export class OntologyService extends RdfService {
   processObjectLink(input:StringsDict,predicate:LongURI,output:RDFSResource[],defaultCls = RDFSResource) {
     Object.keys(input).forEach((obj:LongURI) => {
       const statement:TypedNodeQuerySolution = {uri:{value:obj,type:"uri"},_type:{value:input[obj].join(" "),type:"uri"}}
-      let cls = this.lookupClass(input[obj][0],defaultCls)
+      const cls = this.lookupClass(input[obj][0],defaultCls)
       const newItem = new cls(this,undefined,undefined,statement)
       output.push(newItem)
     });
@@ -1059,14 +1083,9 @@ export class OntologyService extends RdfService {
             OPTIONAL {?uri <${this.telUUID}> ?uuid} 
             ?uri <${this.dcTitle}> ?title .
         }`
-
-    console.log(query)
     const spOut = await this.runQuery<DiagramQuerySolution>(query)
-
     const statements = spOut.results.bindings
-
     const diagrams:Diagram[] = []
-
     statements.forEach((statement:DiagramQuerySolution) => {
       const diag = new Diagram(this,undefined,undefined,undefined,statement)
       diagrams.push(diag)
