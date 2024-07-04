@@ -1,6 +1,6 @@
 {
   "name": "rdf-libraries",
-  "version": "0.0.8",
+  "version": "0.0.8-dev6",
   "description": "Simple client-side lib for working with ontologies",
   "scripts": {
     "preinstall": "node ./scripts/enforcePnpm.js",
