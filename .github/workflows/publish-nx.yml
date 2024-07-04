@@ -26,7 +26,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 9.1.0 # keep in sync with packageManager field in root package.json
       - run: pnpm install
       - run: pnpm nx run-many -t test,build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice 
       - run: cd ./packages/RdfService && npm publish --access public --provenance
