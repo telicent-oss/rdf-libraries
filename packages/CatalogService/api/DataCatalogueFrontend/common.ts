@@ -12,7 +12,7 @@ import { printJSON } from "./utils/printJSON";
 
 // START COPY telicent-data-catalogue-frontend
 // TODO name UIResource? UIDCATResource?
-export const DataResourceSchema = z.object({
+export const UIDataResourceSchema = z.object({
   title: z.string(),
   id: z.string(),
   description: z.string(),
@@ -22,18 +22,18 @@ export const DataResourceSchema = z.object({
   publishDate: z.string(),
   type: z.enum(["Catalog", "DataService", "Dataset"]),
 });
-export type DataResourceType = z.infer<typeof DataResourceSchema>;
+export type UIDataResourceType = z.infer<typeof UIDataResourceSchema>;
 
-export const DataResourceArraySchema = z.array(DataResourceSchema);
-export type DataResourceArrayType = z.infer<typeof DataResourceArraySchema>;
+export const UIDataResourceArraySchema = z.array(UIDataResourceSchema);
+export type UIDataResourceArrayType = z.infer<typeof UIDataResourceArraySchema>;
 
-export const SearchParamsSchema = z.object({
+export const UISearchParamsSchema = z.object({
   dataResourceFilters: z.array(z.union([z.literal("all"), z.string()])),
   searchText: z.string(),
 });
-export type SearchParamsType = z.infer<typeof SearchParamsSchema>;
+export type UISearchParamsType = z.infer<typeof UISearchParamsSchema>;
 
-const TreeViewBaseItemSchema: z.ZodSchema<{
+const UITreeViewBaseItemSchema: z.ZodSchema<{
   id: string;
   label: string;
   children: Array<{
@@ -45,16 +45,16 @@ const TreeViewBaseItemSchema: z.ZodSchema<{
   z.object({
     id: z.string(),
     label: z.string(),
-    children: z.array(TreeViewBaseItemSchema),
+    children: z.array(UITreeViewBaseItemSchema),
   })
 );
 
-export const TreeViewItemArraySchema = z.array(TreeViewBaseItemSchema);
-// TODO export type TreeViewBaseItemType = z.infer<typeof TreeViewItemArraySchema>;
-export type TreeViewBaseItemType = {
+export const UITreeViewItemArraySchema = z.array(UITreeViewBaseItemSchema);
+// TODO export type UITreeViewBaseItemType = z.infer<typeof UITreeViewItemArraySchema>;
+export type UITreeViewBaseItemType = {
   id: string;
   label: string;
-  children: TreeViewBaseItemType[];
+  children: UITreeViewBaseItemType[];
 };
 // END COPY
 
@@ -247,7 +247,7 @@ export const uiDataResourceFromInstance =
     const dcCreator = await el.getDcCreator();
     const dcPublished = await el.getDcPublished();
     // TODO Likley convert #ids to lowercase for frontend (if uris are case insensitive either in spec or in reality)
-    return DataResourceSchema.parse({
+    return UIDataResourceSchema.parse({
       id: el.uri,
       title: dcTitle[0],
       description: dcDescription[0] || "",
@@ -260,7 +260,7 @@ export const uiDataResourceFromInstance =
   };
 
 export const transformDataResourceFilters = (
-  val: SearchParamsType["dataResourceFilters"]
+  val: UISearchParamsType["dataResourceFilters"]
 ) => {
   // TODO sync with frontend (currently copied from frontend)
   const OWNED_FACET = { id: "all-owned-datasets", label: "Owned" };

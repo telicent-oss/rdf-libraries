@@ -1,5 +1,5 @@
 import { RDFTripleType } from "@telicent-oss/rdfservice/index";
-import { TreeViewBaseItemType } from "./common";
+import { UITreeViewBaseItemType } from "./common";
 
 type EdgePredicate = (triple: RDFTripleType) => boolean;
 
@@ -7,9 +7,9 @@ export const transformRdfToTree = (options: {
   triples: RDFTripleType[];
   edgePredicate: EdgePredicate;
   reverseEdgePredicate: EdgePredicate;
-}): TreeViewBaseItemType => {
+}): UITreeViewBaseItemType => {
   // Filter and map triples based on the edgePredicate
-  const childrenMap = new Map<string, TreeViewBaseItemType[]>();
+  const childrenMap = new Map<string, UITreeViewBaseItemType[]>();
   const objectIds = new Set<string>();
 
   options.triples.forEach(triple => {
@@ -18,7 +18,7 @@ export const transformRdfToTree = (options: {
       if (!childrenMap.has(triple.s.value)) {
         childrenMap.set(triple.s.value, []);
       }
-      const childNode: TreeViewBaseItemType = {
+      const childNode: UITreeViewBaseItemType = {
         id: triple.o.value,
         label: triple.o.value,
         children: []
@@ -32,7 +32,7 @@ export const transformRdfToTree = (options: {
       if (!childrenMap.has(triple.o.value)) {
         childrenMap.set(triple.o.value, []);
       }
-      const parentNode: TreeViewBaseItemType = {
+      const parentNode: UITreeViewBaseItemType = {
         id: triple.s.value,
         label: triple.s.value,
         children: []
@@ -46,7 +46,7 @@ export const transformRdfToTree = (options: {
   const rootNode = Array.from(childrenMap.keys()).find(key => !objectIds.has(key));
 
   // Build the tree recursively
-  function buildTree(nodeId: string): TreeViewBaseItemType {
+  function buildTree(nodeId: string): UITreeViewBaseItemType {
     const children = childrenMap.get(nodeId) || [];
     return {
       id: nodeId,

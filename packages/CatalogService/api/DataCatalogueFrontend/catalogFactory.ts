@@ -7,8 +7,8 @@ import {
   DATASET_URI,
   SERVICE_URI,
   CATALOG_URI,
-  TreeViewBaseItemType,
-  SearchParamsType,
+  UITreeViewBaseItemType,
+  UISearchParamsType,
   transformDataResourceFilters,
   getAllRDFTriples,
   RESOURCE_URI,
@@ -24,8 +24,8 @@ export const catalogFactory = (service: CatalogService) => {
   // };
   // TODO!!! should really handle arrays of trees!!!
   return async function catalog(
-    params: SearchParamsType
-  ): Promise<TreeViewBaseItemType[]> {
+    params: UISearchParamsType
+  ): Promise<UITreeViewBaseItemType[]> {
     const { hasAccess } = transformDataResourceFilters(
       params.dataResourceFilters
     );

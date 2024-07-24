@@ -2,13 +2,13 @@ import z from "zod";
 import { CatalogService, MOCK } from "../index";
 import { searchFactory } from "./DataCatalogueFrontend/searchFactory";
 import { catalogFactory } from "./DataCatalogueFrontend/catalogFactory";
-import { DataResourceSchema, SearchParamsType, TreeViewBaseItemType } from "./DataCatalogueFrontend/common";
+import { UIDataResourceSchema, UISearchParamsType, UITreeViewBaseItemType } from "./DataCatalogueFrontend/common";
 
 
 export interface Api {
     // TODO use types instead of infer
-    search: (params:SearchParamsType) => Promise<Array<z.infer<typeof DataResourceSchema>>>;
-    catalog: (params:SearchParamsType) => Promise<TreeViewBaseItemType[]>;
+    search: (params:UISearchParamsType) => Promise<Array<z.infer<typeof UIDataResourceSchema>>>;
+    catalog: (params:UISearchParamsType) => Promise<UITreeViewBaseItemType[]>;
     _service: CatalogService;
     _testData?: typeof MOCK;
 }

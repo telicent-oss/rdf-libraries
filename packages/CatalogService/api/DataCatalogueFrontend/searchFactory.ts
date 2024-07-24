@@ -10,13 +10,13 @@ import {
   DATASET_URI,
   SERVICE_URI,
   CATALOG_URI,
-  DataResourceSchema,
+  UIDataResourceSchema,
   instanceFromResourceFactory,
   getAllResourceTriples,
   uiDataResourceFromInstance,
   typeStatementMatcherWithId,
   DCATResourceSchema,
-  SearchParamsType,
+  UISearchParamsType,
   transformDataResourceFilters,
 } from "./common";
 import { printJSON } from "./utils/printJSON";
@@ -31,21 +31,22 @@ export const searchFactory = (service: CatalogService) => {
     [CATALOG_URI]: DCATCatalog,
   };
   return async function search(
-    params: SearchParamsType
-  ): Promise<Array<z.infer<typeof DataResourceSchema>>> {
+    params: UISearchParamsType
+  ): Promise<Array<z.infer<typeof UIDataResourceSchema>>> {
     const { hasAccess, dataResourceFilter } = transformDataResourceFilters(
       params.dataResourceFilters
     );
 
+
+    
     if (dataResourceFilter === "all" || !dataResourceFilter) {
       // REQUIREMENT All
-      const result = Promise.all(
-        (await getAllResourceTriples({ service, hasAccess }))
-          .map(instanceFromResourceFactory({ service, UriToClass }))
-          .map(uiDataResourceFromInstance)
-      );
-      console.info(`REQUIREMENT All`);
-      return result; // 🛑 exit.....
+      const resourceTriples = await getAllResourceTriples({ service, hasAccess });
+      const uiDataResource = resourceTriples
+        .map(instanceFromResourceFactory({ service, UriToClass }))
+        .map(uiDataResourceFromInstance)
+        console.info(`REQUIREMENT All`);
+      return Promise.all(uiDataResource); // 🛑 exit.....
     }
 
     const id = dataResourceFilter;
@@ -90,10 +91,5 @@ export const searchFactory = (service: CatalogService) => {
     const instance = await tryInstantiate({ UriToClass, type, id, service })
     const ui = await uiDataResourceFromInstance(instance);
     return [ui];
-
-
-    // throw Error(
-    //   `Only dataResourceFilter: "all" and type "Catalog" supported for now, instead got: "${dataResourceFilter}" `
-    // );
   };
 };
