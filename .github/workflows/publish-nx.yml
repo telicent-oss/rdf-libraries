@@ -24,16 +24,9 @@ jobs:
           scope: 'telicent-oss'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 9
-      - run: pnpm install
-      - run: pnpm nx run-many -t test,build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice 
-      - run: cd ./packages/RdfService && npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-      - run: cd ./packages/OntologyService && npm publish --access public --provenance
+      - name: Build and publish packages
+      # switch from projects to --all when ready
+      - run: npx nx run-many --target=build --with-deps --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice && npx nx run-many --target=publish --with-deps --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
