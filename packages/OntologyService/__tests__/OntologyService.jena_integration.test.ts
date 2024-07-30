@@ -66,7 +66,12 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     await p1.addSubProperty(p2)
     await p3.addSuperProperty(p2)
 
-  });
+  }, 60000);
+
+  afterAll(() => {
+    if (!fuseki) return
+    fuseki.stop()
+  })
 
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
     try {

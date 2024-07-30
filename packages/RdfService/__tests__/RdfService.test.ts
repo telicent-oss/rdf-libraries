@@ -69,6 +69,11 @@ describe("RdfService", () => {
     await g3.setPrefLabel("This is a preferred label on guid3");
     await g3.setAltLabel("This is an alt label on guid3");
     await g3.setAltLabel("This is another alt label on guid3");
+  }, 60000);
+
+  afterAll(() => {
+    if (!fuseki) return
+    fuseki.stop()
   });
 
   it("should be running properly and connected to a triplestore", async () => {
