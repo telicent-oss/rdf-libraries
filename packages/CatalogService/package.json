@@ -42,7 +42,7 @@
     "testing": "link:@nrwl/nx-plugin/testing",
     "ts-jest": "^29.1.1",
     "tsc": "^2.0.4",
-    "typedoc": "^0.25.3",
+    "typedoc": "^0.26.5",
     "typescript": "^5.2.2",
     "vite": "^4.5.2",
     "vite-plugin-dts": "^3.6.3",
