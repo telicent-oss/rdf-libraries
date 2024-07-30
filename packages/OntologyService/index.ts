@@ -5,221 +5,838 @@
   * @author Ian Bailey
   */
 
-import { z } from "zod"
-import RdfService, { DiagramListQuery, InheritedDomainQuery, SPARQL, StylesQuery, SuperClassQuery } from "@telicent-oss/rdfservice";
-import { StyleObject } from "./Types";
-import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
-import { PropertyDefinitionSchema } from "./PropertyDefinition";
-import { ElementDefinitionSchema } from "./ElementDefinition";
-import { buildStatementPartial } from "./helper";
+import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, SPOQuerySolution, ResourceDescription, StringsDict, LongURI, PrefixedURI } from "@telicent-oss/rdfservice";
 
-const NamedElements = z.record(ElementDefinitionSchema)
-const NamedClassDefinitions = z.record(ClassDefinitionSchema)
-const NamedPropertiesDefinitions = z.record(PropertyDefinitionSchema)
+export {RDFSResource, type QueryResponse, type TypedNodeQuerySolution, type SPOQuerySolution} from "@telicent-oss/rdfservice"
 
-// export type AllElements = NamedPropertiesDefinitions | NamedClassDefinitions | NamedElements;
-const AllElements = z.union([
-  NamedPropertiesDefinitions,
-  NamedClassDefinitions,
-  NamedElements
-])
 
-export type AllElements = z.infer<typeof AllElements>
-
-const ontologyOutput = z.object({
-  allElements: AllElements,
-  properties: NamedPropertiesDefinitions,
-  classes: NamedClassDefinitions
-})
-
-export type OntologyOutput = z.infer<typeof ontologyOutput>
-
-const DiagramRelationship = z.object({
-  source: z.string(),
-  target: z.string(),
-  relationship: z.string()
-});
-
-export type DiagramRelationship = z.infer<typeof DiagramRelationship>;
-
-export interface NamedDiagramRelationship {
-  [subject: string]: DiagramRelationship
+export type ResourceDict = {
+  [key: LongURI]: RDFSResource[];
 }
 
-const DiagramElement = z.object({
-  style: StyleObject,
-  element: z.string(),
-  baseType: z.string()
-});
-
-export type DiagramElement = z.infer<typeof DiagramElement>;
-
-export interface NamedDiagramElement {
-  [subject: string]: DiagramElement;
+export type ClassDescription = {
+  style?: Style,
+  labels:string[],
+  comments:string[],
+  isDomainFor:RDFSClass[],
+  isRangeFor:RDFSClass[],
+  outLinks: ResourceDict,
+  literals: StringsDict,
+  inLinks: ResourceDict,
+  diagramElements:DiagramElement[],
+  superClasses:RDFSClass[],
+  subClasses:RDFSClass[],
 }
 
-const Diagram = z.object({
-  uuid: z.string(),
-  title: z.string(),
-  uri: z.string(),
-  diagramElements: z.record(DiagramElement),
-  diagramRelationships: z.record(DiagramRelationship)
-})
+export type PropertyDescription = {
+  style?: Style,
+  subProperties:RDFProperty[],
+  superProperties:RDFProperty[],
+  labels:string[],
+  comments:string[],
+  domains:RDFSClass[],
+  ranges:RDFSClass[],
+  diagramElements:DiagramElement[],
+  inLinks: ResourceDict,
+  outLinks: ResourceDict,
+  literals: StringsDict,
+}
 
-export type Diagram = z.infer<typeof Diagram>;
+export type HierarchyNodes = {
+  [key: LongURI]: HierarchyNode;
+}
 
-const sparqlObject = z.object({
-  value: z.string(),
-  type: z.string()
-})
+export type HierarchyNode = {
+  id: string,
+  label: string,
+  item: OntologyItem,
+  rdfsLabels: string[],
+  style?: Style,
+  children: HierarchyNode[],
+  parents: HierarchyNode[],
+  expanded: boolean
+}
 
-const responseHeaders = z.object({
-  vars: z.array(z.string())
-})
-
-const DiagramStatement = z.object({
-  title: sparqlObject,
-  uuid: sparqlObject,
-  source: sparqlObject,
-  target: sparqlObject,
-  rel: sparqlObject,
-  diagRel: sparqlObject,
-  elem: sparqlObject,
-  diagElem: sparqlObject,
-  elemStyle: sparqlObject,
-  elemBaseType: sparqlObject
-})
-
-const diagramResponseBindings = z.array(DiagramStatement)
-
-const diagramResponseSchema = z.object({
-  head: responseHeaders,
-  results: z.object({
-    bindings: diagramResponseBindings
-  })
-})
+export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
+  prop: SPARQLResultBinding,
+  item: SPARQLResultBinding
+}
 
 
-const diagramSummaryStatement = z.object({
-  title: sparqlObject,
-  uri: sparqlObject,
-  uuid: sparqlObject,
-})
 
-const diagramSummaryResponseBindings = z.array(diagramSummaryStatement)
+export interface SuperClassQuerySolution extends SPARQLQuerySolution {
+  super: SPARQLResultBinding,
+  subRel: SPARQLResultBinding
+}
 
-const diagramSummaryResponseSchema = z.object({
-  head: responseHeaders,
-  results: z.object({
-    bindings: diagramSummaryResponseBindings
-  })
-})
+export type StylesQuerySolution = {
+  cls: SPARQLResultBinding,
+  style: SPARQLResultBinding
+}
 
-const StyleStatement = z.object({
-  cls: sparqlObject,
-  style: sparqlObject
-})
+export type DiagramListQuerySolution = {
+  uri: SPARQLResultBinding,
+  uuid: SPARQLResultBinding,
+  title: SPARQLResultBinding
+}
 
-const styleResponseSchema = z.object({
-  head: responseHeaders,
-  results: z.object({
-    bindings: z.array(StyleStatement)
-  })
-})
+export interface HierarchyQuerySolution extends TypedNodeQuerySolution {
+  labels: SPARQLResultBinding,
+  subs: SPARQLResultBinding,
+  styles: SPARQLResultBinding,
+  supers:SPARQLResultBinding
+}
 
-const StyleResponse = z.record(z.object({
-  defaultStyles: z.object({
-    dark: z.object({
-      backgroundColor: z.string(),
-      color: z.string()
-    }),
-    light: z.object({
-      backgroundColor: z.string(),
-      color: z.string()
-    }),
-    shape: z.string(),
-    borderRadius: z.string(),
-    borderWidth: z.string(),
-    selectedBorderWidth: z.string()
-  }),
-  defaultIcons: z.object({
-    riIcon: z.string(),
-    faIcon: z.string(),
-    faUnicode: z.string(),
-    faClass: z.string()
-  })
-}))
+export interface DiagramQuerySolution extends TypedNodeQuerySolution {
+  uuid: SPARQLResultBinding,
+  title: SPARQLResultBinding
+}
 
-const SubjectPredicateObjectStatement = z.object({
-  s: sparqlObject,
-  p: sparqlObject,
-  o: sparqlObject
-})
+export interface DiagramElementQuerySolution extends TypedNodeQuerySolution {
+  style?: SPARQLResultBinding
+  baseType? : SPARQLResultBinding
+  element : SPARQLResultBinding
+}
 
-const ObjectPropertyStatement = z.object({
-  relationship: sparqlObject
-})
+export interface DiagramPropertyQuerySolution extends DiagramElementQuerySolution {
+  domain?: SPARQLResultBinding
+  range? : SPARQLResultBinding
+}
 
-const subjectPredicateObjectResponseSchema = z.object({
-  head: responseHeaders,
-  results: z.object({
-    bindings: z.array(SubjectPredicateObjectStatement)
-  })
-})
+export interface DiagramRelationshipQuerySolution extends TypedNodeQuerySolution {
+  style?: SPARQLResultBinding
+  source: SPARQLResultBinding
+  target : SPARQLResultBinding
+  rel : SPARQLResultBinding
+}
 
-const objectPropertiesResponseSchema = z.object({
-  head: responseHeaders,
-  results: z.object({
-    bindings: z.array(ObjectPropertyStatement)
-  })
-})
-const getAndCheckValidation = <T>(data: unknown, schema: z.ZodType<T, any, any>): T => {
-  try {
-    return schema.parse(data);
-  } catch (err) {
-    console.log(data)
-    if (err instanceof z.ZodError) {
-      throw new Error(`Validation failed: ${err.message} ${JSON.stringify(data)}`);
-    }
-    throw new Error('Validation failed');
+export class Style  {
+  bgColour: string
+  colour: string
+  icon: string
+  height: number
+  width: number
+  x: number
+  y: number
+  shape: string
+  public constructor(bgColour?:string,colour?:string,icon?:string,height?:number,width?:number,x?:number,y?:number,shape?:string) {
+    this.bgColour = bgColour || "#888"
+    this.colour = colour || "#000"
+    this.icon = icon || "fa-solid fa-question"
+    this.height = height || 0
+    this.width = width || 0
+    this.x = x||0
+    this.y = y||0
+    this.shape = shape || "diamond"
   }
-};
+}
 
-const getAndCheckStyleQueryResponse = (data: unknown): z.infer<typeof styleResponseSchema> =>
-  getAndCheckValidation(data, styleResponseSchema)
+export class AppliedStyle {
+  cls: string
+  style: Style
+  public constructor(cls:string, style:Style) {
+    this.cls = cls
+    this.style = style
+  }
+}
 
-const getAndCheckQueryResponse = (data: unknown): z.infer<typeof diagramResponseSchema> =>
-  getAndCheckValidation(data, diagramResponseSchema);
 
-const getAndCheckDiagram = (data: unknown): Diagram =>
-  getAndCheckValidation(data, Diagram);
 
-const getAndCheckDiagramSummary = (data: unknown): z.infer<typeof diagramSummaryResponseSchema> =>
-  getAndCheckValidation(data, diagramSummaryResponseSchema)
 
-const getAndCheckResultObject = (data: unknown): z.infer<typeof subjectPredicateObjectResponseSchema> =>
-  getAndCheckValidation(data, subjectPredicateObjectResponseSchema);
+export class Diagram extends RDFSResource {
+  uuid: string
+  title: string
+  service: OntologyService
+  public constructor(service: OntologyService, uri?:string, uuid?:string, title?:string, statement?:DiagramQuerySolution) {
+    super(service,uri,service.telDiagram,statement)   
+    this.service = service
+    this.uuid = ""
+    this.title = ""
+    if (statement) {
+      if (statement.uuid) {
+        this.uuid = statement.uuid.value
+      }
+      if (statement.title) {
+        this.title = statement.title.value
+      }
+    }  
+    else {
+      if (!uuid) {
+        uuid = crypto.randomUUID()
+      }
+      this.setUUID(uuid)
+      if (!uri) {
+        uri = this.service.mintUri()
+      }
+      if (title) {
+        this.setTitle(title)
+      }
+    } 
+  }
 
-const getAndCheckObjectProperties = (data: unknown): z.infer<typeof objectPropertiesResponseSchema> =>
-  getAndCheckValidation(data, objectPropertiesResponseSchema)
+  async setUUID(uuid:string, securityLabel?:string) {
+    this.addLiteral(this.service.telUUID,uuid,securityLabel,"xsd:string",true)
+  }
 
-export default class OntologyService extends RdfService {
-  telDiagram: string;
-  telUUID: string;
-  telTitle: string;
-  telElementStyle: string;
-  telInDiagram: string;
-  telRepresents: string;
-  telBaseType: string;
-  telDiagramElement: string;
-  telDiagramRelationship: string;
-  telSourceElem: string;
-  telTargetElem: string;
-  nodes: OntologyOutput = {
-    allElements: {},
-    classes: {},
-    properties: {}
-  };
+
+  async getDiagramElements() : Promise<DiagramElement[]> {
+    const query = `SELECT ?uri ?_type ?style ?element ?baseType
+      WHERE {
+        ?uri a ?_type .
+        FILTER  (?_type IN (<${this.service.telDiagramElement}>,<${this.service.telDiagramPropertyDefinition}>))
+        ?uri <${this.service.telInDiagram}> <${this.uri}> .
+        ?uri <${this.service.telRepresents}> ?element .
+        OPTIONAL {?uri <${this.service.telBaseType}> ?baseType }
+        OPTIONAL {?uri <${this.service.telElementStyle}> ?style }
+      }`
+    const spOut = await this.service.runQuery<DiagramElementQuerySolution>(query)
+    
+    const elems:DiagramElement[] = []
+    spOut.results.bindings.forEach((statement:DiagramElementQuerySolution) => {
+      let deClsUri = this.service.telDiagramElement
+      if (statement._type) {
+        deClsUri = statement._type.value
+      }
+      const deCls = this.service.lookupClass(deClsUri,this.service.telDiagramElement)
+      const elem = new deCls(this.service,undefined,undefined,statement)
+      if (statement.baseType) {
+        elem.baseType = statement.baseType.value
+      } else {
+        elem.baseType = this.service.rdfsResource
+      }
+      const cls = this.service.lookupClass(elem.baseType,this.service.rdfsResource)
+      if (statement.element.value in this.service.nodes) {
+        elem.element = this.service.nodes[statement.element.value]
+      } else {
+        elem.element = new cls(this.service,undefined,undefined,this.service.makeTypedStatement(statement.element.value,elem.baseType))
+      }
+      if (statement.style) {
+        elem.style = JSON.parse(decodeURIComponent(statement.style.value))
+      }
+      elems.push(elem)
+    })
+    return elems
+  }
+
+
+  async getDiagramRelations() : Promise<DiagramRelationship[]> {
+    const query = `SELECT ?uri ?_type ?source ?target ?style ?rel 
+      WHERE {
+        BIND (<${this.service.telDiagramRelationship}> as ?_type) .
+        ?uri a ?_type .
+        ?uri <${this.service.telInDiagram}> <${this.uri}> .
+        ?uri <${this.service.telRepresents}> ?rel .
+        ?uri <${this.service.telSourceElem}> ?source .
+        ?uri <${this.service.telTargetElem}> ?target .
+        OPTIONAL {?uri <${this.service.telRelationshipStyle}> ?style }
+      }`
+
+    const spOut = await this.service.runQuery<DiagramRelationshipQuerySolution>(query)
+    const rels:DiagramRelationship[] = []
+    spOut.results.bindings.forEach((statement:DiagramRelationshipQuerySolution) => {
+      const rel:DiagramRelationship = {uri:statement.uri.value}
+      if (statement.source.value in this.service.nodes) {
+        rel.source = this.service.nodes[statement.source.value] as DiagramElement
+      } else {
+        rel.source = new DiagramElement(this.service,undefined,undefined,this.service.makeTypedStatement(statement.source.value,this.service.telDiagramElement))
+      }
+      if (statement.target.value in this.service.nodes) {
+        rel.target = this.service.nodes[statement.target.value] as DiagramElement
+      } else {
+        rel.target = new DiagramElement(this.service,undefined,undefined,this.service.makeTypedStatement(statement.target.value,this.service.telDiagramElement))
+      }
+      rel.relationship = statement.rel.value 
+
+      if (statement.style) {
+        rel.style = JSON.parse(decodeURIComponent(statement.style.value))
+      }
+      rels.push(rel)
+    })
+    return rels
+  }
+}
+
+abstract class OntologyItem extends RDFSResource {
+  /**
+   * @method constructor
+   * @remarks
+   * Abstract class to cover items in OntologyService
+   * @param service - a reference to the OntologyService being used
+   * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
+   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
+   * @param type - if not being created from a query, provide type
+  */
+  service:OntologyService
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)       
+    this.service = service    
+
+    
+  }
+
+
+  /**
+   * @method setStyle 
+   * @remarks
+   * sets the default style for a property. Deletes any previous styles
+   * @param styleObj - A style object for the class - call makeStyleObject to get
+  */
+  setStyle(styleObj: Style) {
+    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
+    this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL",undefined,undefined,true)
+  }
+
+  //dummy function to be overriden by subclasses
+  async describe():Promise<any> {
+    return undefined
+  }
+
+  /**
+   * @method getDiagrams 
+   * @remarks
+   * returns all the diagrams that feature this ontology item
+  */  
+  async getDiagrams():Promise<Diagram[]> {
+    const out:Diagram[] = []
+    const query:string = `SELECT ?uri (group_concat(DISTINCT ?uuids) as ?uuid) (group_concat(DISTINCT ?titles) as ?title)  (group_concat(DISTINCT ?type) as ?_type)
+      WHERE {
+        BIND (<${this.service.telDiagram}> as ?type) .
+        ?diagramObject <${this.service.telRepresents}> <${this.uri}> .
+        ?diagramObject <${this.service.telInDiagram}> ?uri .
+        ?uri a ?type .
+        OPTIONAL { ?uri <${this.service.dcTitle}> ?titles }
+        OPTIONAL { ?uri <${this.service.telUUID}> ?uuids }
+      } GROUP BY ?uri`
+    const spOut = await this.service.runQuery<DiagramQuerySolution>(query)
+    spOut.results.bindings.forEach((statement:DiagramQuerySolution) => {
+      out.push(new Diagram(this.service,undefined,undefined,undefined,statement))
+    })
+    return out
+  }
+}
+
+export class DiagramElement extends OntologyItem {
+  style?: Style
+  element?: RDFSResource
+  baseType?: LongURI
+  service:OntologyService
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.telDiagramElement, statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)
+    this.service = service       
+  }
+}
+
+export class DiagramProperty extends DiagramElement {
+  domain?: DiagramElement
+  range?: DiagramElement
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.telDiagramPropertyDefinition, statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)
+    this.service = service   
+  }
+}
+
+export type DiagramRelationship = {
+  uri: LongURI,
+  source?: DiagramElement,
+  target?: DiagramElement,
+  relationship?: LongURI,
+  style?: Object
+}
+
+
+//A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
+export class RDFProperty extends OntologyItem {
+  /**
+   * @method constructor
+   * @remarks
+   * Initiate a Typescript wrapper for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
+   * @param service - a reference to the OntologyService being used
+   * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
+   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
+   * @param type - if not being created from a query, then type (e.g. rdf Property, owl ObjectProperty / DatatypeProperty) must be supplied - will add data to ontology
+  */
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property", statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)       
+    this.service = service    
+
+  }
+
+  async getNodes(nodeURIs:string[],optionalPredicates:string[]=[]):Promise<RDFSResource[]> {
+    const out:RDFSResource[] = []
+
+    return out
+  }
+
+  async describe():Promise<PropertyDescription> {
+    const rawDesc:ResourceDescription = await this.describeNode("http://telicent.io/ontology/inDiagram")
+    const out:PropertyDescription = {style:undefined,labels:[],comments:[],domains:[],ranges:[],diagramElements:[],superProperties:[],subProperties:[],inLinks:{},outLinks:{},literals:{}}
+    Object.keys(rawDesc.literals).forEach((predicate:string) => {
+      const lits:string[] = rawDesc.literals[predicate]
+      switch (predicate) {
+        case this.service.rdfsComment: {
+          out.comments = (lits)
+          break;
+        }  
+        case this.service.rdfsLabel: {
+          out.labels = (lits)
+          break;
+        }
+        case this.service.telicentStyle: {
+          out.style = JSON.parse(decodeURIComponent(lits[0]))
+          break;
+        }
+        default: {
+          out.literals[predicate] = lits
+        }
+      }
+    });
+    Object.keys(rawDesc.outLinks).forEach((predicate:LongURI) => {
+      const outLink = rawDesc.outLinks[predicate]
+      switch (predicate) {
+        case this.service.rdfsSubPropertyOf: {
+          this.service.processObjectLink(outLink,predicate,out.superProperties)
+          break;
+        }
+        case this.service.rdfsRange: {
+          this.service.processObjectLink(outLink,predicate,out.ranges)
+          break;
+        }
+        case this.service.rdfsDomain: {
+          this.service.processObjectLink(outLink,predicate,out.domains)
+          break;
+        }        default: {
+          out.outLinks[predicate] = []
+          this.service.processObjectLink(outLink,predicate,out.outLinks[predicate])
+        }
+      }
+    });
+    Object.keys(rawDesc.inLinks).forEach((predicate:LongURI) => {
+      const inLink = rawDesc.inLinks[predicate]
+      switch (predicate) {
+        case this.service.rdfsSubPropertyOf: {
+          this.service.processObjectLink(inLink,predicate,out.subProperties)
+          break;
+        }        
+        case this.service.telRepresents: {
+          this.service.processObjectLink(inLink,predicate,out.diagramElements)
+          break;
+        }
+        default: {
+          out.inLinks[predicate] = []
+          this.service.processObjectLink(inLink,predicate,out.inLinks[predicate])
+        }
+      }
+    });
+    return out
+  }
+
+  async setDomain(domain:RDFSClass,deletePrevious:boolean=true):Promise<string> {
+    if (deletePrevious) {
+      await this.service.deleteRelationships(this.uri,this.service.rdfsDomain)
+    }
+    return await this.service.insertTriple(this.uri,this.service.rdfsDomain,domain.uri)
+  }
+
+  async setRange(range:RDFSClass | XsdDataType,deletePrevious:boolean=true):Promise<string> {
+    let uri:LongURI = ""
+    if (deletePrevious) {
+      await this.service.deleteRelationships(this.uri,this.service.rdfsRange)
+    }
+    if (range instanceof RDFSClass) {
+      uri = range.uri
+    } 
+    else {
+      uri = range.replace("xsd:",this.service.xsd)
+    }
+    return await this.service.insertTriple(this.uri,this.service.rdfsRange,uri)
+  }
+
+  /**
+   * @method addSubProperty
+   * @remarks
+   * instantiates an rdfs:subPropertyOf relationship from this property to another
+   * @param subProperty - The property that is to be related to this using rdfs:subPropertyOf
+   * @returns the subproperty as an RDFProperty
+  */
+  async addSubProperty(subProperty: RDFProperty | LongURI):Promise<RDFProperty> {
+    let uri:LongURI = ''
+    if (typeof subProperty === "string") {
+      uri = subProperty
+      this.service.insertTriple(uri, this.service.rdfsSubPropertyOf, this.uri)
+      const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
+      return new RDFProperty(this.service,undefined,undefined,statement)
+    } else {
+      uri = subProperty.uri
+      this.service.insertTriple(uri, this.service.rdfsSubPropertyOf, this.uri)
+      return subProperty
+    }
+    
+  }
+
+  /**
+   * @method addSuperProperty
+   * @remarks
+   * instantiates an rdfs:subPropertyOf relationship from this property to another
+   * @param superProperty - The property that is to be related to the this class using rdfs:subPropertyOf
+   * @returns the superproperty as an RDFProperty
+  */
+  async addSuperProperty(superProperty: RDFProperty | LongURI):Promise<RDFProperty> {
+    let uri:LongURI = ''
+    if (typeof superProperty === "string") {
+      uri = superProperty
+      this.service.insertTriple(this.uri, this.service.rdfsSubPropertyOf,uri)
+      const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
+      return new RDFProperty(this.service,undefined,undefined,statement)
+    } else {
+      uri = superProperty.uri
+      this.service.insertTriple(this.uri, this.service.rdfsSubPropertyOf, uri)
+      return superProperty
+    }
+  }
+
+
+  /**
+   * @method getSubProperties
+   * @remarks
+   * returns the sub properties of this property as an array of Property objects
+   * @param recurse - if true (default) only immediate subproperties are return otherwise the  hierarchy will be fully recursed
+  */
+  async getSubProperties(recurse:boolean = false):Promise<RDFProperty[]> {
+    let path = ''
+    if (recurse) {
+      path = '*'
+    }
+    const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {?uri rdfs:subPropertyOf${path} <${this.uri}> . ?uri a ?type} GROUP BY ?uri`
+    const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
+    const props:RDFProperty[] = []
+    let cls = RDFProperty
+    for (const statement of spOut.results.bindings) {
+      if (statement._type) {
+        cls = this.service.lookupClass(statement._type.value,RDFProperty)
+      }
+      const prop = new cls(this.service,undefined,undefined,statement)
+      props.push(prop)
+    }
+    return props
+  }
+}
+
+//A wrapper class for an OWL ObjectProperty 
+export class OWLObjectProperty extends RDFProperty {
+  /**
+   * @method constructor
+   * @remarks
+   * Initiate a Typescript wrapper for an OWL ObjectProperty
+   * @param service - a reference to the OntologyService being used
+   * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
+   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
+  */
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI = "http://www.w3.org/2002/07/owl#ObjectProperty", statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)   
+    this.service = service            
+  }
+
+  async setRange(range:RDFSClass, deletePrevious:boolean=true):Promise<string> {
+    return super.setRange(range,deletePrevious)
+  }
+}
+
+//A wrapper class for an OWL DatatypeProperty 
+export class OWLDatatypeProperty extends RDFProperty {
+  /**
+   * @method constructor
+   * @remarks
+   * Initiate a Typescript wrapper for an OWL DatatypeProperty
+   * @param service - a reference to the OntologyService being used
+   * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
+   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
+  */
+  public constructor(service: OntologyService, uri? : LongURI, type:LongURI="http://www.w3.org/2002/07/owl#DatatypeProperty", statement? : TypedNodeQuerySolution) { 
+    super(service,uri,type,statement)             
+    this.service = service      
+  }
+
+  async setRange(range:XsdDataType, deletePrevious:boolean=true):Promise<string> {
+    return super.setRange(range,deletePrevious)
+  }
+}
+
+
+
+//A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
+export class RDFSClass extends OntologyItem {
+  /**
+   * @method constructor
+   * @remarks
+   * Initiate a Typescript wrapper for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
+   * @param service - a reference to the OntologyService being used
+   * @param statement - if the object is being created from a query, pass in the PropertyQuery to instantiate
+   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
+   * @param type - if not being created from a query, then type (e.g. rdf Property, owl ObjectProperty / DatatypeProperty) must be supplied - will add data to ontology
+   * @param superClass - f not being created from a query, a superclass can optionally be specified - i.e. the new class will be a subclass of the superclass
+  */
+  service:OntologyService
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.rdfsClass, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
+    super(service,uri,type,statement)
+    this.service = service    
+    if (statement) {
+      if (superClass) {
+        this.service.warn("Do not set superClass parameter if creating class from a query")
+      }
+    } 
+    else
+    {
+      if (superClass) {
+        this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, superClass.uri)
+      }
+    }     
+  }
+
+
+
+  async describe():Promise<ClassDescription> {
+    const rawDesc:ResourceDescription = await this.describeNode("http://telicent.io/ontology/inDiagram")
+    const out:ClassDescription = {style:undefined,labels:[],comments:[],isDomainFor:[],isRangeFor:[],diagramElements:[],superClasses:[],subClasses:[],inLinks:{},outLinks:{},literals:{}}
+    Object.keys(rawDesc.literals).forEach((predicate:string) => {
+      const lits:string[] = rawDesc.literals[predicate]
+      switch (predicate) {
+        case this.service.rdfsComment: {
+          out.comments = (lits)
+          break;
+        }  
+        case this.service.rdfsLabel: {
+          out.labels = (lits)
+          break;
+        }
+        case this.service.telicentStyle: {
+          out.style = JSON.parse(decodeURIComponent(lits[0]))
+          break;
+        }
+        default: {
+          out.literals[predicate] = lits
+        }
+      }
+    });
+    Object.keys(rawDesc.outLinks).forEach((predicate:LongURI) => {
+      const outLink = rawDesc.outLinks[predicate]
+      switch (predicate) {
+        case this.service.rdfsSubClassOf: {
+          this.service.processObjectLink(outLink,predicate,out.superClasses)
+          break;
+        }
+        default: {
+          out.outLinks[predicate] = []
+          this.service.processObjectLink(outLink,predicate,out.outLinks[predicate])
+        }
+      }
+    });
+    Object.keys(rawDesc.inLinks).forEach((predicate:LongURI) => {
+      const inLink = rawDesc.inLinks[predicate]
+      switch (predicate) {
+        case this.service.rdfsSubClassOf: {
+          this.service.processObjectLink(inLink,predicate,out.subClasses)
+          break;
+        }        
+        case this.service.rdfsRange: {
+          this.service.processObjectLink(inLink,predicate,out.isRangeFor)
+          break;
+        }
+        case this.service.rdfsDomain: {
+          this.service.processObjectLink(inLink,predicate,out.isDomainFor)
+          break;
+        }
+        case this.service.telRepresents: {
+          this.service.processObjectLink(inLink,predicate,out.diagramElements)
+          break;
+        }
+        default: {
+          out.inLinks[predicate] = []
+          this.service.processObjectLink(inLink,predicate,out.inLinks[predicate])
+        }
+      }
+    });
+    return out
+  }
+
+
+  /**
+   * @method getSubClasses
+   * @remarks
+   * returns the subclasses of this class as an array of RDFSClass objects
+   * @param recurse - if true (default) only immediate subproperties are return otherwise the  hierarchy will be fully recursed
+  */
+  async getSubClasses(recurse:boolean = false):Promise<RDFSClass[]> {
+    let path = ''
+    if (recurse) {
+      path = '*'
+    }
+    const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {?uri rdfs:subClassOf${path} <${this.uri}> . ?uri a ?type} GROUP BY ?uri`
+    const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
+    return this.service.wrapClasses(spOut,this.uri)
+  }
+
+  /**
+   * @method getSuperClasses 
+   * @remarks
+   * Returns a list of all the superclasses of the provided class
+   * If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
+   * If you want to get all the supers going all the way to the top (i.e. transitively climbing up the hierarchy) then set getAll to true
+   * @param uri - The uri of the class whose subclasses are returned
+   * @param getInherited - set to true to chase up the transitive hierarchy and get all the other levels of superclass (you might get a lot of these !)
+   * @returns an array of superclasses
+  */
+    async getSuperClasses(getInherited = false) {
+      const pathOp = getInherited ? "*" : "";
+  
+      const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {<${this.uri}> <${this.service.rdfsSubClassOf}>${pathOp} ?uri . ?uri a type .} GROUP BY ?uri`
+      const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
+      return this.service.wrapClasses(spOut,this.uri)
+    }
+
+  /**
+   * @method getOwnedProperties
+   * @remarks
+   * returns the properties which specify this class as their domain
+   * @param getInherited - set to true to get all the inherited property references
+  */
+  async getOwnedProperties(getInherited:boolean=false):Promise<RDFProperty[]> {
+    let query = `SELECT ?uri ?_type WHERE {?uri rdfs:domain <${this.uri}> . ?uri a ?_type }`
+    if (getInherited) {
+      query = `SELECT ?uri ?_type WHERE {?uri rdfs:domain ?super . <${this.uri}> rdfs:subClassOf* ?super . ?uri a ?_type }`
+    }
+   
+    const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
+    const props:RDFProperty[] = []
+    let cls = RDFProperty
+    for (const statement of spOut.results.bindings) {
+      if (statement._type) {
+        cls = this.service.lookupClass(statement._type.value,RDFProperty)
+      }
+      const prop = new cls(this.service,undefined,undefined,statement)
+      props.push(prop)
+    }
+    return props
+  }
+
+  /**
+   * @method getReferringProperties
+   * @remarks
+   * returns the properties which specify this class as their range
+   * @param getInherited - set to true to get all the inherited property references
+  */
+  async getReferringProperties(getInherited:boolean=false):Promise<RDFProperty[]> {
+    let query = `SELECT ?uri ?_type WHERE {?uri rdfs:range <${this.uri}> . ?uri a ?_type }`
+    if (getInherited) {
+      query = `SELECT ?uri ?_type WHERE {?uri rdfs:range ?super . <${this.uri}> rdfs:subClassOf* ?super . ?uri a ?_type }`
+    }
+    
+    const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
+    const props = []
+    let cls = RDFProperty
+    for (const statement of spOut.results.bindings) {
+      if (statement._type) {
+        cls = this.service.lookupClass(statement._type.value,RDFProperty)
+      }
+      const prop = new cls(this.service,undefined,undefined,statement)
+      props.push(prop)
+    }
+    return props
+  }
+
+  /**
+   * @method addSubClass
+   * @remarks
+   * instantiates an rdfs:subClassOf relationship from this class to another
+   * @param subClass - The subclass that is to be related to this using rdfs:subClassOf
+   * @returns the subclass as an RDFSClass
+  */
+  async addSubClass(subClass: RDFSClass | LongURI):Promise<RDFSClass> {
+    let uri:LongURI = ''
+    if (typeof subClass === "string") {
+      uri = subClass
+      this.service.insertTriple(uri, this.service.rdfsSubClassOf, this.uri)
+      const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
+      return new RDFSClass(this.service,undefined,undefined,statement)
+    } else {
+      uri = subClass.uri
+      this.service.insertTriple(uri, this.service.rdfsSubClassOf, this.uri)
+      return subClass
+    }
+  }
+
+
+
+  /**
+   * @method addSuperClass
+   * @remarks
+   * instantiates an rdfs:subClassOf relationship from this class to another
+   * @param superClass - The superclass that is to be related to the this class using rdfs:subClassOf
+   * @returns the superclass as an RDFSClass
+  */
+  async addSuperClass(superClass: RDFSClass | LongURI):Promise<RDFSClass> {
+    let uri:LongURI = ''
+    if (typeof superClass === "string") {
+      uri = superClass
+      this.service.insertTriple(this.uri, this.service.rdfsSubClassOf,uri)
+      const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
+      return new RDFSClass(this.service,undefined,undefined,statement)
+    } else {
+      uri = superClass.uri
+      this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, uri)
+      return superClass
+    }
+  }
+}
+
+export class RDFSDatatype extends RDFSClass {
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.rdfsDatatype, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
+    super(service,uri,type,statement,superClass)
+  }
+}
+
+export class OWLClass extends RDFSClass {
+  /**
+   * @method constructor
+   * @remarks
+   * Initiate a Typescript wrapper for an OWL Class
+   * @param service - a reference to the OntologyService being used
+   * @param statement - if the object is being created from a query, pass in the TypedNodeQuerySolution to instantiate
+   * @param uri - if not being created from a query, then URI must be supplied - will add data to the ontology
+   * @param superClass - if not being created from a query, a superclass can optionally be specified - i.e. the new class will be a subclass of the superclass
+  */
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.owlClass, statement? : TypedNodeQuerySolution, superClass?:RDFSClass) {
+    super(service,uri,type,statement,superClass)     
+  }
+
+}
+
+export class OntologyService extends RdfService {
+  telDiagram: LongURI;
+  telUUID: LongURI;
+  telElementStyle: LongURI;
+  telRelationshipStyle: LongURI;
+  telInDiagram: LongURI;
+  telRepresents: LongURI;
+  telBaseType: LongURI;
+  telDiagramElement: LongURI;
+  telDiagramRelationship: LongURI;
+  telDiagramPropertyDefinition: LongURI
+  telRouting:LongURI
+  telDisplayAs:LongURI
+  telSourceElem: LongURI;
+  telTargetElem: LongURI;
+
+  rdfsClass: LongURI;
+  rdfsDatatype: LongURI;
+  rdfsSubClassOf: LongURI;
+  rdfsDomain: LongURI;
+  rdfsRange: LongURI;
+  rdfProperty: LongURI;
+  rdfsSubPropertyOf: LongURI;
+  owlClass: LongURI;
+  owlDatatypeProperty: LongURI;
+  owlObjectProperty: LongURI;
+  telicentStyle: LongURI;
 
   /**
    * @method constructor
@@ -230,212 +847,187 @@ export default class OntologyService extends RdfService {
    * @param defaultUriStub - the default stub to use when building GUID URIs
    * @param defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
   */
-  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ontology", defaultUriStub = "http://telicent.io/ontology/", defaultSecurityLabel = "") {
-    super(triplestoreUri, dataset, defaultUriStub, defaultSecurityLabel)
+  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ontology", defaultUriStub = "http://telicent.io/ontology/", defaultSecurityLabel = "", write:boolean = false) {
+    super(triplestoreUri, dataset, defaultUriStub, defaultSecurityLabel,write)
     this.telDiagram = this.telicent + "Diagram"
     this.telUUID = this.telicent + "uuid"
-    this.telTitle = this.telicent + "title"
     this.telElementStyle = this.telicent + "elementStyle"
+    this.telRelationshipStyle = this.telicent + "relationshipStyle"
     this.telInDiagram = this.telicent + "inDiagram"
     this.telRepresents = this.telicent + "represents"
     this.telBaseType = this.telicent + "baseType"
     this.telDiagramElement = this.telicent + "DiagramElement"
     this.telDiagramRelationship = this.telicent + "DiagramRelationship"
+    this.telDiagramPropertyDefinition = this.telicent + "DiagramPropertyDefinition"
+    this.telRouting = this.telicent + "routing"
+    this.telDisplayAs = this.telicent + "displayAs"
     this.telSourceElem = this.telicent + "sourceElem"
     this.telTargetElem = this.telicent + "targetElem"
+    this.rdfsClass = `${this.rdfs}Class`
+    this.rdfsDatatype = `${this.rdfs}Datatype`
+    this.rdfsSubClassOf = `${this.rdfs}subClassOf`
+    this.rdfsDomain = `${this.rdfs}domain`
+    this.rdfsRange = `${this.rdfs}range`
+    this.rdfProperty = `${this.rdf}Property`
+    this.rdfsSubPropertyOf = `${this.rdfs}subPropertyOf`
+    this.owlClass = `${this.owl}Class`
+    this.owlDatatypeProperty = `${this.owl}DatatypeProperty`
+    this.owlObjectProperty = `${this.owl}ObjectProperty`
+    this.telicentStyle = `${this.telicent}style`
+    this.classLookup[this.rdfProperty] = RDFProperty
+    this.classLookup[this.owlClass] = OWLClass
+    this.classLookup[this.owlDatatypeProperty] = OWLDatatypeProperty
+    this.classLookup[this.owlObjectProperty] = OWLObjectProperty
+    this.classLookup[this.rdfsClass] = RDFSClass
+    this.classLookup[this.rdfsDatatype] = RDFSDatatype
+    this.classLookup[this.telDiagramElement] = DiagramElement
+    this.classLookup[this.telDiagram] = Diagram
+    this.classLookup[this.telDiagramPropertyDefinition] = DiagramProperty
+    this.addPrefix("owl:", this.owl)
   }
 
-  /**
-    * @method newClass
-  * @ remarks
-   * Creates a new Class (default rdfs:Class - override via clsType parameter)
-   * if it's a subclass of another class, then provide this via the superClass parameter
-   * optionally add a style object if needed
-   * @param uri - The uri of the new class
-   * @param clsType - The type of the new class
-   * @param styleObject - pass in a style object (call makeStyleObject to get a new one)
-   * @param superclass - the parent (superclass) of the new class
-   * @returns the uri of the new class (which you've already provided...I know...I know...)
-  */
-  newClass(uri: string, clsType: string = this.rdfsClass, styleObject?: z.infer<typeof StyleObject>, superClass?: string) {
-    var cls = this.instantiate(clsType, uri)
-    if ((superClass) && (superClass !== "")) {
-      this.addSubClass(uri, superClass)
-    }
-    if (styleObject) {
-      this.setStyle(uri, styleObject)
-    }
-    return cls
+
+  processObjectLink(input:StringsDict,predicate:LongURI,output:RDFSResource[],defaultCls = RDFSResource) {
+    Object.keys(input).forEach((obj:LongURI) => {
+      const statement:TypedNodeQuerySolution = {uri:{value:obj,type:"uri"},_type:{value:input[obj].join(" "),type:"uri"}}
+      const cls = this.lookupClass(input[obj][0],defaultCls)
+      const newItem = new cls(this,undefined,undefined,statement)
+      output.push(newItem)
+    });
   }
 
-
-
-  /**
-   * @method getClass 
-   * @remarks
-   * brings back a class object that collects together all the useful info about the class
-   * @param uri - The uri of the class to fetch
-   * @param getAllPredicates - if true, it brings back all the related items. Set to false if you just need the basic info back
-   * @param getSubClasses - runs a second query to get all the subclasses of the class. Set to false if you don't need it - saves traffic
-   * @param getDomainProperties - runs a second query to get all the properties whose domain is this class
-   * @returns object - an object describing the class
-  */
-  async getClass(uri: string, getAllPredicates = true, getSubClasses = true, getDomainProperties = true) {
-    const cls = new ClassDefinition()
-    if (!getAllPredicates && !getSubClasses && !getDomainProperties) return cls
-
-    var query = `SELECT ?s ?p ?o WHERE {<${uri}> ?p ?o .  BIND (IRI("${uri}") as ?s) }`
-    const ontojson = await this.runQuery<SPARQL[]>(query)
-
-    //TODO: add class to nodes.allElements and nodes.classes after result is returned
-    if (ontojson?.results?.bindings) {
-      const statements = ontojson.results.bindings
-
-      statements.forEach(statement => {
-        const subject = statement.s.value;
-        const predicate = statement.p.value;
-        const object = statement.o.value;
-
-        getAllPredicates && cls.addPredicate(predicate, object)
-
-        if (predicate === this.telicentStyle) {
-          cls.setDefaultStyle(JSON.parse(decodeURIComponent(object)))
+  wrapClasses(results:QueryResponse<TypedNodeQuerySolution>,exclude?:LongURI) {
+    const clss:RDFSClass[] = []
+    let cls = RDFSClass
+    results.results.bindings.forEach((statement:TypedNodeQuerySolution) => {
+    
+      if (statement.uri.value != exclude) {
+        if (statement.uri.value in this.nodes) {
+          clss.push(this.nodes[statement.uri.value] as RDFSClass)
         }
-
-        // TODO find a grouped name for what this figures out and 
-        // add it to the class setPredicate?
-        switch (predicate) {
-          case this.rdfsSubClassOf:
-            cls.addSuperClass(object)
-            break;
-          case this.rdfType:
-            cls.addRdfType(object)
-            break;
-          case this.rdfsLabel:
-            cls.addLabel(object)
-            break;
-          case this.rdfsComment:
-            cls.addComment(object)
-            break;
-          default:
-            break;
+        else 
+        {
+          if (statement._type) {
+            const types = statement._type.value.split(" ") 
+            cls = this.lookupClass(types[0],RDFSClass)
+          }
+          const rc = new cls(this,undefined,undefined,statement)
+          clss.push(rc)
         }
-        cls.uri = subject;
-      })
-
-      if (getSubClasses) {
-        cls.subClasses = await this.getSubClasses(uri)
       }
+    })
+    return clss
+  }
 
-      if (getDomainProperties) {
-        cls.ownedProperties = await this.getDomainProperties(uri)
-      }
 
+  /**
+   * @method getAllRdfProperties 
+   * @remarks
+   * returns all properties in the ontology (with some filters)
+   * @param includeOwlProperties - if true (default) this will return owl ObjectProperties and DatatypeProperties in addition to rdf Properties
+   * @param getOnlyTopProperties - if true (default is false) this will only return those properties that are not subproperties of any others - i.e the top ones
+   * @returns an array of properties
+  */
+  async getAllRdfProperties(includeOwlProperties: boolean = true, getOnlyTopProperties: boolean = false):Promise<RDFProperty[]> {
+    let filter = ''
+    if (getOnlyTopProperties) {
+      filter = `FILTER NOT EXISTS {
+        ?uri rdfs:subPropertyOf ?parentProp
+      }`
     }
-    return cls
+
+    let whereClause = `WHERE {BIND (rdf:Property as ?_type . ?uri a ?_type ) . ${filter}}`
+    if (includeOwlProperties) {
+      whereClause = `WHERE {?uri a ?_type . FILTER (?_type IN (owl:ObjectProperty, owl:DatatypeProperty, rdf:Property)) . ${filter}}`
+    }
+
+    const query = `SELECT ?uri ?_type ${whereClause}`
+    const spOut = await this.runQuery<TypedNodeQuerySolution>(query)
+    const props:RDFProperty[] = []
+    let cls = RDFProperty
+    for (const statement of spOut.results.bindings) {
+      if (statement._type) {
+        cls = this.lookupClass(statement._type.value,RDFProperty)
+      }
+      const prop = new cls(this,undefined,undefined,statement)
+      props.push(prop)
+    }
+    return props
   }
 
   /**
-   * @method getDomainProperties 
+   * @method getTopProperties 
    * @remarks
-   * returns all properties which have this class as their domain
-   * @param uri - The uri of the class which is the domain for the properties returned
-   * @returns an array of properties whose domain is this class
+   * returns all properties in the ontology that have no subproperties
+   * @param includeOwlProperties - if true (default) this will return owl ObjectProperties and DatatypeProperties in addition to rdf Properties
+   * @returns an array of properties
   */
-  async getDomainProperties(uri: string) {
-    return await this.getRelating(uri, this.rdfsDomain)
+  async getTopProperties(includeOwlProperties: boolean = true):Promise<RDFProperty[]> {
+    return await this.getAllRdfProperties(includeOwlProperties,true)
   }
 
-  /**
-   * @method getRangeProperties
-   * @remarks
-   * returns all properties which have this class as their range
-   * @param uri - The uri of the class which is the range for the properties returned
-   * @returns - an array of properties whose range is this class
-  */
-  async getRangeProperties(uri: string) {
-    return await this.getRelating(uri, this.rdfsRange)
-  }
 
   /**
-   * @method getInheritedDomainProperties 
+   * @method getAllObjectProperties
    * @remarks
-   * returns all properties defined (domain) against the superclasses of the provided class
-   * @param uri - The uri of the class (or subclass) which is the domain for the properties returned
-   * @returns an array of properties whose domain is this class or one of its superclasses
-  */
-  async getInheritedDomainProperties(uri: string) {
-    const query = `SELECT ?prop ?item WHERE {?prop <${this.rdfsDomain}> ?item . <${uri}> <${this.rdfsSubClassOf}>* ?item. }`
-    const spOut = await this.runQuery<InheritedDomainQuery[]>(query)
-    if (!(spOut?.results?.bindings)) return
+   * get all object properties (relationships)
+   */
+  async getAllObjectProperties():Promise<RDFProperty[]> {
+    const query = `
+      SELECT
+        ?uri ?_type
+      WHERE {
+        BIND (owl:ObjectProperty as ?_type)
+        ?uri a ?_type
+      }
+    `
 
+    const spOut = await this.runQuery<TypedNodeQuerySolution>(query)
     const statements = spOut.results.bindings;
-    return statements.filter(statement => statement.item.value !== uri)
-      .map(statement => ({ property: statement.prop.value, domain: statement.item.value }))
+    const properties:RDFProperty[] = []
+    statements.forEach((statement:TypedNodeQuerySolution) => {
+      const prop = new RDFProperty(this,undefined,undefined,statement)
+      properties.push(prop)
+    })
+
+    return properties
   }
 
   /**
-   * @method getInheritedRangeProperties 
+   * @method getAllClasses
    * @remarks
-   * returns all properties defined (range) against the superclasses of the provided class
-   * @param uri - The uri of the class (or subclass) which is the range for the properties returned
-   * @returns an array of properties whose range is this class or one of its superclasses
+   * returns all classes in the ontology (with some filters)
+   * @param includeOwlClasses - if true (default) this will return owl classes as well as rdfs classes
+   * @param getOnlyTopClasses - if true (default is false) this will only return those classes that are not subclasses of any others - i.e the top ones
+   * @returns an array of RDFSClasses
   */
-  async getInheritedRangeProperties(uri: string) {
-    const query = `SELECT ?prop ?item WHERE {?prop <${this.rdfsRange}> ?item . <${uri}> <${this.rdfsSubClassOf}>* ?item. }`
-    const spOut = await this.runQuery<InheritedDomainQuery[]>(query)
-    if (!(spOut?.results?.bindings)) return
-    const statements = spOut.results.bindings
-    return statements.filter(statement => statement.item.value !== uri)
-      .map(statement => ({ property: statement.prop.value, domain: statement.item.value }))
-  }
+    async getAllClasses(includeOwlClasses: boolean = true, getOnlyTopClasses: boolean = false):Promise<RDFSClass[]> {
+      let filter = ''
+      if (getOnlyTopClasses) {
+        filter = `FILTER NOT EXISTS {
+          ?uri rdfs:subClassOf ?parentClass
+        }`
+      }
+  
+      let whereClause = `WHERE {BIND (rdfs:Class as ?type . ?uri a ?type ) . ${filter}}`
+      if (includeOwlClasses) {
+        whereClause = `WHERE {?uri a ?type . FILTER (?type IN (owl:Class, rdfs:Class)) . ${filter}}`
+      }
+  
+      const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ${whereClause} GROUP BY ?uri`
+      const spOut = await this.runQuery<TypedNodeQuerySolution>(query)
+      return this.wrapClasses(spOut)
+    }
 
   /**
-   * @method addSubClass
+   * @method getTopClasses
    * @remarks
-   * instantiates an rdfs:subClassOf relationship between two classes
-   * @param subClass - The subclass that is to be related to the superclass using rdfs:subClassOf
-   * @param superClass - The superclass that is to be related to the subclass using rdfs:subClassOf
+   * returns the classes that have no superclasses
+   * @returns an array of RDFSClasses
   */
-  addSubClass(subClass: string, superClass: string) {
-    this.insertTriple(subClass, this.rdfsSubClassOf, superClass)
-  }
-
-  /**
-   * @method getSubClasses
-   * @remarks
-   * Returns a list of all the subclasses of the provided class
-   * If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
-   * @param uri - The uri of the class whose subclasses are returned
-   * @returns an array of subclasses
-  */
-  async getSubClasses(uri: string) {
-    return await this.getRelating(uri, this.rdfsSubClassOf)
-  }
-
-  /**
-   * @method getSuperClasses 
-   * @remarks
-   * Returns a list of all the superclasses of the provided class
-   * If your ontology uses any subproperties of rdfs:subClassOf then it will also return those too...unless you set ignoreSubProps
-   * If you want to get all the supers going all the way to the top (i.e. transitively climbing up the hierarchy) then set getAll to true
-   * @param uri - The uri of the class whose subclasses are returned
-   * @param ignoreSubProps - set to true to ignore all subproperties of rdfs:subClassOf. Most ontologies don't do this, but IES, BORO and IDEAS do...
-   * @param getAll - set to true to chase up the transitive hierarchy and get all the other levels of superclass (you might get a lot of these !)
-   * @returns an array of superclasses
-  */
-  async getSuperClasses(uri: string, ignoreSubProps = false, getAll = false) {
-    const pathOp = getAll ? "*" : "";
-
-    const query = ignoreSubProps ?
-      `SELECT ?super WHERE {<${uri}> <${this.rdfsSubClassOf}>${pathOp} ?super .}` :
-      `SELECT ?super WHERE {<${uri}> ?subRel${pathOp} ?super . ?subRel <${this.rdfsSubPropertyOf}>* <${this.rdfsSubClassOf}> .}`
-
-    const spOut = await this.runQuery<SuperClassQuery[]>(query)
-    if (!(spOut?.results?.bindings)) return
-    const statements = spOut.results.bindings
-    return statements.map(statement => statement.super.value)
-  }
+    async getTopClasses():Promise<RDFSClass[]> {
+      return await this.getAllClasses(true,true)
+    }
 
   /**
    * @method getStyles 
@@ -445,25 +1037,25 @@ export default class OntologyService extends RdfService {
    * @param classes - An array of URIs (strings) of the classes whose styles are required
    * @returns a dictionary keyed by the class URIs, with the values being style objects
   */
-  async getStyles(classes: string[] = []) {
-    var filter = ""
+  async getStyles(classes: LongURI[] = []):Promise<AppliedStyle[]> {
+    let filter = ""
 
     if (classes.length > 0) {
       filter = 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )';
     }
     const query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`
-    const spOut = await this.runQuery<StylesQuery[]>(query)
+    const spOut = await this.runQuery<StylesQuerySolution>(query)
 
-    const spOutValidated = getAndCheckStyleQueryResponse(spOut)
-    const statements = spOutValidated.results.bindings
+    const statements = spOut.results.bindings
 
-    let acc: z.infer<typeof StyleResponse> = {}
-    return statements.reduce((statements, statement) => {
-      if (!statement.style.value || statement.style.value === "undefined") return statements
-
-      statements[statement.cls.value] = JSON.parse(decodeURIComponent(statement.style.value))
-      return statements
-    }, acc)
+    const styles:AppliedStyle[] = []
+    statements.forEach((statement:StylesQuerySolution) => {
+      const appStyle = new AppliedStyle(statement.cls.value,JSON.parse(decodeURIComponent(statement.style.value)) )
+        
+      styles.push(appStyle)
+    })
+    
+    return styles
   }
 
   /**
@@ -473,61 +1065,10 @@ export default class OntologyService extends RdfService {
    * @param uri - The URI of the class that have the style assigned
    * @param styleObj - A style object for the class - call makeStyleObject to get one
   */
-  setStyle(uri: string, styleObj: z.infer<typeof StyleObject>) {
+  setStyle(uri: LongURI, styleObj: Style) {
     const styleStr = encodeURIComponent(JSON.stringify(styleObj))
     this.deleteRelationships(uri, this.telicentStyle)
     this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL")
-  }
-
-
-  /**
-   * @method #addPropertiesToOutput
-   */
-  //function that goes through ?s ?p ?o results and formats an object structure for js consumption
-  async #buildResultsObject(query: string, getAllPredicates = false) {
-    const spOut = await this.runQuery(query)
-    const spOutValidated = getAndCheckResultObject(spOut)
-
-    const statements = spOutValidated.results.bindings
-
-    const processStatement = buildStatementPartial(this, getAllPredicates)
-    statements.forEach(processStatement)
-
-    return this.nodes
-  }
-
-  /**
-   * @method getAllElements 
-   * @remarks
-   * This is a function that gets every triple in the ontology dataset and shapes it into an object that holds all the properties and classes.
-   * It also provides a list of all the top-of-the-shop classes in the ontology hierarchy and a dictionary of all elements
-   * Set getAllPredicates to true if you want all predicates in the ontology - the object gets approximately 2x the size if you do this though - it doesn't affect the server though, so just need to consider browser memory
-   * Don't stringify the returned object as JSON, it'll get huge as there is a lot of repeating use of object references 
-   * @param  [getAllPredicates=false] - if true this will return all predicates owned by the element, not just the essential ones
-   * @returns array of classes and properties that are in the ontology
-  */
-  async getAllElements(getAllPredicates = false) {
-    const result = await this.#buildResultsObject("SELECT * WHERE {?s ?p ?o}", getAllPredicates)
-
-    //TODO has no ability to get predicates
-
-    const topOutput = z.object({
-      top: z.array(ClassDefinitionSchema)
-    })
-
-    const combinedOutput = ontologyOutput.merge(topOutput)
-    const output: z.infer<typeof combinedOutput> = {
-      ...result,
-      top: []
-    }
-    for (let className in output.classes) {
-      const cls = output.classes[className]
-      if (cls.superClasses.length === 0) {
-        output.top.push(cls)
-      }
-    }
-
-    return output
   }
 
   /**
@@ -539,24 +1080,18 @@ export default class OntologyService extends RdfService {
   async getAllDiagrams() {
     const query = `SELECT ?uri ?uuid ?title WHERE {
             ?uri a <${this.telDiagram}> . 
-            {?uri <${this.telUUID}> ?uuid} 
-            {?uri <${this.telTitle}> ?title } 
+            OPTIONAL {?uri <${this.telUUID}> ?uuid} 
+            ?uri <${this.dcTitle}> ?title .
         }`
-    const spOut = await this.runQuery(query)
-    const spOutValidated = getAndCheckDiagramSummary(spOut)
-
-    const statements = spOutValidated.results.bindings
-    return statements.map(statement => {
-      const diag: Diagram = { uuid: statement.uuid.value, title: statement.title.value, uri: statement.uri.value, diagramElements: {}, diagramRelationships: {} }
-      if (statement.title) {
-        diag.title = statement.title.value
-      }
-      if (statement.uuid) {
-        diag.uuid = statement.uuid.value
-      }
-
-      return diag
+    const spOut = await this.runQuery<DiagramQuerySolution>(query)
+    const statements = spOut.results.bindings
+    const diagrams:Diagram[] = []
+    statements.forEach((statement:DiagramQuerySolution) => {
+      const diag = new Diagram(this,undefined,undefined,undefined,statement)
+      diagrams.push(diag)
     })
+
+    return diagrams
   }
 
   /**
@@ -566,175 +1101,153 @@ export default class OntologyService extends RdfService {
    * @param   the uri of the diagram
    * @returns an object containing all the information about the diagram
   */
-  async getDiagram(uri: string) {
+  async getDiagram(uri: LongURI) {
 
     const query = `
-        SELECT ?uuid ?title ?diagElem ?elem ?elemStyle ?diagRel ?rel ?source ?target ?elemBaseType WHERE {
-            <${uri}> a <${this.telDiagram}> . 
+        SELECT ?uri ?_type ?uuid ?title  WHERE {
+            BIND(<${uri}> as ?uri)
+            BIND(<${this.telDiagram}> as ?_type)
+            ?uri a <${this.telDiagram}> . 
             OPTIONAL {<${uri}> <${this.telUUID}> ?uuid} 
-            OPTIONAL {<${uri}> <${this.telTitle}> ?title } 
-            OPTIONAL {
-                ?diagElem <${this.telInDiagram}> <${uri}> .
-                ?diagElem a <${this.telDiagramElement}> .
-                ?diagElem <${this.telElementStyle}> ?elemStyle .
-                ?diagElem <${this.telRepresents}> ?elem .
-                ?diagElem <${this.telBaseType}> ?elemBaseType .
-            }
-            OPTIONAL {
-                ?diagRel <${this.telInDiagram}> <${uri}> .
-                ?diagRel a <${this.telDiagramRelationship}> .
-                ?diagRel <${this.telRepresents}> ?rel .
-                ?diagRel <${this.telSourceElem}> ?source .
-                ?diagRel <${this.telTargetElem}> ?target .
-            }
+            OPTIONAL {<${uri}> <${this.dcTitle}> ?title } 
         }`
 
-    const spOut = await this.runQuery(query)
-    const spOutValidated = getAndCheckQueryResponse(spOut)
+    const spOut = await this.runQuery<DiagramQuerySolution>(query)
+    const statements = spOut.results.bindings
 
-    const statements = spOutValidated.results.bindings
-    const output = statements.reduce((acc: Diagram, statement) => {
-      acc.title = statement.title.value
-      acc.uuid = statement.uuid.value
-
-      if (!(statement.diagElem.value in acc.diagramElements)) {
-        acc.diagramElements[statement.diagElem.value] = {} as DiagramElement
-      }
-
-      acc.diagramElements[statement.diagElem.value] = {
-        ...acc.diagramElements[statement.diagElem.value],
-        element: statement.elem.value,
-        style: JSON.parse(decodeURIComponent(statement.elemStyle.value)),
-        baseType: statement.elemBaseType.value ?? ""
-      }
-
-      if (!(statement.diagRel.value in acc.diagramRelationships)) {
-        acc.diagramRelationships[statement.diagRel.value] = {} as DiagramRelationship
-      }
-
-      acc.diagramRelationships[statement.diagRel.value] = {
-        ...acc.diagramRelationships[statement.diagRel.value],
-        relationship: statement.rel.value,
-        source: statement.source.value,
-        target: statement.target.value
-      }
-
-      return acc
-    }, { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} })
-
-    return getAndCheckDiagram(output);
-  }
-
-  /**
-   * @method newDiagram 
-   * @remarks
-   * creates a new diagram
-   * @param title - the title of the diagram (mandatory)
-   * @param uri - if unset, a new URI will be minted, and will be based on the UUID 
-   * @param uuid - if unset, a new UUID will be minted
-   * @param securityLabel - the security label enforced by the CORE platform
-  */
-  newDiagram(title: string, uri: string, uuid: string, securityLabel: string) {
-    if (!uuid) {
-      uuid = crypto.randomUUID()
+    if (statements.length > 1) {
+      this.warn(`More than one diagram found from getDiagram query with provided URI: ${uri}`)
+      return undefined
     }
-    if (!uri) {
-      uri = this.mintUri()
-    }
-    this.instantiate(this.telDiagram, uri, securityLabel)
-    this.setTitle(uri, title)
-    this.addLiteral(uri, this.telUUID, uuid)
-  }
-
-
-  /**
-   * @method setTitle 
-   * @remarks
-   * sets the telicent:title property - used in diagrams and similar
-   * @param {string} uri - the URI of the diagram
-   * @param {string} title - the telicent:title to be applied to the diagram - this will remove any previous title.
-  */
-  setTitle(uri: string, title: string) {
-    this.addLiteral(uri, this.telTitle, title, true)
-  }
-
-  /**
-   * @method getAllObjectProperties
-   * @remarks
-   * get all object properties (relationships)
-   */
-  async getAllObjectProperties() {
-    const query = `
-      SELECT
-        ?relationship
-      WHERE {
-        ?relationship a owl:ObjectProperty
+    else
+    {
+      if (statements.length < 1) {
+        this.warn(`No diagram with URI ${uri} found from getDiagram query`)
+        return undefined
       }
-    `
-
-    const spOut = await this.runQuery(query)
-    const spOutValidated = getAndCheckObjectProperties(spOut)
-
-    const statements = spOutValidated.results.bindings;
-
-    return statements.map(statement => statement.relationship.value)
+      else
+      {
+        return new Diagram(this,undefined,undefined,undefined,statements[0])
+      }
+    }
   }
+
+  /**
+   * @method getHierarchy 
+   * @remarks
+   * fetches a complete hierarchy model using the constraints set in the parameters - the types of the items, and the hierarchical relationship
+   * @param filterString a comma separated list of the allowed node types (as prefixed URIs - prefix must be registered in the service)
+   * @param subRel the type of hierarchical relationship to use (as a prefixed URI - prefix must be registered in the service)
+   * @param defaultCls the default ontologyservice class to use if the correct one cannot be found
+   * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
+  */
+  protected async getHierarchy(filterString = "rdfs:Class, owl:Class",subRel = "rdfs:subClassOf"):Promise<HierarchyNode[]> {
+    const query:string = `SELECT 
+    ?uri 
+    (group_concat(DISTINCT ?type) as ?_type) 
+    (group_concat(DISTINCT ?sub) as ?subs) 
+    (group_concat(DISTINCT ?label; SEPARATOR="||") as ?labels) 
+    (group_concat(DISTINCT ?style; SEPARATOR="||") as ?styles) 
+    (group_concat(DISTINCT ?super) as ?supers) 
+    WHERE {
+      ?uri a ?type .
+      FILTER (?type IN (${filterString}))
+      OPTIONAL {  ?sub ${subRel} ?uri }
+      OPTIONAL { ?uri ${subRel} ?super }
+      OPTIONAL { ?uri rdfs:label ?label }
+      OPTIONAL { ?uri telicent:style ?style }
+    } GROUP BY ?uri`
+    const spOut:QueryResponse<HierarchyQuerySolution> = await this.runQuery<HierarchyQuerySolution>(query)
+    const dict:HierarchyNodes = {}
+    const output:HierarchyNode[] = []
+
+    let defaultCls = undefined
+    if (subRel == "rdfs:subPropertyOf") {
+      defaultCls = RDFProperty
+    }
+    else {
+      defaultCls = RDFSClass
+    }
+
+    
+    if (spOut.results?.bindings.length > 0) {
+      spOut.results.bindings.forEach((statement:HierarchyQuerySolution) => {
+        let cls = defaultCls
+        if (statement._type) {
+          const types = statement._type.value.split(" ")
+          cls = this.lookupClass(types[0],defaultCls)
+        }
+        const item = new cls(this,undefined,undefined,statement)
+        const node:HierarchyNode = {item:item, id:statement.uri.value, label:'', rdfsLabels:[],children:[],parents:[],style:undefined,expanded:false} 
+        if (statement.labels) {
+          node.rdfsLabels = statement.labels.value.split("||")
+        }
+        if (statement.styles) {
+          const stArray = statement.styles.value.split("||")
+          try {
+            node.style = JSON.parse(decodeURIComponent(stArray[0]))
+          }
+          catch {
+            this.warn(`Unable to decode style for URI ${statement.uri.value}`)
+          }
+          
+        }
+        if (!(statement.supers)) {
+          //we've found an item at the top of its hierarchy, so add it to the output array
+          output.push(node)
+        }
+        dict[statement.uri.value] = node
+
+      });
+      //second pass - now add all the subs and supers for each item
+      spOut.results.bindings.forEach((statement:HierarchyQuerySolution) => {
+        const node:HierarchyNode = dict[statement.uri.value]
+        if (node.rdfsLabels.length > 0) {
+          node.label = node.rdfsLabels[0]
+        }
+        else {
+          node.label = this.shorten(statement.uri.value)
+        }
+        if (statement.supers) {
+          const supers:string[] = statement.supers.value.split(' ')
+          supers.forEach((sup:string) => {
+            const superNode:HierarchyNode = dict[sup]
+            node.parents.push(superNode) 
+          });
+        }        
+        if (statement.subs) {
+          const subs:string[] = statement.subs.value.split(' ')
+          subs.forEach((sub:string) => {
+            const subNode:HierarchyNode = dict[sub]
+            node.children.push(subNode)
+          });
+        }
+
+      });
+    }
+    return output
+  }
+
+  /**
+   * @method getClassHierarchy 
+   * @remarks
+   * fetches a complete hierarchy model of classes 
+   * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
+  */
+  async getClassHierarchy():Promise<HierarchyNode[]> {
+    return await this.getHierarchy("rdfs:Class, owl:Class, rdfs:Datatype","rdfs:subClassOf")
+  }
+
+  /**
+   * @method getPropertyHierarchy 
+   * @remarks
+   * fetches a complete hierarchy model of properties 
+   * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
+  */
+  async getPropertyHierarchy():Promise<HierarchyNode[]> {
+    return await this.getHierarchy("rdf:Property, owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:AsymmetricProperty, owl:DeprecatedProperty, owl:FunctionalProperty, owl:OntologyProperty, owl:InverseFunctionalProperty, owl:IrreflexiveProperty, owl:ReflexiveProperty,owl:SymmetricProperty, owl:TransitiveProperty","rdfs:subPropertyOf")
+  }
+
+  
 }
 
-//export const expectedResponse: z.infer<typeof diagramResponseSchema> = {
-//  head: {
-//    "vars": [
-//      "uuid",
-//      "title",
-//      "diagElem",
-//      "elem",
-//      "elemStyle",
-//      "diagRel",
-//      "rel",
-//      "source",
-//      "target"
-//    ]
-//  },
-//  results: {
-//    bindings: [
-//      {
-//        "uuid": {
-//          "type": "literal",
-//          "value": "EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F"
-//        },
-//        "title": {
-//          "type": "literal",
-//          "value": "Agreement"
-//        },
-//        "diagElem": {
-//          "type": "uri",
-//          "value": "http://ies.data.gov.uk/diagrams#EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F_EAID_FB2EA8AE_164A_4642_82E3_D2622DC6FCCB"
-//        },
-//        "elem": {
-//          "type": "uri",
-//          "value": "http://ies.data.gov.uk/ontology/ies4#Negotiation"
-//        },
-//        "elemStyle": {
-//          "type": "literal",
-//          "value": "{\"shape\": \"roundrectangle\", \"bgColour\": \"#FF8AD8\", \"colour\": \"#FFFFFF\", \"borderColour\": \"#FFFFFF\", \"icon\": \"fa-solid fa-play\", \"x\": 686, \"y\": 349, \"height\": 55, \"width\": 119}"
-//        },
-//        "diagRel": {
-//          "type": "uri",
-//          "value": "http://ies.data.gov.uk/diagrams#EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F_EAID_759F13D4_9709_4501_A301_73E49D4BE109"
-//        },
-//        "rel": {
-//          "type": "uri",
-//          "value": "http://www.w3.org/2000/01/rdf-schema#subClassOf"
-//        },
-//        "source": {
-//          "type": "uri",
-//          "value": "http://ies.data.gov.uk/diagrams#EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F_EAID_1ECB4C6E_6A30_4dc5_A4AC_9A9DF5B6A54F"
-//        },
-//        "target": {
-//          "type": "uri",
-//          "value": "http://ies.data.gov.uk/diagrams#EAID_C8EE24EF_889D_4e8f_96DE_CCBE47D4BE4F_EAID_D09EDE21_E862_4ec1_BC0F_045CCE5454A9"
-//        }
-//      }
-//    ]
-//  }
-//}

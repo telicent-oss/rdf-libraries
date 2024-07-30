@@ -1,28 +1,29 @@
 {
-  "name": "@telicent-oss/rdfservice",
-  "version": "0.0.9",
+  "name": "@telicent-oss/catalogservice",
+  "version": "0.0.1",
   "private": false,
-  "description": "RdfService is a helper library that abstracts away the complexity of interacting with RDF triplestores, providing basic CRUD abilities.",
-  "main": "./dist/rdfservice.mjs",
+  "description": "Simple client-side library for working with DCAT data.",
+  "main": "./dist/catalogservice.mjs",
   "files": [
     "dist"
   ],
-  "module": "./dist/rdfservice.mjs",
+  "module": "./dist/catalogservice.mjs",
   "exports": {
     ".": {
-      "import": "./dist/rdfservice.mjs",
-      "require": "./dist/rdfservice.umd.js",
+      "import": "./dist/catalogservice.mjs",
+      "require": "./dist/catalogservice.umd.js",
       "types": "./dist/types.d.ts"
     }
   },
   "types": "./dist/types.d.ts",
   "scripts": {
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
-    "open-docs": "open ./dist/docs/index.html",
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts"
   },
+  "author": "",
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
@@ -30,8 +31,7 @@
   "publishConfig": {
     "registry": "https://www.npmjs.com/"
   },
-  "author": "",
-  "license": "Apache-2.0",
+  "dependencies":{"@telicent-oss/rdfservice":"workspace:*"},
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",
     "@types/jest": "^29.4.0",
@@ -39,20 +39,13 @@
     "eslint-plugin-tsdoc": "^0.2.17",
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",
-    "testcontainers": "^10.10.4",
     "testing": "link:@nrwl/nx-plugin/testing",
     "ts-jest": "^29.1.1",
     "tsc": "^2.0.4",
     "typedoc": "^0.25.3",
     "typescript": "^5.2.2",
-    "vite": "^4.5.3",
+    "vite": "^4.5.2",
     "vite-plugin-dts": "^3.6.3",
     "vite-tsconfig-paths": "^4.2.1"
-  },
-  "dependencies": {
-    "global": "^4.4.0",
-    "pnpm": "^8.15.1",
-    "rdfstore": "0.9.17",
-    "zod": "^3.22.4"
   }
 }

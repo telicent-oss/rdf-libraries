@@ -1,10 +1,10 @@
-import { z } from "zod"
-import { SPARQL } from "packages/RdfService";
-import ClassDefinition, { ClassDefinitionSchema } from "./ClassDefinition";
-import PropertyDefinition from "./PropertyDefinition";
 
-import { StyleObject } from "./Types";
-import OntologyService, { AllElements } from "./index";
+//import { SPARQL } from "packages/RdfService";
+
+
+
+
+import {OntologyService,  Style } from "./index";
 /*
  * @function makeStyleObject 
  * @remarks
@@ -17,17 +17,8 @@ import OntologyService, { AllElements } from "./index";
  * @param string - The class string of font awesome icon - usually ontologyService also included in the faIcon string
  * @returns object - a style object for use in other methods
 */
-export const makeStyleObject = (backgroundColor = "#888", color = "#000", icon = "fa-solid fa-question"): z.infer<typeof StyleObject> => ({
-  bgColour: backgroundColor,
-  colour: color,
-  icon: icon,
-  height: 0,
-  width: 0,
-  x: 0,
-  y: 0,
-  shape: "diamond"
-})
-
+export const makeStyleObject = new Style("#888","#000","fa-solid fa-question")
+/*
 const doesExist = (target: string, elementList: AllElements) => Boolean(target in elementList)
 
 const processClasses = (elementList: AllElements, subject: string, object: string) => {
@@ -156,3 +147,4 @@ export const buildStatementPartial = (ontologyService: OntologyService, getAllPr
 }
 
 
+*/
