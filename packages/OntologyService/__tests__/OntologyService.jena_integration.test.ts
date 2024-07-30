@@ -1,24 +1,16 @@
-
+import { GenericContainer, StartedTestContainer, Wait } from "testcontainers"
 import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style, QueryResponse, SPOQuerySolution, Diagram, DiagramElement, DiagramProperty } from "../index";
 
-const os = new OntologyService(
-  "http://localhost:3030/",
-  "ontology_test",
-  undefined,
-  undefined,
-  true
-);
-os.setWarnings = false
-
-const testFullOntology = true
+let os: OntologyService
+const testFullOntology = false
 
 const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
 const owlClass = "http://www.w3.org/2002/07/owl#Class";
 const testDefaultNamespace = "http://telicent.io/data/";
 
-const initialNodeCount:number = 6
-const finalNodeCount:number = 10
-const expectedTripleCount:number = 19
+const initialNodeCount: number = 6
+const finalNodeCount: number = 10
+const expectedTripleCount: number = 19
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -26,19 +18,37 @@ function delay(ms: number) {
 
 describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
-  beforeAll( ()=>{
-    //this ends up being a big it
-    const updates = []
-    updates.push("DELETE WHERE {?s ?p ?o }"); //clear the dataset
-    updates.push(`INSERT DATA {<${testDefaultNamespace}ONT1> <${os.rdfType}> <${os.rdfsClass}> . }`)
-    updates.push(`INSERT DATA {<${testDefaultNamespace}ONT11> <${os.rdfType}> <${os.rdfsClass}> . }`)
-    updates.push(`INSERT DATA {<${testDefaultNamespace}ONT12> <${os.rdfType}> <${os.rdfsClass}> . }`)
-    updates.push(`INSERT DATA {<${testDefaultNamespace}ONT121> <${os.rdfType}> <${os.owlClass}> . }`)
-    updates.push(`INSERT DATA {<${testDefaultNamespace}ONT11> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT1> . }`)
-    updates.push(`INSERT DATA {<${testDefaultNamespace}ONT12> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT1> . }`)
-    updates.push(`INSERT DATA {<${testDefaultNamespace}ONT121> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT12> . }`)
-    os.runUpdate(updates)
-    delay(1500)
+  let fuseki: StartedTestContainer
+  beforeAll(async () => {
+    fuseki = await new GenericContainer('telicent/fuseki')
+      .withExposedPorts(3030)
+      .withCommand(["--mem", "ontology_test/"])
+      .withWaitStrategy(Wait.forAll(
+        [Wait.forListeningPorts(), Wait.forLogMessage(/Start Fuseki \(http=\d+\)/)],
+      ))
+      .start()
+    os = new OntologyService(
+      `http://localhost:${fuseki.getMappedPort(3030)}/`,
+      "ontology_test",
+      undefined,
+      undefined,
+      true
+    );
+
+    os.setWarnings = false
+
+    const updates = [
+      "DELETE WHERE {?s ?p ?o }", //clear the dataset
+      `INSERT DATA {<${testDefaultNamespace}ONT1> <${os.rdfType}> <${os.rdfsClass}> . }`,
+      `INSERT DATA {<${testDefaultNamespace}ONT11> <${os.rdfType}> <${os.rdfsClass}> . }`,
+      `INSERT DATA {<${testDefaultNamespace}ONT12> <${os.rdfType}> <${os.rdfsClass}> . }`,
+      `INSERT DATA {<${testDefaultNamespace}ONT121> <${os.rdfType}> <${os.owlClass}> . }`,
+      `INSERT DATA {<${testDefaultNamespace}ONT11> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT1> . }`,
+      `INSERT DATA {<${testDefaultNamespace}ONT12> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT1> . }`,
+      `INSERT DATA {<${testDefaultNamespace}ONT121> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT12> . }`
+    ] //this ends up being a big it
+
+    await os.runUpdate(updates)
     const g2 = new RDFSClass(os, `${testDefaultNamespace}ONT2`);
     const g21 = new OWLClass(os, `${testDefaultNamespace}ONT21`);
     g21.addLabel("G21")
@@ -48,20 +58,26 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
     const mystyle = new Style()
     g2.setStyle(mystyle)
-    
 
-    g2.addSubClass(g21);
-    g21.addSubClass(g211);
 
-    p1.addSubProperty(p2)
-    p3.addSuperProperty(p2)
+    await g2.addSubClass(g21);
+    await g21.addSubClass(g211);
 
-    delay(3000)
+    await p1.addSubProperty(p2)
+    await p3.addSuperProperty(p2)
+
   });
 
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
-    const ats: boolean = await os.checkTripleStore();
-    expect(ats).toBeTruthy();
+    try {
+      const ats: boolean = await os.checkTripleStore();
+      expect(ats).toBeTruthy();
+    } catch (e) {
+      if (e instanceof Error) {
+        console.error(e.message)
+      }
+      throw new Error(e as string)
+    }
     if (testFullOntology) {
       const os2 = new OntologyService(
         "http://localhost:3030/",
@@ -84,14 +100,21 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
   it("should cache classes appropriately", async () => {
     expect(Object.keys(os.nodes).length).toEqual(initialNodeCount);
-    await os.getAllClasses(true) 
+    await os.getAllClasses(true)
     expect(Object.keys(os.nodes).length).toEqual(finalNodeCount);
   });
 
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
-    const triples: QueryResponse<SPOQuerySolution> = await os.runQuery<SPOQuerySolution>("SELECT * WHERE {?s ?p ?o}");
-    expect(triples.results.bindings.length).toEqual(expectedTripleCount);
-    expect(Object.keys(os.nodes).length).toEqual(finalNodeCount);
+    try {
+      const triples: QueryResponse<SPOQuerySolution> = await os.runQuery<SPOQuerySolution>("SELECT * WHERE {?s ?p ?o}");
+      expect(triples.results.bindings.length).toEqual(expectedTripleCount);
+      expect(Object.keys(os.nodes).length).toEqual(finalNodeCount);
+    } catch (e) {
+      if (e instanceof Error) {
+        console.error(e.message)
+      }
+      throw new Error(e as string)
+    }
   });
 
   it("should allow classes to be created", async () => {
@@ -121,10 +144,10 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
     const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
     expect(Object.keys(os.nodes).length).toEqual(finalNodeCount); // just make sure no extra properties got made
-    const p1subs:RDFProperty[] = await p1.getSubProperties()
+    const p1subs: RDFProperty[] = await p1.getSubProperties()
     expect(p1subs.length).toEqual(1)
     expect(p1subs[0] === p2)
-    const p2subs:RDFProperty[] = await p2.getSubProperties()
+    const p2subs: RDFProperty[] = await p2.getSubProperties()
     expect(p2subs.length).toEqual(1)
     expect(p2subs[0] === p3)
     if (testFullOntology) {
@@ -136,7 +159,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         false
       );
       os2.setWarnings = false
-      const prop = new OWLObjectProperty(os2,"http://ies.data.gov.uk/ontology/ies4#isPartOf")
+      const prop = new OWLObjectProperty(os2, "http://ies.data.gov.uk/ontology/ies4#isPartOf")
     }
   })
 
@@ -159,15 +182,15 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         false
       );
       os2.setWarnings = false
-      const entity = new RDFSClass(os2,"http://ies.data.gov.uk/ontology/ies4#Entity")
+      const entity = new RDFSClass(os2, "http://ies.data.gov.uk/ontology/ies4#Entity")
       //const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
 
-      const diags:Diagram[] = await os2.getAllDiagrams()
-      const diag:Diagram = diags[0]
+      const diags: Diagram[] = await os2.getAllDiagrams()
+      const diag: Diagram = diags[0]
       const elems = await diag.getDiagramElements()
-     // elems.forEach((elem:DiagramElement) => {
-     //   console.log(elem.uri, elem.types, elem.baseType, elem.constructor.name)
-    //  })
+      // elems.forEach((elem:DiagramElement) => {
+      //   console.log(elem.uri, elem.types, elem.baseType, elem.constructor.name)
+      //  })
       const rels = await diag.getDiagramRelations()
 
 
@@ -204,14 +227,14 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
   });
 
   it("should get a hierarchy", async () => {
-    const hy:HierarchyNode[] = await os.getClassHierarchy()
+    const hy: HierarchyNode[] = await os.getClassHierarchy()
     expect(hy.length).toEqual(2)
-    const phy:HierarchyNode[] = await os.getPropertyHierarchy()
+    const phy: HierarchyNode[] = await os.getPropertyHierarchy()
     expect(phy.length).toEqual(1)
   });
 
-  afterAll( ()=>{
+  afterAll(() => {
     delay(1000)
   });
-  
+
 });

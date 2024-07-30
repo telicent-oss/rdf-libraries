@@ -1,17 +1,12 @@
+import { GenericContainer, StartedTestContainer, Wait } from "testcontainers"
 import {
   RdfService,
   RDFSResource,
   RelatedResources,
   RelatedLiterals,
 } from "../index";
-const rs = new RdfService(
-  "http://localhost:3030/",
-  "rdf_test",
-  undefined,
-  undefined,
-  true
-);
-rs.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
+let rs: RdfService
+
 const rdfsResource = "http://www.w3.org/2000/01/rdf-schema#Resource";
 const testDefaultNamespace = "http://telicent.io/data/";
 const guid1 = `rdf1`;
@@ -27,38 +22,53 @@ function delays(ms: number) {
 
 describe("RdfService", () => {
 
+  let fuseki: StartedTestContainer
   beforeAll(async () => {
-    rs.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
-    await delays(1000)
+
+    fuseki = await new GenericContainer('telicent/fuseki')
+      .withExposedPorts(3030)
+      .withCommand(["--mem", "rdf_test/"])
+      .withWaitStrategy(Wait.forAll(
+        [Wait.forListeningPorts(), Wait.forLogMessage(/Start Fuseki \(http=\d+\)/)],
+      ))
+      .start()
+
+    rs = new RdfService(
+      `http://localhost:${fuseki.getMappedPort(3030)}/`,
+      "rdf_test",
+      undefined,
+      undefined,
+      true
+    );
+    await rs.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
 
     const update = `INSERT DATA {:${guid1} rdf:type rdfs:Class . }`;
-    rs.runUpdate([update]);
+    await rs.runUpdate([update]);
 
-    rs.insertTriple(
+    await rs.insertTriple(
       `${testDefaultNamespace}${guid1}`,
       `http://www.w3.org/1999/02/22-rdf-syntax-ns#type`,
       `http://www.w3.org/2000/01/rdf-schema#Resource`
     );
 
-    const g2: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid2}`,`http://www.w3.org/2000/01/rdf-schema#Resource`) 
-    const g3: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid3}`,`http://www.w3.org/2000/01/rdf-schema#Resource`) 
-    rs.insertTriple(
+    const g2: RDFSResource = new RDFSResource(rs, `${testDefaultNamespace}${guid2}`, `http://www.w3.org/2000/01/rdf-schema#Resource`)
+    const g3: RDFSResource = new RDFSResource(rs, `${testDefaultNamespace}${guid3}`, `http://www.w3.org/2000/01/rdf-schema#Resource`)
+    await rs.insertTriple(
       `${testDefaultNamespace}${guid2}`,
       `http://www.w3.org/1999/02/22-rdf-syntax-ns#type`,
       `${testDefaultNamespace}${guid3}`
     );
-    rs.insertTriple(
+    await rs.insertTriple(
       `${testDefaultNamespace}${guid2}`,
       `http://www.w3.org/1999/02/22-rdf-syntax-ns#type`,
       `http://www.w3.org/2000/01/rdf-schema#Class`
     );
 
-    g2.addComment("This is a comment on guid2");
-    g2.addLabel("This is a label on guid2 - we like labels");
-    g3.setPrefLabel("This is a preferred label on guid3");
-    g3.setAltLabel("This is an alt label on guid3");
-    g3.setAltLabel("This is another alt label on guid3");
-    await delays(2000);
+    await g2.addComment("This is a comment on guid2");
+    await g2.addLabel("This is a label on guid2 - we like labels");
+    await g3.setPrefLabel("This is a preferred label on guid3");
+    await g3.setAltLabel("This is an alt label on guid3");
+    await g3.setAltLabel("This is another alt label on guid3");
   });
 
   it("should be running properly and connected to a triplestore", async () => {
@@ -80,7 +90,7 @@ describe("RdfService", () => {
   });
 
   it("should return specific label types (SKOS in this case)", async () => {
-    const g3: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid3}`,`http://www.w3.org/2000/01/rdf-schema#Resource`) 
+    const g3: RDFSResource = new RDFSResource(rs, `${testDefaultNamespace}${guid3}`, `http://www.w3.org/2000/01/rdf-schema#Resource`)
     const als = await g3.getAltLabels()
     const pls = await g3.getPrefLabel()
     expect(als.length).toEqual(2);
@@ -140,7 +150,7 @@ describe("RdfService", () => {
   it("should find related items using getRelated", async () => {
     //guid2 was created at the start of the tests using insertTriple method
     expect.assertions(1);
-    const obj: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid2}`)
+    const obj: RDFSResource = new RDFSResource(rs, `${testDefaultNamespace}${guid2}`)
 
     const rel: RelatedResources = await obj.getRelated(
       `http://www.w3.org/1999/02/22-rdf-syntax-ns#type`
@@ -155,7 +165,7 @@ describe("RdfService", () => {
   it("should find relating items using getRelating", async () => {
     //guid3 was created at the start of the tests using insertTriple method
     expect.assertions(1);
-    const obj: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid3}`)
+    const obj: RDFSResource = new RDFSResource(rs, `${testDefaultNamespace}${guid3}`)
 
     const rel = await obj.getRelating(
       `http://www.w3.org/1999/02/22-rdf-syntax-ns#type`
@@ -170,7 +180,7 @@ describe("RdfService", () => {
   it("should find literals", async () => {
     //guid2 was created at the start of the tests using insertTriple method, and then some literals added
     expect.assertions(1);
-    const obj: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid2}`)
+    const obj: RDFSResource = new RDFSResource(rs, `${testDefaultNamespace}${guid2}`)
 
     const lits: RelatedLiterals = await obj.getLiterals();
     let litCount = 0;
@@ -183,7 +193,7 @@ describe("RdfService", () => {
   it("should find labels", async () => {
     //guid2 was created at the start of the tests using insertTriple method, and then some literals added
     expect.assertions(1);
-    const obj: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid2}`)
+    const obj: RDFSResource = new RDFSResource(rs, `${testDefaultNamespace}${guid2}`)
 
     const labels = await obj.getLabels();
 
@@ -193,7 +203,7 @@ describe("RdfService", () => {
   it("should find comments", async () => {
     //guid2 was created at the start of the tests using insertTriple method, and then some literals added
     expect.assertions(1);
-    const obj: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid2}`)
+    const obj: RDFSResource = new RDFSResource(rs, `${testDefaultNamespace}${guid2}`)
 
     const labels = await obj.getComments();
 
@@ -213,7 +223,7 @@ describe("RdfService", () => {
   it("should now have deleted one of the related items, leaving just two", async () => {
     //guid2 was created at the start of the tests using insertTriple method
     expect.assertions(1);
-    const obj: RDFSResource = new RDFSResource(rs,`${testDefaultNamespace}${guid2}`)
+    const obj: RDFSResource = new RDFSResource(rs, `${testDefaultNamespace}${guid2}`)
 
     const rel = await obj.getRelated(
       `http://www.w3.org/1999/02/22-rdf-syntax-ns#type`
