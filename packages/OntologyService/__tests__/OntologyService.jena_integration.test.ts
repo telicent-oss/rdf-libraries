@@ -20,7 +20,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
   let fuseki: StartedTestContainer
   beforeAll(async () => {
-    fuseki = await new GenericContainer('telicent/fuseki')
+    fuseki = await new GenericContainer('atomgraph/fuseki')
       .withExposedPorts(3030)
       .withCommand(["--mem", "ontology_test/"])
       .withWaitStrategy(Wait.forAll(

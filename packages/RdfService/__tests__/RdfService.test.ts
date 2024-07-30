@@ -25,7 +25,7 @@ describe("RdfService", () => {
   let fuseki: StartedTestContainer
   beforeAll(async () => {
 
-    fuseki = await new GenericContainer('telicent/fuseki')
+    fuseki = await new GenericContainer('atomgraph/fuseki')
       .withExposedPorts(3030)
       .withCommand(["--mem", "rdf_test/"])
       .withWaitStrategy(Wait.forAll(
