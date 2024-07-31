@@ -1,22 +1,24 @@
 name: Publish NX
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - CHANGELOG.md
+    inputs:
+      version:
+        description: "Version to publish"
+        required: false
+        default: ""
+  release: [published]
 
 jobs:
   main:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
+      id-token: write # needed for provenance data generation
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 0 # need to fetch all the tags
+
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
@@ -35,15 +37,13 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           cache: 'pnpm' 
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
 
-      - uses: nrwl/nx-set-shas@v3
-      - name: Build and publish packages
+      - name: Apply updated version to packages and publish
       # switch from projects to --all when ready
         run: |
-          npx nx run-many --target=build --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
-          npx nx run-many --target=publish --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
+          VERSION=${{ github.event.inputs.version || github.ref_name }}
+          npx nx release version --specifier $VERSION
+          npx nx release publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

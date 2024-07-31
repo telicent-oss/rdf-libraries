@@ -4,6 +4,28 @@
       "!{projectRoot}/**/*.md"
     ]
   },
+  "release": {
+    "projects": [
+      "@telicent-oss/rdfservice",
+      "@telicent-oss/ontologyservice"
+    ],
+    "version": {
+      "conventionalCommits": true
+    },
+    "changelog": {
+      "projectChangelogs": {
+        "renderOptions": {
+          "authors": false,
+          "mapAuthorsToGitHubUsernames": false,
+          "commitReferences": false,
+          "versionTitleDate": false
+        }
+      },
+      "workspaceChangelog": {
+        "createRelease": "github"
+      }
+    }
+  },
   "targetDefaults": {
     "build": {
       "cache": true,
@@ -43,12 +65,11 @@
       }
     }
   },
-  "affected": {
-    "defaultBase": "main"
-  },
   "generators": {
     "@nx/js:library": {
       "buildable": true
     }
-  }
+  },
+  "useInferencePlugins": false,
+  "defaultBase": "main"
 }
