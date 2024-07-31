@@ -35,7 +35,7 @@ jobs:
       # Ensure Nx is available
       - name: Install Nx CLI globally
         run: pnpm add -g nx
-      - uses: nrwl/nx-set-shas@v3
+      - uses: nrwl/nx-set-shas@v4
       - name: Build and publish packages
       # switch from projects to --all when ready
         run: |
