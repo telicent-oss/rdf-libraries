@@ -133,6 +133,7 @@ dist
 
 
 .nx/cache
+.nx/workspace-data
 
 *.gitignored.*
 packages/.DS_Store
