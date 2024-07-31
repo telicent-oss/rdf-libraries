@@ -23,6 +23,14 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
           scope: 'telicent-oss'
+      # Install dependencies using pnpm
+      - name: Install dependencies
+        run: pnpm install
+
+      # Ensure Nx is available
+      - name: Install Nx CLI globally
+        run: pnpm add -g nx
+      - uses: nrwl/nx-set-shas@v3
       - uses: nrwl/nx-set-shas@v3
       - name: Build and publish packages
       # switch from projects to --all when ready

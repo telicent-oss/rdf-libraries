@@ -29,6 +29,13 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: 'telicent-oss'
           cache: 'pnpm'
+      # Install dependencies using pnpm
+      - name: Install dependencies
+        run: pnpm install
+
+      # Ensure Nx is available
+      - name: Install Nx CLI globally
+        run: pnpm add -g nx
       - uses: nrwl/nx-set-shas@v3
       - name: Build and publish packages
         run: |
