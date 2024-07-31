@@ -23,6 +23,7 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
           scope: 'telicent-oss'
+      - uses: nrwl/nx-set-shas@v3
       - name: Build and publish packages
       # switch from projects to --all when ready
         run: |
