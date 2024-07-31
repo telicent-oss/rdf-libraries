@@ -12,21 +12,34 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9.1.0 # keep in sync with packageManager field in root package.json
+          run_install: false
+      # Install dependencies using pnpm
+      - name: Install dependencies
+        run: pnpm install
+
+      # Ensure Nx is available
+      - name: Install Nx CLI globally
+        run: pnpm add -g nx
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          cache: 'pnpm' 
+      - uses: nrwl/nx-set-shas@v3
       - name: Build and publish packages
       # switch from projects to --all when ready
-        run: npx nx run-many --target=build --with-deps --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice && npx nx run-many --target=publish --with-deps --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
+        run: |
+          npx nx run-many --target=build --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
+          npx nx run-many --target=publish --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

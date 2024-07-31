@@ -17,34 +17,30 @@ jobs:
         with:
           fetch-depth: 0
 
+      - uses: pnpm/action-setup@v4
+        name: Install pnpm
+        with:
+          version: 9.1.0 # keep in sync with packageManager field in root package.json
+          run_install: false
       # Cache node_modules
       - uses: actions/setup-node@v4
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
           scope: 'telicent-oss'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          cache: 'pnpm'
+      # Install dependencies using pnpm
+      - name: Install dependencies
+        run: pnpm install
 
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          version: 9.1.0 # keep in sync with packageManager field in root package.json
-          run_install: false
-
+      # Ensure Nx is available
+      - name: Install Nx CLI globally
+        run: pnpm add -g nx
       - uses: nrwl/nx-set-shas@v3
-
-      # This line is needed for nx affected to work when CI is running on a PR
-      - run: git checkout ${GITHUB_REF#refs/heads/}
-      - run: pnpm install
-      - run: pnpm dlx nx run-many -t test,build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice 
-
-      - run: cd ./packages/RdfService && npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-
-      - run: cd ./packages/OntologyService && npm publish --access public --provenance
+      - name: Build and publish packages
+        run: |
+          npx nx run-many --target=build --with-deps --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
+          npx nx run-many --target=publish --with-deps --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

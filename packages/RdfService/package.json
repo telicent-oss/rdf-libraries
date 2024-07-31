@@ -21,6 +21,7 @@
     "open-docs": "open ./dist/docs/index.html",
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
+    "publish": "npm publish --access public --provenance",
     "lint": "eslint **/*.ts"
   },
   "repository": {
