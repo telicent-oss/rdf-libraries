@@ -6,7 +6,7 @@ on:
       - "main"
 
 jobs:
-  cache-and-install:
+  test-libraries:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -32,11 +32,9 @@ jobs:
         run: pnpm add -g nx
       # switch from projects to --all when ready
       - uses: nrwl/nx-set-shas@v4
-      - name: Test, Build and publish packages (dry run)
+      - name: Test
         run: |
           npx nx run-many --target=test --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
-          npx nx run-many --target=build --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
-          npx nx run-many --target=publish:dry-run --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
