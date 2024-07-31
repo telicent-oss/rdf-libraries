@@ -35,6 +35,9 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           cache: 'pnpm' 
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+
       - uses: nrwl/nx-set-shas@v3
       - name: Build and publish packages
       # switch from projects to --all when ready

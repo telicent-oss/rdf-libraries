@@ -26,6 +26,8 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
           cache: 'pnpm'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       # Install dependencies using pnpm
       - name: Install dependencies
         run: pnpm install
