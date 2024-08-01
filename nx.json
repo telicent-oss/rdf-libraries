@@ -4,7 +4,7 @@
       "!{projectRoot}/**/*.md"
     ],
     "sharedGlobals": [
-      "{workspaceRoot}/.github/workflows/ci.yml"
+      "{workspaceRoot}/.github/workflows/publish-nx.yml"
     ]
   },
   "release": {

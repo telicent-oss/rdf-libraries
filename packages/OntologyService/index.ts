@@ -1187,6 +1187,7 @@ export class OntologyService extends RdfService {
         dict[statement.uri.value] = node
 
       });
+
       //second pass - now add all the subs and supers for each item
       spOut.results.bindings.forEach((statement: HierarchyQuerySolution) => {
         const node: HierarchyNode = dict[statement.uri.value]
