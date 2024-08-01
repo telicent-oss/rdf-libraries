@@ -143,5 +143,4 @@ export const buildStatementPartial = (ontologyService: OntologyService, getAllPr
   return ontologyService.nodes
 }
 
-
 */

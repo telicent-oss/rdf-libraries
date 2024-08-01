@@ -30,6 +30,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           cache: "yarn"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY }}
 
       - name: Install dependencies
         run: yarn install --frozen-lockfile
