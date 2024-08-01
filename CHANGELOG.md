@@ -1,3 +1,14 @@
+## 0.0.14 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- whitespace test ([de38317](https://github.com/telicent-oss/rdf-libraries/commit/de38317))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.0.13 (2024-08-01)
 
 
