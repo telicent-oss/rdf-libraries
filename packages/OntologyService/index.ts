@@ -1236,7 +1236,5 @@ export class OntologyService extends RdfService {
   async getPropertyHierarchy(): Promise<HierarchyNode[]> {
     return await this.getHierarchy("rdf:Property, owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:AsymmetricProperty, owl:DeprecatedProperty, owl:FunctionalProperty, owl:OntologyProperty, owl:InverseFunctionalProperty, owl:IrreflexiveProperty, owl:ReflexiveProperty,owl:SymmetricProperty, owl:TransitiveProperty", "rdfs:subPropertyOf")
   }
-
-
 }
 
