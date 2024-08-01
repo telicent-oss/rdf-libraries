@@ -1226,6 +1226,7 @@ export class OntologyService extends RdfService {
     return await this.getHierarchy("rdfs:Class, owl:Class, rdfs:Datatype", "rdfs:subClassOf")
   }
 
+
   /**
    * @method getPropertyHierarchy 
    * @remarks
