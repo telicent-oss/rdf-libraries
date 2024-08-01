@@ -1,3 +1,14 @@
+## 0.1.0 (2024-08-01)
+
+
+### 🚀 Features
+
+- use correct token name ([fe07130](https://github.com/telicent-oss/rdf-libraries/commit/fe07130))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.0.21 (2024-08-01)
 
 

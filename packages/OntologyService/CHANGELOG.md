@@ -1,3 +1,10 @@
+## 0.1.0
+
+
+### 🚀 Features
+
+- use correct token name
+
 ## 0.0.21
 
 
