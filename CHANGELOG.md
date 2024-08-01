@@ -1,3 +1,14 @@
+## 0.1.8 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- test npm whoami ([b9c6512](https://github.com/telicent-oss/rdf-libraries/commit/b9c6512))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.7 (2024-08-01)
 
 
