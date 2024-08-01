@@ -172,7 +172,6 @@ export class Diagram extends RDFSResource {
     this.addLiteral(this.service.telUUID, uuid, securityLabel, "xsd:string", true)
   }
 
-
   async getDiagramElements(): Promise<DiagramElement[]> {
     const query = `SELECT ?uri ?_type ?style ?element ?baseType
       WHERE {
