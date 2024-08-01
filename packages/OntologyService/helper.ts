@@ -137,7 +137,6 @@ export const buildStatementPartial = (ontologyService: OntologyService, getAllPr
     ontologyService.nodes.allElements[subject] = new ClassDefinition(subject)
   }
 
-
   processPredicates(getAllPredicates, ontologyService, predicate, subject, object)
 
   return ontologyService.nodes
