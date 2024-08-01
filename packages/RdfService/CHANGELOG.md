@@ -1,3 +1,10 @@
+## 0.1.1
+
+
+### 🩹 Fixes
+
+- add build step
+
 ## 0.1.0
 
 This was a version bump only for @telicent-oss/rdfservice to align it with other projects, there were no code changes.

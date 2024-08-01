@@ -1,3 +1,14 @@
+## 0.1.1 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- add build step ([38be673](https://github.com/telicent-oss/rdf-libraries/commit/38be673))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.0 (2024-08-01)
 
 
