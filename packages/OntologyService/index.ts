@@ -61,8 +61,6 @@ export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
   item: SPARQLResultBinding
 }
 
-
-
 export interface SuperClassQuerySolution extends SPARQLQuerySolution {
   super: SPARQLResultBinding,
   subRel: SPARQLResultBinding
