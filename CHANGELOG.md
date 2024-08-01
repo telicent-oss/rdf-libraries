@@ -1,3 +1,14 @@
+## 0.0.18 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- test ([b41125b](https://github.com/telicent-oss/rdf-libraries/commit/b41125b))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.0.17 (2024-08-01)
 
 
