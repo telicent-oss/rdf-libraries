@@ -1,3 +1,10 @@
+## 0.1.5
+
+
+### 🩹 Fixes
+
+- got all builds working locally
+
 ## 0.1.4
 
 

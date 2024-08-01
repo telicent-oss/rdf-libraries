@@ -1,3 +1,14 @@
+## 0.1.5 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- got all builds working locally ([b6972a5](https://github.com/telicent-oss/rdf-libraries/commit/b6972a5))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.4 (2024-08-01)
 
 
