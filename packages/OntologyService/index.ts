@@ -1158,7 +1158,6 @@ export class OntologyService extends RdfService {
       defaultCls = RDFSClass
     }
 
-
     if (spOut.results?.bindings.length > 0) {
       spOut.results.bindings.forEach((statement: HierarchyQuerySolution) => {
         let cls = defaultCls
