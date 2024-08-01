@@ -1,3 +1,14 @@
+## 0.1.4 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- add registry back in ([bceaa2d](https://github.com/telicent-oss/rdf-libraries/commit/bceaa2d))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.3 (2024-08-01)
 
 

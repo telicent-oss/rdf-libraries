@@ -1,3 +1,10 @@
+## 0.1.4
+
+
+### 🩹 Fixes
+
+- add registry back in
+
 ## 0.1.3
 
 
