@@ -1,10 +1,7 @@
 
 //import { SPARQL } from "packages/RdfService";
 
-
-
-
-import {OntologyService,  Style } from "./index";
+import { OntologyService, Style } from "./index";
 /*
  * @function makeStyleObject 
  * @remarks
@@ -17,7 +14,7 @@ import {OntologyService,  Style } from "./index";
  * @param string - The class string of font awesome icon - usually ontologyService also included in the faIcon string
  * @returns object - a style object for use in other methods
 */
-export const makeStyleObject = new Style("#888","#000","fa-solid fa-question")
+export const makeStyleObject = new Style("#888", "#000", "fa-solid fa-question")
 /*
 const doesExist = (target: string, elementList: AllElements) => Boolean(target in elementList)
 
