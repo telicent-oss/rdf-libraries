@@ -136,7 +136,6 @@ export const buildStatementPartial = (ontologyService: OntologyService, getAllPr
   if (!doesExist(subject, ontologyService.nodes.allElements)) {
     ontologyService.nodes.allElements[subject] = new ClassDefinition(subject)
   }
-
   processPredicates(getAllPredicates, ontologyService, predicate, subject, object)
 
   return ontologyService.nodes
