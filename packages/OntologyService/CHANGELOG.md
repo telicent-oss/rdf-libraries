@@ -1,3 +1,10 @@
+## 0.0.21
+
+
+### 🩹 Fixes
+
+- add auth token to ci
+
 ## 0.0.20
 
 

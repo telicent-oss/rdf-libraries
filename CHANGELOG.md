@@ -1,3 +1,14 @@
+## 0.0.21 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- add auth token to ci ([b422f33](https://github.com/telicent-oss/rdf-libraries/commit/b422f33))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.0.20 (2024-08-01)
 
 
