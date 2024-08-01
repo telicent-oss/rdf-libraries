@@ -1,3 +1,10 @@
+## 0.1.3
+
+
+### 🩹 Fixes
+
+- try to get npm auth working
+
 ## 0.1.2
 
 

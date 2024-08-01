@@ -1,3 +1,10 @@
+## 0.1.3
+
+
+### 🩹 Fixes
+
+- try to get npm auth working
+
 ## 0.1.2
 
 This was a version bump only for @telicent-oss/rdfservice to align it with other projects, there were no code changes.

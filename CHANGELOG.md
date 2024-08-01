@@ -1,3 +1,14 @@
+## 0.1.3 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- try to get npm auth working ([f8800da](https://github.com/telicent-oss/rdf-libraries/commit/f8800da))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.2 (2024-08-01)
 
 
