@@ -1,3 +1,14 @@
+## 0.0.20 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- remove publish config ([0f07f06](https://github.com/telicent-oss/rdf-libraries/commit/0f07f06))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.0.19 (2024-08-01)
 
 

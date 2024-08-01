@@ -1,3 +1,10 @@
+## 0.0.20
+
+
+### 🩹 Fixes
+
+- remove publish config
+
 ## 0.0.19
 
 
