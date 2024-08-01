@@ -32,7 +32,7 @@ jobs:
 
       - name: Install dependencies
         run: | 
-          yarn whoami
+          npm whoami
           yarn install --frozen-lockfile
         shell: bash
 
