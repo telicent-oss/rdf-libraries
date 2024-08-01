@@ -1,3 +1,10 @@
+## 0.1.6
+
+
+### 🩹 Fixes
+
+- remove npm lockfile
+
 ## 0.1.5
 
 

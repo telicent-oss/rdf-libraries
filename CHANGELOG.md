@@ -1,3 +1,14 @@
+## 0.1.6 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- remove npm lockfile ([ab3b5ec](https://github.com/telicent-oss/rdf-libraries/commit/ab3b5ec))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.5 (2024-08-01)
 
 
