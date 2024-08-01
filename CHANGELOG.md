@@ -1,3 +1,14 @@
+## 0.0.16 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- whitespace changes ([2daaea0](https://github.com/telicent-oss/rdf-libraries/commit/2daaea0))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.0.15 (2024-08-01)
 
 
