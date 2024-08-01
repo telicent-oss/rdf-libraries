@@ -35,6 +35,8 @@ jobs:
           npm whoami
           yarn install --frozen-lockfile
         shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
 
       - uses: nrwl/nx-set-shas@v4
 
