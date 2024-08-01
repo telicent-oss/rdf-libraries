@@ -1,3 +1,15 @@
+## 0.0.12 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- whitespace change to test workflow ([3dbfb95](https://github.com/telicent-oss/rdf-libraries/commit/3dbfb95))
+- whitespace change to test workflow ([f756326](https://github.com/telicent-oss/rdf-libraries/commit/f756326))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.0.11 (2024-07-31)
 
 
