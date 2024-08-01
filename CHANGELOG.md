@@ -1,3 +1,14 @@
+## 0.0.19 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- add lock files ([926eeb7](https://github.com/telicent-oss/rdf-libraries/commit/926eeb7))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.0.18 (2024-08-01)
 
 
