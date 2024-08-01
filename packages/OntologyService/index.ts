@@ -137,9 +137,6 @@ export class AppliedStyle {
   }
 }
 
-
-
-
 export class Diagram extends RDFSResource {
   uuid: string
   title: string
