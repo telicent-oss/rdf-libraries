@@ -31,7 +31,9 @@ jobs:
           cache: "yarn"
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: | 
+          yarn whoami
+          yarn install --frozen-lockfile
         shell: bash
 
       - uses: nrwl/nx-set-shas@v4

@@ -32,7 +32,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "0.1.2"
+    "@telicent-oss/rdfservice": "0.1.6"
   },
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",

@@ -1178,7 +1178,6 @@ export class OntologyService extends RdfService {
           catch {
             this.warn(`Unable to decode style for URI ${statement.uri.value}`)
           }
-
         }
         if (!(statement.supers)) {
           //we've found an item at the top of its hierarchy, so add it to the output array
