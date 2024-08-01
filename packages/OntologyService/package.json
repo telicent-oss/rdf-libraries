@@ -31,12 +31,6 @@
     "type": "git",
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
-  "publishConfig": {
-    "access": "public"
-  },
-  "dependencies": {
-    "@telicent-oss/rdfservice": "0.1.2"
-  },
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",
     "@types/jest": "^29.4.0",
