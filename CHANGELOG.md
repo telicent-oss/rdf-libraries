@@ -1,3 +1,14 @@
+## 0.1.2 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- add missing flag ([2b9102d](https://github.com/telicent-oss/rdf-libraries/commit/2b9102d))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.1 (2024-08-01)
 
 

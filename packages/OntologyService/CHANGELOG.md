@@ -1,3 +1,10 @@
+## 0.1.2
+
+
+### 🩹 Fixes
+
+- add missing flag
+
 ## 0.1.1
 
 
