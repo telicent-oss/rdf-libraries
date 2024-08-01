@@ -3,7 +3,6 @@
   "version": "0.0.9",
   "description": "Simple client-side lib for working with ontologies",
   "scripts": {
-    "preinstall": "node ./scripts/enforcePnpm.js",
     "test": "./scripts/run-packages.sh test",
     "build": "./scripts/run-packages.sh build",
     "generate-docs": "./scripts/run-packages.sh generate-docs",
@@ -43,7 +42,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "nx": "19.5.4",
     "prettier": "^2.8.8",
-    "testing": "link:@nrwl/nx-plugin/testing",
+    "testing": "file:@nrwl/nx-plugin/testing",
     "ts-jest": "^29.2.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.5.4"
