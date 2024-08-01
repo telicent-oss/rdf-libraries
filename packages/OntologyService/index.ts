@@ -1210,7 +1210,6 @@ export class OntologyService extends RdfService {
             node.children.push(subNode)
           });
         }
-
       });
     }
     return output
