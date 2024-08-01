@@ -1,3 +1,10 @@
+## 0.1.9
+
+
+### 🩹 Fixes
+
+- add auth to whoami step
+
 ## 0.1.8
 
 

@@ -1,3 +1,14 @@
+## 0.1.9 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- add auth to whoami step ([9ac2bf0](https://github.com/telicent-oss/rdf-libraries/commit/9ac2bf0))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.8 (2024-08-01)
 
 
