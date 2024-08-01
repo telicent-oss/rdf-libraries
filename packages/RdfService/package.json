@@ -29,6 +29,9 @@
     "type": "git",
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {

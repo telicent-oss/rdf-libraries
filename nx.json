@@ -1,10 +1,17 @@
 {
   "namedInputs": {
-    "noMarkdown": ["!{projectRoot}/**/*.md"],
-    "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
+    "noMarkdown": [
+      "!{projectRoot}/**/*.md"
+    ],
+    "sharedGlobals": [
+      "{workspaceRoot}/.github/workflows/ci.yml"
+    ]
   },
   "release": {
-    "projects": ["@telicent-oss/rdfservice", "@telicent-oss/ontologyservice"],
+    "projects": [
+      "@telicent-oss/rdfservice",
+      "@telicent-oss/ontologyservice"
+    ],
     "version": {
       "conventionalCommits": true
     },
@@ -25,19 +32,31 @@
   "targetDefaults": {
     "build": {
       "cache": true,
-      "dependsOn": ["^build"],
-      "inputs": ["noMarkdown", "^noMarkdown"]
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "noMarkdown",
+        "^noMarkdown"
+      ]
     },
     "test": {
       "cache": true,
-      "inputs": ["noMarkdown", "^noMarkdown"]
+      "inputs": [
+        "noMarkdown",
+        "^noMarkdown"
+      ]
     },
     "generate-docs": {
       "cache": true
     },
     "@nx/jest:jest": {
       "cache": true,
-      "inputs": ["default", "^default", "{workspaceRoot}/jest.preset.js"],
+      "inputs": [
+        "default",
+        "^default",
+        "{workspaceRoot}/jest.preset.js"
+      ],
       "options": {
         "passWithNoTests": true
       },
