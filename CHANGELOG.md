@@ -1,3 +1,14 @@
+## 0.1.7 (2024-08-01)
+
+
+### 🩹 Fixes
+
+- test whoami ([6fd359d](https://github.com/telicent-oss/rdf-libraries/commit/6fd359d))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.6 (2024-08-01)
 
 
