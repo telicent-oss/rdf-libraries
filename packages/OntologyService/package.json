@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontologyservice",
-  "version": "0.0.12",
+  "version": "0.0.13",
   "private": false,
   "description": "Simple client-side library for working with RDF ontologies. Includes basic CRUD abilities and functions to help you navigate an ontology hierarchy.",
   "main": "./dist/ontologyservice.mjs",
@@ -35,7 +35,7 @@
     "registry": "https://www.npmjs.com/"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "0.0.12"
+    "@telicent-oss/rdfservice": "0.0.13"
   },
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",
