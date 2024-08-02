@@ -211,7 +211,6 @@ export class Diagram extends RDFSResource {
     return elems
   }
 
-
   async getDiagramRelations(): Promise<DiagramRelationship[]> {
     const query = `SELECT ?uri ?_type ?source ?target ?style ?rel 
       WHERE {
