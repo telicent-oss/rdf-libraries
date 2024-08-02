@@ -1,3 +1,14 @@
+## 0.1.28 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- correct file path ([1902ce0](https://github.com/telicent-oss/rdf-libraries/commit/1902ce0))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.27 (2024-08-02)
 
 
