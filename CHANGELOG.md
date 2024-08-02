@@ -1,3 +1,14 @@
+## 0.1.24 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- attempt to confirm output ([9c10591](https://github.com/telicent-oss/rdf-libraries/commit/9c10591))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.23 (2024-08-02)
 
 
