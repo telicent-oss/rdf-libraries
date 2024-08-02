@@ -1,3 +1,14 @@
+## 0.1.20 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- typo ([16feb8a](https://github.com/telicent-oss/rdf-libraries/commit/16feb8a))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.19 (2024-08-02)
 
 
