@@ -1,3 +1,14 @@
+## 0.1.27 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- change incorrect path ([b370361](https://github.com/telicent-oss/rdf-libraries/commit/b370361))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.26 (2024-08-02)
 
 
