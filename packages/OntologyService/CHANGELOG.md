@@ -1,3 +1,10 @@
+## 0.1.29-dave9
+
+
+### 🩹 Fixes
+
+- define projects
+
 ## 0.1.29-dave8
 
 

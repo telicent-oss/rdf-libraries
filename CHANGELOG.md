@@ -1,3 +1,14 @@
+## 0.1.29-dave9 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- define projects ([4d92c98](https://github.com/telicent-oss/rdf-libraries/commit/4d92c98))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave8 (2024-08-02)
 
 
