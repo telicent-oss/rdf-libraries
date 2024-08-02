@@ -1,3 +1,10 @@
+## 0.1.22
+
+
+### 🩹 Fixes
+
+- add additional logging
+
 ## 0.1.21
 
 

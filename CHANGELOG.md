@@ -1,3 +1,14 @@
+## 0.1.22 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- add additional logging ([3e00652](https://github.com/telicent-oss/rdf-libraries/commit/3e00652))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.21 (2024-08-02)
 
 
