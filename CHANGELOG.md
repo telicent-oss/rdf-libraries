@@ -1,3 +1,14 @@
+## 0.1.13 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- use verbose output in test ([02c4ec3](https://github.com/telicent-oss/rdf-libraries/commit/02c4ec3))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.12 (2024-08-02)
 
 

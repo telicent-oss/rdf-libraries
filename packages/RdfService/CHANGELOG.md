@@ -1,3 +1,7 @@
+## 0.1.13
+
+This was a version bump only for @telicent-oss/rdfservice to align it with other projects, there were no code changes.
+
 ## 0.1.12
 
 This was a version bump only for @telicent-oss/rdfservice to align it with other projects, there were no code changes.

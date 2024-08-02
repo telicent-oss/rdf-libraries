@@ -1,3 +1,10 @@
+## 0.1.13
+
+
+### 🩹 Fixes
+
+- use verbose output in test
+
 ## 0.1.12
 
 
