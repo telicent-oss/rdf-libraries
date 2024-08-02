@@ -1,3 +1,14 @@
+## 0.1.29-dave1 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- try to add specific tag ([5601935](https://github.com/telicent-oss/rdf-libraries/commit/5601935))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.28 (2024-08-02)
 
 
