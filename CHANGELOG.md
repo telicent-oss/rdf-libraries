@@ -1,3 +1,14 @@
+## 0.1.23 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- add monkey patch ([a31287e](https://github.com/telicent-oss/rdf-libraries/commit/a31287e))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.22 (2024-08-02)
 
 
