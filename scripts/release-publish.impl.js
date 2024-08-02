@@ -167,13 +167,18 @@ async function runExecutor(options, context) {
     npmPublishCommandSegments.push(`--dry-run`);
   }
   try {
-    const output = (0, child_process_1.execSync)(npmPublishCommandSegments.join(' '), {
-      maxBuffer: LARGE_BUFFER,
-      env: processEnv(true),
-      cwd: context.root,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    console.log(output)
+    let output;
+    try {
+      output = (0, child_process_1.execSync)(npmPublishCommandSegments.join(' '), {
+        maxBuffer: LARGE_BUFFER,
+        env: processEnv(true),
+        cwd: context.root,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+      console.log({ output })
+    } catch (e) {
+      console.log("IT ERRORED", e)
+    }
     /**
      * We cannot JSON.parse the output directly because if the user is using lifecycle scripts, npm will mix its publish output with the JSON output all on stdout.
      * Additionally, we want to capture and show the lifecycle script outputs as beforeJsonData and afterJsonData and print them accordingly below.
