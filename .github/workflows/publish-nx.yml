@@ -48,20 +48,13 @@ jobs:
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
       - name: publish packages
         run: | 
-          echo "running npx release publish..."
-          npx nx release publish > output.log 2>&1 || true
-          PUBLISH_EXIT_CODE=$?
+          cd ./packages/RdfService
+          npm publish || true
+          cd -
 
-          if [ -f output.log ]; then
-            echo "log file created."
-            echo "contents of output.log:"
-            cat output.log
-            echo "end of output.log:"
-          else
-            echo "Log file not created"
-          fi
-
-          exit "$PUBLISH_EXIT_CODE"
+          cd ./packages/OntologyService
+          npm publish || true
+          cd -
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
