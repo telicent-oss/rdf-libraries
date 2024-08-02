@@ -1,3 +1,14 @@
+## 0.1.17 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- force logging ([a4236c8](https://github.com/telicent-oss/rdf-libraries/commit/a4236c8))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.16 (2024-08-02)
 
 
