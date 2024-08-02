@@ -187,7 +187,6 @@ export class Diagram extends RDFSResource {
         OPTIONAL {?uri <${this.service.telElementStyle}> ?style }
       }`
     const spOut = await this.service.runQuery<DiagramElementQuerySolution>(query)
-
     const elems: DiagramElement[] = []
     spOut.results.bindings.forEach((statement: DiagramElementQuerySolution) => {
       let deClsUri = this.service.telDiagramElement
