@@ -47,7 +47,7 @@ jobs:
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
       - name: publish packages
         run: | 
-          npx nx release publish --verbose > output.log > 2>&1
+          npx nx release publish --verbose > output.log 2>&1
           cat output.log
         shell: bash
         env:
