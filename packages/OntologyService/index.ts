@@ -205,7 +205,6 @@ export class Diagram extends RDFSResource {
       }
 
       const cls = this.service.lookupClass(elem.baseType, this.service.rdfsResource)
-
       if (statement.element.value in this.service.nodes) {
         elem.element = this.service.nodes[statement.element.value]
       } else {
