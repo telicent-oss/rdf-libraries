@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/rdfservice",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "private": false,
   "description": "RdfService is a helper library that abstracts away the complexity of interacting with RDF triplestores, providing basic CRUD abilities.",
   "main": "./dist/rdfservice.mjs",

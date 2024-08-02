@@ -1,3 +1,14 @@
+## 0.1.18 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- remove verbose ([9a260e1](https://github.com/telicent-oss/rdf-libraries/commit/9a260e1))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.17 (2024-08-02)
 
 
