@@ -1,3 +1,14 @@
+## 0.1.29-dave7 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- add auth ([e2adbf1](https://github.com/telicent-oss/rdf-libraries/commit/e2adbf1))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave6 (2024-08-02)
 
 
