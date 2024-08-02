@@ -1,3 +1,14 @@
+## 0.1.12 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- remove npm check ([3967d01](https://github.com/telicent-oss/rdf-libraries/commit/3967d01))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.11 (2024-08-02)
 
 
