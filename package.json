@@ -8,6 +8,8 @@
     "generate-docs": "./scripts/run-packages.sh generate-docs",
     "open-docs": "./scripts/run-packages.sh open-docs",
     "lint": "./scripts/run-packages.sh lint"
+    "lint": "./scripts/run-packages.sh lint",
+    "postinstall": "./scripts/patch-publish-lib.sh"
   },
   "private": true,
   "repository": {
