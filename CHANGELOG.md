@@ -1,3 +1,14 @@
+## 0.1.19 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- add additional logging ([d401bb3](https://github.com/telicent-oss/rdf-libraries/commit/d401bb3))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.18 (2024-08-02)
 
 
