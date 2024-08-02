@@ -165,7 +165,6 @@ export class Diagram extends RDFSResource {
       if (!uri) {
         uri = this.service.mintUri()
       }
-
       if (title) {
         this.setTitle(title)
       }
