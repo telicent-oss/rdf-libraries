@@ -43,15 +43,13 @@ jobs:
       - name: build packages
         run: npx nx build -p @telicent-oss/rdfservice,@telicent-oss/ontologyservice
 
-      - name: publish packages
-        run: |
-          npx nx publish @telicent-oss/rdfservice
-          npx nx publish @telicent-oss/ontologyservice
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: yarn nx-cloud record -- echo Hello World
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
       - name: publish packages
         run: | 
+          npx nx publish @telicent-oss/rdfservice
+          npx nx publish @telicent-oss/ontologyservice
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
