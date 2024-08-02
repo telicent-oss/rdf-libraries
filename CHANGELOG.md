@@ -1,3 +1,14 @@
+## 0.1.29-dave4 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- try 1 command ([236ac0b](https://github.com/telicent-oss/rdf-libraries/commit/236ac0b))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave3 (2024-08-02)
 
 
