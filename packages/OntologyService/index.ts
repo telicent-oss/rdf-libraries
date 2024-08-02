@@ -1161,10 +1161,12 @@ export class OntologyService extends RdfService {
     if (spOut.results?.bindings.length > 0) {
       spOut.results.bindings.forEach((statement: HierarchyQuerySolution) => {
         let cls = defaultCls
+
         if (statement._type) {
           const types = statement._type.value.split(" ")
           cls = this.lookupClass(types[0], defaultCls)
         }
+
         const item = new cls(this, undefined, undefined, statement)
         const node: HierarchyNode = { item: item, id: statement.uri.value, label: '', rdfsLabels: [], children: [], parents: [], style: undefined, expanded: false }
 
