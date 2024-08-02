@@ -48,7 +48,7 @@ jobs:
       - name: publish packages
         run: | 
           echo "running npx release publish..."
-          npx nx release publish > output.log 2>&1
+          npx nx release publish > output.log 2>&1 || true
           PUBLISH_EXIT_CODE=$?
 
           if [ -f output.log ]; then

@@ -151,6 +151,7 @@ export class Diagram extends RDFSResource {
       if (statement.uuid) {
         this.uuid = statement.uuid.value
       }
+
       if (statement.title) {
         this.title = statement.title.value
       }
