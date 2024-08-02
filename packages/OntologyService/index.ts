@@ -160,6 +160,7 @@ export class Diagram extends RDFSResource {
       if (!uuid) {
         uuid = crypto.randomUUID()
       }
+
       this.setUUID(uuid)
       if (!uri) {
         uri = this.service.mintUri()

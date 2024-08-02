@@ -55,6 +55,7 @@ jobs:
             echo "log file created."
             echo "contents of output.log:"
             cat output.log
+            echo "end of output.log:"
           else
             echo "Log file not created"
           fi
