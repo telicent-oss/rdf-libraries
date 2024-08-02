@@ -1,3 +1,10 @@
+## 0.1.29-dave6
+
+
+### 🩹 Fixes
+
+- specify package to publish
+
 ## 0.1.29-dave5
 
 

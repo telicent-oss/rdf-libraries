@@ -1,3 +1,14 @@
+## 0.1.29-dave6 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- specify package to publish ([ac209b4](https://github.com/telicent-oss/rdf-libraries/commit/ac209b4))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave5 (2024-08-02)
 
 
