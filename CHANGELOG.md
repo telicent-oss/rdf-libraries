@@ -1,3 +1,14 @@
+## 0.1.29-dave8 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- try with auth ([2c85696](https://github.com/telicent-oss/rdf-libraries/commit/2c85696))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave7 (2024-08-02)
 
 

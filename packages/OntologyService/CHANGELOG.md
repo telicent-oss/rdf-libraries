@@ -1,3 +1,10 @@
+## 0.1.29-dave8
+
+
+### 🩹 Fixes
+
+- try with auth
+
 ## 0.1.29-dave7
 
 
