@@ -120,6 +120,7 @@ const processPredicates = (getAllPredicates = false, output: OntologyService, pr
       break;
   }
 }
+
 export const buildStatementPartial = (ontologyService: OntologyService, getAllPredicates = false) => (statement: SPARQL) => {
   const subject = statement.s.value;
   const predicate = statement.p.value;
