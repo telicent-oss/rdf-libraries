@@ -1,3 +1,14 @@
+## 0.1.15 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- log build output ([3254b29](https://github.com/telicent-oss/rdf-libraries/commit/3254b29))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.14 (2024-08-02)
 
 
