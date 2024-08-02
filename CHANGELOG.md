@@ -1,3 +1,14 @@
+## 0.1.29-dave5 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- try yarn ([2e70e99](https://github.com/telicent-oss/rdf-libraries/commit/2e70e99))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave4 (2024-08-02)
 
 
