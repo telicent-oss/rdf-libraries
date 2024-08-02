@@ -1,3 +1,14 @@
+## 0.1.16 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- remove chevron ([9e8adcd](https://github.com/telicent-oss/rdf-libraries/commit/9e8adcd))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.15 (2024-08-02)
 
 
