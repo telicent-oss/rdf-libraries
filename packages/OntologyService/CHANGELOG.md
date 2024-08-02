@@ -1,3 +1,10 @@
+## 0.1.29-dave2
+
+
+### 🩹 Fixes
+
+- try publishing manually
+
 ## 0.1.29-dave1
 
 

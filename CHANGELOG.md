@@ -1,3 +1,14 @@
+## 0.1.29-dave2 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- try publishing manually ([e1839b2](https://github.com/telicent-oss/rdf-libraries/commit/e1839b2))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave1 (2024-08-02)
 
 
