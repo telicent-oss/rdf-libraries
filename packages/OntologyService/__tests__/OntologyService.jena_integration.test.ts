@@ -1,5 +1,5 @@
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers"
-import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style, QueryResponse, SPOQuerySolution, Diagram, DiagramElement, DiagramProperty } from "../index";
+import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style, QueryResponse, SPOQuerySolution } from "../index";
 
 let os: OntologyService
 const testFullOntology = false
@@ -164,7 +164,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         false
       );
       os2.setWarnings = false
-      const prop = new OWLObjectProperty(os2, "http://ies.data.gov.uk/ontology/ies4#isPartOf")
+      // const prop = new OWLObjectProperty(os2, "http://ies.data.gov.uk/ontology/ies4#isPartOf")
     }
   })
 
@@ -172,36 +172,36 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
     const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
     const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
-    const g21 = new OWLClass(os, `${testDefaultNamespace}ONT21`);
+    // const g21 = new OWLClass(os, `${testDefaultNamespace}ONT21`);
     const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);
     const g1_subs = await g1.getSubClasses(false);
     const g12_subs = await g12.getSubClasses(false);
     expect(g1_subs.length).toEqual(2);
     expect(g12_subs.length).toEqual(1);
-    if (testFullOntology) {
-      const os2 = new OntologyService(
-        "http://localhost:3030/",
-        "ontology",
-        undefined,
-        undefined,
-        false
-      );
-      os2.setWarnings = false
-      const entity = new RDFSClass(os2, "http://ies.data.gov.uk/ontology/ies4#Entity")
-      //const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
-
-      const diags: Diagram[] = await os2.getAllDiagrams()
-      const diag: Diagram = diags[0]
-      const elems = await diag.getDiagramElements()
-      // elems.forEach((elem:DiagramElement) => {
-      //   console.log(elem.uri, elem.types, elem.baseType, elem.constructor.name)
-      //  })
-      const rels = await diag.getDiagramRelations()
-
-
-      const phy = await os2.getClassHierarchy()
-
-    }
+    // if (testFullOntology) {
+    //   const os2 = new OntologyService(
+    //     "http://localhost:3030/",
+    //     "ontology",
+    //     undefined,
+    //     undefined,
+    //     false
+    //   );
+    //   os2.setWarnings = false
+    //   const entity = new RDFSClass(os2, "http://ies.data.gov.uk/ontology/ies4#Entity")
+    //   //const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
+    //
+    //   const diags: Diagram[] = await os2.getAllDiagrams()
+    //   const diag: Diagram = diags[0]
+    //   const elems = await diag.getDiagramElements()
+    //   // elems.forEach((elem:DiagramElement) => {
+    //   //   console.log(elem.uri, elem.types, elem.baseType, elem.constructor.name)
+    //   //  })
+    //   const rels = await diag.getDiagramRelations()
+    //
+    //
+    //   const phy = await os2.getClassHierarchy()
+    //
+    // }
 
     expect(g1_subs.includes(g11)).toBeTruthy();
     expect(g1_subs.includes(g12)).toBeTruthy();
