@@ -49,11 +49,11 @@ jobs:
       - name: publish packages
         run: | 
           cd ./packages/RdfService
-          npm publish || true
+          npm publish @telicent-oss/rdfservice || true
           cd -
 
           cd ./packages/OntologyService
-          npm publish || true
+          npm publish @telicent-oss/ontologyservice || true
           cd -
         shell: bash
         env:

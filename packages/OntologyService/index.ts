@@ -194,7 +194,6 @@ export class Diagram extends RDFSResource {
       if (statement._type) {
         deClsUri = statement._type.value
       }
-
       const deCls = this.service.lookupClass(deClsUri, this.service.telDiagramElement)
       const elem = new deCls(this.service, undefined, undefined, statement)
       if (statement.baseType) {
