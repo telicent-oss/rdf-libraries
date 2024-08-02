@@ -262,8 +262,6 @@ abstract class OntologyItem extends RDFSResource {
   public constructor(service: OntologyService, uri?: LongURI, type: LongURI = "http://www.w3.org/2000/01/rdf-schema#Resource", statement?: TypedNodeQuerySolution) {
     super(service, uri, type, statement)
     this.service = service
-
-
   }
 
 
