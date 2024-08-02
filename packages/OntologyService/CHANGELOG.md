@@ -1,3 +1,10 @@
+## 0.1.29-dave3
+
+
+### 🩹 Fixes
+
+- publish packages using npm explicitly
+
 ## 0.1.29-dave2
 
 

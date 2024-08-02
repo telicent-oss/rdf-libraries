@@ -1,3 +1,14 @@
+## 0.1.29-dave3 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- publish packages using npm explicitly ([2f07c13](https://github.com/telicent-oss/rdf-libraries/commit/2f07c13))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave2 (2024-08-02)
 
 
