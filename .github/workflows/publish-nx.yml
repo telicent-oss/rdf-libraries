@@ -47,11 +47,11 @@ jobs:
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
       - name: publish packages
         run: | 
-          echo "runnngi npx release publish..."
+          echo "running npx release publish..."
           npx nx release publish > output.log 2>&1
           PUBLISH_EXIT_CODE=$?
 
-          if [-f output.log ]; then
+          if [ -f output.log ]; then
             echo "log file created."
             echo "contents of output.log:"
             cat output.log
@@ -59,7 +59,7 @@ jobs:
             echo "Log file not created"
           fi
 
-          exit $PUBLISH_EXIT_CODE
+          exit "$PUBLISH_EXIT_CODE"
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}

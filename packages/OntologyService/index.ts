@@ -141,6 +141,7 @@ export class Diagram extends RDFSResource {
   uuid: string
   title: string
   service: OntologyService
+
   public constructor(service: OntologyService, uri?: string, uuid?: string, title?: string, statement?: DiagramQuerySolution) {
     super(service, uri, service.telDiagram, statement)
     this.service = service
