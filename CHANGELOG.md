@@ -1,3 +1,14 @@
+## 0.1.14 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- fix lint issues ([5187ca2](https://github.com/telicent-oss/rdf-libraries/commit/5187ca2))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.13 (2024-08-02)
 
 
