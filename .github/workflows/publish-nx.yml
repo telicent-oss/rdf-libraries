@@ -32,8 +32,6 @@ jobs:
 
       - name: Install dependencies
         run: | 
-          npm token list
-          npm whoami
           yarn install --frozen-lockfile
         shell: bash
         env:

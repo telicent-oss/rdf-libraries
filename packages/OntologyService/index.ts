@@ -1184,7 +1184,6 @@ export class OntologyService extends RdfService {
           output.push(node)
         }
         dict[statement.uri.value] = node
-
       });
 
       //second pass - now add all the subs and supers for each item
