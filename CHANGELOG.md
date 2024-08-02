@@ -1,3 +1,14 @@
+## 0.1.26 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- fix json file ([dfe579b](https://github.com/telicent-oss/rdf-libraries/commit/dfe579b))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.25 (2024-08-02)
 
 
