@@ -1,3 +1,14 @@
+## 0.1.21 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- add more checks ([d549fce](https://github.com/telicent-oss/rdf-libraries/commit/d549fce))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.20 (2024-08-02)
 
 
