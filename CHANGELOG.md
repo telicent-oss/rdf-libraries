@@ -1,3 +1,14 @@
+## 0.1.25 (2024-08-02)
+
+
+### 🩹 Fixes
+
+- add postinstall script ([c28b013](https://github.com/telicent-oss/rdf-libraries/commit/c28b013))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.24 (2024-08-02)
 
 

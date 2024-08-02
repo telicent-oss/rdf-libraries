@@ -1,3 +1,10 @@
+## 0.1.25
+
+
+### 🩹 Fixes
+
+- add postinstall script
+
 ## 0.1.24
 
 
