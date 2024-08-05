@@ -1,3 +1,14 @@
+## 0.1.29-dave19 (2024-08-05)
+
+
+### 🩹 Fixes
+
+- change dir in path ([d87caa0](https://github.com/telicent-oss/rdf-libraries/commit/d87caa0))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave18 (2024-08-05)
 
 

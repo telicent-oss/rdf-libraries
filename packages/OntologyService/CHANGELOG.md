@@ -1,3 +1,10 @@
+## 0.1.29-dave19
+
+
+### 🩹 Fixes
+
+- change dir in path
+
 ## 0.1.29-dave18
 
 

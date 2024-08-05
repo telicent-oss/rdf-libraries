@@ -1,3 +1,7 @@
+## 0.1.29-dave19
+
+This was a version bump only for @telicent-oss/catalogservice to align it with other projects, there were no code changes.
+
 ## 0.1.29-dave18
 
 This was a version bump only for @telicent-oss/catalogservice to align it with other projects, there were no code changes.
