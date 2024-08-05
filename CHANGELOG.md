@@ -1,3 +1,14 @@
+## 0.30.0-dev0 (2024-08-05)
+
+
+### 🩹 Fixes
+
+- test ([ffda0b9](https://github.com/telicent-oss/rdf-libraries/commit/ffda0b9))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave19 (2024-08-05)
 
 
