@@ -1158,7 +1158,6 @@ export class OntologyService extends RdfService {
     if (spOut.results?.bindings.length > 0) {
       spOut.results.bindings.forEach((statement: HierarchyQuerySolution) => {
         let cls = defaultCls
-
         if (statement._type) {
           const types = statement._type.value.split(" ")
           cls = this.lookupClass(types[0], defaultCls)
