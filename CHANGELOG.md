@@ -1,3 +1,11 @@
+## 0.1.29-dave17 (2024-08-05)
+
+This was a version bump only, there were no code changes.
+
+# 1.0.0 (2024-08-05)
+
+This was a version bump only, there were no code changes.
+
 ## 0.1.29-dave16 (2024-08-05)
 
 

@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/catalogservice",
-  "version": "0.1.29-dave16",
+  "version": "0.1.29-dave17",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",
   "main": "./dist/catalogservice.mjs",
@@ -29,7 +29,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "0.1.29-dave16"
+    "@telicent-oss/rdfservice": "0.1.29-dave17"
   },
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",
