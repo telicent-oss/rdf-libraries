@@ -1,3 +1,14 @@
+## 0.30.0-dev2 (2024-08-05)
+
+
+### 🩹 Fixes
+
+- add workflow dependencies ([76d9d3a](https://github.com/telicent-oss/rdf-libraries/commit/76d9d3a))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.30.0-dev1 (2024-08-05)
 
 
