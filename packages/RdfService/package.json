@@ -22,7 +22,6 @@
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
     "publish": "yarn publish --access public --provenance",
-    "publish:dry-run": "yarn publish --access public --provenance --dry-run",
     "lint": "eslint **/*.ts"
   },
   "repository": {

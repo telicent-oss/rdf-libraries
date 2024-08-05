@@ -1,9 +1,6 @@
 ## 0.1.29-dave16
 
-
-### 🩹 Fixes
-
-- test --skip-publish flag
+This was a version bump only for @telicent-oss/ontologyservice to align it with other projects, there were no code changes.
 
 ## 0.1.29-dave15
 
