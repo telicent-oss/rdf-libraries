@@ -1167,7 +1167,6 @@ export class OntologyService extends RdfService {
         if (statement.labels) {
           node.rdfsLabels = statement.labels.value.split("||")
         }
-
         if (statement.styles) {
           const stArray = statement.styles.value.split("||")
           try {
