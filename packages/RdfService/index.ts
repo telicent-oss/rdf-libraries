@@ -12,7 +12,6 @@ const isEmptyString = (str: string) => !Boolean(str);
 
 export type RDFBasetype = "URI" | "LITERAL" | "BNODE";
 export type PrefixedURI = string;
-
 export type LongURI = string;
 
 export interface SPARQLResultBinding {

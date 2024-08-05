@@ -43,7 +43,7 @@ jobs:
       - name: build and publish packages
         run: | 
           npx nx run-many -t build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice
-          npx nx run-many -t publish -p @telicent-oss/rdfservice @telicent-oss/ontologyservice
+          npx nx run-many -t publish -p @telicent-oss/rdfservice @telicent-oss/ontologyservice --parallel=false
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
