@@ -48,12 +48,12 @@ jobs:
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
       - name: publish packages
         run: | 
-          cd ./packages/rdf-service
-          yarn run publish || true
+          cd ./packages/RdfService
+          npm publish || true
           cd -
           
-          cd ./packages/ontology-service
-          yarn run publish || true
+          cd ./packages/OntologyService
+          npm publish || true
           cd -
         shell: bash
         env:

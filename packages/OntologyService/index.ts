@@ -24,7 +24,6 @@ export type ClassDescription = {
   superClasses: RDFSClass[],
   subClasses: RDFSClass[],
 }
-
 export type PropertyDescription = {
   style?: Style,
   subProperties: RDFProperty[],
