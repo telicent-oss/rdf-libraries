@@ -1,3 +1,14 @@
+## 0.1.29-dave15 (2024-08-05)
+
+
+### 🩹 Fixes
+
+- see if workflows are interrupting eachother ([84dc159](https://github.com/telicent-oss/rdf-libraries/commit/84dc159))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave14 (2024-08-05)
 
 
