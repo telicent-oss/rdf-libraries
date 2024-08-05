@@ -1,3 +1,7 @@
+## 0.30.0-dev3
+
+This was a version bump only for @telicent-oss/ontologyservice to align it with other projects, there were no code changes.
+
 ## 0.30.0-dev2
 
 This was a version bump only for @telicent-oss/ontologyservice to align it with other projects, there were no code changes.

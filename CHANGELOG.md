@@ -1,3 +1,14 @@
+## 0.30.0-dev3 (2024-08-05)
+
+
+### 🩹 Fixes
+
+- remove parallelisation ([3c81de0](https://github.com/telicent-oss/rdf-libraries/commit/3c81de0))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.30.0-dev2 (2024-08-05)
 
 

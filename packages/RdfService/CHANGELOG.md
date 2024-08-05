@@ -1,3 +1,10 @@
+## 0.30.0-dev3
+
+
+### 🩹 Fixes
+
+- remove parallelisation
+
 ## 0.30.0-dev2
 
 
