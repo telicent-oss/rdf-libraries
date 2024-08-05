@@ -1164,7 +1164,6 @@ export class OntologyService extends RdfService {
         }
         const item = new cls(this, undefined, undefined, statement)
         const node: HierarchyNode = { item: item, id: statement.uri.value, label: '', rdfsLabels: [], children: [], parents: [], style: undefined, expanded: false }
-
         if (statement.labels) {
           node.rdfsLabels = statement.labels.value.split("||")
         }
