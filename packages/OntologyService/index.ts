@@ -40,7 +40,6 @@ export type PropertyDescription = {
 export type HierarchyNodes = {
   [key: LongURI]: HierarchyNode;
 }
-
 export type HierarchyNode = {
   id: string,
   label: string,
