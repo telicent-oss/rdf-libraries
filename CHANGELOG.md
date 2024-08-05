@@ -1,3 +1,14 @@
+## 0.1.29-dave18 (2024-08-05)
+
+
+### 🩹 Fixes
+
+- publish ([9000dab](https://github.com/telicent-oss/rdf-libraries/commit/9000dab))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave17 (2024-08-05)
 
 This was a version bump only, there were no code changes.

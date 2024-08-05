@@ -1,3 +1,10 @@
+## 0.1.29-dave18
+
+
+### 🩹 Fixes
+
+- publish
+
 ## 0.1.29-dave17
 
 This was a version bump only for @telicent-oss/ontologyservice to align it with other projects, there were no code changes.
