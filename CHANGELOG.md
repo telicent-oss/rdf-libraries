@@ -1,3 +1,14 @@
+## 0.1.29-dave16 (2024-08-05)
+
+
+### 🩹 Fixes
+
+- test --skip-publish flag ([dba5793](https://github.com/telicent-oss/rdf-libraries/commit/dba5793))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave15 (2024-08-05)
 
 
