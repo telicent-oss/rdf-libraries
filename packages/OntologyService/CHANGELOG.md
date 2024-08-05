@@ -1,3 +1,10 @@
+## 0.30.0-dev1
+
+
+### 🩹 Fixes
+
+- nx syntax error
+
 ## 0.30.0-dev0
 
 

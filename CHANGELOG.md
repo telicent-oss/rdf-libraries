@@ -1,3 +1,14 @@
+## 0.30.0-dev1 (2024-08-05)
+
+
+### 🩹 Fixes
+
+- nx syntax error ([c318b2b](https://github.com/telicent-oss/rdf-libraries/commit/c318b2b))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.30.0-dev0 (2024-08-05)
 
 
