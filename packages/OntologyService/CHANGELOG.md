@@ -1,3 +1,10 @@
+## 0.1.29-dave9.0
+
+
+### 🩹 Fixes
+
+- use yarn to publish
+
 ## 0.1.29-dave9
 
 

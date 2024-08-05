@@ -1,3 +1,14 @@
+## 0.1.29-dave9.0 (2024-08-05)
+
+
+### 🩹 Fixes
+
+- use yarn to publish ([cd3e97a](https://github.com/telicent-oss/rdf-libraries/commit/cd3e97a))
+
+### ❤️  Thank You
+
+- Dave Cockrell
+
 ## 0.1.29-dave9 (2024-08-02)
 
 
