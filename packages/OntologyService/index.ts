@@ -8,7 +8,6 @@
 import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, SPOQuerySolution, ResourceDescription, StringsDict, LongURI, PrefixedURI } from "@telicent-oss/rdfservice";
 
 export { RDFSResource, type QueryResponse, type TypedNodeQuerySolution, type SPOQuerySolution } from "@telicent-oss/rdfservice"
-
 export type ResourceDict = {
   [key: LongURI]: RDFSResource[];
 }
