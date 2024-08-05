@@ -11,7 +11,6 @@ export { RDFSResource, type QueryResponse, type TypedNodeQuerySolution, type SPO
 export type ResourceDict = {
   [key: LongURI]: RDFSResource[];
 }
-
 export type ClassDescription = {
   style?: Style,
   labels: string[],

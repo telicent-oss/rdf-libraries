@@ -48,8 +48,13 @@ jobs:
       # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
       - name: publish packages
         run: | 
-          npx nx run @telicent-oss/rdfservice:publish
-          npx nx run @telicent-oss/ontologyservice:publish
+          cd ./packages/rdf-service
+          yarn run publish || true
+          cd -
+          
+          cd ./packages/ontology-service
+          yarn run publish || true
+          cd -
         shell: bash
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
