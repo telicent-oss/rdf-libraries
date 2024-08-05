@@ -37,7 +37,6 @@ export type PropertyDescription = {
   outLinks: ResourceDict,
   literals: StringsDict,
 }
-
 export type HierarchyNodes = {
   [key: LongURI]: HierarchyNode;
 }
