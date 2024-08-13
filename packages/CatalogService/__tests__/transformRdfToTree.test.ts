@@ -28,31 +28,22 @@ describe("transformRdfToTree", () => {
   afterAll(async () => {
     await Promise.all(api._service.workAsync);
   });
-  it("NOT same data when in in browser vs node", () => {
+  it("NOT same data when in in browser vs node [TEST BASED ON OLD-GENERATED DATA, MAY BE FIXED]", () => {
     // TODO! IMPORTANT! Graphs are racey by design.
     expect(
       snapshotDiff(
         triplesNode.map((el) => JSON.stringify(el)).sort(),
-        triplesBrowser.map((el) => JSON.stringify(el)).sort()
+        triplesBrowser.map((el) => JSON.stringify(el)).sort(),
+        { contextLines: 0 }
       )
     ).toMatchInlineSnapshot(`
       "Snapshot Diff:
       - First value
       + Second value
 
-      @@ -3,11 +3,11 @@
-          "{\\"o\\":{\\"type\\":\\"literal\\",\\"value\\":\\"######## makeStatic() ########\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://purl.org/dc/terms/published\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataservice1\\"}}",
-          "{\\"o\\":{\\"type\\":\\"literal\\",\\"value\\":\\"######## makeStatic() ########\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://purl.org/dc/terms/published\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataset1\\"}}",
-          "{\\"o\\":{\\"type\\":\\"literal\\",\\"value\\":\\"Catalog One\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://purl.org/dc/terms/title\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/cat1\\"}}",
-          "{\\"o\\":{\\"type\\":\\"literal\\",\\"value\\":\\"Data Service One\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://purl.org/dc/terms/title\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataservice1\\"}}",
-          "{\\"o\\":{\\"type\\":\\"literal\\",\\"value\\":\\"Dataset One\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://purl.org/dc/terms/title\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataset1\\"}}",
-      -   "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataservice1\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#Service\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/cat1\\"}}",
-      +   "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/cat1\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#Resource\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataservice1\\"}}",
-          "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataset1\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#Dataset\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/cat1\\"}}",
-          "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#Catalog\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/cat1\\"}}",
-          "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#DataService\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataservice1\\"}}",
-          "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#Dataset\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/1999/02/22-rdf-syntax-ns#type\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataset1\\"}}",
-        ]"
+      @@ -8,1 +8,1 @@
+      -   "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataservice1\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#Service\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/catalog1\\"}}",
+      +   "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/catalog1\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#Resource\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataservice1\\"}}","
     `);
   });
   it("transformRdfToTree (node)", async () => {
@@ -89,8 +80,8 @@ describe("transformRdfToTree", () => {
             "label": "http://telicent.io/data/dataservice1",
           },
         ],
-        "id": "http://telicent.io/data/cat1",
-        "label": "http://telicent.io/data/cat1",
+        "id": "http://telicent.io/data/catalog1",
+        "label": "http://telicent.io/data/catalog1",
       }
     `);
 
@@ -109,14 +100,14 @@ describe("transformRdfToTree", () => {
             "label": "Service: Wind Feed",
           },
         ],
-        "id": "http://telicent.io/data/cat1",
+        "id": "http://telicent.io/data/catalog1",
         "label": "Catalog: Cornwall Data",
       }
     `);
   });
   it("transformRdfToTree (browser variety)", async () => {
     const DATASET = "http://www.w3.org/ns/dcat#Dataset";
-    const SERVICE = "http://www.w3.org/ns/dcat#Service";
+    const SERVICE = "http://www.w3.org/ns/dcat#DataService";
     const CATALOG = "http://www.w3.org/ns/dcat#Catalog";
     const CONNECTIONS = [DATASET, SERVICE, CATALOG];
 
@@ -143,8 +134,8 @@ describe("transformRdfToTree", () => {
             "label": "http://telicent.io/data/dataservice1",
           },
         ],
-        "id": "http://telicent.io/data/cat1",
-        "label": "http://telicent.io/data/cat1",
+        "id": "http://telicent.io/data/catalog1",
+        "label": "http://telicent.io/data/catalog1",
       }
     `);
 
@@ -168,7 +159,7 @@ describe("transformRdfToTree", () => {
             "label": "Service: Wind Feed",
           },
         ],
-        "id": "http://telicent.io/data/cat1",
+        "id": "http://telicent.io/data/catalog1",
         "label": "Catalog: Cornwall Data",
       }
     `);

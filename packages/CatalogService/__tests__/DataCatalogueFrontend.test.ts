@@ -27,16 +27,6 @@ describe("DataCatalogueFrontend", () => {
     expect(resMasked).toMatchInlineSnapshot(`
       [
         {
-          "creator": "Mario Giacomelli",
-          "description": "2020 Royal Engineers’ Cornwall focused data catalog. Includes real-time IoT telemetry and historical archives for environmental and technological research.",
-          "id": "http://telicent.io/data/cat1",
-          "owner": "James Hardacre",
-          "publishDate": "2020-3-12",
-          "title": "Catalog: Cornwall Data",
-          "type": "Catalog",
-          "userHasAccess": true,
-        },
-        {
           "creator": "Oleg Novak",
           "description": "Cornwall Wind Detector data via JSON REST API. Real-time, API-token controlled access for analysis by environmental scientists and meteorologists.",
           "id": "http://telicent.io/data/dataservice1",
@@ -44,6 +34,16 @@ describe("DataCatalogueFrontend", () => {
           "publishDate": "2023-2-3",
           "title": "Service: Wind Feed",
           "type": "DataService",
+          "userHasAccess": true,
+        },
+        {
+          "creator": "Mario Giacomelli",
+          "description": "2020 Royal Engineers’ Cornwall focused data catalog. Includes real-time IoT telemetry and historical archives for environmental and technological research.",
+          "id": "http://telicent.io/data/catalog1",
+          "owner": "James Hardacre",
+          "publishDate": "2020-3-12",
+          "title": "Catalog: Cornwall Data",
+          "type": "Catalog",
           "userHasAccess": true,
         },
         {

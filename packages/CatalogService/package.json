@@ -25,7 +25,8 @@
   "types": "./dist/types.d.ts",
   "scripts": {
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
-    "test": "jest --runInBand",
+    "test": "jest --runInBand ",
+    "test:updateSnapshot": "pnpm test -- --updateSnapshot",
     "test:100": "for i in {1..100}; do echo \"Test run: $i\" && pnpm jest && sleep .5 || break; done",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
@@ -67,5 +68,8 @@
     "vite": "^4.5.2",
     "vite-plugin-dts": "^3.6.3",
     "vite-tsconfig-paths": "^4.2.1"
+  },
+  "engines": {
+    "node": ">=20.14.0"
   }
 }
