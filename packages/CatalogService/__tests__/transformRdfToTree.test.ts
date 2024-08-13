@@ -25,6 +25,9 @@ describe("transformRdfToTree", () => {
   beforeAll(async () => {
     api = await setup({ hostName: "http://localhost:3030/" });
   });
+  afterAll(async () => {
+    await Promise.all(api._service.workAsync);
+  });
   it("NOT same data when in in browser vs node", () => {
     // TODO! IMPORTANT! Graphs are racey by design.
     expect(
@@ -63,7 +66,7 @@ describe("transformRdfToTree", () => {
     );
 
     const DATASET = "http://www.w3.org/ns/dcat#Dataset";
-    const SERVICE = "http://www.w3.org/ns/dcat#Service";
+    const SERVICE = "http://www.w3.org/ns/dcat#DataService";
     const CATALOG = "http://www.w3.org/ns/dcat#Catalog";
     const CONNECTIONS = [DATASET, SERVICE, CATALOG];
 
@@ -73,42 +76,43 @@ describe("transformRdfToTree", () => {
       reverseEdgePredicate: (triple) => false,
     });
     expect(tree).toMatchInlineSnapshot(`
+      {
+        "children": [
           {
-            "children": [
-              {
-                "children": [],
-                "id": "http://telicent.io/data/dataservice1",
-                "label": "http://telicent.io/data/dataservice1",
-              },
-              {
-                "children": [],
-                "id": "http://telicent.io/data/dataset1",
-                "label": "http://telicent.io/data/dataset1",
-              },
-            ],
-            "id": "http://telicent.io/data/cat1",
-            "label": "http://telicent.io/data/cat1",
-          }
-      `);
+            "children": [],
+            "id": "http://telicent.io/data/dataset1",
+            "label": "http://telicent.io/data/dataset1",
+          },
+          {
+            "children": [],
+            "id": "http://telicent.io/data/dataservice1",
+            "label": "http://telicent.io/data/dataservice1",
+          },
+        ],
+        "id": "http://telicent.io/data/cat1",
+        "label": "http://telicent.io/data/cat1",
+      }
+    `);
 
-    expect(
-      await enrichRdfTree({ tree, service: api._service, triples })
-    ).toEqual({
-      id: "http://telicent.io/data/cat1",
-      label: "Catalog One",
-      children: [
-        {
-          id: "http://telicent.io/data/dataservice1",
-          label: "Data Service One",
-          children: [],
-        },
-        {
-          id: "http://telicent.io/data/dataset1",
-          label: "Dataset One",
-          children: [],
-        },
-      ],
-    });
+    expect(await enrichRdfTree({ tree, service: api._service, triples }))
+      .toMatchInlineSnapshot(`
+      {
+        "children": [
+          {
+            "children": [],
+            "id": "http://telicent.io/data/dataset1",
+            "label": "Dataset: Q1 2021",
+          },
+          {
+            "children": [],
+            "id": "http://telicent.io/data/dataservice1",
+            "label": "Service: Wind Feed",
+          },
+        ],
+        "id": "http://telicent.io/data/cat1",
+        "label": "Catalog: Cornwall Data",
+      }
+    `);
   });
   it("transformRdfToTree (browser variety)", async () => {
     const DATASET = "http://www.w3.org/ns/dcat#Dataset";
@@ -156,16 +160,16 @@ describe("transformRdfToTree", () => {
           {
             "children": [],
             "id": "http://telicent.io/data/dataset1",
-            "label": "Dataset One",
+            "label": "Dataset: Q1 2021",
           },
           {
             "children": [],
             "id": "http://telicent.io/data/dataservice1",
-            "label": "Data Service One",
+            "label": "Service: Wind Feed",
           },
         ],
         "id": "http://telicent.io/data/cat1",
-        "label": "Catalog One",
+        "label": "Catalog: Cornwall Data",
       }
     `);
   });

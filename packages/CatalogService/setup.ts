@@ -56,7 +56,9 @@ export const setup = async ({
     MOCK.catalog1.title,
     "2022-01-01"
   );
+  console.log('cat1.service.workAsync', cat1.service.workAsync);
   await Promise.all(cat1.workAsync);
+  await Promise.all(catalogService.workAsync);
   await cat1.setDescription(MOCK.catalog1.description);
   await cat1.setCreator(MOCK.catalog1.creator);
   await cat1.setRights(MOCK.catalog1.rights);
@@ -72,6 +74,7 @@ export const setup = async ({
       // cat1
     );
     await Promise.all(dataservice1.workAsync);
+    await Promise.all(catalogService.workAsync);
     await dataservice1.setDescription(MOCK.dataservice1.description);
     await dataservice1.setCreator(MOCK.dataservice1.creator);
     await dataservice1.setRights(MOCK.dataservice1.rights);
@@ -91,6 +94,7 @@ export const setup = async ({
       // cat1,
     );
     await Promise.all(dataset1.workAsync);
+    await Promise.all(catalogService.workAsync);
     await dataset1.setDescription(MOCK.dataset1.description);
     await dataset1.setCreator(MOCK.dataset1.creator);
     await dataset1.setRights(MOCK.dataset1.rights);

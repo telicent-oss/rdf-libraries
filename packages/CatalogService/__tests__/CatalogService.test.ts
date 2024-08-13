@@ -60,6 +60,9 @@ describe("CatalogService", () => {
     cat.addOwnedResource(ds1);
     await Promise.all(cat.workAsync);
   });
+  afterAll(async () => {
+    await Promise.all(cs.workAsync);
+  });
 
   it("should be running properly and connected to a triplestore", async () => {
     let ats: boolean = await cs.checkTripleStore();

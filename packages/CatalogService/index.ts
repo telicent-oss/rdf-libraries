@@ -336,7 +336,9 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:rights ?rights} 
             }`
         console.info(`getAllDCATResources`, query);
-        let results = await this.runQuery<DcatResourceQuerySolution>(query)
+        const resultsAsync = this.runQuery<DcatResourceQuerySolution>(query)
+        this.workAsync.push(resultsAsync);
+        const results = await resultsAsync;
         results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
             var cls = DCATResource
             if (statement._type) {

@@ -608,6 +608,7 @@ export class RDFSResource {
 
   
 export class RdfService {
+  public workAsync:Promise<unknown>[] = [];
   /**
     * A fallback security label if none is specified
     */
@@ -834,14 +835,23 @@ export class RdfService {
    * @param string - A valid SPARQL query
    * @returns the results of the query in standard SPARQL JSON results format
   */
-  async runQuery<T>(query: string):Promise<QueryResponse<T>> {
-    if (isEmptyString(query)) throw Error("runQuery: A valid query is required");
-    const response = await fetch(this.queryEndpoint + encodeURIComponent(this.sparqlPrefixes + query),{'headers':{'Expects':'application/sparql-results+json'}})
+  async runQuery<T>(query: string): Promise<QueryResponse<T>> {
+    if (isEmptyString(query))
+      throw Error("runQuery: A valid query is required");
+
+    const responseAsync = fetch(
+      this.queryEndpoint + encodeURIComponent(this.sparqlPrefixes + query),
+      { headers: { Expects: "application/sparql-results+json" } }
+    );
+    this.workAsync.push(responseAsync);
+    const response = await responseAsync;
     if (!response.ok) {
-      throw response.statusText
+      throw response.statusText;
     }
-    const results:QueryResponse<T> = await response.json()
-    return results
+    const jsonAsync = response.json();
+    this.workAsync.push(jsonAsync);
+    const results: QueryResponse<T> = await jsonAsync;
+    return results;
   }
 
   async checkTripleStore():Promise<boolean> {
@@ -864,45 +874,49 @@ export class RdfService {
    * @returns the response text from the triplestore after running the update
    * @throws if the triplestore does not accept the update
   */
-  async runUpdate(updateQueries: string[], securityLabel?: string):Promise<string> {
-    let updateQuery = this.sparqlPrefixes
-    updateQueries.forEach((query:string) => {
+  async runUpdate(
+    updateQueries: string[],
+    securityLabel?: string
+  ): Promise<string> {
+    let updateQuery = this.sparqlPrefixes;
+    updateQueries.forEach((query: string) => {
       updateQuery = `${updateQuery}
       ${query} ;
-      `
-      this.updateCount = this.updateCount + 1
-    })
-    
+      `;
+      this.updateCount = this.updateCount + 1;
+    });
+
     if (this.#writeEnabled) {
       const sl = securityLabel ?? this.defaultSecurityLabel;
 
       if (isEmptyString(sl)) {
-        if (!DEVELOPMENT)  {
+        if (!DEVELOPMENT) {
           // console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
         }
       }
 
       const postObject = {
-        method: 'POST',
-        headers: {//
-          'Accept': '*/*',
+        method: "POST",
+        headers: {
+          //
+          Accept: "*/*",
           // 'Security-Label': sl, Temporarily removed because if this label is applied
           //  it omits CORS headers from the pre-flight response
-          'Content-Type': 'application/sparql-update',
+          "Content-Type": "application/sparql-update",
         },
-        body: this.sparqlPrefixes + updateQuery
-      }
+        body: this.sparqlPrefixes + updateQuery,
+      };
 
-      const response = await fetch(this.updateEndpoint, postObject)
+      const responseAsync = fetch(this.updateEndpoint, postObject);
+      this.workAsync.push(responseAsync);
+      const response = await responseAsync;
       if (!response.ok) {
-        throw response.statusText
+        throw response.statusText;
       }
-      return response.text()
-    }
-    else
-    {
-      console.warn( "service is in read only node, updates are not permitted")
-      return "service is in read only node, updates are not permitted"
+      return response.text();
+    } else {
+      console.warn("service is in read only node, updates are not permitted");
+      return "service is in read only node, updates are not permitted";
     }
   }
 
