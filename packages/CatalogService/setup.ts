@@ -7,6 +7,10 @@ import {
 } from "./index";
 
 const ns = "http://telicent.io/data/";
+export enum MockSet {
+  SIMPLE = 'simple',
+  COMPLEX = 'complex'
+}
 
 type MockDataBase = {
   id: string;
@@ -117,8 +121,10 @@ export const MOCK: Record<string, MockData> = {
 };
 export const setup = async ({
   hostName = "http://localhost:3030/",
+  mockSet = MockSet.SIMPLE
 }: {
   hostName: string;
+  mockSet?: MockSet;
 }) => {
   const catalogService = new CatalogService(
     hostName,
@@ -199,16 +205,20 @@ export const setup = async ({
     published: "2022-01-01",
   })) as DCATCatalog;
 
-  // const catalog1_1 = (await createResource({
-  //   mock: MOCK.catalog1_1,
-  //   published: "2022-01-01",
-  //   parent: catalog1,
-  // })) as DCATCatalog;
+  let catalog1_1: DCATCatalog | undefined = mockSet === MockSet.COMPLEX
+  ? (await createResource({
+      mock: MOCK.catalog1_1,
+      published: "2022-01-01",
+      parent: catalog1,
+    })) as DCATCatalog : undefined;
 
-  // await createResource({
-  //   mock: MOCK.catalog1_1_dataset,
-  //   parent: catalog1_1,
-  // });
+  if (mockSet === MockSet.COMPLEX) {
+    await createResource({
+      mock: MOCK.catalog1_1_dataset,
+      parent: catalog1_1,
+    });
+  }
+  
 
   await createResource({
     mock: MOCK.dataservice1,
@@ -218,30 +228,37 @@ export const setup = async ({
     mock: MOCK.dataset1,
     parent: catalog1,
   });
-  // await createResource({
-  //   mock: MOCK.dataset2,
-  //   parent: catalog1,
-  // });
-  // await createResource({
-  //   mock: MOCK.dataset3,
-  //   parent: catalog1,
-  // });
-  // await createResource({
-  //   mock: MOCK.dataset4,
-  //   parent: catalog1,
-  // });
-  // const catalog2 = (await createResource({
-  //   mock: MOCK.catalog2,
-  // })) as DCATCatalog;
 
-  const OwnedResources = {
-    catalog1: await catalog1.getOwnedResources(),
-    // catalog1_1: await catalog1_1.getOwnedResources(),
-    // catalog2: await catalog2.getOwnedResources(),
-  };
+  if (mockSet === MockSet.COMPLEX) {
+    await createResource({
+      mock: MOCK.dataset2,
+      parent: catalog1,
+    });
+    await createResource({
+      mock: MOCK.dataset3,
+      parent: catalog1,
+    });
+    await createResource({
+      mock: MOCK.dataset4,
+      parent: catalog1,
+    });
+  }
+
+  const catalog2:DCATCatalog | undefined = 
+    mockSet === MockSet.COMPLEX
+    ? (
+      await createResource({
+        mock: MOCK.catalog2,
+      }) as DCATCatalog
+    ) 
+    : undefined;
+  
+
   console.log(`Owned resources`);
   console.log(`---------------`);
-  console.log(`catalog1:   ${OwnedResources.catalog1.length}`);
+  console.log(`catalog1:   ${(await catalog1.getOwnedResources()).length}`);
+  catalog1_1 && console.log(`catalog1_1:   ${(await catalog1_1.getOwnedResources()).length}`);
+  catalog2 && console.log(`catalog2:   ${(await catalog2.getOwnedResources()).length}`);
   // console.log(`catalog1_1: ${OwnedResources.catalog1_1.length}`);
   // console.log(`catalog2:   ${OwnedResources.catalog2.length}`);
 
