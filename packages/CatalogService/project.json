@@ -3,10 +3,22 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "targets": {
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "executor": "nx:run-commands",
       "options": {
-        "jestConfig": "packages/CatalogService/jest.config.js"
+        "commands": [
+          {
+            "command": "pnpm test"
+          }
+        ],
+        "cwd": "packages/catalogservice",
+        "parallel": false
+      }
+    },
+    "printhello": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "echo hello"
       }
     }
   }
