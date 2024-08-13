@@ -11,7 +11,7 @@ import maybeTripleBrowser from "./transformRdfToTree.test.mock2";
 import { enrichRdfTree } from "../api/DataCatalogueFrontend/enrichRdfTree";
 import { Api } from "../api/DataCatalogueFrontend";
 import { setup } from "../setup";
-import { RDFResponse } from "../api/DataCatalogueFrontend/common";
+import { RDFResponseSchema } from "../api/DataCatalogueFrontend/common";
 import { makeStatic } from "./makeStatic";
 
 let api: Api;
@@ -52,7 +52,7 @@ describe("transformRdfToTree", () => {
       WHERE { ?s ?p ?o }
     `);
 
-    const triples = RDFResponse.parse(res).results.bindings.map((el) =>
+    const triples = RDFResponseSchema.parse(res).results.bindings.map((el) =>
       RDFTripleSchema.parse(el)
     );
 

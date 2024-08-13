@@ -58,7 +58,7 @@ export type UITreeViewBaseItemType = {
 };
 // END COPY
 
-export const RDFResponse = z.object({
+export const RDFResponseSchema = z.object({
   head: z.object({
     vars: z.tuple([z.literal("s"), z.literal("p"), z.literal("o")]),
   }),
@@ -139,7 +139,7 @@ export const getAllRDFTriples = async (options: {
   service: CatalogService;
   hasAccess?: boolean;
 }) =>
-  RDFResponse.parse(
+  RDFResponseSchema.parse(
     await options.service.runQuery(`
       SELECT ?s ?p ?o
       WHERE {
