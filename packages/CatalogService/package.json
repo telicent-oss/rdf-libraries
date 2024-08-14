@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/catalogservice",
-  "version": "0.0.1",
+  "version": "0.0.1-TELFE-1.0",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",
   "main": "./dist/catalogservice.mjs",
