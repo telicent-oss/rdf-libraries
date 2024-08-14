@@ -1,4 +1,4 @@
-name: Publish NX
+name: publish-nx-catalog-service.yml
 on:
   workflow_dispatch:
   push:
