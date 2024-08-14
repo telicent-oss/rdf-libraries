@@ -28,7 +28,8 @@ jobs:
         with:
           version: 8
       - run: pnpm install
-      - run: pnpm nx run-many -t test,build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice 
+      # Convert to
+      # - run: pnpm nx run-many -t test,build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice 
       - run: cd ./packages/CatalogService && npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
