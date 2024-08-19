@@ -27,15 +27,14 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 9
-      - run: pnpm install --filter '!@telicent-oss/rdfservice'
+      - run: pnpm install
       - run: npx nx run @telicent-oss/rdfservice:build
-      - run: npx nx run @telicent-oss/rdfservice:publish --access public --provenance
+      - run: cd ./packages/RdfService && npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-      - run: pnpm install --filter '!@telicent-oss/catalogservice'
       - run: npx nx run @telicent-oss/catalogservice:build
-      - run: npx nx run @telicent-oss/catalogservice:publish --access public --provenance
+      - run: cd ./packages/CatalogService && npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

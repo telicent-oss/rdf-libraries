@@ -79,8 +79,8 @@ importers:
   packages/CatalogService:
     dependencies:
       '@telicent-oss/rdfservice':
-        specifier: 0.0.6-TELFE-1.0
-        version: 0.0.6-TELFE-1.0
+        specifier: workspace:../RdfService
+        version: link:../RdfService
       '@types/cors':
         specifier: 2.8.17
         version: 2.8.17
