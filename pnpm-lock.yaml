@@ -79,8 +79,8 @@ importers:
   packages/CatalogService:
     dependencies:
       '@telicent-oss/rdfservice':
-        specifier: workspace:../RdfService
-        version: link:../RdfService
+        specifier: 0.0.6-TELFE-1.2
+        version: 0.0.6-TELFE-1.2
       '@types/cors':
         specifier: 2.8.17
         version: 2.8.17
@@ -147,7 +147,7 @@ importers:
     dependencies:
       '@telicent-oss/rdfservice':
         specifier: '*'
-        version: 0.0.6-TELFE-1.0
+        version: 0.0.6-TELFE-1.2
       zod:
         specifier: ^3.22.4
         version: 3.23.8
@@ -1483,8 +1483,8 @@ packages:
   '@swc/types@0.1.12':
     resolution: {integrity: sha512-wBJA+SdtkbFhHjTMYH+dEH1y4VpfGdAc2Kw/LK09i9bXd/K6j6PkDcFCEzb6iVfZMkPRrl/q0e3toqTAJdkIVA==}
 
-  '@telicent-oss/rdfservice@0.0.6-TELFE-1.0':
-    resolution: {integrity: sha512-TH6IC4hCcfUY1XdcqhBtwdazNhkJhcZgPXslgqm1U7g6iQxiucjO6ruIwlyIW9qFyWUewRCTjLBKl/nmYHBpUA==}
+  '@telicent-oss/rdfservice@0.0.6-TELFE-1.2':
+    resolution: {integrity: sha512-pfT1az9jOTpug3/MAsJHiSQvKQFPCJsfK7KpxqTq4fVVVeW+bNu2rtXVR+ZdsVC5suK02rGpFXpzInPG4dWD+g==}
 
   '@tootallnate/once@2.0.0':
     resolution: {integrity: sha512-XCuKFP5PS55gnMVu3dty8KPatLqUoy/ZYzDzAGCQ8JNFCkLXzmI7vNHCR+XpbZaMWQK/vQubr7PkYq8g470J/A==}
@@ -5788,7 +5788,7 @@ snapshots:
     dependencies:
       '@swc/counter': 0.1.3
 
-  '@telicent-oss/rdfservice@0.0.6-TELFE-1.0':
+  '@telicent-oss/rdfservice@0.0.6-TELFE-1.2':
     dependencies:
       global: 4.4.0
       pnpm: 8.15.9
