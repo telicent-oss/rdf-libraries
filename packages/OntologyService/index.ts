@@ -1211,15 +1211,27 @@ export class OntologyService extends RdfService {
         if (statement.supers) {
           const supers:string[] = statement.supers.value.split(' ')
           supers.forEach((sup:string) => {
-            const superNode:HierarchyNode = dict[sup]
-            node.parents.push(superNode) 
+            const superItem = dict[sup]
+            if (superItem) {
+              const superNode:HierarchyNode = dict[sup]
+              node.parents.push(superNode) 
+            }
+            else {
+              this.warn(`${sup} is a super of ${node.id} but doesn't seem to be correct - check it is properly defined. It will not be added to supers list`)
+            }
           });
         }        
         if (statement.subs) {
           const subs:string[] = statement.subs.value.split(' ')
           subs.forEach((sub:string) => {
-            const subNode:HierarchyNode = dict[sub]
-            node.children.push(subNode)
+            const subItem = dict[sub]
+            if (subItem) {
+              const subNode:HierarchyNode = dict[sub]
+              node.children.push(subNode) 
+            }
+            else {
+              this.warn(`${sub} is a sub of ${node.id} but doesn't seem to be correct - check it is properly defined. It will not be added to subs list`)
+            }
           });
         }
 
