@@ -35,9 +35,9 @@ jobs:
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       #     NPM_CONFIG_PROVENANCE: true
-      - run: pnpm install
-      - run: pnpm build
-      - run: cd ./packages/CatalogService && npm publish --access public --provenance
+      - run: pnpm install --filter '@telicent-oss/catalogservice'
+      - run: pnpm build --filter '@telicent-oss/catalogservice'
+      - run: pnpm publish --access public --provenance --filter '@telicent-oss/catalogservice'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
