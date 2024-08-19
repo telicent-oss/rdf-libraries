@@ -3,8 +3,9 @@
 Simple client-side library exported as a JavaScript package, for working with ontologies.
 
 This is a monorepo, which contains sub-packages:
-* [packages/OntologyService/README.md](packages/OntologyService/README.md)
-* [packages/RdfService/README.md](packages/RdfService/README.md)
+
+- [packages/OntologyService/README.md](packages/OntologyService/README.md)
+- [packages/RdfService/README.md](packages/RdfService/README.md)
 
 ## Install
 
@@ -17,10 +18,14 @@ yarn install @telicent-oss/ontologyservice
 ## Usage
 
 A simple example:
+
 ```tsx
 import OntologyService from "@telicent-oss/ontologyservice";
 
-const ontologyService = new OntologyService("http://localhost:3030/", "ontology");
+const ontologyService = new OntologyService(
+  "http://localhost:3030/",
+  "ontology"
+);
 
 const diagrams = await ontologyService.getAllDiagrams();
 ```
@@ -41,6 +46,7 @@ pnpm add <npm-package> --filter @telicent-oss/<packageName> # Add dependency to
 ```
 
 Some useful `nx` commands
+
 ```sh
 npx nx affected:build # build impacted packages
 npx nx affected:test # run tests on impacted packages
@@ -51,8 +57,8 @@ npx nx run @telicent-oss/rdfservice:lint # Run "lint" from ./packages/rdfservice
 npx nx test @telicent-oss/ontologyservice --watch -t setStyles # flags work
 ```
 
-
 To develop multiple packages:
+
 ```sh
 cd ./packages/RdfService; # In producer package...
 echo "console.log('hi');" >> ./src/index.ts; # ...edit producer feature
@@ -64,6 +70,7 @@ npx nx affected:test # Test affected
 ```
 
 Build all packages simultaneously:
+
 ```sh
 npx nx run-many -t build
 ```
@@ -79,6 +86,5 @@ Developer notes:
 
 ## API
 
-* [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)
-* [RDF Service API docs](https://telicent-oss.github.io/rdf-libraries/rdf-service/docs/)
-
+- [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)
+- [RDF Service API docs](https://telicent-oss.github.io/rdf-libraries/rdf-service/docs/)

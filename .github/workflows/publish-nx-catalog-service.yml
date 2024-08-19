@@ -27,17 +27,15 @@ jobs:
       - uses: pnpm/action-setup@v2
         with:
           version: 9
-      # - run: pnpm install --filter '!@telicent-oss/catalogservice'
-      # - run: pnpm build --filter '!@telicent-oss/catalogservice'
-      # # TODO convert tests to Test Containers
-      # # - run: pnpm nx run-many -t test,build -p @telicent-oss/rdfservice @telicent-oss/ontologyservice 
-      # - run: cd ./packages/RdfService && npm publish --access public --provenance
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-      #     NPM_CONFIG_PROVENANCE: true
-      - run: pnpm install
-      - run: pnpm build --filter '@telicent-oss/catalogservice'
-      - run: pnpm publish --access public --provenance --filter '@telicent-oss/catalogservice'
+      - run: pnpm install --filter '!@telicent-oss/rdfservice'
+      - run: npx nx run @telicent-oss/rdfservice:build
+      - run: npx nx run @telicent-oss/rdfservice:publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+      - run: pnpm install --filter '!@telicent-oss/catalogservice'
+      - run: npx nx run @telicent-oss/catalogservice:build
+      - run: npx nx run @telicent-oss/catalogservice:publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
