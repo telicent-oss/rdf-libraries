@@ -1,4 +1,5 @@
 import { apiFactory } from "./api/DataCatalogueFrontend";
+export { apiFactory, type Api } from "./api/DataCatalogueFrontend";
 import {
   CatalogService,
   DCATCatalog,
@@ -119,20 +120,15 @@ export const MOCK: Record<string, MockData> = {
     published: `2023-2-5`,
   },
 };
-export const setup = async ({
-  hostName = "http://localhost:3030/",
-  mockSet = MockSet.SIMPLE
-}: {
+
+export const setup = async (options: {
   hostName: string;
   mockSet?: MockSet;
+  catalogService?: CatalogService;
 }) => {
-  const catalogService = new CatalogService(
-    hostName,
-    "catalog",
-    undefined,
-    undefined,
-    true
-  );
+  const catalogService =
+    options.catalogService ||
+    new CatalogService(options.hostName, true, "catalog", undefined, undefined, true);
 
   if (!(await catalogService.checkTripleStore())) {
     throw new Error("Triple store error: simple WHERE failed");
@@ -147,6 +143,7 @@ export const setup = async ({
     published?: string;
     parent?: DCATCatalog;
   }): Promise<DCATCatalog | DCATDataset | DCATDataService> => {
+    console.log(`createResource: ${mock.id}`);
     // DCATDataService
     let r: DCATDataService | DCATCatalog | DCATDataset;
     switch (mock.classType) {
@@ -205,20 +202,21 @@ export const setup = async ({
     published: "2022-01-01",
   })) as DCATCatalog;
 
-  let catalog1_1: DCATCatalog | undefined = mockSet === MockSet.COMPLEX
-  ? (await createResource({
-      mock: MOCK.catalog1_1,
-      published: "2022-01-01",
-      parent: catalog1,
-    })) as DCATCatalog : undefined;
+  let catalog1_1: DCATCatalog | undefined =
+    options.mockSet === MockSet.COMPLEX
+      ? ((await createResource({
+          mock: MOCK.catalog1_1,
+          published: "2022-01-01",
+          parent: catalog1,
+        })) as DCATCatalog)
+      : undefined;
 
-  if (mockSet === MockSet.COMPLEX) {
+  if (options.mockSet === MockSet.COMPLEX) {
     await createResource({
       mock: MOCK.catalog1_1_dataset,
       parent: catalog1_1,
     });
   }
-  
 
   await createResource({
     mock: MOCK.dataservice1,
@@ -229,7 +227,7 @@ export const setup = async ({
     parent: catalog1,
   });
 
-  if (mockSet === MockSet.COMPLEX) {
+  if (options.mockSet === MockSet.COMPLEX) {
     await createResource({
       mock: MOCK.dataset2,
       parent: catalog1,
@@ -244,15 +242,13 @@ export const setup = async ({
     });
   }
 
-  const catalog2:DCATCatalog | undefined = 
-    mockSet === MockSet.COMPLEX
-    ? (
-      await createResource({
-        mock: MOCK.catalog2,
-      }) as DCATCatalog
-    ) 
-    : undefined;
-  
+  const catalog2: DCATCatalog | undefined =
+    options.mockSet === MockSet.COMPLEX
+      ? ((await createResource({
+          mock: MOCK.catalog2,
+        })) as DCATCatalog)
+      : undefined;
+
 
   console.log(`Owned resources`);
   console.log(`---------------`);

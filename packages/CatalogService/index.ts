@@ -220,13 +220,14 @@ export class CatalogService extends RdfService {
     /**
      * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
      * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
+     * @param {boolean} [writeEnabled] - set to true if you want to update the data, no default (read only)
      * @param {string="ontology"} dataset - the dataset name in the triplestore
      * @param {string="http://telicent.io/ontology/"} defaultNamespace - the default stub to use when building GUID URIs
      * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
     */
-    constructor(triplestoreUri = "http://localhost:3030/", dataset = "knowledge", defaultNamespace = "http://telicent.io/catalog/", defaultSecurityLabel = "", write = false) {
+    constructor(triplestoreUri = "http://localhost:3030/", dataset = "knowledge", writeEnabled:boolean, defaultNamespace = "http://telicent.io/catalog/", defaultSecurityLabel = "") {
 
-        super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, write)
+        super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, writeEnabled)
 
         this.dcat = "http://www.w3.org/ns/dcat#"
 

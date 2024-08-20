@@ -13,7 +13,7 @@ export interface Api {
     _testData?: typeof MOCK;
 }
 
-export const apiFactory = (service: CatalogService, testData: typeof MOCK): Api => ({
+export const apiFactory = (service: CatalogService, testData?: typeof MOCK): Api => ({
     search: searchFactory(service),
     catalog: catalogFactory(service),
     _service: service,
