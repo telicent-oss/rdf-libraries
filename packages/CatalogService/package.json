@@ -1,23 +1,23 @@
 {
   "name": "@telicent-oss/catalogservice",
-  "version": "0.0.1-TELFE-1.10",
+  "version": "0.0.1-TELFE-1.11",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",
-  "main": "./dist/catalogservice.mjs",
+  "main": "./dist/catalogservice.js",
   "files": [
     "dist"
   ],
   "type": "module",
-  "module": "./dist/catalogservice.mjs",
+  "module": "./dist/catalogservice.js",
   "// TODO": "link directs to src",
   "exports": {
     ".": {
-      "import": "./dist/catalogservice.mjs",
+      "import": "./dist/catalogservice.js",
       "require": "./dist/catalogservice.umd.js",
       "types": "./dist/types.d.ts"
     },
     "./index": {
-      "import": "./dist/catalogservice.mjs",
+      "import": "./dist/catalogservice.js",
       "require": "./dist/catalogservice.umd.js",
       "types": "./dist/types.d.ts"
     }
