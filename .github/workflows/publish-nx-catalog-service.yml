@@ -29,14 +29,13 @@ jobs:
           version: 9
       - run: pnpm install
       - run: npx nx run @telicent-oss/rdfservice:build
-      - run: ls -la ./packages/RdfService/dist
-      - run: cd ./packages/RdfService && npm publish --access public --provenance
+      - run: cd ./packages/RdfService && ls -la ./dist && npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
       - run: npx nx run @telicent-oss/catalogservice:build
       - run: ls -la ./packages/CatalogService/dist
-      - run: cd ./packages/CatalogService && npm publish --access public --provenance
+      - run: cd ./packages/CatalogService && ls -la ./dist && npm publish --access public --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
