@@ -2,6 +2,7 @@ export * from './schema';
 export * from './types';
 
 const DEVELOPMENT = false; // TODO! Read from config
+const DEBUG = false;
 /*
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
@@ -174,6 +175,7 @@ export class RDFSResource {
       }
       if ((type)&& !(this.types.includes(type))) {
         this.types.push(type)
+        
         this.service.instantiate(type, this.uri)
       }
       else {
@@ -208,7 +210,7 @@ export class RDFSResource {
   */
     async addLabel(label: string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = false) {
       if (isEmptyString(label)) throw new Error("invalid label string")
-      await this.addLiteral(this.service.rdfsLabel,label,securityLabel,xsdDatatype,deleteAllPrevious)
+      return this.addLiteral(this.service.rdfsLabel,label,securityLabel,xsdDatatype,deleteAllPrevious)
     }
   
   /**
@@ -221,7 +223,7 @@ export class RDFSResource {
   */
   async addComment(comment: string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = false) {
     if (isEmptyString(comment)) throw new Error("invalid comment string")
-    await this.addLiteral(this.service.rdfsComment,comment,securityLabel,xsdDatatype,deleteAllPrevious)
+    return this.addLiteral(this.service.rdfsComment,comment,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
 
@@ -234,7 +236,7 @@ export class RDFSResource {
   */   
   async setTitle(title:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(title)) throw new Error("invalid title string")
-    this.addLiteral(this.service.dcTitle,title,securityLabel,xsdDatatype,deleteAllPrevious)
+    return this.addLiteral(this.service.dcTitle,title,securityLabel,xsdDatatype,deleteAllPrevious)
   }
   /**
    * @method setDescription 
@@ -246,7 +248,7 @@ export class RDFSResource {
   */   
   async setDescription(description:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(description)) throw new Error("invalid description string")
-    this.addLiteral(this.service.dcDescription,description,securityLabel,xsdDatatype,deleteAllPrevious)
+    return this.addLiteral(this.service.dcDescription,description,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -259,7 +261,7 @@ export class RDFSResource {
   */   
   async setCreator(creator:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(creator)) throw new Error("invalid creator string")
-    this.addLiteral(this.service.dcCreator,creator,securityLabel,xsdDatatype,deleteAllPrevious)
+    return this.addLiteral(this.service.dcCreator,creator,securityLabel,xsdDatatype,deleteAllPrevious)
   }
   /**
    * @method setRights 
@@ -271,7 +273,7 @@ export class RDFSResource {
   */   
   async setRights(rights:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(rights)) throw new Error("invalid rights string")
-    this.addLiteral(this.service.dcRights,rights,securityLabel,xsdDatatype,deleteAllPrevious)
+    return this.addLiteral(this.service.dcRights,rights,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -283,7 +285,7 @@ export class RDFSResource {
   */   
   async setPublished(publishedDate:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(publishedDate)) throw new Error("invalid published date")
-    this.addLiteral(this.service.dcPublished,publishedDate,securityLabel,xsdDatatype,deleteAllPrevious)
+    return this.addLiteral(this.service.dcPublished,publishedDate,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -295,7 +297,7 @@ export class RDFSResource {
   */   
   async setPrefLabel(label:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(label)) throw new Error("invalid skos:prefLabel")
-    this.addLiteral(`${this.service.skos}prefLabel`,label,securityLabel,xsdDatatype,deleteAllPrevious)
+    return this.addLiteral(`${this.service.skos}prefLabel`,label,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -307,7 +309,7 @@ export class RDFSResource {
   */   
   async setAltLabel(label:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = false) {
     if (isEmptyString(label)) throw new Error("invalid skos:altLabel")
-    this.addLiteral(`${this.service.skos}altLabel`,label,securityLabel,xsdDatatype,deleteAllPrevious)
+    return this.addLiteral(`${this.service.skos}altLabel`,label,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   async countRelated(rel:string):Promise<number> {
@@ -318,7 +320,7 @@ export class RDFSResource {
     }
     else {
         if (queryReturn.results.bindings.length > 1) {
-            throw 'Count query should never return more than one binding'
+            throw new Error('Count query should never return more than one binding')
         }
         else {
           if (queryReturn.results.bindings[0].count) {
@@ -836,6 +838,7 @@ export class RdfService {
    * @returns the results of the query in standard SPARQL JSON results format
   */
   async runQuery<T>(query: string): Promise<QueryResponse<T>> {
+
     if (isEmptyString(query))
       throw Error("runQuery: A valid query is required");
 
@@ -843,6 +846,7 @@ export class RdfService {
       this.queryEndpoint + encodeURIComponent(this.sparqlPrefixes + query),
       { headers: { Expects: "application/sparql-results+json" } }
     );
+    DEBUG && console.info(this.queryEndpoint + '?' + this.sparqlPrefixes + query)
     this.workAsync.push(responseAsync);
     const response = await responseAsync;
     if (!response.ok) {
@@ -879,7 +883,8 @@ export class RdfService {
     securityLabel?: string
   ): Promise<string> {
     let updateQuery = this.sparqlPrefixes;
-    updateQueries.forEach((query: string) => {
+    
+    updateQueries.map((query: string) => {
       updateQuery = `${updateQuery}
       ${query} ;
       `;
@@ -909,11 +914,14 @@ export class RdfService {
 
       const responseAsync = fetch(this.updateEndpoint, postObject);
       this.workAsync.push(responseAsync);
+      DEBUG && console.info(this.updateEndpoint, JSON.stringify(postObject))
       const response = await responseAsync;
       if (!response.ok) {
         throw response.statusText;
       }
-      return response.text();
+      const textAsync = response.text()
+      this.workAsync.push(textAsync);
+      return await textAsync;
     } else {
       console.warn("service is in read only node, updates are not permitted");
       return "service is in read only node, updates are not permitted";
@@ -978,7 +986,7 @@ export class RdfService {
     }
     const o = this.#checkObject(object, objectType, xsdDatatype)
     updates.push(`INSERT DATA {<${subject}> <${predicate}> ${o} . }`)
-    return await this.runUpdate(updates, securityLabel)
+    return this.runUpdate(updates, securityLabel)
   }
 
   /**
@@ -1056,7 +1064,7 @@ export class RdfService {
     if (!uri) {
       uri = this.mintUri()
     }
-    this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel)
+    this.workAsync.push(this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel));
     return uri
   }
 }

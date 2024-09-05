@@ -3,7 +3,7 @@ import z from 'zod';
 // Bad: 
 export const permissiveUriRegex = /^(https?|ftp):\/\/[^ \t\r\n]+$/i;
 
-
+console.log('refined old')
 // Schema for the object representing "o", "p", or "s" within each triple
 const TripleObjectSchema = z.object({
   type: z.string(),

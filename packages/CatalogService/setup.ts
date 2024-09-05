@@ -1,3 +1,4 @@
+import { makeStatic } from "./__tests__/makeStatic";
 import { apiFactory } from "./api/DataCatalogueFrontend";
 export { apiFactory, type Api } from "./api/DataCatalogueFrontend";
 import {
@@ -7,14 +8,13 @@ import {
   DCATDataService,
 } from "./index";
 
-const ns = "http://telicent.io/data/";
 export enum MockSet {
   SIMPLE = 'simple',
   COMPLEX = 'complex'
 }
 
 type MockDataBase = {
-  id: string;
+  uri: string;
   title: string;
   description: string;
   creator: string;
@@ -36,10 +36,12 @@ type MockData =
   | MockDataDCATDataService
   | MockDataDCATDataset;
 
+
+const ns = "http://telicent.io/data/";
 export const MOCK: Record<string, MockData> = {
   catalog1: {
     classType: "DCATCatalog",
-    id: `${ns}catalog1`,
+    uri: `${ns}catalog1`,
     title: `Catalog: Cornwall Data`,
     description: `2020 Royal Engineers’ Cornwall focused data catalog. Includes real-time IoT telemetry and historical archives for environmental and technological research.`,
     creator: `Mario Giacomelli`,
@@ -48,7 +50,7 @@ export const MOCK: Record<string, MockData> = {
   },
   catalog2: {
     classType: "DCATCatalog",
-    id: `${ns}cat2`,
+    uri: `${ns}cat2`,
     title: `Catalog: Sussex Data`,
     description: `2020 Royal Engineers’ Cornwall focused data catalog. Includes real-time IoT telemetry and historical archives for environmental and technological research.`,
     creator: `Amina Okeke`,
@@ -57,7 +59,7 @@ export const MOCK: Record<string, MockData> = {
   },
   catalog1_1: {
     classType: "DCATCatalog",
-    id: `${ns}catalog1.1`,
+    uri: `${ns}catalog1.1`,
     title: `Catalog: St Clement Wind turbine`,
     description: `Third-party data pulled from Wind Turbine register.`,
     creator: `Hans Müller`,
@@ -66,7 +68,7 @@ export const MOCK: Record<string, MockData> = {
   },
   catalog1_1_dataset: {
     classType: "DCATDataset",
-    id: `${ns}catalog1_1_dataset`,
+    uri: `${ns}catalog1_1_dataset`,
     title: `Dataset: Region 44`,
     description: `Turbines around Trefranc and St Clether.`,
     creator: `George Maxwell`,
@@ -75,7 +77,7 @@ export const MOCK: Record<string, MockData> = {
   },
 
   dataservice1: {
-    id: `${ns}dataservice1`,
+    uri: `${ns}dataservice1`,
     classType: "DCATDataService",
     title: `Service: Wind Feed`,
     description: `Cornwall Wind Detector data via JSON REST API. Real-time, API-token controlled access for analysis by environmental scientists and meteorologists.`,
@@ -85,7 +87,7 @@ export const MOCK: Record<string, MockData> = {
   },
   dataset1: {
     classType: "DCATDataset",
-    id: `${ns}dataset1`,
+    uri: `${ns}dataset1`,
     title: `Dataset: Q1 2021`,
     description: `Q1 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development.`,
     creator: `Kiki Sato`,
@@ -94,7 +96,7 @@ export const MOCK: Record<string, MockData> = {
   },
   dataset2: {
     classType: "DCATDataset",
-    id: `${ns}dataset2`,
+    uri: `${ns}dataset2`,
     title: `Dataset: Q2 2021`,
     description: `Q2 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development.`,
     creator: `Kiki Sato`,
@@ -103,7 +105,7 @@ export const MOCK: Record<string, MockData> = {
   },
   dataset3: {
     classType: "DCATDataset",
-    id: `${ns}dataset3`,
+    uri: `${ns}dataset3`,
     title: `Dataset: Q3 2021`,
     description: `Q3 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development.`,
     creator: `Kiki Sato`,
@@ -112,7 +114,7 @@ export const MOCK: Record<string, MockData> = {
   },
   dataset4: {
     classType: "DCATDataset",
-    id: `${ns}dataset4`,
+    uri: `${ns}dataset4`,
     title: `Dataset: Q4 2021`,
     description: `Q4 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development.`,
     creator: `Kiki Sato`,
@@ -126,9 +128,10 @@ export const setup = async (options: {
   mockSet?: MockSet;
   catalogService?: CatalogService;
 }) => {
+  
   const catalogService =
     options.catalogService ||
-    new CatalogService(options.hostName, true, "catalog", undefined, undefined, true);
+    new CatalogService(options.hostName, "catalog", true, undefined, undefined);
 
   if (!(await catalogService.checkTripleStore())) {
     throw new Error("Triple store error: simple WHERE failed");
@@ -143,14 +146,14 @@ export const setup = async (options: {
     published?: string;
     parent?: DCATCatalog;
   }): Promise<DCATCatalog | DCATDataset | DCATDataService> => {
-    console.log(`createResource: ${mock.id}`);
+    console.log(`createResource: ${mock.uri}`);
     // DCATDataService
     let r: DCATDataService | DCATCatalog | DCATDataset;
     switch (mock.classType) {
       case "DCATCatalog":
         r = new DCATCatalog(
           catalogService,
-          mock.id,
+          mock.uri,
           mock.title,
           published,
           undefined
@@ -160,7 +163,7 @@ export const setup = async (options: {
       case "DCATDataService":
         r = new DCATDataService(
           catalogService,
-          mock.id,
+          mock.uri,
           mock.title,
           published,
           undefined
@@ -170,7 +173,7 @@ export const setup = async (options: {
       case "DCATDataset":
         r = new DCATDataset(
           catalogService,
-          mock.id,
+          mock.uri,
           mock.title,
           published,
           undefined
@@ -180,17 +183,25 @@ export const setup = async (options: {
       default:
         throw "no";
     }
+    
+    
     await Promise.all(r.workAsync);
     await Promise.all(catalogService.workAsync);
     await r.setDescription(mock.description);
     await r.setCreator(mock.creator);
     await r.setRights(mock.rights);
     await r.setPublished(mock.published);
+    
     await Promise.all(r.workAsync);
+    
     if (parent?.addOwnedResource) {
+      console.log(parent.uri)
+      console.log(' ...addOwner of ...')
+      console.log(r.uri)
       parent.addOwnedResource(r);
       await Promise.all(parent.workAsync);
     }
+    
     return r;
   };
 
@@ -218,6 +229,7 @@ export const setup = async (options: {
     });
   }
 
+  
   await createResource({
     mock: MOCK.dataservice1,
     parent: catalog1,
@@ -242,77 +254,27 @@ export const setup = async (options: {
     });
   }
 
-  const catalog2: DCATCatalog | undefined =
-    options.mockSet === MockSet.COMPLEX
-      ? ((await createResource({
-          mock: MOCK.catalog2,
-        })) as DCATCatalog)
-      : undefined;
+  let catalog2: DCATCatalog | undefined;
+  
+  if (options.mockSet === MockSet.COMPLEX) {
+    catalog2 = await createResource({
+      mock: MOCK.catalog2,
+    }) as DCATCatalog;
+  }
 
 
-  console.log(`Owned resources`);
-  console.log(`---------------`);
-  console.log(`catalog1:   ${(await catalog1.getOwnedResources()).length}`);
-  catalog1_1 && console.log(`catalog1_1:   ${(await catalog1_1.getOwnedResources()).length}`);
-  catalog2 && console.log(`catalog2:   ${(await catalog2.getOwnedResources()).length}`);
-  // console.log(`catalog1_1: ${OwnedResources.catalog1_1.length}`);
-  // console.log(`catalog2:   ${OwnedResources.catalog2.length}`);
 
-  // const cat1 = new DCATCatalog(
-  //   catalogService,
-  //   MOCK.catalog1.id,
-  //   MOCK.catalog1.title,
-  //   "2022-01-01"
-  // );
-  // console.log('cat1.service.workAsync', cat1.service.workAsync);
-  // await Promise.all(cat1.workAsync);
-  // await Promise.all(catalogService.workAsync);
-  // await cat1.setDescription(MOCK.catalog1.description);
-  // await cat1.setCreator(MOCK.catalog1.creator);
-  // await cat1.setRights(MOCK.catalog1.rights);
-  // await cat1.setPublished(MOCK.catalog1.published);
-  // {
-  //   // DCATDataService
-  //   const dataservice1 = new DCATDataService(
-  //     catalogService,
-  //     MOCK.dataservice1.id,
-  //     MOCK.dataservice1.title,
-  //     undefined,
-  //     undefined
-  //     // cat1
-  //   );
-  //   await Promise.all(dataservice1.workAsync);
-  //   await Promise.all(catalogService.workAsync);
-  //   await dataservice1.setDescription(MOCK.dataservice1.description);
-  //   await dataservice1.setCreator(MOCK.dataservice1.creator);
-  //   await dataservice1.setRights(MOCK.dataservice1.rights);
-  //   await dataservice1.setPublished(MOCK.dataservice1.published);
-  //   cat1.addOwnedResource(dataservice1);
-  //   await Promise.all(cat1.workAsync);
-  // }
-
-  // {
-  //   // DCATDataset
-  //   const dataset1 = new DCATDataset(
-  //     catalogService,
-  //     MOCK.dataset1.id,
-  //     MOCK.dataset1.title,
-  //     "2022-01-02",
-  //     undefined
-  //     // cat1,
-  //   );
-  //   await Promise.all(dataset1.workAsync);
-  //   await Promise.all(catalogService.workAsync);
-  //   await dataset1.setDescription(MOCK.dataset1.description);
-  //   await dataset1.setCreator(MOCK.dataset1.creator);
-  //   await dataset1.setRights(MOCK.dataset1.rights);
-  //   await dataset1.setPublished(MOCK.dataset1.published);
-  //   cat1.addOwnedResource(dataset1);
-  //   await Promise.all(cat1.workAsync);
-  // }
-
-  // await catalogService.checkTripleStore();
-  // console.log(`setup complete
-  //   cat1 owns ${(await cat1.getOwnedResources()).length}`);
+  // console.log(`Owned resources`);
+  // console.log(`---------------`);
+  // console.log(`catalog1:   ${(await catalog1.getOwnedResources()).length}`);
+  // catalog1_1 && console.log(`catalog1_1:   ${(await catalog1_1.getOwnedResources()).length}`);
+  // catalog2 && console.log(`catalog2:   ${(await catalog2.getOwnedResources()).length}`);
+  
+  
+  console.log('new');
+  const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
+  const data = await catalogService.runQuery(query);
+  const dataFormatted = JSON.stringify(makeStatic(data.results), null, 2)
+  console.info(dataFormatted);
   return apiFactory(catalogService, MOCK);
 };

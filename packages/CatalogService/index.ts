@@ -6,10 +6,12 @@
   */
 
 import { inherits } from "util";
-import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/rdfservice/index";
+import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/rdfservice";
 
-export { RDFSResource } from "@telicent-oss/rdfservice/index"
+export { RDFSResource } from "@telicent-oss/rdfservice"
 export * from "./setup"
+export const version = 'apple3';
+const DEBUG = false;
 
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
     title: SPARQLResultBinding,
@@ -31,6 +33,7 @@ export type RankWrapper = {
 
 
 export class DCATResource extends RDFSResource {
+    className = 'DCATResource'
     /**
      * The DCAT base class from which all the other classes inherit - a Resource published or curated by a single agent.
      * @param {CatalogService} service - the CatalogService being used
@@ -44,7 +47,7 @@ export class DCATResource extends RDFSResource {
     service: CatalogService
     // TODO remove
     public workAsync: Promise<unknown>[] = [];
-
+    // TODO Great candidate for better typing
     constructor(service: CatalogService, uri?: string, title?: string, published: string = new Date().toISOString(), type: string = "http://www.w3.org/ns/dcat#Resource", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
         let cached = false
         if (uri) {
@@ -75,7 +78,7 @@ export class DCATResource extends RDFSResource {
                 throw new Error("uri must be provided for a new resource")
             }
             if (title == undefined) {
-                throw new Error("title must be provided for a new resource")
+                throw new Error(`title must be provided for a new resource uri: ${uri}, type: ${type}`)
             }
 
             if ((title) && (title != "")) {
@@ -91,6 +94,7 @@ export class DCATResource extends RDFSResource {
 }
 
 export class DCATDataset extends DCATResource {
+  className = 'DCATDataset'
   constructor(
     service: CatalogService,
     uri?: string,
@@ -112,6 +116,7 @@ export class DCATDataset extends DCATResource {
   }
 }
 export class DCATDataService extends DCATResource {
+  className = 'DCATDataService'
   constructor(
     service: CatalogService,
     uri?: string,
@@ -137,6 +142,7 @@ export class DCATDataService extends DCATResource {
 }
 
 export class DCATCatalog extends DCATDataset {
+    className = 'DCATCatalog'
     constructor(
         service: CatalogService, 
         uri?: string, 
@@ -159,34 +165,42 @@ export class DCATCatalog extends DCATDataset {
     addOwnedCatalog(catalog:DCATCatalog) {
         if (catalog) {
             // TODO return
-            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Catalog`,catalog.uri))
+            const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Catalog`,catalog.uri);
+            this.workAsync.push(work)
+            return work;
         }
     }
     addOwnedDataset(dataset:DCATDataset) {
         if (dataset) {
-            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Dataset`,dataset.uri))
+            const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Dataset`,dataset.uri);
+            this.workAsync.push(work);
+            return work;
         }
     }
     addOwnedService(service:DCATDataService) {
         if (service) {
-            this.workAsync.push(this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#DataService`,service.uri))
+            const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#DataService`,service.uri);
+            this.workAsync.push(work);
+            return work;
         }
     }
 
     addOwnedResource(resource:DCATResource) {
-        switch(resource.constructor.name) {
-            case "DCATCatalog":
-                this.addOwnedCatalog(resource as DCATCatalog)
-                break;
-            case "DCATDataset":
-                this.addOwnedDataset(resource as DCATDataset)
-                break;
-            case "DCATDataService":
-                this.addOwnedService(resource as DCATDataService)
-                break;
-            default:
-                this.workAsync.push(this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri))
-        }
+      console.log(`${this.className}.addOwned(${resource.className})`)
+      switch(resource.className) {
+        case 'DCATCatalog':
+          this.addOwnedCatalog(resource as DCATCatalog);
+          break;
+        case 'DCATDataset':
+          this.addOwnedDataset(resource as DCATDataset);
+          break;
+        case 'DCATDataService':
+          this.addOwnedService(resource as DCATDataService);
+          break;
+        default:
+          console.warn('addOwnedResource(): no match', resource.className, Object.prototype.toString.call(resource));
+      }
+      this.workAsync.push(this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri));
     }
 
     async getOwnedResources(typeOfResource?:string) {
@@ -225,10 +239,16 @@ export class CatalogService extends RdfService {
      * @param {string="http://telicent.io/ontology/"} defaultNamespace - the default stub to use when building GUID URIs
      * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
     */
-    constructor(triplestoreUri = "http://localhost:3030/", dataset = "knowledge", writeEnabled:boolean, defaultNamespace = "http://telicent.io/catalog/", defaultSecurityLabel = "") {
+    constructor(
+        triplestoreUri = "http://localhost:3030/", 
+        dataset = "knowledge", 
+        writeEnabled:boolean, 
+        defaultNamespace = "http://telicent.io/catalog/", 
+        defaultSecurityLabel = ""
+    ) {
 
         super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, writeEnabled)
-
+        
         this.dcat = "http://www.w3.org/ns/dcat#"
 
         this.dcatResource = `${this.dcat}Resource`
@@ -307,7 +327,7 @@ export class CatalogService extends RdfService {
         let relFilter = ''
         if (!catalogRelation) {
             catalogRelation = '?catRel'
-            relFilter = 'FILTER (?catRel in (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog))'
+            relFilter = 'FILTER (?catRel in (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, rdf:type))'
         }
         else {
             catalogRelation = `<${catalogRelation}>`
@@ -323,7 +343,12 @@ export class CatalogService extends RdfService {
         } else {
             typeSelect = 'FILTER (?_type IN (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, dcat:DatasetSeries))'
         }
+        // !CRITICAL PREFIX below is hacked in.
         let query = `
+            PREFIX dcat: <http://www.w3.org/ns/dcat#>
+            PREFIX dct: <http://purl.org/dc/terms/>
+            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            
             SELECT ?uri ?_type ?title ?published ?description ?creator ?rights
             WHERE {
                 ${catalogSelect}
@@ -336,10 +361,10 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:creator ?creator} 
                 OPTIONAL {?uri dct:rights ?rights} 
             }`
-        console.info(`getAllDCATResources`, query);
-        const resultsAsync = this.runQuery<DcatResourceQuerySolution>(query)
-        this.workAsync.push(resultsAsync);
-        const results = await resultsAsync;
+        DEBUG && console.info(`getAllDCATResources`, query);
+        const results = await this.runQuery<DcatResourceQuerySolution>(query)
+        console.log(query)
+        console.log(JSON.stringify(results, null, 2))
         results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
             var cls = DCATResource
             if (statement._type) {
@@ -359,7 +384,9 @@ export class CatalogService extends RdfService {
      * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
     */
     async getAllDatasets(): Promise<DCATDataset[]> {
-        return await this.getAllDCATResources("dcat:Dataset")
+        const work = this.getAllDCATResources("dcat:Dataset");
+        this.workAsync.push(work);
+        return work;
     }
 
     /**
@@ -367,7 +394,9 @@ export class CatalogService extends RdfService {
      * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
     */
     async getDataServices(): Promise<DCATDataService[]> {
-        return await this.getAllDCATResources("dcat:DataService")
+        const work = this.getAllDCATResources("dcat:DataService");
+        this.workAsync.push(work);
+        return work;
     }
 
     /**
@@ -375,7 +404,9 @@ export class CatalogService extends RdfService {
  * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
 */
     async getAllCatalogs(): Promise<DCATCatalog[]> {
-        return await this.getAllDCATResources("dcat:Catalog") as DCATCatalog[]
+        const work = this.getAllDCATResources("dcat:Catalog") as Promise<DCATCatalog[]>;
+        this.workAsync.push(work);
+        return work;
     }
 
     /**
@@ -409,7 +440,7 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:rights ?rights} 
             } GROUP BY ?uri ?title ?published ?description ?creator ?rights ?_type
             `
-            console.info(`find`, query);
+            DEBUG && console.info(`find`, decodeURIComponent(query));
         let results = await this.runQuery<DcatResourceFindSolution>(query)
         return this.rankedWrap(results, matchingText)
     }

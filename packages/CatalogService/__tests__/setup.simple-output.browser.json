@@ -1,0 +1,312 @@
+{
+  "bindings": [
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataservice1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+      },
+      "o": {
+        "type": "uri",
+        "value": "http://www.w3.org/ns/dcat#DataService"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataservice1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/creator"
+      },
+      "o": {
+        "type": "literal",
+        "value": "Oleg Novak"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataservice1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/title"
+      },
+      "o": {
+        "type": "literal",
+        "value": "Service: Wind Feed"
+      }
+    },
+    {
+      "o": {
+        "type": "literal",
+        "value": "######## makeStatic() ########"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/published"
+      },
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataservice1"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataservice1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://www.w3.org/ns/dcat#Resource"
+      },
+      "o": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataservice1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/description"
+      },
+      "o": {
+        "type": "literal",
+        "value": "Cornwall Wind Detector data via JSON REST API. Real-time, API-token controlled access for analysis by environmental scientists and meteorologists."
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataservice1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/rights"
+      },
+      "o": {
+        "type": "literal",
+        "value": "James Hardacre"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://www.w3.org/ns/dcat#Dataset"
+      },
+      "o": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataset1"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://www.w3.org/ns/dcat#DataService"
+      },
+      "o": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataservice1"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+      },
+      "o": {
+        "type": "uri",
+        "value": "http://www.w3.org/ns/dcat#Catalog"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/creator"
+      },
+      "o": {
+        "type": "literal",
+        "value": "Mario Giacomelli"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/title"
+      },
+      "o": {
+        "type": "literal",
+        "value": "Catalog: Cornwall Data"
+      }
+    },
+    {
+      "o": {
+        "type": "literal",
+        "value": "######## makeStatic() ########"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/published"
+      },
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/description"
+      },
+      "o": {
+        "type": "literal",
+        "value": "2020 Royal Engineers’ Cornwall focused data catalog. Includes real-time IoT telemetry and historical archives for environmental and technological research."
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/rights"
+      },
+      "o": {
+        "type": "literal",
+        "value": "James Hardacre"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataset1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type"
+      },
+      "o": {
+        "type": "uri",
+        "value": "http://www.w3.org/ns/dcat#Dataset"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataset1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/creator"
+      },
+      "o": {
+        "type": "literal",
+        "value": "Kiki Sato"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataset1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/title"
+      },
+      "o": {
+        "type": "literal",
+        "value": "Dataset: Q1 2021"
+      }
+    },
+    {
+      "o": {
+        "type": "literal",
+        "value": "######## makeStatic() ########"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/published"
+      },
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataset1"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataset1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://www.w3.org/ns/dcat#Resource"
+      },
+      "o": {
+        "type": "uri",
+        "value": "http://telicent.io/data/catalog1"
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataset1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/description"
+      },
+      "o": {
+        "type": "literal",
+        "value": "Q1 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development."
+      }
+    },
+    {
+      "s": {
+        "type": "uri",
+        "value": "http://telicent.io/data/dataset1"
+      },
+      "p": {
+        "type": "uri",
+        "value": "http://purl.org/dc/terms/rights"
+      },
+      "o": {
+        "type": "literal",
+        "value": "Damir Sato"
+      }
+    }
+  ]
+}

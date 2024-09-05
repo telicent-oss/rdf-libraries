@@ -5,7 +5,7 @@ import { MockSet, setup } from './setup';
 
 // Create an instance of the API
 
-const api = await setup({ hostName: "http://localhost:3030/", mockSet: MockSet.COMPLEX })
+const api = await setup({ hostName: "http://localhost:3030/", mockSet: MockSet.SIMPLE })
 const service = api._service;
 
 // Create the Express app
