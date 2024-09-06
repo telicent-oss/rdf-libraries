@@ -199,8 +199,8 @@ export class DCATCatalog extends DCATDataset {
           break;
         default:
           console.warn('addOwnedResource(): no match', resource.className, Object.prototype.toString.call(resource));
-      }
-      this.workAsync.push(this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri));
+          this.workAsync.push(this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri));
+        }
     }
 
     async getOwnedResources(typeOfResource?:string) {
