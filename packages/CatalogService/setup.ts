@@ -8,6 +8,8 @@ import {
   DCATDataService,
 } from "./index";
 
+const DEBUG = false;
+
 export enum MockSet {
   SIMPLE = 'simple',
   COMPLEX = 'complex'
@@ -146,7 +148,6 @@ export const setup = async (options: {
     published?: string;
     parent?: DCATCatalog;
   }): Promise<DCATCatalog | DCATDataset | DCATDataService> => {
-    console.log(`createResource: ${mock.uri}`);
     // DCATDataService
     let r: DCATDataService | DCATCatalog | DCATDataset;
     switch (mock.classType) {
@@ -195,9 +196,6 @@ export const setup = async (options: {
     await Promise.all(r.workAsync);
     
     if (parent?.addOwnedResource) {
-      console.log(parent.uri)
-      console.log(' ...addOwner of ...')
-      console.log(r.uri)
       parent.addOwnedResource(r);
       await Promise.all(parent.workAsync);
     }
@@ -264,17 +262,10 @@ export const setup = async (options: {
 
 
 
-  // console.log(`Owned resources`);
-  // console.log(`---------------`);
-  // console.log(`catalog1:   ${(await catalog1.getOwnedResources()).length}`);
-  // catalog1_1 && console.log(`catalog1_1:   ${(await catalog1_1.getOwnedResources()).length}`);
-  // catalog2 && console.log(`catalog2:   ${(await catalog2.getOwnedResources()).length}`);
-  
-  
-  console.log('new');
+
   const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
   const data = await catalogService.runQuery(query);
   const dataFormatted = JSON.stringify(makeStatic(data.results), null, 2)
-  console.info(dataFormatted);
+  DEBUG && console.info(dataFormatted);
   return apiFactory(catalogService, MOCK);
 };

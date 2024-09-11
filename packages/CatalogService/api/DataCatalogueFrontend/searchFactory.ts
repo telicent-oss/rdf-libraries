@@ -45,7 +45,6 @@ export const searchFactory = (service: CatalogService) => {
       const uiDataResource = resourceTriples
         .map(instanceFromResourceFactory({ service, UriToClass }))
         .map(uiDataResourceFromInstance)
-        console.info(`REQUIREMENT All`);
       return Promise.all(uiDataResource); // 🛑 exit.....
     }
 
@@ -70,21 +69,12 @@ export const searchFactory = (service: CatalogService) => {
         const foundForUI = found
           .map((el) => el.item)
           .map(uiDataResourceFromInstance);
-        console.info(foundForUI.length);
-        console.info(`7.2 Search by input text`);
         return Promise.all(foundForUI); // 🛑 exit.....
       }
 
       const ownedInstances = await cat.getOwnedResources();
       // TODO add owned
       const results = [cat, ...ownedInstances];
-      console.info(`
-        Owner: ${id}
-        Owned: ${ownedInstances.length}
-        `);
-      console.info(
-        ` 6.5 Search by dataResourceFilter: selected data-resources`
-      );
       return Promise.all(results.map(uiDataResourceFromInstance)); // 🛑 exit.....
     }
     // TODO for now just return selected

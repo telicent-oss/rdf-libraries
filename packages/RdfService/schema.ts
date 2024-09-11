@@ -3,14 +3,16 @@ import z from 'zod';
 // Bad: 
 export const permissiveUriRegex = /^(https?|ftp):\/\/[^ \t\r\n]+$/i;
 
-console.log('refined old')
+
 // Schema for the object representing "o", "p", or "s" within each triple
 const TripleObjectSchema = z.object({
   type: z.string(),
   value: z.string()
 }).refine((value) => {
   // Validate as URI if type is "uri"
-  return value.type !== 'uri' || permissiveUriRegex.test(value?.value);
+  return (value.type !== 'uri' 
+  //  && value.type !== 'literal'  // TODO Was a little tempted to do this. SHould work out if this is wrong
+  ) || permissiveUriRegex.test(value?.value);
   // TODO inefficient
   // WHEN ASAP
 }, {

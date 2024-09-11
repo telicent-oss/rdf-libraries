@@ -267,6 +267,5 @@ export const transformDataResourceFilters = (
   // TODO! move Owned to its own field in url
   const hasAccess = val.includes(OWNED_FACET.label);
   const dataResourceFilter = val.filter((el) => el !== OWNED_FACET.label)?.[0];
-  console.info("hasAccess", hasAccess);
   return { hasAccess, dataResourceFilter };
 };

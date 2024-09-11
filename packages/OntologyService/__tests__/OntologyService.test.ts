@@ -41,7 +41,6 @@ describe("OntologyService - Integration Test with Fuseki", () => {
     await delays(1000);
     //after a short wait, we should now have a predictable number of items
     const triples: QueryResponse<SPOQuerySolution> = await os.runQuery<SPOQuerySolution>("SELECT * WHERE {?s ?p ?o}");
-    console.log(triples)
     expect(triples.results.bindings.length).toEqual(expectedTripleCount);
     //more detailed checks around identity
     expect(g1.uri === `${testDefaultNamespace}ONT1`).toBeTruthy();

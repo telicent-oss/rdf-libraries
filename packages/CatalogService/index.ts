@@ -48,7 +48,15 @@ export class DCATResource extends RDFSResource {
     // TODO remove
     public workAsync: Promise<unknown>[] = [];
     // TODO Great candidate for better typing
-    constructor(service: CatalogService, uri?: string, title?: string, published: string = new Date().toISOString(), type: string = "http://www.w3.org/ns/dcat#Resource", catalog?:DCATCatalog, statement?: DcatResourceQuerySolution) {
+    constructor(
+        service: CatalogService,
+        uri?: string,
+        title?: string,
+        published: string = new Date().toISOString(),
+        type: string = "http://www.w3.org/ns/dcat#Resource",
+        catalog?:DCATCatalog,
+        statement?: DcatResourceQuerySolution
+    ) {
         let cached = false
         if (uri) {
             cached = service.inCache(uri)
@@ -67,7 +75,7 @@ export class DCATResource extends RDFSResource {
 
 
             if ((uri) || (title) || (published) || (type)) {
-                console.warn("individual parameters such as uri, title, etc. should not be set if the statement parameter is set")
+                console.warn(`individual parameters such as uri, title, etc. should not be set if the statement parameter is set: ${JSON.stringify(statement, null, 2)}`)
             }
         }
         else {
@@ -186,7 +194,6 @@ export class DCATCatalog extends DCATDataset {
     }
 
     addOwnedResource(resource:DCATResource) {
-      console.log(`${this.className}.addOwned(${resource.className})`)
       switch(resource.className) {
         case 'DCATCatalog':
           this.addOwnedCatalog(resource as DCATCatalog);
@@ -361,10 +368,7 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:creator ?creator} 
                 OPTIONAL {?uri dct:rights ?rights} 
             }`
-        DEBUG && console.info(`getAllDCATResources`, query);
         const results = await this.runQuery<DcatResourceQuerySolution>(query)
-        console.log(query)
-        console.log(JSON.stringify(results, null, 2))
         results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
             var cls = DCATResource
             if (statement._type) {
@@ -440,7 +444,6 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:rights ?rights} 
             } GROUP BY ?uri ?title ?published ?description ?creator ?rights ?_type
             `
-            DEBUG && console.info(`find`, decodeURIComponent(query));
         let results = await this.runQuery<DcatResourceFindSolution>(query)
         return this.rankedWrap(results, matchingText)
     }

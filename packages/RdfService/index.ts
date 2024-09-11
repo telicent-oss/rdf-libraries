@@ -846,7 +846,6 @@ export class RdfService {
       this.queryEndpoint + encodeURIComponent(this.sparqlPrefixes + query),
       { headers: { Expects: "application/sparql-results+json" } }
     );
-    DEBUG && console.info(this.queryEndpoint + '?' + this.sparqlPrefixes + query)
     this.workAsync.push(responseAsync);
     const response = await responseAsync;
     if (!response.ok) {
@@ -855,6 +854,10 @@ export class RdfService {
     const jsonAsync = response.json();
     this.workAsync.push(jsonAsync);
     const results: QueryResponse<T> = await jsonAsync;
+    
+    console.log('SPARQL');
+    console.log(this.sparqlPrefixes + query);
+    
     return results;
   }
 
@@ -912,10 +915,7 @@ export class RdfService {
         body: this.sparqlPrefixes + updateQuery,
       };
 
-      const responseAsync = fetch(this.updateEndpoint, postObject);
-      this.workAsync.push(responseAsync);
-      DEBUG && console.info(this.updateEndpoint, JSON.stringify(postObject))
-      const response = await responseAsync;
+      const response = await fetch(this.updateEndpoint, postObject);
       if (!response.ok) {
         throw response.statusText;
       }
@@ -986,7 +986,10 @@ export class RdfService {
     }
     const o = this.#checkObject(object, objectType, xsdDatatype)
     updates.push(`INSERT DATA {<${subject}> <${predicate}> ${o} . }`)
-    return this.runUpdate(updates, securityLabel)
+    const result = await this.runUpdate(updates, securityLabel)
+    console.log('INSERTED');
+    console.log(updates.join('\n'));
+    return result
   }
 
   /**
