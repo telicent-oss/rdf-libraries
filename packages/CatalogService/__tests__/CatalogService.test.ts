@@ -7,7 +7,7 @@ import {
   DCATDataService,
 } from "../index";
 import { setupContainer } from "./setupContainer";
-const rdfsResource = "http://www.w3.org/2000/01/rdf-schema#Resource";
+
 const testDefaultNamespace = "http://telicent.io/data/";
 const id1 = `${testDefaultNamespace}cat1`;
 const id2 = `${testDefaultNamespace}dataset1`;
@@ -25,8 +25,6 @@ describe("CatalogService", () => {
   let cs: CatalogService;
 
   beforeAll(async () => {
-    console.log(`----------------------------------------------------------------
-      CatalogService.test.js — beforeAll`);
     const result = await setupContainer();
     environment = result.environment;
     cs = result.cs;
@@ -55,8 +53,6 @@ describe("CatalogService", () => {
   }, 30 * SEC);
 
   afterAll(async () => {
-    console.log(`----------------------------------------------------------------
-      CatalogService.test.js — afterAll`);
     await Promise.all(cs.workAsync);
     await environment.down({ removeVolumes: true });
   }, 20 * SEC);
@@ -64,8 +60,6 @@ describe("CatalogService", () => {
   it(
     "should be running properly and connected to a triplestore",
     async () => {
-      console.log(`----------------------------------------------------------------
-        CatalogService.test.js — should be running properly and connected to a triplestore`);
       let ats: boolean = await cs.checkTripleStore();
       expect(ats).toBeTruthy();
     },
@@ -75,8 +69,6 @@ describe("CatalogService", () => {
   it(
     `should have added the expected amount of triples: ${initialTripleCount}`,
     async () => {
-      console.log(`----------------------------------------------------------------
-        CatalogService.test.js — should have added the expected amount of triples: ${initialTripleCount}`);
       const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
       expect.assertions(1);
       const data = await cs.runQuery(query);
@@ -88,8 +80,6 @@ describe("CatalogService", () => {
   it(
     "Should find catalog-owned items",
     async () => {
-      console.log(`----------------------------------------------------------------
-        CatalogService.test.js — Should find catalog-owned items`);
       const cat = new DCATCatalog(cs, id1);
       const d1 = new DCATDataset(cs, id2);
       const ds1 = new DCATDataService(cs, id3);
@@ -108,8 +98,6 @@ describe("CatalogService", () => {
   it(
     "Specialised getowned methods should return correct items",
     async () => {
-      console.log(`----------------------------------------------------------------
-        CatalogService.test.js — Specialised getowned methods should return correct items`);
       const cat = new DCATCatalog(cs, id1);
       const d1 = new DCATDataset(cs, id2);
       const ds1 = new DCATDataService(cs, id3);
@@ -126,8 +114,6 @@ describe("CatalogService", () => {
   it(
     `it should set titles properly`,
     async () => {
-      console.log(`----------------------------------------------------------------
-        CatalogService.test.js — it should set titles properly`);
       const cat = new DCATCatalog(cs, id1);
       const catTitle = await cat.getDcTitle();
       const d1 = new DCATDataset(cs, id2);
@@ -147,8 +133,6 @@ describe("CatalogService", () => {
   it(
     `it should set published dates properly`,
     async () => {
-      console.log(`----------------------------------------------------------------
-        CatalogService.test.js — it should set published dates properly`);
       const cat = new DCATCatalog(cs, id1);
       const catPub = await cat.getDcPublished();
       const d1 = new DCATDataset(cs, id2);
@@ -167,8 +151,6 @@ describe("CatalogService", () => {
   it(
     `should not have added any more triples than: ${initialTripleCount} at this stage`,
     async () => {
-      console.log(`----------------------------------------------------------------
-        CatalogService.test.js — should not have added any more triples than: ${initialTripleCount} at this stage`);
       const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
       const data = await cs.runQuery(query);
       expect(data.results.bindings.length).toEqual(initialTripleCount);
@@ -179,8 +161,6 @@ describe("CatalogService", () => {
   it(
     `There should be ${initialNodeCount} nodes cached in the service at this stage`,
     async () => {
-      console.log(`----------------------------------------------------------------
-        CatalogService.test.js — There should be ${initialNodeCount} nodes cached in the service at this stage`);
       expect(Object.keys(cs.nodes).length).toEqual(initialNodeCount);
     },
     30 * SEC

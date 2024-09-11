@@ -1,6 +1,8 @@
 import z from 'zod';
 
-// Bad: 
+// TODO See if needs improvement
+// HOW Check spec for supported uri formats, and match
+// WHEN when things settle down
 export const permissiveUriRegex = /^(https?|ftp):\/\/[^ \t\r\n]+$/i;
 
 
@@ -11,7 +13,10 @@ const TripleObjectSchema = z.object({
 }).refine((value) => {
   // Validate as URI if type is "uri"
   return (value.type !== 'uri' 
-  //  && value.type !== 'literal'  // TODO Was a little tempted to do this. SHould work out if this is wrong
+    // TODO Check this logic/name
+    // WHY Ash was tempted to do this: `&& value.type !== 'literal'`
+    //  Probably not required or perhaps semantically wrong
+    // HOW Check if Schema should be renamed
   ) || permissiveUriRegex.test(value?.value);
   // TODO inefficient
   // WHEN ASAP

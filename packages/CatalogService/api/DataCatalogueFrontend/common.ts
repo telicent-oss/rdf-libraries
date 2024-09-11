@@ -158,8 +158,7 @@ export const getAllResourceTriples = async (options: {
   (await getAllRDFTriples(options)).results.bindings
     .filter(
       (el) =>
-        ResourceSchema.safeParse(el).success 
-      // || console.log(`removing ${printJSON(el)}`)
+        ResourceSchema.safeParse(el).success
     )
     .map((el) => ResourceSchema.parse(el));
 

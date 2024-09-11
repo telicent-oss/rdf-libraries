@@ -3,7 +3,10 @@ import cors from 'cors'; // Import the cors middleware
 import { MockSet, setup } from './setup';
 
 
-// Create an instance of the API
+// DEPRECATED Create an instance of the API
+// TODO remove
+// HOW Either create factory fn for services; Or if no time Document
+// WHEN have time to document it; as we might use this elsewhere
 
 const api = await setup({ hostName: "http://localhost:3030/", mockSet: MockSet.SIMPLE })
 const service = api._service;

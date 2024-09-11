@@ -1,7 +1,9 @@
 import "jest-fetch-mock";
-import { CatalogService, setup } from "../index";
-import { apiFactory, Api } from "../api/DataCatalogueFrontend";
+import { setup } from "../index";
+import { Api } from "../api/DataCatalogueFrontend";
+
 let api: Api;
+
 describe("DataCatalogueFrontend", () => {
   beforeAll(async () => {
     api = await setup({ hostName: "http://localhost:3030/" });

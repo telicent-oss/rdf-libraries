@@ -2,7 +2,6 @@ export * from './schema';
 export * from './types';
 
 const DEVELOPMENT = false; // TODO! Read from config
-const DEBUG = false;
 /*
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
@@ -156,10 +155,11 @@ export class RDFSResource {
         this.uri = uri
         if (uri in this.service.nodes) { //we've already created an object for this item
           const existingItem:RDFSResource = this.service.nodes[uri]
+          // WARNING
           // Comparing constructor names like so:
           //      if (existingItem.constructor.name != this.constructor.name) {
-          // didn't work when code was minified - as the name of hte class was minified. 
-          // In JS, function are first class citizens. Classes are lipstick on a pig.
+          // Won't work when code was minified - as the name of the class was minified. 
+          // In JS, function are first class citizens; Classes are lipstick on a pig.
           if (existingItem.constructor != this.constructor) {
             throw Error(`Attempt to create a different type of object with uri ${uri}, existing: ${existingItem.constructor}, new: ${this.constructor}`)
           }
@@ -855,8 +855,8 @@ export class RdfService {
     this.workAsync.push(jsonAsync);
     const results: QueryResponse<T> = await jsonAsync;
     
-    console.log('SPARQL');
-    console.log(this.sparqlPrefixes + query);
+    DEVELOPMENT && console.log('SPARQL');
+    DEVELOPMENT && console.log(this.sparqlPrefixes + query);
     
     return results;
   }
@@ -899,7 +899,7 @@ export class RdfService {
 
       if (isEmptyString(sl)) {
         if (!DEVELOPMENT) {
-          // console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
+          console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
         }
       }
 
@@ -987,8 +987,8 @@ export class RdfService {
     const o = this.#checkObject(object, objectType, xsdDatatype)
     updates.push(`INSERT DATA {<${subject}> <${predicate}> ${o} . }`)
     const result = await this.runUpdate(updates, securityLabel)
-    console.log('INSERTED');
-    console.log(updates.join('\n'));
+    DEVELOPMENT && console.log('INSERTED');
+    DEVELOPMENT && console.log(updates.join('\n'));
     return result
   }
 

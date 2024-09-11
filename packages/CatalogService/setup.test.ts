@@ -1,7 +1,7 @@
 import 'jest-fetch-mock';
 import { DCATCatalog } from "./index"
 import { Api } from "./api/DataCatalogueFrontend"
-import { MOCK, setup } from "./setup"
+import { setup } from "./setup"
 
 let api:Api
 
