@@ -126,14 +126,19 @@ export const MOCK: Record<string, MockData> = {
 };
 
 export const setup = async (options: {
-  hostName: string;
+  hostName?: string;
   mockSet?: MockSet;
   catalogService?: CatalogService;
 }) => {
   
-  const catalogService =
-    options.catalogService ||
-    new CatalogService(options.hostName, "catalog", true, undefined, undefined);
+  let catalogService = options.catalogService;
+  
+  if (options.hostName) {
+    catalogService = new CatalogService(options.hostName, "catalog", true, undefined, undefined);
+  }
+  if (catalogService === undefined) {
+    throw new Error(`Invalid params - must set hostName (${options.hostName}) or catalogService (${options.catalogService})`);
+  }
 
   if (!(await catalogService.checkTripleStore())) {
     throw new Error("Triple store error: simple WHERE failed");
