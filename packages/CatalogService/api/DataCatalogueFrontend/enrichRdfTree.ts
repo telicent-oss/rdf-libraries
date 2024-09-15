@@ -1,6 +1,6 @@
 import { RDFTripleType } from "@telicent-oss/rdfservice/index";
 import { DCATDataset, DCATDataService, DCATCatalog } from "../../index";
-import { DATASET_URI, SERVICE_URI, CATALOG_URI, RDF_TYPE_URI, DCATResourceSchema, UITreeViewBaseItemType } from "./common";
+import { DATASET_URI, SERVICE_URI, CATALOG_URI, RDF_TYPE_URI, DCATResourceSchema, UITreeViewBaseItemType, DCATResourceType } from "./common";
 import { CatalogService } from "../../index";
 import { tryInstantiate } from "./tryInstantiate";
 
@@ -8,10 +8,11 @@ type Transform = (leaf:UITreeViewBaseItemType) => Promise<UITreeViewBaseItemType
 
 export const enrichRdfTree = async (
   options: {
-    tree: UITreeViewBaseItemType;
+    tree: UITreeViewBaseItemType[];
     service: CatalogService;
     triples: RDFTripleType[];
-  }): Promise<UITreeViewBaseItemType> => {
+  }): Promise<UITreeViewBaseItemType[]> => {
+    console.log('enrichRdfTree', new Set(options.triples.map(({ s }) => s.value)))
 
   // TODO Can I move elsewhere
   const UriToClass = {
@@ -22,20 +23,24 @@ export const enrichRdfTree = async (
 
   const work:Transform = async (leaf) => {
 
+    const tripleWithType = options.triples.find(el => 
+        el.p.value === RDF_TYPE_URI 
+        && el.s.value === leaf.id
+      )
+      let type:DCATResourceType | undefined;
+      try {
+        type = DCATResourceSchema.parse(tripleWithType?.o.value)
+      } catch (err) {
+        console.error(`DCATResourceSchema failed to parse ${JSON.stringify(tripleWithType)}.o.type "${tripleWithType?.o.type}"`);
+        console.error(`leaf: ${JSON.stringify(leaf, null, 2)}`);
+        console.error(JSON.stringify(options.triples.filter(el => el.p.value === RDF_TYPE_URI), null, 2));
+        throw err;
+      }
     const instance = tryInstantiate({
       UriToClass,
       service: options.service,
       id: leaf.id,
-      type: DCATResourceSchema
-        .parse(
-          options
-          .triples
-          .find(
-            el => 
-              el.p.value === RDF_TYPE_URI 
-              && el.s.value === leaf.id
-          )!.o.value
-        )
+      type
     })
     const titles = await instance.getDcTitle();
     if (titles.length > 1) {
@@ -64,6 +69,7 @@ export const enrichRdfTree = async (
     return transformedNode;
   };
 
+  console.log('options.tree', JSON.stringify(options.tree, null, 2));
   // Start the transformation from the root
-  return traverseAndTransform(options.tree);
+  return Promise.all(options.tree.map(node => traverseAndTransform(node)));
 };

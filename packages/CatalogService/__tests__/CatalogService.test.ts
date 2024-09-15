@@ -22,18 +22,16 @@ function delays(ms: number) {
 
 describe("CatalogService", () => {
   let environment: StartedDockerComposeEnvironment;
-  let cs: CatalogService;
+  let catalogService: CatalogService;
 
   beforeAll(async () => {
-    const result = await setupContainer();
-    environment = result.environment;
-    cs = result.cs;
+    ({ catalogService, environment} = await setupContainer());
 
-    cs.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
+    catalogService.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
     await delays(1000);
-    const cat = new DCATCatalog(cs, id1, "Catalog One", "2022-01-01");
+    const cat = new DCATCatalog(catalogService, id1, "Catalog One", "2022-01-01");
     const d1 = new DCATDataset(
-      cs,
+      catalogService,
       id2,
       "Dataset One",
       "2022-01-02",
@@ -41,7 +39,7 @@ describe("CatalogService", () => {
       cat
     );
     const ds1 = new DCATDataService(
-      cs,
+      catalogService,
       id3,
       "Data Service One",
       undefined,
@@ -53,14 +51,14 @@ describe("CatalogService", () => {
   }, 30 * SEC);
 
   afterAll(async () => {
-    await Promise.all(cs.workAsync);
+    await Promise.all(catalogService.workAsync);
     await environment.down({ removeVolumes: true });
   }, 20 * SEC);
 
   it(
     "should be running properly and connected to a triplestore",
     async () => {
-      let ats: boolean = await cs.checkTripleStore();
+      let ats: boolean = await catalogService.checkTripleStore();
       expect(ats).toBeTruthy();
     },
     30 * SEC
@@ -71,7 +69,7 @@ describe("CatalogService", () => {
     async () => {
       const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
       expect.assertions(1);
-      const data = await cs.runQuery(query);
+      const data = await catalogService.runQuery(query);
       expect(data.results.bindings.length).toEqual(initialTripleCount);
     },
     30 * SEC
@@ -80,9 +78,9 @@ describe("CatalogService", () => {
   it(
     "Should find catalog-owned items",
     async () => {
-      const cat = new DCATCatalog(cs, id1);
-      const d1 = new DCATDataset(cs, id2);
-      const ds1 = new DCATDataService(cs, id3);
+      const cat = new DCATCatalog(catalogService, id1);
+      const d1 = new DCATDataset(catalogService, id2);
+      const ds1 = new DCATDataService(catalogService, id3);
       const ownedResources = await cat.getOwnedResources();
       expect(ownedResources.length).toEqual(2);
       const objs: DCATResource[] = [];
@@ -98,9 +96,9 @@ describe("CatalogService", () => {
   it(
     "Specialised getowned methods should return correct items",
     async () => {
-      const cat = new DCATCatalog(cs, id1);
-      const d1 = new DCATDataset(cs, id2);
-      const ds1 = new DCATDataService(cs, id3);
+      const cat = new DCATCatalog(catalogService, id1);
+      const d1 = new DCATDataset(catalogService, id2);
+      const ds1 = new DCATDataService(catalogService, id3);
       const ownedDatasets = await cat.getOwnedDatasets();
       expect(ownedDatasets.length).toEqual(1);
       expect(ownedDatasets[0] === d1).toBeTruthy();
@@ -114,11 +112,11 @@ describe("CatalogService", () => {
   it(
     `it should set titles properly`,
     async () => {
-      const cat = new DCATCatalog(cs, id1);
+      const cat = new DCATCatalog(catalogService, id1);
       const catTitle = await cat.getDcTitle();
-      const d1 = new DCATDataset(cs, id2);
+      const d1 = new DCATDataset(catalogService, id2);
       const d1Title = await d1.getDcTitle();
-      const ds1 = new DCATDataService(cs, id3);
+      const ds1 = new DCATDataService(catalogService, id3);
       const ds1Title = await ds1.getDcTitle();
       expect(catTitle.length).toEqual(1);
       expect(catTitle[0]).toEqual("Catalog One");
@@ -133,11 +131,11 @@ describe("CatalogService", () => {
   it(
     `it should set published dates properly`,
     async () => {
-      const cat = new DCATCatalog(cs, id1);
+      const cat = new DCATCatalog(catalogService, id1);
       const catPub = await cat.getDcPublished();
-      const d1 = new DCATDataset(cs, id2);
+      const d1 = new DCATDataset(catalogService, id2);
       const d1Pub = await d1.getDcPublished();
-      const ds1 = new DCATDataService(cs, id3);
+      const ds1 = new DCATDataService(catalogService, id3);
       const ds1Pub = await ds1.getDcPublished();
       expect(catPub.length).toEqual(1);
       expect(catPub[0]).toEqual("2022-01-01");
@@ -152,7 +150,7 @@ describe("CatalogService", () => {
     `should not have added any more triples than: ${initialTripleCount} at this stage`,
     async () => {
       const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
-      const data = await cs.runQuery(query);
+      const data = await catalogService.runQuery(query);
       expect(data.results.bindings.length).toEqual(initialTripleCount);
     },
     30 * SEC
@@ -161,7 +159,7 @@ describe("CatalogService", () => {
   it(
     `There should be ${initialNodeCount} nodes cached in the service at this stage`,
     async () => {
-      expect(Object.keys(cs.nodes).length).toEqual(initialNodeCount);
+      expect(Object.keys(catalogService.nodes).length).toEqual(initialNodeCount);
     },
     30 * SEC
   );

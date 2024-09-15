@@ -12,6 +12,7 @@ import {StartedDockerComposeEnvironment,
 } from "testcontainers";
 import { setupContainer } from "./setupContainer";
 import { formatDataAsArray } from "./formatDataAsArray";
+import { SEC } from "../src/constants";
 
 
 // QUESTION Why does order of result change when I incr. number?
@@ -21,28 +22,23 @@ const dataset1 = `${testDefaultNamespace}dataset1`;
 const dataservice1 = `${testDefaultNamespace}dataservice1`;
 
 const initialTripleCount = 11;
-const initialNodeCount = 3;
-
-const SEC = 1000;
 
 
 describe("CatalogService", () => {
   let environment: StartedDockerComposeEnvironment;
-  let cs: CatalogService;
+  let catalogService: CatalogService;
 
   beforeAll(async () => {
-    const result = await setupContainer();
-    environment = result.environment;
-    cs = result.cs;
+    ({ catalogService, environment} = await setupContainer());
   }, 30 * SEC);
 
   afterAll(async () => {
-    await Promise.all(cs.workAsync);
+    await Promise.all(catalogService.workAsync);
     await environment.down({ removeVolumes: true });
   }, 20 * SEC);
 
   afterEach(async () => {
-    await cs.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
+    await catalogService.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
   }, 20 * SEC);
 
   it(
@@ -53,8 +49,7 @@ describe("CatalogService", () => {
         mockSet: MockSet.SIMPLE,
       });
       const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
-      const data = await cs.runQuery(query);
-      // expect(data.results.bindings.length).toEqual(22);
+      const data = await catalogService.runQuery(query);
       expect(formatDataAsArray(makeStatic(data.results).bindings))
         .toMatchInlineSnapshot(`
         [
@@ -94,17 +89,17 @@ describe("CatalogService", () => {
         dataset1: "dataset1",
         dataservice1: "dataservice1",
       };
-      const cat = new DCATCatalog(cs, cat1, TITLES.cat1);
+      const cat = new DCATCatalog(catalogService, cat1, TITLES.cat1);
       await Promise.all(cat.workAsync); // TODO remove; Just paranoid
       expect(cat.statement).toMatchInlineSnapshot(`undefined`);
       // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
-      const d1 = new DCATDataset(cs, dataset1, TITLES.dataset1);
+      const d1 = new DCATDataset(catalogService, dataset1, TITLES.dataset1);
       await Promise.all(d1.workAsync); // TODO remove; Just paranoid
       await cat.addOwnedDataset(d1);
       await Promise.all(d1.workAsync);
       await Promise.all(cat.workAsync);
 
-      const ds1 = new DCATDataService(cs, dataservice1, TITLES.dataservice1);
+      const ds1 = new DCATDataService(catalogService, dataservice1, TITLES.dataservice1);
       await Promise.all(ds1.workAsync); // TODO remove; Just paranoid
       await cat.addOwnedService(ds1);
       await Promise.all(cat.workAsync);
@@ -112,7 +107,7 @@ describe("CatalogService", () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // await new Promise(resolve => setTimeout(resolve, 1000))
-      const data = await cs.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`);
+      const data = await catalogService.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`);
       expect(formatDataAsArray(makeStatic(data.results).bindings))
         .toMatchInlineSnapshot(`
               [
@@ -149,9 +144,9 @@ describe("CatalogService", () => {
   it.skip(
     "Specialised getowned methods should return correct items",
     async () => {
-      const cat = new DCATCatalog(cs, cat1, "cat1");
+      const cat = new DCATCatalog(catalogService, cat1, "cat1");
       const catChild = new DCATCatalog(
-        cs,
+        catalogService,
         `${testDefaultNamespace}catChild`,
         "catChild"
       );
@@ -161,7 +156,7 @@ describe("CatalogService", () => {
 
       await Promise.all(cat.workAsync); // TODO remove; Just paranoid
       // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
-      const d1 = new DCATDataset(cs, dataset1, "dataset1");
+      const d1 = new DCATDataset(catalogService, dataset1, "dataset1");
       await Promise.all(d1.workAsync); // TODO remove; Just paranoid
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await cat.addOwnedDataset(d1);
@@ -170,7 +165,7 @@ describe("CatalogService", () => {
       await Promise.all(cat.workAsync);
       await Promise.all(d1.service.workAsync);
 
-      const ds1 = new DCATDataService(cs, dataservice1, "dataservice1");
+      const ds1 = new DCATDataService(catalogService, dataservice1, "dataservice1");
       await Promise.all(ds1.workAsync); // TODO remove; Just paranoid
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await cat.addOwnedService(ds1);
@@ -179,7 +174,7 @@ describe("CatalogService", () => {
       await Promise.all(ds1.workAsync);
       await Promise.all(ds1.service.workAsync);
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      const data = await cs.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`);
+      const data = await catalogService.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`);
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       expect(formatDataAsArray(makeStatic(data.results).bindings))

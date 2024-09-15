@@ -7,10 +7,11 @@ export const transformRdfToTree = (options: {
   triples: RDFTripleType[];
   edgePredicate: EdgePredicate;
   reverseEdgePredicate: EdgePredicate;
-}): UITreeViewBaseItemType => {
+}): UITreeViewBaseItemType[] => {
   // Filter and map triples based on the edgePredicate
   const childrenMap = new Map<string, UITreeViewBaseItemType[]>();
   const objectIds = new Set<string>();
+  const subjectIds = new Set<string>();
 
   options.triples.forEach(triple => {
     // Handle normal direction
@@ -40,10 +41,13 @@ export const transformRdfToTree = (options: {
       childrenMap.get(triple.o.value)!.push(parentNode);
       objectIds.add(triple.s.value);
     }
+
+    // Track all subjects
+    subjectIds.add(triple.s.value);
   });
 
-  // Find root: A node that is a subject but never an object
-  const rootNode = Array.from(childrenMap.keys()).find(key => !objectIds.has(key));
+  // Find roots: Nodes that are subjects but never objects
+  const rootNodes = Array.from(subjectIds).filter(key => !objectIds.has(key));
 
   // Build the tree recursively
   function buildTree(nodeId: string): UITreeViewBaseItemType {
@@ -55,14 +59,11 @@ export const transformRdfToTree = (options: {
     };
   }
 
-  if (!rootNode) {
-    throw new Error(`Root node not found in the RDF data based on the given edge predicate
-      ${JSON.stringify(options.triples, null, 2)}
-      ${childrenMap}
-      ${objectIds}
-      `);
+  // Handle the case where no roots are found
+  if (rootNodes.length === 0) {
+    throw new Error(`Root node(s) not found in the RDF data based on the given edge predicates. Please check the edge predicates or the RDF data structure.`);
   }
 
-  // Return the tree starting from the root
-  return buildTree(rootNode);
+  // Return the trees starting from each root
+  return rootNodes.map(rootNode => buildTree(rootNode));
 };

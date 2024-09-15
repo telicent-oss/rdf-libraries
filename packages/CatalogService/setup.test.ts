@@ -1,18 +1,24 @@
 import 'jest-fetch-mock';
-import { DCATCatalog } from "./index"
+import { CatalogService, DCATCatalog } from "./index"
 import { Api } from "./api/DataCatalogueFrontend"
 import { setup } from "./setup"
 import { setupContainer } from './__tests__/setupContainer';
+import { StartedDockerComposeEnvironment } from 'testcontainers';
 
-let api:Api
 const SEC = 1000;
 
 describe('setup', () => {
+  let catalogService: CatalogService;
+  let environment: StartedDockerComposeEnvironment;
+  let api:Api
   beforeAll(async () => {
-    const result = await setupContainer();
-    const catalogService = result.cs;
+    ({ catalogService, environment} = await setupContainer());
     api = await setup({ catalogService })
   }, 30 * SEC)
+  afterAll(async () => {
+    await Promise.all(api._service.workAsync);
+    await environment.down({ removeVolumes: true });
+  }, 60 * SEC);
   test('getOwned', async () => {
     const cat = new DCATCatalog(api._service, api._testData!.catalog1.uri);
     await Promise.all(cat.workAsync); // TODO remove; Just paranoid

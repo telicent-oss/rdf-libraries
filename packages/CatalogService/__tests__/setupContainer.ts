@@ -22,7 +22,7 @@ export async function setupContainer() {
     )
     .up();
 
-  const cs = new CatalogService(
+  const catalogService = new CatalogService(
     "http://localhost:3030/",
     "catalog",
     true,
@@ -30,6 +30,6 @@ export async function setupContainer() {
     undefined
   );
 
-  expect(await cs.checkTripleStore()).toBeTruthy();
-  return { environment, cs };
+  expect(await catalogService.checkTripleStore()).toBeTruthy();
+  return { environment, catalogService };
 }

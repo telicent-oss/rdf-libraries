@@ -1,20 +1,27 @@
 import "jest-fetch-mock";
-import { setup } from "../index";
+import { CatalogService, setup } from "../index";
 import { Api } from "../api/DataCatalogueFrontend";
+import { StartedDockerComposeEnvironment } from "testcontainers";
+import { setupContainer } from "./setupContainer";
+import { SEC } from "../src/constants";
 
-let api: Api;
 
 describe("DataCatalogueFrontend", () => {
+  let catalogService: CatalogService;
+  let environment: StartedDockerComposeEnvironment;
+  let api: Api;
   beforeAll(async () => {
+    ({ catalogService, environment} = await setupContainer());
     api = await setup({ hostName: "http://localhost:3030/" });
-  });
+  }, 60 * SEC);
   afterAll(async () => {
     await Promise.all(api._service.workAsync);
-  });
+    await environment.down({ removeVolumes: true });
+  }, 60 * SEC);
   it("inits", () => {
     expect(api).toBeDefined();
     expect(api.search).toBeDefined();
-  });
+  }, 10 * SEC);
   it("can search", async () => {
     const res = await api.search({
       dataResourceFilters: ["all"],
@@ -60,5 +67,5 @@ describe("DataCatalogueFrontend", () => {
         },
       ]
     `);
-  });
+  }, 10 * SEC);
 });

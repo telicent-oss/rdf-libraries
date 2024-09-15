@@ -9,5 +9,5 @@ export const checkPort = async (port: number, timeout: number = 20000) => {
     }
     await new Promise(resolve => setTimeout(resolve, 1000)); // Wait a second before retrying
   }
-  throw new Error(`Port ${port} did not become free within the specified timeout`);
+  throw new Error(`Port ${port} did not become free within the ${Math.round(timeout/1000)}s timeout`);
 };

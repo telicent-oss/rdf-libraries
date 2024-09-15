@@ -82,6 +82,8 @@ export const DCATResourceSchema = z.union([
   z.literal(CATALOG_URI),
 ]);
 
+export type DCATResourceType = z.infer<typeof DCATResourceSchema>;
+
 export type RESOURCE_URI_TYPE =
   | typeof DATASET_URI
   | typeof SERVICE_URI
@@ -160,7 +162,9 @@ export const getAllResourceTriples = async (options: {
       (el) =>
         ResourceSchema.safeParse(el).success
     )
-    .map((el) => ResourceSchema.parse(el));
+    // TODO Remove parse
+    // do not need parse
+    .map((el) => ResourceSchema.parse(el)); //
 
 /**
  *

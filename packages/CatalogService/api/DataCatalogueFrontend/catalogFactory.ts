@@ -39,12 +39,18 @@ export const catalogFactory = (service: CatalogService) => {
 
     const CONNECTIONS = [DATASET_URI, SERVICE_URI, CATALOG_URI];    
     const CONNECTIONS_REVERSE = [RESOURCE_URI];
+    console.log('catalogFactory', new Set(triples.map(({ s }) => s.value)))
     const tree = transformRdfToTree({
-      triples,
-      edgePredicate: (triple) => CONNECTIONS.includes(triple.p.value),
-      reverseEdgePredicate: (triple) =>
-        CONNECTIONS_REVERSE.includes(triple.p.value),
-    });
-    return [await enrichRdfTree({ tree, service, triples })];
+        triples,
+        edgePredicate: (triple) => CONNECTIONS.includes(triple.p.value),
+        reverseEdgePredicate: (triple) =>
+          CONNECTIONS_REVERSE.includes(triple.p.value),
+      });
+    
+    return [{
+      id: 'all',
+      label: 'All',
+      children: await enrichRdfTree({ tree, service, triples })
+    }];
   };
 };
