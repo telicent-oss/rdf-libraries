@@ -1,7 +1,7 @@
 export * from './schema';
 export * from './types';
 
-const DEVELOPMENT = false; // TODO! Read from config
+const DEVELOPMENT = false; // TODO Read from config
 /*
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey

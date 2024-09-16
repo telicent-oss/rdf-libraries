@@ -1,13 +1,12 @@
 import z from "zod";
 import { CatalogService, MOCK } from "../index";
-import { searchFactory } from "./DataCatalogueFrontend/searchFactory";
-import { catalogFactory } from "./DataCatalogueFrontend/catalogFactory";
-import { UIDataResourceSchema, UISearchParamsType, UITreeViewBaseItemType } from "./DataCatalogueFrontend/common";
+import { searchFactory } from "./operations/searchFactory";
+import { catalogFactory } from "./operations/catalogFactory";
+import { UIDataResourceType, UISearchParamsType, UITreeViewBaseItemType } from "./operations/utils/common";
 
 
 export interface Api {
-    // TODO use types instead of infer
-    search: (params:UISearchParamsType) => Promise<Array<z.infer<typeof UIDataResourceSchema>>>;
+    search: (params:UISearchParamsType) => Promise<Array<UIDataResourceType>>;
     catalog: (params:UISearchParamsType) => Promise<UITreeViewBaseItemType[]>;
     _service: CatalogService;
     _testData?: typeof MOCK;
@@ -19,3 +18,4 @@ export const apiFactory = (service: CatalogService, testData?: typeof MOCK): Api
     _service: service,
     _testData: testData,
 });
+

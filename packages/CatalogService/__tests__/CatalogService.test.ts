@@ -6,7 +6,7 @@ import {
   DCATResource,
   DCATDataService,
 } from "../index";
-import { setupContainer } from "./setupContainer";
+import { setupContainer } from "./utils/setupContainer";
 
 const testDefaultNamespace = "http://telicent.io/data/";
 const id1 = `${testDefaultNamespace}cat1`;

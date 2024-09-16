@@ -2,34 +2,24 @@ import { z } from "zod";
 import {
   CatalogService,
   DCATCatalog,
-  DCATDataService,
-  DCATDataset,
 } from "../../index";
 
 import {
-  DATASET_URI,
-  SERVICE_URI,
   CATALOG_URI,
   UIDataResourceSchema,
-  instanceFromResourceFactory,
-  getAllResourceTriples,
   uiDataResourceFromInstance,
   typeStatementMatcherWithId,
   DCATResourceSchema,
   UISearchParamsType,
-  transformDataResourceFilters,
-} from "./common";
+} from "./utils/common";
+import { instanceFromResourceFactory } from './utils/instanceFromResourceFactory';
+import { getAllResourceTriples } from './utils/getAllResourceTriples';
+import { transformDataResourceFilters } from './utils/transformDataResourceFilters';
 import { printJSON } from "./utils/printJSON";
 import { tryCatch } from "./utils/tryCatch";
-import { tryInstantiate } from "./tryInstantiate";
+import { tryInstantiate } from "./utils/tryInstantiate";
 
 export const searchFactory = (service: CatalogService) => {
-  // TODO why must UriToClass be defined within searchFactory?
-  const UriToClass = {
-    [DATASET_URI]: DCATDataset,
-    [SERVICE_URI]: DCATDataService,
-    [CATALOG_URI]: DCATCatalog,
-  };
   return async function search(
     params: UISearchParamsType
   ): Promise<Array<z.infer<typeof UIDataResourceSchema>>> {
@@ -37,13 +27,12 @@ export const searchFactory = (service: CatalogService) => {
       params.dataResourceFilters
     );
 
-
-    
     if (dataResourceFilter === "all" || !dataResourceFilter) {
       // REQUIREMENT All
+      // TODO pagination
       const resourceTriples = await getAllResourceTriples({ service, hasAccess });
       const uiDataResource = resourceTriples
-        .map(instanceFromResourceFactory({ service, UriToClass }))
+        .map(instanceFromResourceFactory({ service }))
         .map(uiDataResourceFromInstance)
       return Promise.all(uiDataResource); // 🛑 exit.....
     }
@@ -73,12 +62,14 @@ export const searchFactory = (service: CatalogService) => {
       }
 
       const ownedInstances = await cat.getOwnedResources();
-      // TODO add owned
+      // TODO add owned.
+      //    TODO! 16Sep24 Is this done?
       const results = [cat, ...ownedInstances];
       return Promise.all(results.map(uiDataResourceFromInstance)); // 🛑 exit.....
     }
-    // TODO for now just return selected
-    const instance = await tryInstantiate({ UriToClass, type, id, service })
+    // TODO for now just return selected. 
+    //    TODO! 16Sep24 Is this done?
+    const instance = await tryInstantiate({ type, id, service })
     const ui = await uiDataResourceFromInstance(instance);
     return [ui];
   };

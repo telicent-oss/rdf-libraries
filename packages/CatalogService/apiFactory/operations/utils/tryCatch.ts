@@ -1,12 +1,15 @@
 import { HumanError } from "../../../utils/HumanError";
 
-// TODO warn that only works with synchronous
 export function tryCatch<T extends (...args: any[]) => any>(
   workSync: T,
   expectation: string
 ): ReturnType<T> {
   try {
-    return workSync();
+    const result = workSync();
+    if (result instanceof Promise) {
+      throw new Error('tryCatch(): does not support async work functions' );
+    }
+    return result;
   } catch (err) {
     if (err instanceof Error) {
       throw new HumanError(`Expected ${expectation}, but caught error: ${err.message}`, err);

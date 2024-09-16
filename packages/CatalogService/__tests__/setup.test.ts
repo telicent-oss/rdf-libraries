@@ -7,11 +7,11 @@ import {
   setup,
   MockSet,
 } from "../index";
-import { makeStatic } from "./makeStatic";
+import { makeStatic } from "./utils/makeStatic";
 import {StartedDockerComposeEnvironment,
 } from "testcontainers";
-import { setupContainer } from "./setupContainer";
-import { formatDataAsArray } from "./formatDataAsArray";
+import { setupContainer } from "./utils/setupContainer";
+import { formatDataAsArray } from "./utils/formatDataAsArray";
 import { SEC } from "../src/constants";
 
 
@@ -142,7 +142,7 @@ describe("CatalogService", () => {
   // WHEN: When code is more stable; Non-urgent as basically doubling-up existing tests.
   // WHY: Test frequently breaks in the course of refactoring
   it.skip(
-    "Specialised getowned methods should return correct items",
+    "Specialised getOwned___ methods should return correct items",
     async () => {
       const cat = new DCATCatalog(catalogService, cat1, "cat1");
       const catChild = new DCATCatalog(

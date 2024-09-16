@@ -1,6 +1,6 @@
 import z from 'zod';
 
-// TODO See if needs improvement
+// TODO Make more spec-compliant, but also fast
 // HOW Check spec for supported uri formats, and match
 // WHEN when things settle down
 export const permissiveUriRegex = /^(https?|ftp):\/\/[^ \t\r\n]+$/i;
@@ -18,8 +18,9 @@ const TripleObjectSchema = z.object({
     //  Probably not required or perhaps semantically wrong
     // HOW Check if Schema should be renamed
   ) || permissiveUriRegex.test(value?.value);
-  // TODO inefficient
-  // WHEN ASAP
+  // TODO Make more performant
+  // WHY executed many times
+  // WHEN perf is noticeable
 }, {
   message: "The value must be a valid URI when type is 'uri'"
 });

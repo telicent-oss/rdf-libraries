@@ -246,7 +246,7 @@ export class RDFProperty extends RDFSResource {
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
     const props:RDFProperty[] = []
     for (const statement of spOut.results.bindings) {
-      // TODO fix tyeps
+      // TODO fix types to avoid `as unknown as`
       let cls:typeof RDFProperty = RDFProperty;
       if (statement._type) {
         cls = this.service.lookupClass(statement._type.value,RDFProperty) as unknown as typeof RDFProperty
@@ -380,7 +380,7 @@ export class RDFSClass extends RDFSResource {
     let cls = RDFProperty
     for (const statement of spOut.results.bindings) {
       if (statement._type) {
-        // TODO fix types
+        // TODO fix types to avoid `as unknown as`
         cls = this.service.lookupClass(statement._type.value, RDFProperty) as unknown as typeof RDFProperty
       }
       const prop = new cls(this.service,undefined,undefined,statement)
@@ -406,7 +406,7 @@ export class RDFSClass extends RDFSResource {
     let cls = RDFProperty
     for (const statement of spOut.results.bindings) {
       if (statement._type) {
-        // TODO fix types
+        // TODO fix types to avoid `as unknown as`
         cls = this.service.lookupClass(statement._type.value,RDFProperty) as unknown as typeof RDFProperty
       }
       const prop = new cls(this.service,undefined,undefined,statement)

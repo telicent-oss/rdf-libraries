@@ -10,6 +10,7 @@ import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, Ty
 
 export { RDFSResource } from "@telicent-oss/rdfservice"
 export * from "./setup"
+export * from "./apiFactory/operations/utils/common"
 export const version = 'apple3';
 const DEBUG = false;
 
@@ -17,7 +18,7 @@ export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
     title: SPARQLResultBinding,
     description?: SPARQLResultBinding,
     creator?: SPARQLResultBinding,
-    rights?: SPARQLResultBinding, // TODO! Perhaps misusing "rights" temporarily for demo
+    rights?: SPARQLResultBinding, // TODO! misusing "rights" temporarily for demo
     published?: SPARQLResultBinding,
 }
 
@@ -45,9 +46,14 @@ export class DCATResource extends RDFSResource {
      * @param {DCATCatalog} catalog - optional catalog this resource belongs to
     */
     service: CatalogService
-    // TODO remove
+    // TODO remove workAsync
+    // HOW 
+    //  1. Write full test coverage
+    //  2. Add https://typescript-eslint.io/rules/no-floating-promises/
+    //  3. Refactor to always return async work (can this be enforced?)
+    // WHEN https://telicent.atlassian.net/browse/TELFE-636
     public workAsync: Promise<unknown>[] = [];
-    // TODO Great candidate for better typing
+    // TODO Great candidate for well-typed params object
     constructor(
         service: CatalogService,
         uri?: string,
@@ -114,7 +120,6 @@ export class DCATDataset extends DCATResource {
   ) {
     super(service, uri, title, published, type, catalog, statement);
     if (catalog) {
-      // TODO Hm....catalog.....................................
       this.service.insertTriple(
         catalog.uri,
         `http://www.w3.org/ns/dcat#Dataset`,
@@ -136,7 +141,7 @@ export class DCATDataService extends DCATResource {
   ) {
     super(service, uri, title, published, type, catalog, statement);
 
-    if (catalog) {// TODO.................hmmmm......
+    if (catalog) {
       this.workAsync.push(
         this.service.insertTriple(
           catalog.uri,
@@ -164,15 +169,16 @@ export class DCATCatalog extends DCATDataset {
         super(service, uri, title, published, type, catalog, statement)
         // NOTE: catalog not called in test...perhaps service invokes with context of nodes?
         if (catalog) { 
-            // TODO: Move async to load() fn 
-            // (or in a pinch, create property await (new DCATCatalog()).async)
-            this.addOwnedCatalog(catalog)
+            // TODO: Move async to loadAsync() fn
+            // WHY: so dev can choose when to start async operations
+            //  const catalog = new DCATCatalog(..)
+            //  catalog.loadAsync()
+            this.addOwnedCatalog(catalog);
         }
     }
 
     addOwnedCatalog(catalog:DCATCatalog) {
         if (catalog) {
-            // TODO return
             const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Catalog`,catalog.uri);
             this.workAsync.push(work)
             return work;
@@ -234,7 +240,9 @@ export class CatalogService extends RdfService {
     dcatCatalog: string;
     dcatResource: string;
     dcatDataset: string;
-    // TODO hm, clue to dataset bug?
+    // TODO explain dcat_Dataset vs dcatDataset
+    // WHY Cause Ash unawares and caused some confusing
+    // NOTES Perhaps indicative of dataset bug? 
     dcat_dataset: string;
     dcatDataService: string;
     dcat_service: string;

@@ -1,30 +1,20 @@
 import "jest-fetch-mock"; // WARNING: fails if: import fetchMock from "jest-fetch-mock";
-import snapshotDiff from "snapshot-diff";
 import {
-  RDFSchema,
   RDFTripleSchema,
-  RDFTripleType,
 } from "@telicent-oss/rdfservice/index";
-import { transformRdfToTree } from "../api/DataCatalogueFrontend/transformRdfToTree";
-import maybeTriplesNode from "./transformRdfToTree.test.mock";
-import maybeTripleBrowser from "./transformRdfToTree.test.mock2";
-import { enrichRdfTree } from "../api/DataCatalogueFrontend/enrichRdfTree";
-import { Api } from "../api/DataCatalogueFrontend";
+import { transformRdfToTree } from "../apiFactory/operations/utils/transformRdfToTree";
+import { enrichRdfTree } from "../apiFactory/operations/utils/enrichRdfTree";
+import { Api } from "../apiFactory/apiFactory";
 import { MockSet, setup } from "../setup";
-import { RDFResponseSchema } from "../api/DataCatalogueFrontend/common";
-import { makeStatic } from "./makeStatic";
+import { RDFResponseSchema } from "../apiFactory/operations/utils/common";
+import { makeStatic } from "./utils/makeStatic";
 import { CatalogService } from "..";
-import { setupContainer } from "./setupContainer";
+import { setupContainer } from "./utils/setupContainer";
 import { SEC } from "../src/constants";
-import { formatDataAsArray } from "./formatDataAsArray";
+import { formatDataAsArray } from "./utils/formatDataAsArray";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 
 let api: Api;
-
-const triplesNode = RDFSchema.parse(maybeTriplesNode) as RDFTripleType[];
-const triplesBrowser = RDFSchema.parse(
-  makeStatic(maybeTripleBrowser)
-) as RDFTripleType[];
 
 const DATASET = "http://www.w3.org/ns/dcat#Dataset";
 const SERVICE = "http://www.w3.org/ns/dcat#DataService";
@@ -42,24 +32,6 @@ describe("transformRdfToTree: SIMPLE", () => {
     await Promise.all(api._service.workAsync);
     await environment.down({ removeVolumes: true });
   }, 60 * SEC);
-  it("NOT same data when in in browser vs node [TEST BASED ON OLD-GENERATED DATA, MAY BE FIXED]", () => {
-    // TODO! IMPORTANT! Graphs are racey by design.
-    expect(
-      snapshotDiff(
-        triplesNode.map((el) => JSON.stringify(el)).sort(),
-        triplesBrowser.map((el) => JSON.stringify(el)).sort(),
-        { contextLines: 0 }
-      )
-    ).toMatchInlineSnapshot(`
-      "Snapshot Diff:
-      - First value
-      + Second value
-
-      @@ -8,1 +8,1 @@
-      -   "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataservice1\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#Service\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/catalog1\\"}}",
-      +   "{\\"o\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/catalog1\\"},\\"p\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://www.w3.org/ns/dcat#Resource\\"},\\"s\\":{\\"type\\":\\"uri\\",\\"value\\":\\"http://telicent.io/data/dataservice1\\"}}","
-    `);
-  }, 10 * SEC);
   it("transformRdfToTree", async () => {
     const res = await api._service.runQuery(`
       SELECT ?s ?p ?o 

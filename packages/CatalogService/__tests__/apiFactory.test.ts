@@ -1,12 +1,12 @@
 import "jest-fetch-mock";
 import { CatalogService, setup } from "../index";
-import { Api } from "../api/DataCatalogueFrontend";
+import { Api } from "../apiFactory/apiFactory";
 import { StartedDockerComposeEnvironment } from "testcontainers";
-import { setupContainer } from "./setupContainer";
+import { setupContainer } from "./utils/setupContainer";
 import { SEC } from "../src/constants";
 
 
-describe("DataCatalogueFrontend", () => {
+describe("apiFactory", () => {
   let catalogService: CatalogService;
   let environment: StartedDockerComposeEnvironment;
   let api: Api;

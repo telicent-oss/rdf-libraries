@@ -1,28 +1,21 @@
 import {
   CatalogService,
 } from "../../index";
-import { transformRdfToTree } from "./transformRdfToTree";
-import { enrichRdfTree } from "./enrichRdfTree";
+import { transformRdfToTree } from "./utils/transformRdfToTree";
+import { enrichRdfTree } from "./utils/enrichRdfTree";
 import {
   DATASET_URI,
   SERVICE_URI,
   CATALOG_URI,
   UITreeViewBaseItemType,
   UISearchParamsType,
-  transformDataResourceFilters,
   getAllRDFTriples,
   RESOURCE_URI,
-} from "./common";
+} from "./utils/common";
 import { RDFTripleSchema } from "@telicent-oss/rdfservice/index";
+import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
 
 export const catalogFactory = (service: CatalogService) => {
-  // TODO why must UriToClass be defined within searchFactory?
-  // const UriToClass = {
-  //   [DATASET_URI]: DCATDataset,
-  //   [SERVICE_URI]: DCATDataService,
-  //   [CATALOG_URI]: DCATCatalog,
-  // };
-  // TODO!!! should really handle arrays of trees!!!
   return async function catalog(
     params: UISearchParamsType
   ): Promise<UITreeViewBaseItemType[]> {
@@ -30,8 +23,11 @@ export const catalogFactory = (service: CatalogService) => {
       params.dataResourceFilters
     );
 
-    const rdfTriples = await getAllRDFTriples({ service, 
-      // TODO! hasAccess // bugged
+    const rdfTriples = await getAllRDFTriples({
+      service, 
+      // TODO! Fix hasAccess
+      // ADD `hasAccess` to `getAllRDFTriples`
+      // WHEN know priority
     });
     const triples = rdfTriples.results.bindings.map((el) =>
       RDFTripleSchema.parse(el)

@@ -1,6 +1,6 @@
-import { makeStatic } from "./__tests__/makeStatic";
-import { apiFactory } from "./api/DataCatalogueFrontend";
-export { apiFactory, type Api } from "./api/DataCatalogueFrontend";
+import { makeStatic } from "./__tests__/utils/makeStatic";
+import { apiFactory } from "./apiFactory/apiFactory";
+export { apiFactory, type Api } from "./apiFactory/apiFactory";
 import {
   CatalogService,
   DCATCatalog,

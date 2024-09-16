@@ -5,13 +5,8 @@ import {
   DCATCatalog,
   DCATDataset,
   DCATDataService,
-} from "../../index";
-import { tryInstantiate } from "./tryInstantiate";
-import { HumanError } from "../../utils/HumanError";
-import { printJSON } from "./utils/printJSON";
+} from "../../../index";
 
-// START COPY telicent-data-catalogue-frontend
-// TODO name UIResource? UIDCATResource?
 export const UIDataResourceSchema = z.object({
   title: z.string(),
   id: z.string(),
@@ -50,13 +45,12 @@ const UITreeViewBaseItemSchema: z.ZodSchema<{
 );
 
 export const UITreeViewItemArraySchema = z.array(UITreeViewBaseItemSchema);
-// TODO export type UITreeViewBaseItemType = z.infer<typeof UITreeViewItemArraySchema>;
+
 export type UITreeViewBaseItemType = {
   id: string;
   label: string;
   children: UITreeViewBaseItemType[];
 };
-// END COPY
 
 export const RDFResponseSchema = z.object({
   head: z.object({
@@ -89,13 +83,6 @@ export type RESOURCE_URI_TYPE =
   | typeof SERVICE_URI
   | typeof CATALOG_URI;
 
-// TODO used for types only; Until work out odd minification behavior
-const UriToClass = {
-  [DATASET_URI]: DCATDataset,
-  [SERVICE_URI]: DCATDataService,
-  [CATALOG_URI]: DCATCatalog,
-};
-type UriToClassType = typeof UriToClass;
 
 /**
  *
@@ -134,7 +121,7 @@ export const ResourceSchema = z.union([
 
 export type ResourceType = z.infer<typeof ResourceSchema>;
 
-// TODO
+// TODO read in User's actual session
 const session = { user: { name: "James Hardacre" } };
 
 export const getAllRDFTriples = async (options: {
@@ -153,52 +140,6 @@ export const getAllRDFTriples = async (options: {
       }`)
   );
 
-export const getAllResourceTriples = async (options: {
-  service: CatalogService;
-  hasAccess?: boolean;
-}) =>
-  (await getAllRDFTriples(options)).results.bindings
-    .filter(
-      (el) =>
-        ResourceSchema.safeParse(el).success
-    )
-    // TODO Remove parse
-    // do not need parse
-    .map((el) => ResourceSchema.parse(el)); //
-
-/**
- *
- * @param options
- * @returns
- */
-export const instanceFromResourceFactory =
-  (options: { UriToClass: UriToClassType; service: CatalogService }) =>
-  /**
-   *
-   * @param el
-   * @returns
-   */
-  (el: ResourceType) => {
-    const { UriToClass, service } = options;
-    const { s, p, o } = ResourceSchema.parse(el);
-    try {
-      const uri = DCATResourceSchema.parse(el.o.value);
-      return tryInstantiate({
-        UriToClass,
-        type: uri,
-        service,
-        id: s.value,
-      });
-    } catch (err) {
-      throw err instanceof Error
-        ? new HumanError(
-            `expected DCATResource in ${printJSON(el)}, ${err}`,
-            err
-          )
-        : err;
-    }
-  };
-
 /**
  *
  * @param options
@@ -211,7 +152,9 @@ export const uiDataResourceFromInstance =
    * @returns
    */
   async (el: DCATDataset | DCATDataService | DCATCatalog) => {
-    // TODO More validation ceremony for (sometimes stricter) frontend v.s. RDF/schema specs
+    // TODO More validation ceremony
+    // HOW Stricter validation when needed (frontend v.s. RDF/schema specs)
+    // WHEN Have locked down UI requirements
     if (el.types.length !== 1) {
       throw new TypeError(
         `Expected types.length of ${el.uri} to be 1, instead got ${
@@ -245,11 +188,12 @@ export const uiDataResourceFromInstance =
         }`
       );
     }
-    const userHasAccess = dcRights.includes(session.user.name); // TODO mock
+    // TODO mock
+    //    TODO 16Sep24 Unsure what above means; perhaps reminder to add mock name?
+    const userHasAccess = dcRights.includes(session.user.name);
 
     const dcCreator = await el.getDcCreator();
     const dcPublished = await el.getDcPublished();
-    // TODO Likley convert #ids to lowercase for frontend (if uris are case insensitive either in spec or in reality)
     return UIDataResourceSchema.parse({
       id: el.uri,
       title: dcTitle[0],
@@ -262,13 +206,3 @@ export const uiDataResourceFromInstance =
     });
   };
 
-export const transformDataResourceFilters = (
-  val: UISearchParamsType["dataResourceFilters"]
-) => {
-  // TODO sync with frontend (currently copied from frontend)
-  const OWNED_FACET = { id: "all-owned-datasets", label: "Owned" };
-  // TODO! move Owned to its own field in url
-  const hasAccess = val.includes(OWNED_FACET.label);
-  const dataResourceFilter = val.filter((el) => el !== OWNED_FACET.label)?.[0];
-  return { hasAccess, dataResourceFilter };
-};

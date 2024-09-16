@@ -9,7 +9,7 @@
   ],
   "type": "module",
   "module": "./dist/catalogservice.js",
-  "// TODO": "link directs to src",
+  "// IDEA": "Have method to link directly to src",
   "exports": {
     ".": {
       "import": "./dist/catalogservice.js",

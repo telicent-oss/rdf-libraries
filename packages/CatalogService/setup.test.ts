@@ -1,9 +1,9 @@
 import 'jest-fetch-mock';
-import { CatalogService, DCATCatalog } from "./index"
-import { Api } from "./api/DataCatalogueFrontend"
-import { setup } from "./setup"
-import { setupContainer } from './__tests__/setupContainer';
 import { StartedDockerComposeEnvironment } from 'testcontainers';
+import { CatalogService, DCATCatalog } from "./index"
+import { setup } from "./setup"
+import { Api } from "./apiFactory/apiFactory"
+import { setupContainer } from './__tests__/utils/setupContainer';
 
 const SEC = 1000;
 

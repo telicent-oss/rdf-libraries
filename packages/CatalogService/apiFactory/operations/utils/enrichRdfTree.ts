@@ -1,7 +1,6 @@
 import { RDFTripleType } from "@telicent-oss/rdfservice/index";
-import { DCATDataset, DCATDataService, DCATCatalog } from "../../index";
-import { DATASET_URI, SERVICE_URI, CATALOG_URI, RDF_TYPE_URI, DCATResourceSchema, UITreeViewBaseItemType, DCATResourceType } from "./common";
-import { CatalogService } from "../../index";
+import { RDF_TYPE_URI, DCATResourceSchema, UITreeViewBaseItemType, DCATResourceType } from "./common";
+import { CatalogService } from "../../../index";
 import { tryInstantiate } from "./tryInstantiate";
 
 type Transform = (leaf:UITreeViewBaseItemType) => Promise<UITreeViewBaseItemType>;
@@ -14,12 +13,8 @@ export const enrichRdfTree = async (
   }): Promise<UITreeViewBaseItemType[]> => {
     console.log('enrichRdfTree', new Set(options.triples.map(({ s }) => s.value)))
 
-  // TODO Can I move elsewhere
-  const UriToClass = {
-    [DATASET_URI]: DCATDataset,
-    [SERVICE_URI]: DCATDataService,
-    [CATALOG_URI]: DCATCatalog,
-  };
+  
+
 
   const work:Transform = async (leaf) => {
 
@@ -37,7 +32,6 @@ export const enrichRdfTree = async (
         throw err;
       }
     const instance = tryInstantiate({
-      UriToClass,
       service: options.service,
       id: leaf.id,
       type
