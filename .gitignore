@@ -136,3 +136,7 @@ dist
 
 *.gitignored.*
 packages/.DS_Store
+
+
+# IDE
+.vscode
