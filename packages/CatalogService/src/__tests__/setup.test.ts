@@ -6,13 +6,13 @@ import {
   DCATDataService,
   setup,
   MockSet,
-} from "../index";
+} from "../../index";
 import { makeStatic } from "./utils/makeStatic";
 import {StartedDockerComposeEnvironment,
 } from "testcontainers";
 import { setupContainer } from "./utils/setupContainer";
 import { formatDataAsArray } from "./utils/formatDataAsArray";
-import { SEC } from "../src/constants";
+import { SEC } from "../constants";
 
 
 // QUESTION Why does order of result change when I incr. number?

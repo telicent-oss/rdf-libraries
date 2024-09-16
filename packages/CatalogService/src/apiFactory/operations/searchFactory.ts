@@ -2,7 +2,7 @@ import { z } from "zod";
 import {
   CatalogService,
   DCATCatalog,
-} from "../../index";
+} from "../../../index";
 
 import {
   CATALOG_URI,

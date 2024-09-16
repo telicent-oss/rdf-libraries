@@ -1,5 +1,5 @@
 import z from "zod";
-import { CatalogService, MOCK } from "../index";
+import { CatalogService, MOCK } from "../../index";
 import { searchFactory } from "./operations/searchFactory";
 import { catalogFactory } from "./operations/catalogFactory";
 import { UIDataResourceType, UISearchParamsType, UITreeViewBaseItemType } from "./operations/utils/common";

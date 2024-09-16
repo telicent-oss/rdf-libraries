@@ -5,7 +5,7 @@ import {
   DCATCatalog,
   DCATDataset,
   DCATDataService,
-} from "../../../index";
+} from "../../../../index";
 
 export const UIDataResourceSchema = z.object({
   title: z.string(),

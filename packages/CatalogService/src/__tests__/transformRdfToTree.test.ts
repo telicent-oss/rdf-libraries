@@ -8,9 +8,9 @@ import { Api } from "../apiFactory/apiFactory";
 import { MockSet, setup } from "../setup";
 import { RDFResponseSchema } from "../apiFactory/operations/utils/common";
 import { makeStatic } from "./utils/makeStatic";
-import { CatalogService } from "..";
+import { CatalogService } from "../../dist/types";
 import { setupContainer } from "./utils/setupContainer";
-import { SEC } from "../src/constants";
+import { SEC } from "../constants";
 import { formatDataAsArray } from "./utils/formatDataAsArray";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 

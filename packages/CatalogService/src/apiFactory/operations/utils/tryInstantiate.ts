@@ -3,7 +3,7 @@ import {
   DCATDataService,
   DCATCatalog,
   CatalogService,
-} from "../../../index";
+} from "../../../../index";
 import { HumanError } from "../../../utils/HumanError";
 import {
   DATASET_URI,

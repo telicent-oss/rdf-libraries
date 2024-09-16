@@ -1,7 +1,7 @@
 import "jest-fetch-mock";
 import {
   CatalogService,
-} from "../index";
+} from "../../../index";
 import {
   DockerComposeEnvironment,
   Wait,

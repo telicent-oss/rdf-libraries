@@ -1,6 +1,6 @@
 import { RDFTripleType } from "@telicent-oss/rdfservice/index";
 import { RDF_TYPE_URI, DCATResourceSchema, UITreeViewBaseItemType, DCATResourceType } from "./common";
-import { CatalogService } from "../../../index";
+import { CatalogService } from "../../../../index";
 import { tryInstantiate } from "./tryInstantiate";
 
 type Transform = (leaf:UITreeViewBaseItemType) => Promise<UITreeViewBaseItemType>;
@@ -62,8 +62,6 @@ export const enrichRdfTree = async (
 
     return transformedNode;
   };
-
-  console.log('options.tree', JSON.stringify(options.tree, null, 2));
   // Start the transformation from the root
   return Promise.all(options.tree.map(node => traverseAndTransform(node)));
 };

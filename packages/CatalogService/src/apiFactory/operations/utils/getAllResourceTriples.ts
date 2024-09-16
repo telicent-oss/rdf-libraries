@@ -1,4 +1,4 @@
-import { CatalogService } from "../../../index";
+import { CatalogService } from "../../../../index";
 import { getAllRDFTriples, ResourceSchema, ResourceType } from "./common";
 
 export const getAllResourceTriples = async (options: {

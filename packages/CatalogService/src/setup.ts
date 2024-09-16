@@ -6,7 +6,7 @@ import {
   DCATCatalog,
   DCATDataset,
   DCATDataService,
-} from "./index";
+} from "../index";
 
 const DEBUG = false;
 

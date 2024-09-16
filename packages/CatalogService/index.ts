@@ -9,8 +9,8 @@ import { inherits } from "util";
 import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/rdfservice";
 
 export { RDFSResource } from "@telicent-oss/rdfservice"
-export * from "./setup"
-export * from "./apiFactory/operations/utils/common"
+export * from "./src/setup"
+export * from "./src/apiFactory/operations/utils/common"
 export const version = 'apple3';
 const DEBUG = false;
 

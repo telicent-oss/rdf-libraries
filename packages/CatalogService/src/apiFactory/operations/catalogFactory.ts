@@ -1,6 +1,6 @@
 import {
   CatalogService,
-} from "../../index";
+} from "../../../index";
 import { transformRdfToTree } from "./utils/transformRdfToTree";
 import { enrichRdfTree } from "./utils/enrichRdfTree";
 import {
@@ -35,7 +35,7 @@ export const catalogFactory = (service: CatalogService) => {
 
     const CONNECTIONS = [DATASET_URI, SERVICE_URI, CATALOG_URI];    
     const CONNECTIONS_REVERSE = [RESOURCE_URI];
-    console.log('catalogFactory', new Set(triples.map(({ s }) => s.value)))
+
     const tree = transformRdfToTree({
         triples,
         edgePredicate: (triple) => CONNECTIONS.includes(triple.p.value),
