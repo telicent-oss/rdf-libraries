@@ -13,8 +13,10 @@ export const UIDataResourceSchema = z.object({
   description: z.string(),
   creator: z.string(),
   userHasAccess: z.boolean(),
-  owner: z.string(),
   publishDate: z.string(),
+  modified: z.string(),
+  accessRights: z.string(),
+  rights: z.string(),
   type: z.enum(["Catalog", "DataService", "Dataset"]),
 });
 export type UIDataResourceType = z.infer<typeof UIDataResourceSchema>;
@@ -180,11 +182,20 @@ export const uiDataResourceFromInstance =
       );
     
     }
-    const dcRights = (await el.getDcRights());
+    const dcRights = await el.getDcRights();
     if (!dcRights?.length) {
       console.warn(
         `Data Catalogue frontend expects dcRights to exist, instead got ${
           dcRights
+        }`
+      );
+    }
+
+    const dcAccessRights = await el.getDcAccessRights();
+    if (!dcAccessRights?.length) {
+      console.warn(
+        `Data Catalogue frontend expects dcAccessRights to exist, instead got ${
+          dcAccessRights
         }`
       );
     }
@@ -194,14 +205,20 @@ export const uiDataResourceFromInstance =
 
     const dcCreator = await el.getDcCreator();
     const dcPublished = await el.getDcPublished();
+    const dcModified = await el.getDcModified();
+
+    // Note: Renaming from spec-specific to spec-agnostic values
+    // Rationale: For now, keeping spec concepts out of UI
     return UIDataResourceSchema.parse({
       id: el.uri,
       title: dcTitle[0],
       description: dcDescription[0] || "",
       creator: dcCreator[0] || "Standard McDefaultFace",
       userHasAccess,
-      owner: dcRights[0] || "-",
-      publishDate: dcPublished[0] || "-",
+      publishDate: dcPublished[0] || "-", 
+      modified: dcModified[0] || "-",
+      accessRights: dcAccessRights[0] || "-",
+      rights: dcRights[0] || "-",
       type: el.types[0].split("#")[1],
     });
   };

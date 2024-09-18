@@ -2,6 +2,7 @@ import { RDFTripleType } from "@telicent-oss/rdfservice/index";
 import { RDF_TYPE_URI, DCATResourceSchema, UITreeViewBaseItemType, DCATResourceType } from "./common";
 import { CatalogService } from "../../../../index";
 import { tryInstantiate } from "./tryInstantiate";
+import { formatDataAsArray } from "../../../__tests__/utils/formatDataAsArray";
 
 type Transform = (leaf:UITreeViewBaseItemType) => Promise<UITreeViewBaseItemType>;
 
@@ -16,26 +17,42 @@ export const enrichRdfTree = async (
   
 
 
-  const work:Transform = async (leaf) => {
-
-    const tripleWithType = options.triples.find(el => 
-        el.p.value === RDF_TYPE_URI 
-        && el.s.value === leaf.id
-      )
-      let type:DCATResourceType | undefined;
-      try {
-        type = DCATResourceSchema.parse(tripleWithType?.o.value)
-      } catch (err) {
-        console.error(`DCATResourceSchema failed to parse ${JSON.stringify(tripleWithType)}.o.type "${tripleWithType?.o.type}"`);
-        console.error(`leaf: ${JSON.stringify(leaf, null, 2)}`);
-        console.error(JSON.stringify(options.triples.filter(el => el.p.value === RDF_TYPE_URI), null, 2));
-        throw err;
-      }
+  const work: Transform = async (leaf) => {
+    const tripleWithType = options.triples.find(
+      (el) => el.p.value === RDF_TYPE_URI && el.s.value === leaf.id
+    );
+    if (tripleWithType === undefined) {
+      console.error(`Could not find 
+        el.p.value === ${RDF_TYPE_URI}
+        && el.s.value === ${leaf.id}
+        in
+        ${formatDataAsArray(options.triples).join("\n")}
+        `);
+    }
+    let type: DCATResourceType | undefined;
+    try {
+      type = DCATResourceSchema.parse(tripleWithType?.o.value);
+    } catch (err) {
+      console.error(
+        `DCATResourceSchema failed to parse ${JSON.stringify(
+          tripleWithType
+        )}.o.type "${tripleWithType?.o.type}"`
+      );
+      console.error(`leaf: ${JSON.stringify(leaf, null, 2)}`);
+      console.error(
+        JSON.stringify(
+          options.triples.filter((el) => el.p.value === RDF_TYPE_URI),
+          null,
+          2
+        )
+      );
+      throw err;
+    }
     const instance = tryInstantiate({
       service: options.service,
       id: leaf.id,
-      type
-    })
+      type,
+    });
     const titles = await instance.getDcTitle();
     if (titles.length > 1) {
       console.warn(
@@ -46,9 +63,9 @@ export const enrichRdfTree = async (
     }
     return {
       ...leaf,
-      label: titles[0]
-    }
-  }
+      label: titles[0],
+    };
+  };
   
   // Recursive function to traverse and transform each node
   const traverseAndTransform = async (node: UITreeViewBaseItemType): Promise<UITreeViewBaseItemType> => {

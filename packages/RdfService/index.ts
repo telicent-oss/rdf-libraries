@@ -289,6 +289,30 @@ export class RDFSResource {
   }
 
   /**
+   * @method setModified
+   * @remarks
+   * Adds a dublin core modified to a node
+   * @param {string} modified - date
+   * @param {boolean} deletePrevious - remove any existing modified dates - defaults to true 
+  */   
+    async setModified(modified:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+      if (isEmptyString(modified)) throw new Error("invalid modified date")
+      return this.addLiteral(this.service.dcModified,modified,securityLabel,xsdDatatype,deleteAllPrevious)
+    }
+
+    /**
+   * @method setAccessRights
+   * @remarks
+   * Adds a dublin core modified to a node
+   * @param {string} modified - date
+   * @param {boolean} deletePrevious - remove any existing modified dates - defaults to true 
+  */   
+    async setAccessRights(modified:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+      if (isEmptyString(modified)) throw new Error("invalid modified date")
+      return this.addLiteral(this.service.dcAccessRights,modified,securityLabel,xsdDatatype,deleteAllPrevious)
+    }
+  
+  /**
    * @method setPrefLabel
    * @remarks
    * Adds a SKOS preferred label to a node - will overwrite all previous prefLabels by default
@@ -606,6 +630,44 @@ export class RDFSResource {
     return pubs
    }
 
+
+  /**
+   * @method getDcModified
+   * @remarks
+   * Get dublin core "modified"
+   * https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#modified
+   * @returns - Date literal
+  */ 
+  async getDcModified():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcModified)
+    let pubs:string[] = []
+    if (this.service.dcModified in lits) {
+      pubs = lits[this.service.dcModified]
+    }
+    if (pubs.length > 1) {
+      console.warn(`More than one Dublin Core created tag on ${this.uri}`)
+    } 
+    return pubs
+   }
+  /**
+   * @method getDcAccessRights
+   * @remarks
+   * Get dublin core "modified"
+   * https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#modified
+   * @returns - Date literal
+  */ 
+  async getDcAccessRights():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcAccessRights)
+    let pubs:string[] = []
+    if (this.service.dcAccessRights in lits) {
+      pubs = lits[this.service.dcAccessRights]
+    }
+    if (pubs.length > 1) {
+      console.warn(`More than one Dublin Core created tag on ${this.uri}`)
+    } 
+    return pubs
+   }
+
 }
 
   
@@ -647,9 +709,11 @@ export class RdfService {
   dcDescription : string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description
   // TODO QUESTION: Should these be dctCreator?. Feel like we need a value object { prefix: DublineCoreUri, id:  DublineCoreTerms} | { prefix, id }
   dcCreator : string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/creator
+  dcAccessRights: string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/accessRights
   // TODO! Perhaps misusing "rights" temporarily for demo
   dcRights : string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/rights
   dcCreated : string;
+  dcModified: string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#modified
   dcPublished : string;
   classLookup: {
     [key: string]: unknown;
@@ -696,7 +760,9 @@ export class RdfService {
     this.dcCreator = `${this.dct}creator`
     this.dcRights = `${this.dct}rights`
     this.dcCreated = `${this.dct}created`
+    this.dcModified = `${this.dct}modified`
     this.dcPublished = `${this.dct}published`
+    this.dcAccessRights = `${this.dct}accessRights`
     this.prefixDict = {}
     this.addPrefix(":", defaultNamespace)
     this.addPrefix("xsd:", this.xsd)

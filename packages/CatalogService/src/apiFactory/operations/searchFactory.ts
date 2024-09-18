@@ -42,7 +42,10 @@ export const searchFactory = (service: CatalogService) => {
     const triple = resourceTriples.find(typeStatementMatcherWithId(id));
     const type = tryCatch(
       () => DCATResourceSchema.parse(triple?.o.value),
-      ` id:${id} & type:(DCATResource) in ${printJSON(resourceTriples)}`
+      ` id:${id} & type:DCATResource in 
+      
+      DCATResourceSchema.parse(${triple?.o.value})
+      ${printJSON(resourceTriples)}`
     );
     if (type === undefined) {
       throw new Error(`Expected id:${id} in ${printJSON(resourceTriples)}`);
