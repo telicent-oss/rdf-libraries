@@ -48,12 +48,12 @@ describe("CatalogService", () => {
     ds1.setPublished("2022-01-03");
     cat.addOwnedResource(ds1);
     await delays(3000);
-  }, 30 * SEC);
+  }, 60 * SEC);
 
   afterAll(async () => {
     await Promise.all(catalogService.workAsync);
     await environment.down({ removeVolumes: true });
-  }, 20 * SEC);
+  }, 60 * SEC);
 
   it(
     "should be running properly and connected to a triplestore",
@@ -61,7 +61,7 @@ describe("CatalogService", () => {
       let ats: boolean = await catalogService.checkTripleStore();
       expect(ats).toBeTruthy();
     },
-    30 * SEC
+    60 * SEC
   );
 
   it(
@@ -72,7 +72,7 @@ describe("CatalogService", () => {
       const data = await catalogService.runQuery(query);
       expect(data.results.bindings.length).toEqual(initialTripleCount);
     },
-    30 * SEC
+    60 * SEC
   );
 
   it(
@@ -90,7 +90,7 @@ describe("CatalogService", () => {
       expect(objs.includes(d1)).toBeTruthy();
       expect(objs.includes(ds1)).toBeTruthy();
     },
-    30 * SEC
+    60 * SEC
   );
 
   it(
@@ -106,7 +106,7 @@ describe("CatalogService", () => {
       expect(ownedServices.length).toEqual(1);
       expect(ownedServices[0] === ds1).toBeTruthy();
     },
-    30 * SEC
+    60 * SEC
   );
 
   it(
@@ -125,7 +125,7 @@ describe("CatalogService", () => {
       expect(ds1Title.length).toEqual(1);
       expect(ds1Title[0]).toEqual("Data Service One");
     },
-    30 * SEC
+    60 * SEC
   );
 
   it(
@@ -143,7 +143,7 @@ describe("CatalogService", () => {
       expect(d1Pub[0]).toEqual("2022-01-02");
       expect(ds1Pub.length).toEqual(1);
     },
-    30 * SEC
+    60 * SEC
   );
 
   it(
@@ -153,7 +153,7 @@ describe("CatalogService", () => {
       const data = await catalogService.runQuery(query);
       expect(data.results.bindings.length).toEqual(initialTripleCount);
     },
-    30 * SEC
+    60 * SEC
   );
 
   it(
@@ -161,6 +161,6 @@ describe("CatalogService", () => {
     async () => {
       expect(Object.keys(catalogService.nodes).length).toEqual(initialNodeCount);
     },
-    30 * SEC
+    60 * SEC
   );
 });

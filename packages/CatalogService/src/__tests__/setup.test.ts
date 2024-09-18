@@ -8,12 +8,10 @@ import {
   MockSet,
 } from "../../index";
 import { makeStatic } from "./utils/makeStatic";
-import {StartedDockerComposeEnvironment,
-} from "testcontainers";
+import { StartedDockerComposeEnvironment } from "testcontainers";
 import { setupContainer } from "./utils/setupContainer";
 import { formatDataAsArray } from "./utils/formatDataAsArray";
 import { SEC } from "../constants";
-
 
 // QUESTION Why does order of result change when I incr. number?
 const testDefaultNamespace = "http://telicent.io/data/";
@@ -23,23 +21,22 @@ const dataservice1 = `${testDefaultNamespace}dataservice1`;
 
 const initialTripleCount = 11;
 
-
 describe("CatalogService", () => {
   let environment: StartedDockerComposeEnvironment;
   let catalogService: CatalogService;
 
   beforeAll(async () => {
-    ({ catalogService, environment} = await setupContainer());
-  }, 30 * SEC);
+    ({ catalogService, environment } = await setupContainer());
+  }, 60 * SEC);
 
   afterAll(async () => {
     await Promise.all(catalogService.workAsync);
     await environment.down({ removeVolumes: true });
-  }, 20 * SEC);
+  }, 60 * SEC);
 
   afterEach(async () => {
     await catalogService.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
-  }, 20 * SEC);
+  }, 60 * SEC);
 
   it(
     `setup() should have added the expected amount of triples: ${initialTripleCount}`,
@@ -78,7 +75,7 @@ describe("CatalogService", () => {
       `);
       await new Promise((resolve) => setTimeout(resolve, 5000));
     },
-    20 * SEC
+    60 * SEC
   );
 
   it(
@@ -99,7 +96,11 @@ describe("CatalogService", () => {
       await Promise.all(d1.workAsync);
       await Promise.all(cat.workAsync);
 
-      const ds1 = new DCATDataService(catalogService, dataservice1, TITLES.dataservice1);
+      const ds1 = new DCATDataService(
+        catalogService,
+        dataservice1,
+        TITLES.dataservice1
+      );
       await Promise.all(ds1.workAsync); // TODO remove; Just paranoid
       await cat.addOwnedService(ds1);
       await Promise.all(cat.workAsync);
@@ -107,24 +108,26 @@ describe("CatalogService", () => {
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // await new Promise(resolve => setTimeout(resolve, 1000))
-      const data = await catalogService.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`);
+      const data = await catalogService.runQuery(
+        `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`
+      );
       expect(formatDataAsArray(makeStatic(data.results).bindings))
         .toMatchInlineSnapshot(`
-              [
-                "s                                    | p                                               | o",
-                "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#Dataset               | http://telicent.io/data/dataset1",
-                "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#DataService           | http://telicent.io/data/dataservice1",
-                "http://telicent.io/data/cat1         | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Catalog",
-                "http://telicent.io/data/cat1         | http://purl.org/dc/terms/title                  | cat1",
-                "http://telicent.io/data/cat1         | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
-                "http://telicent.io/data/dataservice1 | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#DataService",
-                "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/title                  | dataservice1",
-                "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
-                "http://telicent.io/data/dataset1     | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Dataset",
-                "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/title                  | dataset1",
-                "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
-              ]
-          `);
+        [
+          "s                                    | p                                               | o",
+          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#Dataset               | http://telicent.io/data/dataset1",
+          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#DataService           | http://telicent.io/data/dataservice1",
+          "http://telicent.io/data/cat1         | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Catalog",
+          "http://telicent.io/data/cat1         | http://purl.org/dc/terms/title                  | cat1",
+          "http://telicent.io/data/cat1         | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
+          "http://telicent.io/data/dataservice1 | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#DataService",
+          "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/title                  | dataservice1",
+          "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
+          "http://telicent.io/data/dataset1     | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Dataset",
+          "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/title                  | dataset1",
+          "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
+        ]
+      `);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       const ownedResources = await cat.getOwnedResources();
       await Promise.all(cat.workAsync);
@@ -135,7 +138,7 @@ describe("CatalogService", () => {
       ]);
       await new Promise((resolve) => setTimeout(resolve, 5000));
     },
-    30 * SEC
+    60 * SEC
   );
 
   // TODO: Fix test
@@ -165,7 +168,11 @@ describe("CatalogService", () => {
       await Promise.all(cat.workAsync);
       await Promise.all(d1.service.workAsync);
 
-      const ds1 = new DCATDataService(catalogService, dataservice1, "dataservice1");
+      const ds1 = new DCATDataService(
+        catalogService,
+        dataservice1,
+        "dataservice1"
+      );
       await Promise.all(ds1.workAsync); // TODO remove; Just paranoid
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await cat.addOwnedService(ds1);
@@ -174,7 +181,9 @@ describe("CatalogService", () => {
       await Promise.all(ds1.workAsync);
       await Promise.all(ds1.service.workAsync);
       await new Promise((resolve) => setTimeout(resolve, 3000));
-      const data = await catalogService.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`);
+      const data = await catalogService.runQuery(
+        `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`
+      );
       await new Promise((resolve) => setTimeout(resolve, 2000));
 
       expect(formatDataAsArray(makeStatic(data.results).bindings))

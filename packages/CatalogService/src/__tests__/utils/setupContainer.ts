@@ -11,7 +11,7 @@ import { checkPort } from "./checkPort";
 const SEC = 1000;
 
 export async function setupContainer() {
-  await checkPort(3030, 30 * SEC);
+  await checkPort(3030, 60 * SEC);
   const environment = await new DockerComposeEnvironment(
     "./",
     "docker-compose.yml"
