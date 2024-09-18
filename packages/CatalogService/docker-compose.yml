@@ -8,7 +8,8 @@ services:
       - /fuseki/config/config.ttl
     environment:
       ADMIN_PASSWORD: password
-    image: 098669589541.dkr.ecr.eu-west-2.amazonaws.com/smart-cache-graph:0.60.1
+      JWKS_URL: "disabled"
+    image: telicent/smart-cache-graph
     ports:
       - mode: ingress
         target: 3030
