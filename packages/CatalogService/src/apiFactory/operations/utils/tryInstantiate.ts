@@ -34,7 +34,7 @@ DCATCatalog | DCATDataset | DCATDataService => {
     }
   } catch (err) {
     throw err instanceof Error
-      ? new HumanError(`new ${type}(service, ${id}) ${err}`, err)
+      ? new HumanError(`Problem creating "${type}" or "${id}", error: ${err}`, err)
       : err;
   }
   throw TypeError(`type "${type}" is not handled`);

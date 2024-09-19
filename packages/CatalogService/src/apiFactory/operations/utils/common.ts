@@ -6,7 +6,7 @@ import {
   DCATDataset,
   DCATDataService,
 } from "../../../../index";
-
+import { session } from "../../../constants";
 export const UIDataResourceSchema = z.object({
   title: z.string(),
   id: z.string(),
@@ -123,8 +123,7 @@ export const ResourceSchema = z.union([
 
 export type ResourceType = z.infer<typeof ResourceSchema>;
 
-// TODO read in User's actual session
-const session = { user: { name: "James Hardacre" } };
+
 
 export const getAllRDFTriples = async (options: {
   service: CatalogService;
@@ -136,14 +135,14 @@ export const getAllRDFTriples = async (options: {
       WHERE {
         ${options.hasAccess 
           // REQUIREMENTS 8.1 Search by user-owned data-resources
-          ? `?s dct:rights "${session.user.name}" .` 
+          ? `?s dct:accessRights "${session.user.name}" .` 
           : ""}
         ?s ?p ?o
       }`)
   );
 
 /**
- *
+ * Read UI data from the DCAT instances
  * @param options
  * @returns
  */

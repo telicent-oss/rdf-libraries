@@ -5,8 +5,7 @@
   * @author Ian Bailey
   */
 
-import { inherits } from "util";
-import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/rdfservice";
+import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource } from "@telicent-oss/rdfservice";
 
 export { RDFSResource } from "@telicent-oss/rdfservice"
 export * from "./src/setup"
@@ -18,8 +17,10 @@ export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
     title: SPARQLResultBinding,
     description?: SPARQLResultBinding,
     creator?: SPARQLResultBinding,
-    rights?: SPARQLResultBinding, // TODO! misusing "rights" temporarily for demo
+    rights?: SPARQLResultBinding,
+    accessRights?: SPARQLResultBinding,
     published?: SPARQLResultBinding,
+    modified?: SPARQLResultBinding,
 }
 
 export interface DcatResourceFindSolution extends DcatResourceQuerySolution {
@@ -128,31 +129,7 @@ export class DCATDataset extends DCATResource {
     }
   }
 }
-export class DCATDataService extends DCATResource {
-  className = 'DCATDataService'
-  constructor(
-    service: CatalogService,
-    uri?: string,
-    title?: string,
-    published?: string,
-    type: string = "http://www.w3.org/ns/dcat#DataService",
-    catalog?: DCATCatalog,
-    statement?: DcatResourceQuerySolution
-  ) {
-    super(service, uri, title, published, type, catalog, statement);
 
-    if (catalog) {
-      this.workAsync.push(
-        this.service.insertTriple(
-          catalog.uri,
-        //   `http://www.w3.org/ns/dcat#Service`,
-          `http://www.w3.org/ns/dcat#DataService`,
-          this.uri
-        )
-      );
-    }
-  }
-}
 
 export class DCATCatalog extends DCATDataset {
     className = 'DCATCatalog'
@@ -234,33 +211,59 @@ export class DCATCatalog extends DCATDataset {
 
 }
 
+export class DCATDataService extends DCATCatalog {
+    className = 'DCATDataService'
+    constructor(
+      service: CatalogService,
+      uri?: string,
+      title?: string,
+      published?: string,
+      type: string = "http://www.w3.org/ns/dcat#DataService",
+      catalog?: DCATCatalog,
+      statement?: DcatResourceQuerySolution
+    ) {
+      super(service, uri, title, published, type, catalog, statement);
+  
+      if (catalog) {
+        this.workAsync.push(
+          this.service.insertTriple(
+            catalog.uri,
+          //   `http://www.w3.org/ns/dcat#Service`,
+            `http://www.w3.org/ns/dcat#DataService`,
+            this.uri
+          )
+        );
+      }
+    }
+  }
+
 
 export class CatalogService extends RdfService {
-    dcat: string;
-    dcatCatalog: string;
-    dcatResource: string;
-    dcatDataset: string;
-    // TODO explain dcat_Dataset vs dcatDataset
-    // WHY Cause Ash unawares and caused some confusing
-    // NOTES Perhaps indicative of dataset bug? 
-    dcat_dataset: string;
-    dcatDataService: string;
-    dcat_service: string;
-    /**
-     * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
-     * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
-     * @param {boolean} [writeEnabled] - set to true if you want to update the data, no default (read only)
-     * @param {string="ontology"} dataset - the dataset name in the triplestore
-     * @param {string="http://telicent.io/ontology/"} defaultNamespace - the default stub to use when building GUID URIs
-     * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
-    */
-    constructor(
-        triplestoreUri = "http://localhost:3030/", 
-        dataset = "knowledge", 
-        writeEnabled:boolean, 
-        defaultNamespace = "http://telicent.io/catalog/", 
-        defaultSecurityLabel = ""
-    ) {
+  dcat: string;
+  dcatCatalog: string;
+  dcatResource: string;
+  dcatDataset: string;
+  // TODO explain dcat_Dataset vs dcatDataset
+  // WHY Cause Ash unawares and caused some confusing
+  // NOTES Perhaps indicative of dataset bug?
+  dcat_dataset: string;
+  dcatDataService: string;
+  dcat_service: string;
+  /**
+   * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
+   * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
+   * @param {boolean} [writeEnabled] - set to true if you want to update the data, no default (read only)
+   * @param {string="ontology"} dataset - the dataset name in the triplestore
+   * @param {string="http://telicent.io/ontology/"} defaultNamespace - the default stub to use when building GUID URIs
+   * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
+   */
+  constructor(
+    triplestoreUri = "http://localhost:3030/",
+    dataset = "knowledge",
+    writeEnabled: boolean,
+    defaultNamespace = "http://telicent.io/catalog/",
+    defaultSecurityLabel = ""
+  ) {
 
         super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, writeEnabled)
         
@@ -279,87 +282,102 @@ export class CatalogService extends RdfService {
         this.classLookup[this.dcatCatalog] = DCATCatalog
         this.addPrefix("dcat:", this.dcat)
 
-    }
+  }
 
 
 
-    compareScores(a: RankWrapper, b: RankWrapper) {
+  compareScores(a: RankWrapper, b: RankWrapper) {
         if ((!a.score) || (!b.score)) {
             return 0
-        }
-        if (a.score < b.score) {
-            return 1
-        }
-        if (a.score > b.score) {
-            return -1
-        }
-        return 0
     }
+    if (a.score < b.score) {
+            return 1
+    }
+    if (a.score > b.score) {
+            return -1
+    }
+        return 0
+  }
 
 
     rankedWrap(queryReturn: QueryResponse<DcatResourceFindSolution>, matchingText: string) {
-        let items = []
+        let items:RankWrapper[] = []
         let cls = DCATResource
-        let re = new RegExp(matchingText.toLowerCase(), "g")
+        let re = matchingText ? new RegExp(matchingText.toLowerCase(), "g") : undefined;
         let concatLit: string = ''
-        if ((matchingText) && (matchingText != "") && (queryReturn.results) && (queryReturn.results.bindings)) {
-            if ((queryReturn.head) && (queryReturn.head.vars)) {
-                for (let i in queryReturn.results.bindings) {
+        if (queryReturn?.results?.bindings) {
+            if (queryReturn?.head?.vars) {
+        for (let i in queryReturn.results.bindings) {
                     let binding = queryReturn.results.bindings[i]
-                    if (binding._type) {
-                        let cls = this.classLookup[binding._type.value]
+          if (binding._type) {
+                        // !CRITICAL Defensive coding; Increase stability
+                        // HOW
+                        //  - fix types
+                        //  - Consider replacing with tryInstantiate()
+                        // WHY
+                        //  - Had bug where `cls` was not being re-assigned, 
+                        //    thus creating instances of wrong class
+                        //    and if this INCORRECT DESERIALIZING code was
+                        //    executed before CORRECT DESERIALIZING code, then
+                        //    incorrect instances where stored in cache.
+                        //    De-serialization into the helper classes 
+                        //    at runtime is very important; and should be
+                        //    more secured to increase confidence
+                        // WHEN
+                        //  - A.S.A.P
+                        cls = this.classLookup[binding._type.value]
                     }
                     let item = new cls(this, undefined, undefined, undefined, undefined, undefined, binding)
-                    //The query concatenates all the matching literals in the result - we can then count the number of matches to provide a basic score for ranking search results.
+          //The query concatenates all the matching literals in the result - we can then count the number of matches to provide a basic score for ranking search results.
                     let score = 0
-                    if (binding.concatLit) {
+          if (binding.concatLit) {
                         concatLit = binding.concatLit.value
-                        let match = concatLit.match(re)
-                        if (match) {
+                        let match = re ? concatLit.match(re) : false
+            if (match) {
                             score = match.length
-                        } //Cosplay strong typing 
-                    }
+            } //Cosplay strong typing
+          }
 
                     var wrapper: RankWrapper = { item: item, score: score }
                     items.push(wrapper)
-                }
-            }
         }
-        return items.sort(this.compareScores)
+      }
     }
+        return items.sort(this.compareScores)
+  }
 
 
-    /**
-     * Returns all instances of the specified resourceType (e.g. dcat:Dataset, dcat:DataService)
-     * @param {string} resourceType - OPTIONAL - if set, this will only return datasets belonging to the catalog
-     * @param {string} catalog - OPTIONAL - a full URI for the parent catalog. If set, this will only return datasets belonging to the catalog
-     * @param {string} catalogRelation - OPTIONAL - prefixed property identifier. If set, this will only return datasets belonging to the catalog via catalogRelation
-     * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
-    */
+  /**
+   * Returns all instances of the specified resourceType (e.g. dcat:Dataset, dcat:DataService)
+   * @param {string} resourceType - OPTIONAL - if set, this will only return datasets belonging to the catalog
+   * @param {string} catalog - OPTIONAL - a full URI for the parent catalog. If set, this will only return datasets belonging to the catalog
+   * @param {string} catalogRelation - OPTIONAL - prefixed property identifier. If set, this will only return datasets belonging to the catalog via catalogRelation
+   * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
+   */
     async getAllDCATResources(cls?: string, catalog?: string, catalogRelation?: string): Promise<DCATResource[]> {
         let resources: DCATResource[] = []
         let catalogSelect = ''
         let relFilter = ''
-        if (!catalogRelation) {
+    if (!catalogRelation) {
             catalogRelation = '?catRel'
             relFilter = 'FILTER (?catRel in (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, rdf:type))'
         }
         else {
             catalogRelation = `<${catalogRelation}>`
-        }
-        if (catalog)  {
+    }
+    if (catalog) {
             catalogSelect = `<${catalog}> ${catalogRelation} ?uri .`
-        } 
+    }
         let typeSelect = ''
-        if (cls) {
-            // REQUIREMENT 6.3 Search by dataResourceFilter: selected data-resources
-            // Perfect. cls is optional.
+    if (cls) {
+      // REQUIREMENT 6.3 Search by dataResourceFilter: selected data-resources
+      // Perfect. cls is optional.
             typeSelect = `BIND (<${cls}> as ?_type)`
-        } else {
+    } else {
             typeSelect = 'FILTER (?_type IN (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, dcat:DatasetSeries))'
-        }
-        // !CRITICAL PREFIX below is hacked in.
-        let query = `
+    }
+    // !CRITICAL PREFIX below is hacked in.
+    let query = `
             PREFIX dcat: <http://www.w3.org/ns/dcat#>
             PREFIX dct: <http://purl.org/dc/terms/>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -377,85 +395,167 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:rights ?rights} 
             }`
         const results = await this.runQuery<DcatResourceQuerySolution>(query)
-        results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
+    results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
             var cls = DCATResource
-            if (statement._type) {
+      if (statement._type) {
                 cls = (this.lookupClass(statement._type.value, DCATResource) as unknown) as typeof DCATResource
             }
             var dcr = new cls(this, undefined, undefined, undefined, undefined, undefined, statement)
             resources.push(dcr)
         })
-        // REQUIREMENT 6.4 Search by dataResourceFilter: selected data-resources
-        // I don't see any sort clause, but I assume the returned sort order will be sensible; Or can be made sensible.
+    // REQUIREMENT 6.4 Search by dataResourceFilter: selected data-resources
+    // I don't see any sort clause, but I assume the returned sort order will be sensible; Or can be made sensible.
         return resources
 
-    }
+  }
 
-    /**
-     * Returns all instances of dcat:Dataset
-     * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
-    */
-    async getAllDatasets(): Promise<DCATDataset[]> {
-        const work = this.getAllDCATResources("dcat:Dataset");
-        this.workAsync.push(work);
-        return work;
-    }
+  /**
+   * Returns all instances of dcat:Dataset
+   * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
+   */
+  async getAllDatasets(): Promise<DCATDataset[]> {
+    const work = this.getAllDCATResources("dcat:Dataset");
+    this.workAsync.push(work);
+    return work;
+  }
 
-    /**
-     * Returns all instances of dcat:DataService
-     * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
-    */
-    async getDataServices(): Promise<DCATDataService[]> {
-        const work = this.getAllDCATResources("dcat:DataService");
-        this.workAsync.push(work);
-        return work;
-    }
+  /**
+   * Returns all instances of dcat:DataService
+   * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
+   */
+  async getDataServices(): Promise<DCATDataService[]> {
+    const work = this.getAllDCATResources("dcat:DataService");
+    this.workAsync.push(work);
+    return (work as unknown) as Promise<DCATDataService[]>; // !CRITICAL verify
+  }
 
-    /**
- * Returns all instances of dcat:DataService
- * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
-*/
-    async getAllCatalogs(): Promise<DCATCatalog[]> {
-        const work = this.getAllDCATResources("dcat:Catalog") as Promise<DCATCatalog[]>;
-        this.workAsync.push(work);
-        return work;
-    }
+  /**
+   * Returns all instances of dcat:DataService
+   * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
+   */
+  async getAllCatalogs(): Promise<DCATCatalog[]> {
+    const work = this.getAllDCATResources("dcat:Catalog") as Promise<
+      DCATCatalog[]
+    >;
+    this.workAsync.push(work);
+    return work;
+  }
 
-    /**
-     * Performs a very basic string-matching search - this should be used if no search index is available. The method will return a very basic match count that can be used to rank results. 
-     * @param {string} matchingText - The text string to find in the data
-     * @param {Array} dcatTypes - OPTIONAL - the types of dcat items to search for - defaults to [dcat:Catalog, dcat:Dataset, dcat:DataService]
-     * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
-    */
-   // REQUIREMENT 7.1 Search by input text
-   // Code. Hm. This looks like it won't take search and dataresource owner....
-    async find(matchingText: string, dcatTypes: string[] = [this.dcatCatalog, this.dcatDataService, this.dcatDataset], inCatalog: DCATCatalog): Promise<RankWrapper[]> {
-        let typelist = '"' + dcatTypes.join('", "') + '"'
-        let re = new RegExp(matchingText.toLowerCase(), "g")
-        let catalogMatch = ''
-        if (inCatalog) {
-            catalogMatch = `<${inCatalog.uri}> ?catRel ?uri .`
-        }
-        let query = `
-            SELECT ?uri ?title ?published ?description ?creator ?rights ?_type (group_concat(DISTINCT ?literal) as ?concatLit)
-            WHERE {
-                ?uri a ?_type .
-                ?uri ?pred ?literal .
-                ${catalogMatch}
-                BIND (STR(?_type) AS ?typestr) .
-                FILTER (?typestr in (${typelist}) ) .
-                FILTER CONTAINS(LCASE(?literal), "${matchingText.toLowerCase()}")
-                OPTIONAL {?uri dct:title ?title} 
-                OPTIONAL {?uri dct:published ?published} 
-                OPTIONAL {?uri dct:description ?description} 
-                OPTIONAL {?uri dct:creator ?creator} 
-                OPTIONAL {?uri dct:rights ?rights} 
-            } GROUP BY ?uri ?title ?published ?description ?creator ?rights ?_type
+  /**
+   * Performs a very basic string-matching search - this should be used if no search index is available. The method will return a very basic match count that can be used to rank results.
+   * @param {string} matchingText - The text string to find in the data
+   * @param {Array} dcatTypes - OPTIONAL - the types of dcat items to search for - defaults to [dcat:Catalog, dcat:Dataset, dcat:DataService]
+   * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
+   */
+  // REQUIREMENT 7.1 Search by input text
+  // Code. Hm. This looks like it won't take search and dataresource owner....
+    async find(matchingText: string, dcatTypes: string[] = [this.dcatCatalog, this.dcatDataService, this.dcatDataset], owner: DCATCatalog | DCATDataService | DCATDataset): Promise<RankWrapper[]> {
+      let query = `
+            SELECT ?uri ?title ?published ?description ?creator ?rights ?modified ?accessRights ?_type (group_concat(DISTINCT ?literal) as ?concatLit)
+              WHERE {
+                  {
+                      # Include the parent
+                      ?uri a ?_type .
+                      ?uri ?pred ?literal .
+                      ${owner ? `FILTER(?uri = <${owner.uri}>)` : ``}
+                  }
+                  UNION
+                  {
+                      ?uri a ?_type .
+                      ?uri ?pred ?literal .
+                      ${owner ? `<${owner.uri}> ?catRel ?uri .` : ""}
+                  }
+                  BIND (STR(?_type) AS ?typestr) .
+                  FILTER (?typestr in ("${dcatTypes.join('", "')}") ) .
+                  FILTER CONTAINS(LCASE(?literal), "${matchingText.toLowerCase()}")
+                  OPTIONAL {?uri dct:title ?title} 
+                  OPTIONAL {?uri dct:published ?published} 
+                  OPTIONAL {?uri dct:modified ?modified} 
+                  OPTIONAL {?uri dct:description ?description} 
+                  OPTIONAL {?uri dct:creator ?creator} 
+                  OPTIONAL {?uri dct:rights ?rights} 
+                  OPTIONAL {?uri dct:accessRights ?accessRights} 
+            } GROUP BY ?uri ?title ?published ?modified ?description ?creator ?accessRights ?rights ?_type
             `
         let results = await this.runQuery<DcatResourceFindSolution>(query)
         return this.rankedWrap(results, matchingText)
     }
 
+  /**
+   * Finds DCAT resources based on provided parameters.
+   *
+   * @param params - An object containing dcatTypes and optional search parameters.
+   * @returns A promise that resolves to an array of RankWrapper objects.
+   */
+  async findWithParams({
+    searchText,
+    owner, 
+    accessRights,
+    dcatTypes = [
+        "http://www.w3.org/ns/dcat#Catalog",
+        "http://www.w3.org/ns/dcat#DataService",
+        "http://www.w3.org/ns/dcat#Dataset",
+    ],
+  }: {
+      searchText?: string;
+      owner?: DCATCatalog | DCATDataService | DCATDataset;
+      accessRights?: string;
+      dcatTypes?: string[];
+  }): Promise<RankWrapper[]> {
 
+    // Construct the SPARQL query with inline conditions
+    const query = `
+        SELECT ?uri ?title ?published ?description ?creator ?rights ?modified ?accessRights ?_type 
+               (GROUP_CONCAT(DISTINCT ?literal; SEPARATOR=", ") AS ?concatLit)
+        WHERE {
+            ${owner ? `
+                {
+                    ${/* Include the parent */''}
+                    ?uri a ?_type .
+                    ?uri ?pred ?literal .
+                    FILTER(?uri = <${owner.uri}>) .
+                    ${searchText ? '?uri ?pred ?literal .' : ''}
+                }
+                UNION
+                {
+                    ${/* Include children datasets and services */''}
+                    ?uri a ?_type .
+                    ?uri ?pred ?literal .
+                    ${owner ? `<${owner.uri}> ?catRel ?uri .` : ''}
+                    ${searchText ? '?uri ?pred ?literal .' : ''}
+                }
+            ` : `
+              ${/* When no owner is specified, include all relevant resources */''}
+                ?uri a ?_type .
+                ${searchText ? '?uri ?pred ?literal .' : ''}
+            `}
+            ${accessRights ? `?uri dct:accessRights "${accessRights}" .` : ''}
+            ${searchText ? `FILTER(CONTAINS(LCASE(?literal), "${searchText.toLowerCase()}")) .` : ''}
+            FILTER (?_type IN (${dcatTypes.map(type => `<${type}>`).join(', ')})) .
+            OPTIONAL { ?uri dct:title ?title } .
+            OPTIONAL { ?uri dct:published ?published } .
+            OPTIONAL { ?uri dct:modified ?modified } .
+            OPTIONAL { ?uri dct:description ?description } .
+            OPTIONAL { ?uri dct:creator ?creator } .
+            OPTIONAL { ?uri dct:rights ?rights } .
+            OPTIONAL { ?uri dct:accessRights ?accessRights } .
+        }
+        GROUP BY ?uri ?title ?published ?modified ?description 
+                 ?creator ?accessRights ?rights ?_type
+    `;
 
+    // Optionally, log the query for debugging purposes
+    console.log("Constructed SPARQL Query:", query);
+
+    try {
+        // Execute the query using the runQuery method
+        const response = await this.runQuery<DcatResourceFindSolution>(query);
+        console.log('respones', response.results.bindings);
+        // Wrap and return the results using the rankedWrap method
+        return this.rankedWrap(response, searchText || '');
+    } catch (error) {
+        console.error("Error executing SPARQL query:", error);
+        throw error;
+    }
+  }
 }

@@ -160,13 +160,18 @@ export class RDFSResource {
           //      if (existingItem.constructor.name != this.constructor.name) {
           // Won't work when code was minified - as the name of the class was minified. 
           // In JS, function are first class citizens; Classes are lipstick on a pig.
+          
           if (existingItem.constructor != this.constructor) {
-            throw Error(`Attempt to create a different type of object with uri ${uri}, existing: ${existingItem.constructor}, new: ${this.constructor}`)
+            throw Error(
+              `Cached instance for ${uri} has unexpected constructor "${existingItem.constructor.name}", ` +
+                `expected "${this.constructor.name}" ` +
+                `(names may be minified)`
+            );
+            
           }
           if ((type) && !(existingItem.types.includes(type)) ){
             existingItem.types.push(type)
           }
-          //console.warn(`Existing item: ${uri}`)
           return existingItem
         } 
       }

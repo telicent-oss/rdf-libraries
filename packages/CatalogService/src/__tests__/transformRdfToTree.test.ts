@@ -124,7 +124,7 @@ describe("transformRdfToTree: COMPLEX", () => {
         RDFTripleSchema.parse(el)
       );
 
-      const simpleTriples = triples.filter(
+      const catalogWithSiblingAndChild = triples.filter(
         ({ s, p, o }) =>
           (s.value.endsWith("catalog1") ||
             s.value.endsWith("catalog1.1") ||
@@ -136,7 +136,7 @@ describe("transformRdfToTree: COMPLEX", () => {
             p.value.startsWith("http://www.w3.org/ns/dcat#"))
       );
 
-      expect(new Set(simpleTriples.map(({ s }) => s.value)))
+      expect(new Set(catalogWithSiblingAndChild.map(({ s }) => s.value)))
         .toMatchInlineSnapshot(`
               Set {
                 "http://telicent.io/data/catalog1",
@@ -144,7 +144,7 @@ describe("transformRdfToTree: COMPLEX", () => {
                 "http://telicent.io/data/cat2",
               }
           `);
-      expect(formatDataAsArray(makeStatic(simpleTriples)))
+      expect(formatDataAsArray(makeStatic(catalogWithSiblingAndChild)))
         .toMatchInlineSnapshot(`
         [
           "s                                  | p                                               | o",
