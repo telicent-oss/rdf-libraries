@@ -7,11 +7,11 @@
 
 Utility classes for managing [RDF](https://www.w3.org/RDF/) data for [DCAT3](https://www.w3.org/TR/vocab-dcat-3/)-compliant [data catalogs](https://www.google.com/search?q=what+is+a+data+catalog) via [SPARQL](https://www.w3.org/TR/sparql11-query/).
 
-Plus a `ApiFactory` that uses the above to create a convenience api object for [Catalog UI](https://github.com/Telicent-oss/catalog) (may move out of package).
+Plus a `ApiFactory` that uses the above to create a convenience api object for [Catalog](https://github.com/Telicent-oss/catalog) web app (may move out of this package).
 
 ## Background
 
-`@telicent-oss/rdfservice` ([./packages/RdfService](./packages/RdfService/README.md)) package was created to give separation between UI code and SPARQL query logic. _This_ package, extends upon `@telicent-oss/rdfservice` to give the the data catalog functionality.
+`@telicent-oss/rdfservice` ([./packages/RdfService](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/RdfService)) package was created to give separation between UI code and SPARQL query logic. _This_ package, extends upon `@telicent-oss/rdfservice` to give the the data catalog functionality.
 
 
 ### Install
@@ -181,7 +181,7 @@ const Page = ({ searchTerm, dataResourceFilters, set }) => {
 ### Build
 
 ```bash
-git clone https://github.com/Telicent-oss/catalog
+git clone https://github.com/Telicent-oss/rdf-libraries
 cd catalog
 yarn install
 cd /packages/CatalogService
@@ -201,7 +201,7 @@ Or alternatively run your own.
 ## Related Links
 
 * [Catalog](https://github.com/Telicent-oss/catalog) - ReactJS web app that uses this package
-* [RDF Service API docs](https://telicent-oss.github.io/rdf-libraries/rdf-service/docs/)
+* [RdfService]([./packages/RdfService](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/RdfService)) - sibling package; This package extends some of its RDF utility classes
 
 ## Definitions
 
