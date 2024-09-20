@@ -30,8 +30,8 @@
     "test:100": "for i in {1..100}; do echo \"Test run: $i\" && pnpm jest && sleep .5 || break; done",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
-    "start:store-shared-by-api-and-tests": "docker compose down && docker network prune && docker compose up",
-    "start:store": "yarn start:store-shared-by-api-and-tests"
+    "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
+    "start:store": "yarn start:store-for-local-dev-and-tests"
   },
   "author": "",
   "license": "Apache-2.0",
