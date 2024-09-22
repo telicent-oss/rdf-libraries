@@ -5,10 +5,12 @@
   * @author Ian Bailey
   */
 
-import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource } from "@telicent-oss/rdfservice";
+import { RdfService, RDFSResourceDescendant, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource } from "@telicent-oss/rdfservice";
+import { DCAT3InterpretationByCola, IDCAT3Interpretation } from "./src/DCAT3Interpretation/DCAT3InterpretationByCola";
 
 export { RDFSResource } from "@telicent-oss/rdfservice"
 export * from "./src/setup"
+export * from "./src/setup/constants"
 export * from "./src/apiFactory/operations/utils/common"
 export const version = 'apple3';
 const DEBUG = false;
@@ -33,7 +35,7 @@ export type RankWrapper = {
     item: DCATResource
 }
 
-
+type DCATResourceDescendant = new (...args:any[]) => DCATResource
 export class DCATResource extends RDFSResource {
     className = 'DCATResource'
     /**
@@ -138,10 +140,9 @@ export class DCATCatalog extends DCATDataset {
         uri?: string, 
         title?: string, 
         published?: string, 
-
         type: string = "http://www.w3.org/ns/dcat#Catalog", 
         catalog?:DCATCatalog, 
-        statement?: DcatResourceQuerySolution
+        statement?: DcatResourceQuerySolution,
     ) {
         super(service, uri, title, published, type, catalog, statement)
         // NOTE: catalog not called in test...perhaps service invokes with context of nodes?
@@ -239,6 +240,13 @@ export class DCATDataService extends DCATCatalog {
 
 
 export class CatalogService extends RdfService {
+  static DEFAULT_CONSTRUCTOR_ARGS = {
+    triplestoreUri: "http://localhost:3030/",
+    dataset: "catalog",
+    defaultNamespace: "http://telicent.io/catalog/",
+    defaultSecurityLabel: ""
+  };
+  
   dcat: string;
   dcatCatalog: string;
   dcatResource: string;
@@ -249,6 +257,7 @@ export class CatalogService extends RdfService {
   dcat_dataset: string;
   dcatDataService: string;
   dcat_service: string;
+  interpretation: IDCAT3Interpretation;
   /**
    * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
    * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
@@ -257,13 +266,18 @@ export class CatalogService extends RdfService {
    * @param {string="http://telicent.io/ontology/"} defaultNamespace - the default stub to use when building GUID URIs
    * @param {string=""} defaultSecurityLabel - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
    */
-  constructor(
-    triplestoreUri = "http://localhost:3030/",
-    dataset = "knowledge",
-    writeEnabled: boolean,
-    defaultNamespace = "http://telicent.io/catalog/",
-    defaultSecurityLabel = ""
-  ) {
+  constructor(options: {
+    writeEnabled: boolean;
+    interpretation?: IDCAT3Interpretation;
+    triplestoreUri?: string;
+    dataset?: string;
+    defaultNamespace?:string;
+    defaultSecurityLabel?:string;
+  }) {
+    const { writeEnabled, interpretation, triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel } = {
+      ...CatalogService.DEFAULT_CONSTRUCTOR_ARGS,
+      ...options
+    };
 
         super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, writeEnabled)
         
@@ -281,6 +295,7 @@ export class CatalogService extends RdfService {
         this.classLookup[this.dcatDataService] = DCATDataService
         this.classLookup[this.dcatCatalog] = DCATCatalog
         this.addPrefix("dcat:", this.dcat)
+        this.interpretation = interpretation || new DCAT3InterpretationByCola(this);
 
   }
 
@@ -302,7 +317,7 @@ export class CatalogService extends RdfService {
 
     rankedWrap(queryReturn: QueryResponse<DcatResourceFindSolution>, matchingText: string) {
         let items:RankWrapper[] = []
-        let cls = DCATResource
+        let cls: DCATResourceDescendant =  DCATResource;
         let re = matchingText ? new RegExp(matchingText.toLowerCase(), "g") : undefined;
         let concatLit: string = ''
         if (queryReturn?.results?.bindings) {
@@ -325,7 +340,7 @@ export class CatalogService extends RdfService {
                         //    more secured to increase confidence
                         // WHEN
                         //  - A.S.A.P
-                        cls = this.classLookup[binding._type.value]
+                        cls = this.classLookup[binding._type.value] as DCATResourceDescendant;
                     }
                     let item = new cls(this, undefined, undefined, undefined, undefined, undefined, binding)
           //The query concatenates all the matching literals in the result - we can then count the number of matches to provide a basic score for ranking search results.

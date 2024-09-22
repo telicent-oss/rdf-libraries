@@ -1,7 +1,7 @@
 export * from './schema';
 export * from './types';
-
-const DEVELOPMENT = false; // TODO Read from config
+const DEBUG = false;
+const NO_WARNINGS = globalThis?.process?.env?.NO_WARNINGS; // TODO Read from config
 /*
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
@@ -525,7 +525,7 @@ export class RDFSResource {
    *
    * @returns - an array of strings
   */ 
-  async getDcTitle():Promise<string[]> {
+  async getDcTitle(options: { isAssert?:boolean} = {}):Promise<string[]> {
     const lits:RelatedLiterals = await this.getLiterals(this.service.dcTitle)
     let titles:string[] = []
     if (this.service.dcTitle in lits) {
@@ -534,6 +534,11 @@ export class RDFSResource {
     if (titles.length > 1) {
       console.warn(`More than one Dublin Core title tag on ${this.uri}`)
     } 
+    if (options.isAssert) {
+      if (titles.filter(Boolean).length === 0) {
+        throw TypeError(`Expected ${this.uri} to have title`)
+      }
+    }
     return titles
    }
 
@@ -675,7 +680,8 @@ export class RDFSResource {
 
 }
 
-  
+
+export type RDFSResourceDescendant = new (...args:any[]) => RDFSResource;
 export class RdfService {
   public workAsync:Promise<unknown>[] = [];
   /**
@@ -721,7 +727,7 @@ export class RdfService {
   dcModified: string; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#modified
   dcPublished : string;
   classLookup: {
-    [key: string]: unknown;
+    [key: string]: RDFSResourceDescendant;
   };
   updateCount: number;
 
@@ -926,8 +932,8 @@ export class RdfService {
     this.workAsync.push(jsonAsync);
     const results: QueryResponse<T> = await jsonAsync;
     
-    DEVELOPMENT && console.log('SPARQL');
-    DEVELOPMENT && console.log(this.sparqlPrefixes + query);
+    DEBUG && console.log('SPARQL');
+    DEBUG && console.log(this.sparqlPrefixes + query);
     
     return results;
   }
@@ -969,7 +975,7 @@ export class RdfService {
       const sl = securityLabel ?? this.defaultSecurityLabel;
 
       if (isEmptyString(sl)) {
-        if (!DEVELOPMENT) {
+        if (!NO_WARNINGS) {
           console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
         }
       }
@@ -1058,8 +1064,8 @@ export class RdfService {
     const o = this.#checkObject(object, objectType, xsdDatatype)
     updates.push(`INSERT DATA {<${subject}> <${predicate}> ${o} . }`)
     const result = await this.runUpdate(updates, securityLabel)
-    DEVELOPMENT && console.log('INSERTED');
-    DEVELOPMENT && console.log(updates.join('\n'));
+    DEBUG && console.log('INSERTED');
+    DEBUG && console.log(updates.join('\n'));
     return result
   }
 

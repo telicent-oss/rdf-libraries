@@ -11,9 +11,13 @@ import {
   UISearchParamsType,
   getAllRDFTriples,
   RESOURCE_URI,
+  RDF_TYPE_URI,
+  DCATResourceSchema,
 } from "./utils/common";
 import { RDFTripleSchema } from "@telicent-oss/rdfservice/index";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
+import { findTripleBySchema } from "../../utils/triplesOrNeighborWithType";
+import { z } from "zod";
 
 export const catalogFactory = (service: CatalogService) => {
   return async function catalog(
@@ -23,6 +27,7 @@ export const catalogFactory = (service: CatalogService) => {
       params.dataResourceFilters
     );
 
+    
     const rdfTriples = await getAllRDFTriples({
       service, 
       // TODO! Fix hasAccess
@@ -32,12 +37,21 @@ export const catalogFactory = (service: CatalogService) => {
     const triples = rdfTriples.results.bindings.map((el) =>
       RDFTripleSchema.parse(el)
     );
+    const resourceTriples = triples.filter(
+      findTripleBySchema({
+        s: undefined,
+        p: z.literal(RDF_TYPE_URI),
+        o: DCATResourceSchema,
+      })
+    )
+
+    
 
     const CONNECTIONS = [DATASET_URI, SERVICE_URI, CATALOG_URI];    
     const CONNECTIONS_REVERSE = [RESOURCE_URI];
 
     const tree = transformRdfToTree({
-        triples,
+        triples: resourceTriples,
         edgePredicate: (triple) => CONNECTIONS.includes(triple.p.value),
         reverseEdgePredicate: (triple) =>
           CONNECTIONS_REVERSE.includes(triple.p.value),

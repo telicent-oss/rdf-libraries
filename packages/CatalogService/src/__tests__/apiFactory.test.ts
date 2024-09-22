@@ -41,18 +41,6 @@ describe("apiFactory", () => {
       expect(resMasked).toMatchInlineSnapshot(`
         [
           {
-            "accessRights": "Damir Sato",
-            "creator": "Kiki Sato",
-            "description": "Q1 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development.",
-            "id": "http://telicent.io/data/dataset1",
-            "modified": "2021-4-5",
-            "publishDate": "2021-4-5",
-            "rights": "Effective Date: 25/10/20241.      1. Introduction      Thi…",
-            "title": "Dataset: Q1 2021",
-            "type": "Dataset",
-            "userHasAccess": false,
-          },
-          {
             "accessRights": "James Hardacre",
             "creator": "Mario Giacomelli",
             "description": "2020 Royal Engineers’ Cornwall focused data catalog. Includes real-time IoT telemetry and historical archives for environmental and technological research.",
@@ -62,6 +50,18 @@ describe("apiFactory", () => {
             "rights": "Effective Date: 25/10/20241.      1. Introduction      Thi…",
             "title": "Catalog: Cornwall Data",
             "type": "Catalog",
+            "userHasAccess": false,
+          },
+          {
+            "accessRights": "Damir Sato",
+            "creator": "Kiki Sato",
+            "description": "Q1 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development.",
+            "id": "http://telicent.io/data/dataset1",
+            "modified": "2021-4-5",
+            "publishDate": "2021-4-5",
+            "rights": "Effective Date: 25/10/20241.      1. Introduction      Thi…",
+            "title": "Dataset: Q1 2021",
+            "type": "Dataset",
             "userHasAccess": false,
           },
           {

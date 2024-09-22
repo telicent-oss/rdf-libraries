@@ -105,9 +105,7 @@ export const createEntitySchema = (entityUri: RESOURCE_URI_TYPE) =>
   RDFTripleSchema.refine(
     ({ o, p }) => o.value === entityUri && p.value === RDF_TYPE_URI,
     {
-      message: `Expecting
-      o.value: "${entityUri}"
-      p.value: "${RDF_TYPE_URI}"`,
+      message: `Expecting o.value "${entityUri}" p.value: "${RDF_TYPE_URI}"`,
     }
   );
 

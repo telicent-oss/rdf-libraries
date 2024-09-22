@@ -25,6 +25,9 @@ yarn install @telicent-oss/catalogservice
 #### DCAT classes
 
 A simple example for data catalogs:
+
+:warning: Temporarily broken
+
 ```ts
 import {
   CatalogService,
@@ -32,7 +35,11 @@ import {
 } from "@company-oss/catalogservice";
 
 // Initialize the CatalogService
-const catalogService = new CatalogService("http://localhost:3030/dataset");
+const catalogService = new CatalogService({
+  writeEnabled: true,
+  triplestoreUri: "http://localhost:3030",
+  dataset: "dataset",
+});
 
 // Create Catalog
 const catalog1 = new DCATCatalog(
@@ -46,6 +53,8 @@ const catalog1 = new DCATCatalog(
 <details>
   <summary>Click here to see a more complex example</summary>
     <hr />
+
+:warning: Temporarily broken
 
 ```ts
 /*
@@ -68,7 +77,11 @@ import {
 } from "@company-oss/catalogservice";
 
 // Initialize the CatalogService
-const catalogService = new CatalogService("http://localhost:3030/dataset");
+const catalogService = new CatalogService({
+  writeEnabled: true,
+  triplestoreUri: "http://localhost:3030/"
+  dataset: "dataset"
+});
 const DC3 = 'http://mysche.ma/data/'
 // Create Catalog 1
 const catalog1 = new DCATCatalog(
@@ -144,11 +157,11 @@ You can find a working example in https://github.com/Telicent-oss/catalog
   <summary>Click here to see simple example</summary>
 
 ```tsx
-export const catalogService = new CatalogService(
-  `${config.env.TRIPLE_STORE_URL}/`,
-  "catalog",
-  true,
-);
+export const catalogService = new CatalogService({
+  writeEnabled: true,
+  triplestoreUri: `${config.env.TRIPLE_STORE_URL}/`,
+  dataset: "catalog",
+});
 const api = await apiFactory(catalogService);
 
 const Page = ({ searchTerm, dataResourceFilters, set }) => {

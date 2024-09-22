@@ -22,13 +22,11 @@ export async function setupContainer() {
     )
     .up();
 
-  const catalogService = new CatalogService(
-    "http://localhost:3030/",
-    "catalog",
-    true,
-    undefined,
-    undefined
-  );
+  const catalogService = new CatalogService({
+    writeEnabled: true,
+    triplestoreUri: "http://localhost:3030/",
+    dataset: "catalog",
+  });
 
   expect(await catalogService.checkTripleStore()).toBeTruthy();
   return { environment, catalogService };

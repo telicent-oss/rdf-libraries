@@ -13,8 +13,8 @@ import {
 import { getAllResourceTriples } from './utils/getAllResourceTriples';
 import { transformDataResourceFilters } from './utils/transformDataResourceFilters';
 import { tryCatch } from "./utils/tryCatch";
-import { tryInstantiate } from "./utils/tryInstantiate";
 import { session } from "../../constants";
+import { tryInstantiate } from "./utils/tryInstantiate/tryInstantiate";
 
 export const searchFactory = (service: CatalogService) => {
   return async function search(
@@ -33,7 +33,7 @@ export const searchFactory = (service: CatalogService) => {
     );
     const owner = ownerType
     ? await tryInstantiate({ type: ownerType, id:dataResourceFilter, service })
-    : undefined;
+    : undefined; // Unnecessary
     const found = await service.findWithParams({
       searchText: params.searchText,
       owner,
@@ -42,6 +42,7 @@ export const searchFactory = (service: CatalogService) => {
     const foundForUI = found
       .map((el) => el.item)
       .map(uiDataResourceFromInstance);
-    return Promise.all(foundForUI);
+    const searchResult = await Promise.all(foundForUI);
+    return searchResult;
   }
 };

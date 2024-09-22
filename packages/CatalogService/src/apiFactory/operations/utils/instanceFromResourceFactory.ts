@@ -12,7 +12,7 @@ import { tryInstantiate } from "./tryInstantiate";
  * @returns
  */
 export const instanceFromResourceFactory =
-  (options: { service: CatalogService }) =>
+  (options: { service: CatalogService; triples?: ResourceType[] }) =>
   /**
    *
    * @param el
@@ -27,6 +27,7 @@ export const instanceFromResourceFactory =
         type: uri,
         service,
         id: s.value,
+        triples: options.triples,
       });
     } catch (err) {
       throw err instanceof Error

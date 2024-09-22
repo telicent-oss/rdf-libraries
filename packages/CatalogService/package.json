@@ -31,7 +31,7 @@
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
     "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
-    "start:store": "yarn start:store-for-local-dev-and-tests"
+    "start:store": "yarn start:triple-store-for-local-dev-and-tests"
   },
   "author": "",
   "license": "Apache-2.0",

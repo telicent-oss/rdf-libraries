@@ -3,7 +3,7 @@ import { RDFTripleSchema } from "@telicent-oss/rdfservice/index";
 import { transformRdfToTree } from "../apiFactory/operations/utils/transformRdfToTree";
 import { enrichRdfTree } from "../apiFactory/operations/utils/enrichRdfTree";
 import { Api } from "../apiFactory/apiFactory";
-import { MockSet, setup } from "../setup";
+import { setup } from "../setup";
 import { RDFResponseSchema } from "../apiFactory/operations/utils/common";
 import { makeStatic } from "./utils/makeStatic";
 
@@ -11,7 +11,7 @@ import { setupContainer } from "./utils/setupContainer";
 import { SEC } from "../constants";
 import { formatDataAsArray } from "./utils/formatDataAsArray";
 import { StartedDockerComposeEnvironment } from "testcontainers";
-import { CatalogService } from "../../index";
+import { CatalogService, MockSet } from "../../index";
 
 let api: Api;
 
