@@ -31,13 +31,11 @@ jobs:
           node-version: 20
           registry-url: "https://registry.npmjs.org"
           cache: "yarn"
+          token: ${{ secrets.NPM_REGISTRY_TOKEN }}
 
       - name: Install dependencies
         run: | 
           yarn install --frozen-lockfile
-        shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
 
       - uses: nrwl/nx-set-shas@v4
 
@@ -50,17 +48,16 @@ jobs:
       - name: publish packages
         run: | 
           cd ./packages/RdfService
-          npm publish || true
+          npm publish
           cd -
           
           cd ./packages/OntologyService
-          npm publish || true
+          npm publish
           cd -
 
           cd ./packages/CatalogService
-          npm publish || true
+          npm publish
           cd -
         shell: bash
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
