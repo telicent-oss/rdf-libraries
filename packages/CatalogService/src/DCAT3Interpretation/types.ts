@@ -1,24 +1,34 @@
 import { RDFTripleType } from "@telicent-oss/rdfservice";
-import { CatalogService } from "packages/CatalogService";
-
-
-type Terms = { dcTitle: string };
 
 export interface IDCAT3Interpretation {
+  dcTitleFromTriples(
+    id: string,
+    triples: RDFTripleType[],
+    options?: { assert: boolean }
+  ): string | undefined;
 
-}
-export class DCAT3InterpretationByCola implements IDCAT3Interpretation {
-  
-  private service:CatalogService;
-
-  constructor(service:CatalogService) {
-    this.service = service;
-  }
-
-  
-  dcTitleFromTriples = (id:string, triples:RDFTripleType[]) =>
-    triples
-      .filter(({ s }) => s.value === id)
-      .find(({ p }) => p.value === this.service.dcTitle)?.o.value;
-  
+  dcPublishedFromTriples(
+    id: string,
+    triples: RDFTripleType[],
+    options?: { assert: boolean }
+  ): string | undefined;
+  creatorNameFromTriples(
+    id: string,
+    triples: RDFTripleType[],
+    options?: { assert: boolean }
+  ): string | undefined;
+  creatorEmailFromTriples(
+    id: string,
+    triples: RDFTripleType[],
+    options?: { assert: boolean }
+  ): string | undefined;
+  // ownerFromTriples(
+  //   id: string,
+  //   triples: RDFTripleType[],
+  // ): string | undefined;
+  rightsFromTriples(
+    id: string,
+    triples: RDFTripleType[],
+    options?: { assert: boolean }
+  ): string | undefined;
 }

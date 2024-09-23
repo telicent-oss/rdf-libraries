@@ -7,6 +7,8 @@ import {
   DCATDataService,
 } from "../../../../index";
 import { session } from "../../../constants";
+import { getValuesByBailey } from "./getValuesByBailey";
+import { getValuesByCola } from "./getValuesByCola";
 export const UIDataResourceSchema = z.object({
   title: z.string(),
   id: z.string(),
@@ -17,6 +19,7 @@ export const UIDataResourceSchema = z.object({
   modified: z.string(),
   accessRights: z.string(),
   rights: z.string(),
+  contactEmail: z.string(),
   type: z.enum(["Catalog", "DataService", "Dataset"]),
 });
 export type UIDataResourceType = z.infer<typeof UIDataResourceSchema>;
@@ -144,79 +147,18 @@ export const getAllRDFTriples = async (options: {
  * @param options
  * @returns
  */
-export const uiDataResourceFromInstance =
+export const uiDataResourceFromInstanceWithTriples = (triples:RDFTripleType[]) =>
   /**
    *
    * @param el
    * @returns
    */
-  async (el: DCATDataset | DCATDataService | DCATCatalog) => {
-    // TODO More validation ceremony
-    // HOW Stricter validation when needed (frontend v.s. RDF/schema specs)
-    // WHEN Have locked down UI requirements
-    if (el.types.length !== 1) {
-      throw new TypeError(
-        `Expected types.length of ${el.uri} to be 1, instead got ${
-          el.types.length
-        }:${el.types.join(", ")})`
-      );
-    }
-    const dcTitle = await el.getDcTitle();
-    if (dcTitle.length > 1) {
-      console.warn(
-        `Data Catalogue frontend only supports 1 title, instead got ${
-          dcTitle.length
-        }: ${dcTitle.join(", ")}`
-      );
-    }
+  async (el: DCATDataset | DCATDataService | DCATCatalog):Promise<UIDataResourceType> => {
 
-    const dcDescription = await el.getDcDescription();
-    if (dcDescription.length > 1) {
-      console.warn(
-        `Data Catalogue frontend only supports 1 description, instead got ${
-          dcDescription.length
-        }: ${dcDescription.join(", ")}`
-      );
     
-    }
-    const dcRights = await el.getDcRights();
-    if (!dcRights?.length) {
-      console.warn(
-        `Data Catalogue frontend expects dcRights to exist, instead got ${
-          dcRights
-        }`
-      );
-    }
-
-    const dcAccessRights = await el.getDcAccessRights();
-    if (!dcAccessRights?.length) {
-      console.warn(
-        `Data Catalogue frontend expects dcAccessRights to exist, instead got ${
-          dcAccessRights
-        }`
-      );
-    }
-    // TODO mock
-    //    TODO 16Sep24 Unsure what above means; perhaps reminder to add mock name?
-    const userHasAccess = dcRights.includes(session.user.name);
-
-    const dcCreator = await el.getDcCreator();
-    const dcPublished = await el.getDcPublished();
-    const dcModified = await el.getDcModified();
-
     // Note: Renaming from spec-specific to spec-agnostic values
     // Rationale: For now, keeping spec concepts out of UI
-    return UIDataResourceSchema.parse({
-      id: el.uri,
-      title: dcTitle[0],
-      description: dcDescription[0] || "",
-      creator: dcCreator[0] || "Standard McDefaultFace",
-      userHasAccess,
-      publishDate: dcPublished[0] || "-", 
-      modified: dcModified[0] || "-",
-      accessRights: dcAccessRights[0] || "-",
-      rights: dcRights[0] || "-",
-      type: el.types[0].split("#")[1],
-    });
+    return UIDataResourceSchema.parse(
+      el.service.interpretation ? await getValuesByCola(el, triples) : await getValuesByBailey(el));
   };
 

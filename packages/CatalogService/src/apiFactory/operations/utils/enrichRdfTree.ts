@@ -21,8 +21,6 @@ export const enrichRdfTree = async ({
   service: CatalogService;
   triples: RDFTripleType[];
 }): Promise<UITreeViewBaseItemType[]> => {
-  console.log("enrichRdfTree", new Set(triples.map(({ s }) => s.value)));
-
   const leafToUI: Transform = async ({ id, ...rest }) => {
     const typeTriple = findTypeInTripleOrNeighbor({
       id,
@@ -43,14 +41,21 @@ export const enrichRdfTree = async ({
       service,
       triples,
     });
-    const titles = await instance.getDcTitle({ isAssert: true });
-    if (titles.length > 1) {
-      console.warn(`Expected 1 title, instead got "${titles.join(", ")}"`);
+    // const titles = await instance.getDcTitle({ isAssert: true });
+    // if (titles.length > 1) {
+    //   console.warn(`Expected 1 title, instead got "${titles.join(", ")}"`);
+    // }
+    const title = instance.service.interpretation.dcTitleFromTriples(id, triples, { assert: true });
+    if (!title) {
+      // TODO remove if (!title) { ... }
+      // HOW create version of dcTitleFromTriples that always returns string
+      // WHEN no rush
+      throw new Error('no title');
     }
     return {
       id,
       ...rest,
-      label: titles[0],
+      label: title,
     };
   };
 

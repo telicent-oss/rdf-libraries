@@ -232,6 +232,33 @@ export class RDFSResource {
   }
 
 
+    /**
+    * Adds a value by a key
+    */   
+    async setKeyValue(options: { key:string; value:string; securityLabel?:string; xsdDatatype:XsdDataType; deleteAllPrevious:boolean}) {
+      if (options.key) throw new Error(`Expected key to be set, instead got ${options.key}`);
+      return this.addLiteral(
+        options.key,
+        options.value,
+        options?.securityLabel,
+        options?.xsdDatatype || "xsd:string",
+        options?.deleteAllPrevious || false
+      )
+    }
+  
+
+  /**
+   * @method setTitle 
+   * @remarks
+   * Adds a dublin core title to a node
+   * @param {string} title - the title to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async set(title:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+    if (isEmptyString(title)) throw new Error("invalid title string")
+    return this.addLiteral(this.service.dcTitle,title,securityLabel,xsdDatatype,deleteAllPrevious)
+  }
+
   /**
    * @method setTitle 
    * @remarks
@@ -447,6 +474,23 @@ export class RDFSResource {
        } 
      })
      return output
+   }
+
+
+  /**
+   * Get value by key
+   *
+   * @returns - an array of strings
+  */ 
+  async getLiteralsList(options: { key:string; validate?: (value:any) => void}):Promise<string[]> {
+    if (!options.key) throw new Error(`Expected key to be set, instead got ${options.key}`);
+    const lits:RelatedLiterals = await this.getLiterals(options.key)
+    let values:string[] = []
+    if (options.key in lits) {
+      values = lits[options.key]
+    }
+    options?.validate?.(values)
+    return values
    }
 
   /**

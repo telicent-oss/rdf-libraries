@@ -5,8 +5,9 @@
   * @author Ian Bailey
   */
 
-import { RdfService, RDFSResourceDescendant, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource } from "@telicent-oss/rdfservice";
-import { DCAT3InterpretationByCola, IDCAT3Interpretation } from "./src/DCAT3Interpretation/DCAT3InterpretationByCola";
+import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource } from "@telicent-oss/rdfservice";
+import { DCAT3InterpretationByCola } from "./src/DCAT3Interpretation/DCAT3InterpretationByCola";
+import { IDCAT3Interpretation } from "./src/DCAT3Interpretation/types";
 
 export { RDFSResource } from "@telicent-oss/rdfservice"
 export * from "./src/setup"
@@ -99,10 +100,13 @@ export class DCATResource extends RDFSResource {
             }
 
             if ((title) && (title != "")) {
-                this.setTitle(title)
+              this.setTitle(title)
             }
-
-            this.setPublished(published)
+            
+            if ((published) && (published != "")) {
+              
+              this.setPublished(published)
+            }
             if ((catalog) && (type == "http://www.w3.org/ns/dcat#Resource")) {
                 this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri)
             }
@@ -560,16 +564,16 @@ export class CatalogService extends RdfService {
     `;
 
     // Optionally, log the query for debugging purposes
-    console.log("Constructed SPARQL Query:", query);
+    DEBUG && console.log("Constructed SPARQL Query:", query);
 
     try {
         // Execute the query using the runQuery method
         const response = await this.runQuery<DcatResourceFindSolution>(query);
-        console.log('respones', response.results.bindings);
+        DEBUG && console.log('respones', response.results.bindings);
         // Wrap and return the results using the rankedWrap method
         return this.rankedWrap(response, searchText || '');
     } catch (error) {
-        console.error("Error executing SPARQL query:", error);
+        DEBUG && console.error("Error executing SPARQL query:", error);
         throw error;
     }
   }

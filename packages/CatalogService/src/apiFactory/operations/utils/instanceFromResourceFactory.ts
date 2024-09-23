@@ -2,7 +2,7 @@ import { HumanError } from "../../../utils/HumanError";
 import { CatalogService } from "../../../../index";
 import { ResourceType, ResourceSchema, DCATResourceSchema } from "./common";
 import { printJSON } from "./printJSON";
-import { tryInstantiate } from "./tryInstantiate";
+import { tryInstantiate } from "./tryInstantiate/tryInstantiate";
 
 
 
