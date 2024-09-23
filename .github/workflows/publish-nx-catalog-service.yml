@@ -22,17 +22,21 @@ jobs:
           node-version: 20.14
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
-          cache: 'yarn'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+      - run: pnpm install
       - run: npx nx run @telicent-oss/rdfservice:build
       # - run: cd ./packages/RdfService && ls -la ./dist && npm publish --access public --provenance
       #   env:
       #     NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       #     NPM_CONFIG_PROVENANCE: true
       - run: npx nx run @telicent-oss/catalogservice:build
-      - run: ls -la ./packages/CatalogService/dist
-      - run: cd ./packages/CatalogService && ls -la ./dist && npm publish --access public --provenance
+
+      - run: cd ./packages/RdfService && ls -la ./dist && npm publish --access public --provenance && cd -
+      - run: cd ./packages/CatalogService && ls -la ./dist && npm publish --access public --provenance && cd -
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
