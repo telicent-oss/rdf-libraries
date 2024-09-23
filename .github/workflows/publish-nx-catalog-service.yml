@@ -24,6 +24,7 @@ jobs:
           scope: 'telicent-oss'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+      - run: yarn install --frozen-lockfile
       - run: npx nx run @telicent-oss/rdfservice:build
       # - run: cd ./packages/RdfService && ls -la ./dist && npm publish --access public --provenance
       #   env:
