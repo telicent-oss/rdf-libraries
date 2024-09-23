@@ -7,7 +7,7 @@
       "options": {
         "commands": [
           {
-            "command": "pnpm test"
+            "command": "yarn test"
           }
         ],
         "cwd": "packages/catalogservice",

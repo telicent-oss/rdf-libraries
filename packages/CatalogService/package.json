@@ -26,8 +26,8 @@
   "scripts": {
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
     "test": "jest --runInBand ",
-    "test:updateSnapshot": "pnpm test -- --updateSnapshot",
-    "test:100": "for i in {1..100}; do echo \"Test run: $i\" && pnpm jest && sleep .5 || break; done",
+    "test:updateSnapshot": "yarn test -- --updateSnapshot",
+    "test:100": "for i in {1..100}; do echo \"Test run: $i\" && yarn jest && sleep .5 || break; done",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
     "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
