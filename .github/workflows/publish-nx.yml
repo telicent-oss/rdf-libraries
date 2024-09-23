@@ -42,7 +42,7 @@ jobs:
       - uses: nrwl/nx-set-shas@v4
 
       - name: build packages
-        run: npx nx build -p @telicent-oss/rdfservice,@telicent-oss/ontologyservice
+        run: npx nx affected:build
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
       # - run: yarn nx-cloud record -- echo Hello World
