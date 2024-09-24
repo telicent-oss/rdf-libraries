@@ -61,7 +61,5 @@
   ],
   "resolutions": {
     "braces": "^3.0.3"
-  },
-  "// packageManager": "keep in sync with publish-dev, publish-nx publish-rc, temp-workflow-publish and test-release workflows",
-  "packageManager": "pnpm@9.1.0"
+  }
 }

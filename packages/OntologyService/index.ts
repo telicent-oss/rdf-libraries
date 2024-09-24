@@ -55,6 +55,7 @@ export type HierarchyNode = {
   children: HierarchyNode[],
   parents: HierarchyNode[],
   expanded: boolean
+  errors: string[]
 }
 
 export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
@@ -314,6 +315,14 @@ abstract class OntologyItem extends RDFSResource {
     return out
   }
 }
+
+export class ErrorItem extends OntologyItem {
+  public constructor(service: OntologyService, uri? : LongURI, type: LongURI=service.telDiagramElement, statement? : TypedNodeQuerySolution) {
+    super(service,uri,type,statement)
+    this.service = service     
+  }
+}
+
 
 export class DiagramElement extends OntologyItem {
   style?: Style
@@ -1178,7 +1187,7 @@ export class OntologyService extends RdfService {
           cls = this.lookupClass(types[0],defaultCls)
         }
         const item = new cls(this,undefined,undefined,statement)
-        const node:HierarchyNode = {item:item, id:statement.uri.value, label:'', rdfsLabels:[],children:[],parents:[],style:undefined,expanded:false} 
+        const node:HierarchyNode = {item:item, id:statement.uri.value, label:'', rdfsLabels:[],children:[],parents:[],style:undefined,expanded:false,errors:[]} 
         if (statement.labels) {
           node.rdfsLabels = statement.labels.value.split("||")
         }
@@ -1211,15 +1220,35 @@ export class OntologyService extends RdfService {
         if (statement.supers) {
           const supers:string[] = statement.supers.value.split(' ')
           supers.forEach((sup:string) => {
-            const superNode:HierarchyNode = dict[sup]
-            node.parents.push(superNode) 
+            const superItem = dict[sup]
+            if (superItem) {
+              const superNode:HierarchyNode = dict[sup]
+              node.parents.push(superNode) 
+            }
+            else {
+              const errorText = `${sup} is a super of ${node.id} but doesn't seem to be correct - check it is properly defined (maybe missing rdf:type ?).`
+              const errorItem:ErrorItem = new ErrorItem(this,sup,undefined)
+              const errorNode = {item:errorItem, id:statement.uri.value, label:'', rdfsLabels:[],children:[],parents:[],style:undefined,expanded:false,errors:[]} 
+              node.parents.push(errorNode)
+              this.warn(errorText)
+            }
           });
         }        
         if (statement.subs) {
           const subs:string[] = statement.subs.value.split(' ')
           subs.forEach((sub:string) => {
-            const subNode:HierarchyNode = dict[sub]
-            node.children.push(subNode)
+            const subItem = dict[sub]
+            if (subItem) {
+              const subNode:HierarchyNode = dict[sub]
+              node.children.push(subNode) 
+            }
+            else {
+              const errorText = `${sub} is a sub of ${node.id} but doesn't seem to be correct - check it is properly defined (maybe missing rdf:type ?).`
+              const errorItem:ErrorItem = new ErrorItem(this,sub,undefined)
+              const errorNode = {item:errorItem, id:statement.uri.value, label:'', rdfsLabels:[],children:[],parents:[],style:undefined,expanded:false,errors:[]} 
+              node.children.push(errorNode)
+              this.warn(errorText)
+            }
           });
         }
 
