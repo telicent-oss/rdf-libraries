@@ -35,6 +35,9 @@ export const searchFactory = (service: CatalogService) => {
     const triples = rdfTriples.results.bindings.map((el) =>
       RDFTripleSchema.parse(el)
     );
+    if (triples.length === 0) {
+      return [];
+    }
     
     const resourceTriples = await getAllResourceTriples({ service, hasAccess });
     const ownerTriple = dataResourceFilter === "all"

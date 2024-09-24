@@ -8,12 +8,14 @@
 import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource } from "@telicent-oss/rdfservice";
 import { DCAT3InterpretationByCola } from "./src/DCAT3Interpretation/DCAT3InterpretationByCola";
 import { IDCAT3Interpretation } from "./src/DCAT3Interpretation/types";
+import packageJSON from './package.json';
 
 export { RDFSResource } from "@telicent-oss/rdfservice"
 export * from "./src/setup"
 export * from "./src/setup/constants"
 export * from "./src/apiFactory/operations/utils/common"
-export const version = 'apple3';
+export const version = packageJSON?.version;
+
 const DEBUG = false;
 
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {

@@ -37,6 +37,13 @@ export const catalogFactory = (service: CatalogService) => {
     const triples = rdfTriples.results.bindings.map((el) =>
       RDFTripleSchema.parse(el)
     );
+    if (triples?.length > 0) {
+      return [{
+        id: 'all',
+        label: 'All',
+        children: []
+      }]
+    }
     const resourceTriples = triples.filter(
       findTripleBySchema({
         s: undefined,

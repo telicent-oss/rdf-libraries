@@ -1,9 +1,5 @@
 import z from 'zod';
-
-// TODO Make more spec-compliant, but also fast
-// HOW Check spec for supported uri formats, and match
-// WHEN when things settle down
-export const permissiveUriRegex = /^(https?|ftp):\/\/[^ \t\r\n]+$/i;
+import { isValidURI } from './isValidURI';
 
 
 // Schema for the object representing "o", "p", or "s" within each triple
@@ -17,7 +13,7 @@ const TripleObjectSchema = z.object({
     // WHY Ash was tempted to do this: `&& value.type !== 'literal'`
     //  Probably not required or perhaps semantically wrong
     // HOW Check if Schema should be renamed
-  ) || permissiveUriRegex.test(value?.value);
+  ) || isValidURI(value?.value);
   // TODO Make more performant
   // WHY executed many times
   // WHEN perf is noticeable
