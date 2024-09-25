@@ -369,7 +369,7 @@ export class RDFSResource {
   }
 
   async countRelated(rel:string):Promise<number> {
-    const query = `SELECT (count(DISTINCT ?item) as ?count) WHERE {<${this.uri}> ${rel} ?item}`
+    const query = `SELECT DISTINCT (count(DISTINCT ?item) as ?count) WHERE {<${this.uri}> ${rel} ?item}`
     const queryReturn = await this.service.runQuery<CountQuerySolution>(query)
     if (queryReturn.results.bindings.length < 1) {
         return 0
@@ -400,7 +400,7 @@ export class RDFSResource {
      if (predicate) {
         predString = ` BIND (<${predicate}> AS ?predicate) .`
       }
-      const query = `SELECT ?uri ?_type ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?_type} FILTER isIRI(?uri) }`
+      const query = `SELECT DISTINCT ?uri ?_type ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?_type} FILTER isIRI(?uri) }`
       const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query)
       if (!spOut?.results?.bindings) return {}
       const output:RelatedResources = {}
@@ -430,7 +430,7 @@ export class RDFSResource {
       if (predicate) {
         predString = ` BIND (<${predicate}> AS ?predicate) .`
       }
-      const query = `SELECT ?uri ?_type ?predicate WHERE {${predString} ?uri ?predicate <${this.uri}> . OPTIONAL {?uri a ?_type} }`
+      const query = `SELECT DISTINCT ?uri ?_type ?predicate WHERE {${predString} ?uri ?predicate <${this.uri}> . OPTIONAL {?uri a ?_type} }`
       const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query)
       if (!spOut?.results?.bindings) return {}
       const output:RelatedResources = {}
@@ -460,7 +460,7 @@ export class RDFSResource {
       predString = ` BIND (<${predicate}> AS ?predicate) .`
      }
  
-     const query = `SELECT ?literal ?predicate WHERE {${predString} <${this.uri}> ?predicate ?literal . FILTER isLiteral(?literal) }`
+     const query = `SELECT DISTINCT ?literal ?predicate WHERE {${predString} <${this.uri}> ?predicate ?literal . FILTER isLiteral(?literal) }`
      const spOut = await this.service.runQuery<LiteralPropertyQuerySolution>(query)
      if (!spOut?.results?.bindings) return {}
      const output:RelatedLiterals = {}

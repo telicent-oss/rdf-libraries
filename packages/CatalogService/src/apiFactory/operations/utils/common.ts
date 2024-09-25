@@ -133,7 +133,7 @@ export const getAllRDFTriples = async (options: {
     //   ? (console.log("New result", result), result)
     //   :
     await options.service.runQuery(`
-      SELECT ?s ?p ?o
+      SELECT DISTINCT ?s ?p ?o
       WHERE {
         ${
           options.hasAccess

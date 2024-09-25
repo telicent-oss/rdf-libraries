@@ -403,7 +403,7 @@ export class CatalogService extends RdfService {
             PREFIX dct: <http://purl.org/dc/terms/>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             
-            SELECT ?uri ?_type ?title ?published ?description ?creator ?rights
+            SELECT DISTINCT ?uri ?_type ?title ?published ?description ?creator ?rights
             WHERE {
                 ${catalogSelect}
                 ${typeSelect}
@@ -472,7 +472,7 @@ export class CatalogService extends RdfService {
   // Code. Hm. This looks like it won't take search and dataresource owner....
     async find(matchingText: string, dcatTypes: string[] = [this.dcatCatalog, this.dcatDataService, this.dcatDataset], owner: DCATCatalog | DCATDataService | DCATDataset): Promise<RankWrapper[]> {
       let query = `
-            SELECT ?uri ?title ?published ?description ?creator ?rights ?modified ?accessRights ?_type (group_concat(DISTINCT ?literal) as ?concatLit)
+            SELECT DISTINCT ?uri ?title ?published ?description ?creator ?rights ?modified ?accessRights ?_type (group_concat(DISTINCT ?literal) as ?concatLit)
               WHERE {
                   {
                       # Include the parent
@@ -526,7 +526,7 @@ export class CatalogService extends RdfService {
 
     // Construct the SPARQL query with inline conditions
     const query = `
-        SELECT ?uri ?title ?published ?description ?creator ?rights ?modified ?accessRights ?_type 
+        SELECT DISTINCT ?uri ?title ?published ?description ?creator ?rights ?modified ?accessRights ?_type 
                (GROUP_CONCAT(DISTINCT ?literal; SEPARATOR=", ") AS ?concatLit)
         WHERE {
             ${owner ? `
