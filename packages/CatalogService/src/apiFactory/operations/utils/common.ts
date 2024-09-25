@@ -9,6 +9,7 @@ import {
 import { session } from "../../../constants";
 import { getValuesByBailey } from "./getValuesByBailey";
 import { getValuesByCola } from "./getValuesByCola";
+// import { result } from "../mockData/fromFusekiAfterKafka2";
 export const UIDataResourceSchema = z.object({
   title: z.string(),
   id: z.string(),
@@ -88,7 +89,6 @@ export type RESOURCE_URI_TYPE =
   | typeof SERVICE_URI
   | typeof CATALOG_URI;
 
-
 /**
  *
  * @param entityUri
@@ -124,20 +124,23 @@ export const ResourceSchema = z.union([
 
 export type ResourceType = z.infer<typeof ResourceSchema>;
 
-
-
 export const getAllRDFTriples = async (options: {
   service: CatalogService;
   hasAccess?: boolean;
 }) =>
   RDFResponseSchema.parse(
+    // Math.random()
+    //   ? (console.log("New result", result), result)
+    //   :
     await options.service.runQuery(`
       SELECT ?s ?p ?o
       WHERE {
-        ${options.hasAccess 
-          // REQUIREMENTS 8.1 Search by user-owned data-resources
-          ? `?s dct:accessRights "${session.user.name}" .` 
-          : ""}
+        ${
+          options.hasAccess
+            ? // REQUIREMENTS 8.1 Search by user-owned data-resources
+              `?s dct:accessRights "${session.user.name}" .`
+            : ""
+        }
         ?s ?p ?o
       }`)
   );
@@ -147,18 +150,21 @@ export const getAllRDFTriples = async (options: {
  * @param options
  * @returns
  */
-export const uiDataResourceFromInstanceWithTriples = (triples:RDFTripleType[]) =>
+export const uiDataResourceFromInstanceWithTriples =
+  (triples: RDFTripleType[]) =>
   /**
    *
    * @param el
    * @returns
    */
-  async (el: DCATDataset | DCATDataService | DCATCatalog):Promise<UIDataResourceType> => {
-
-    
+  async (
+    el: DCATDataset | DCATDataService | DCATCatalog
+  ): Promise<UIDataResourceType> => {
     // Note: Renaming from spec-specific to spec-agnostic values
     // Rationale: For now, keeping spec concepts out of UI
     return UIDataResourceSchema.parse(
-      el.service.interpretation ? await getValuesByCola(el, triples) : await getValuesByBailey(el));
+      el.service.interpretation
+        ? await getValuesByCola(el, triples)
+        : await getValuesByBailey(el)
+    );
   };
-

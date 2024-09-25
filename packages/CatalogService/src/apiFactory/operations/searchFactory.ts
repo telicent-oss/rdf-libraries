@@ -32,20 +32,11 @@ export const searchFactory = (service: CatalogService) => {
       // ADD `hasAccess` to `getAllRDFTriples`
       // WHEN know priority
     });
-    
-    // !CRITICAL renable validation: Uncomment this
-    // const triples = rdfTriples.results.bindings.map((el) => 
-    //   RDFTripleSchema.parse(el)
-    // );
-    // !CRITICAL renable validation: Remove this
-    const triples = rdfTriples.results.bindings.map((el) => {
-      try {
-       return RDFTripleSchema.parse(el)
-      } catch (err) {
-        console.error(err)
-        return (el as unknown) as RDFTripleType
-      }
-    });
+
+    const triples = rdfTriples.results.bindings.map((el) => 
+      RDFTripleSchema.parse(el)
+    );
+
     
     if (triples.length === 0) {
       return [];

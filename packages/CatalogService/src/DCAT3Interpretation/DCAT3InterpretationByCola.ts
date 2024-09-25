@@ -165,9 +165,12 @@ export class DCAT3InterpretationByCola implements IDCAT3Interpretation {
       o: undefined,
     });
 
+    let emailValue = (email?.o.value || '');
+    emailValue = emailValue.substring(emailValue.lastIndexOf('/') + 1);
+
     return {
       name: name?.o.value,
-      email: email?.o.value.replace('http://server/unset-base/', '')
+      email: emailValue
     }
   };
   creatorNameFromTriples = (

@@ -89,7 +89,7 @@ describe("isValidURI", () => {
       ].map(testUri)
     ).toMatchInlineSnapshot(`
       [
-        "❌  file:///adapter/test_data/faux_africa.csv",
+        "✅ file:///adapter/test_data/faux_africa.csv",
         "❌  http:/example.com",
         "❌  ://missing-scheme.com",
         "❌  http//missing-colon.com",
@@ -99,7 +99,7 @@ describe("isValidURI", () => {
         "❌  ftp://example.com/file name with spaces.txt",
         "❌  kafka:/invalid/uri",
         "❌  custom_scheme://invalid_char^acters",
-        "❌  file:///C:/path/to/file",
+        "✅ file:///C:/path/to/file",
         "✅ http://example.com/invalid|pipe",
         "✅ http://example.com/😊",
         "❌  http://example.com/space in path",

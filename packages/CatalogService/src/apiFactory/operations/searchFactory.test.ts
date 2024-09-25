@@ -13,17 +13,5 @@ test("RDFSchema", () => {
         return null;
       })
       .filter(Boolean)
-  ).toMatchInlineSnapshot(`
-    [
-      "[
-      {
-        "code": "custom",
-        "message": "The value must be a valid URI when type is 'uri'",
-        "path": [
-          "o"
-        ]
-      }
-    ] {"s":{"type":"uri","value":"http://telicent.io/catalog#03c60193-9470-4ca5-8621-c8a9072638ea_Distribution"},"p":{"type":"uri","value":"http://www.w3.org/ns/dcat#downloadURL"},"o":{"type":"uri","value":"file:///adapter/test_data/faux_africa.csv"}}",
-    ]
-  `);
+  ).toMatchInlineSnapshot(`[]`);
 });
