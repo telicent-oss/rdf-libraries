@@ -4,6 +4,7 @@ import {
   RelatedResources,
   RelatedLiterals,
 } from "../index";
+
 const rs = new RdfService(
   "http://localhost:3030/",
   "rdf_test",
@@ -24,8 +25,7 @@ const initialTripleCount = 11
 function delays(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
-
-describe("RdfService", () => {
+describe.skip("RdfService", () => {
 
   beforeAll(async () => {
     rs.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset

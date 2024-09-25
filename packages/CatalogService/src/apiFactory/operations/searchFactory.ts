@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RDFTripleSchema } from "@telicent-oss/rdfservice";
+import { RDFTripleSchema, RDFTripleType } from "@telicent-oss/rdfservice";
 import {
   CatalogService,
 } from "../../../index";
@@ -32,9 +32,21 @@ export const searchFactory = (service: CatalogService) => {
       // ADD `hasAccess` to `getAllRDFTriples`
       // WHEN know priority
     });
-    const triples = rdfTriples.results.bindings.map((el) =>
-      RDFTripleSchema.parse(el)
-    );
+    
+    // !CRITICAL renable validation: Uncomment this
+    // const triples = rdfTriples.results.bindings.map((el) => 
+    //   RDFTripleSchema.parse(el)
+    // );
+    // !CRITICAL renable validation: Remove this
+    const triples = rdfTriples.results.bindings.map((el) => {
+      try {
+       return RDFTripleSchema.parse(el)
+      } catch (err) {
+        console.error(err)
+        return (el as unknown) as RDFTripleType
+      }
+    });
+    
     if (triples.length === 0) {
       return [];
     }

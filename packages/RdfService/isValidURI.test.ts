@@ -3,7 +3,7 @@ import { isValidURI } from "./isValidURI";
 describe("isValidURI", () => {
   const testUri = (uri: string) => `${isValidURI(uri) ? "✅" : "❌ "} ${uri}`;
 
-  describe("Valid URIs", () => {
+  test("Valid URIs", () => {
     expect(
       [
         "http://example.com",
@@ -11,6 +11,7 @@ describe("isValidURI", () => {
         "ftp://ftp.example.com/file.txt",
         "kafka://catalog/admin@testdata.com",
         "custom-scheme+1.0://path/to/resource",
+        "file://adapter/test_data/faux_africa.csv",
         "mailto:user@example.com",
         "tel:+1234567890",
         "data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==",
@@ -38,6 +39,7 @@ describe("isValidURI", () => {
         "✅ ftp://ftp.example.com/file.txt",
         "✅ kafka://catalog/admin@testdata.com",
         "✅ custom-scheme+1.0://path/to/resource",
+        "✅ file://adapter/test_data/faux_africa.csv",
         "✅ mailto:user@example.com",
         "✅ tel:+1234567890",
         "✅ data:text/plain;base64,SGVsbG8sIFdvcmxkIQ==",
@@ -64,6 +66,7 @@ describe("isValidURI", () => {
   describe("Invalid URIs", () => {
     expect(
       [
+        "file:///adapter/test_data/faux_africa.csv",
         "http:/example.com",
         "://missing-scheme.com",
         "http//missing-colon.com",
@@ -86,6 +89,7 @@ describe("isValidURI", () => {
       ].map(testUri)
     ).toMatchInlineSnapshot(`
       [
+        "❌  file:///adapter/test_data/faux_africa.csv",
         "❌  http:/example.com",
         "❌  ://missing-scheme.com",
         "❌  http//missing-colon.com",
