@@ -30,10 +30,10 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
-          cache: "yarn"
+          cache: "npm"
 
       - name: Install dependencies
-        run: yarn install --frozen-lockfile
+        run: npm install --frozen-lockfile
         shell: bash
       - uses: nrwl/nx-set-shas@v4
 
