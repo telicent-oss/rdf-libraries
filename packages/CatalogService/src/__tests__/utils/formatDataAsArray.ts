@@ -2,7 +2,8 @@ import { shorten } from "../../utils/shorten";
 
 export function formatDataAsArray(
   data: { s: { value: string }; p: { value: string }; o: { value: string } }[],
-  maxLength?: number
+  maxLength?: number,
+  options: { disableHeading?: boolean} = {}
 ): string[] {
   // Check if data is empty
   if (data.length === 0) {
@@ -44,6 +45,9 @@ export function formatDataAsArray(
     )}`.trim()
   );
 
+  if (options?.disableHeading) {
+    return rows
+  }
   // Return the header and all rows as an array of strings
   return [header, ...rows];
 }

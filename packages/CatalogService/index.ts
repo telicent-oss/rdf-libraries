@@ -9,12 +9,14 @@ import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution,
 import { DCAT3InterpretationByCola } from "./src/DCAT3Interpretation/DCAT3InterpretationByCola";
 import { IDCAT3Interpretation } from "./src/DCAT3Interpretation/types";
 import packageJSON from './package.json';
+export { formatDataAsArray } from "./src/__tests__/utils/formatDataAsArray";
 
 export { RDFSResource } from "@telicent-oss/rdfservice"
 export * from "./src/setup"
 export * from "./src/setup/constants"
 export * from "./src/apiFactory/operations/utils/common"
 export const version = packageJSON?.version;
+
 
 const DEBUG = false;
 

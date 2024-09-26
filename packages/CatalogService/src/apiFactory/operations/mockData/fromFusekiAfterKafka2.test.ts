@@ -1,6 +1,6 @@
 import { RDFTripleSchema } from "@telicent-oss/rdfservice";
 import { result } from "./fromFusekiAfterKafka2";
-import { formatDataAsArray } from "packages/CatalogService/src/__tests__/utils/formatDataAsArray";
+import { formatDataAsArray } from "../../../__tests__/utils/formatDataAsArray";
 
 test("fromFusekiAfterKafka2: parse", () => {
   expect(

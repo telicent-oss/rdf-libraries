@@ -51,10 +51,12 @@ export class DCAT3InterpretationByCola implements IDCAT3Interpretation {
     triples: RDFTripleType[],
     options: { assert: boolean }
   ) => {
+    let titleTriple:RDFTripleType|undefined;
+    let typeTriple:RDFTripleType|undefined;
     {
       // TODO Check if can delete this block
       // WHEN Have time to test
-      const titleTriple = triples.find(
+      titleTriple = triples.find(
         findTripleBySchema({
           s: z.literal(id),
           p: z.literal(this.service.dcTitle),
@@ -66,14 +68,14 @@ export class DCAT3InterpretationByCola implements IDCAT3Interpretation {
       }
     }
     {
-      const typeTriple = triples.find(
+      typeTriple = triples.find(
         findTripleBySchema({
           s: z.literal(id),
           p: z.literal(RDF_TYPE_URI),
           o: DCATResourceSchema,
         })
       );
-      const titleTriple = triples.find(
+      titleTriple = triples.find(
         findTripleBySchema({
           s: z.literal(typeTriple?.s.value),
           p: z.literal(this.service.dcTitle),
@@ -85,7 +87,16 @@ export class DCAT3InterpretationByCola implements IDCAT3Interpretation {
       }
     }
     if (options?.assert) {
-      throw new Error(`dcTitleFromTriples assert failed for "${id}"`);
+      throw new Error(`dcTitleFromTriples (assert=true) "${id}" undefined
+        typeTriple: 
+          s: ${typeTriple?.s?.value} 
+          p: ${typeTriple?.p?.value} 
+          o: ${typeTriple?.o?.value}
+        titleTriple: ${JSON.stringify(titleTriple)}
+        in
+
+${formatDataAsArray(triples, 80).join('\n')}
+      `);
     }
   };
 

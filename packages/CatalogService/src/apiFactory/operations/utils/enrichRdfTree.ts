@@ -45,12 +45,16 @@ export const enrichRdfTree = async ({
     // if (titles.length > 1) {
     //   console.warn(`Expected 1 title, instead got "${titles.join(", ")}"`);
     // }
-    const title = instance.service.interpretation.dcTitleFromTriples(id, triples, { assert: true });
+    const title = instance.service.interpretation.dcTitleFromTriples(
+      id,
+      triples,
+      { assert: true }
+    );
     if (!title) {
       // TODO remove if (!title) { ... }
       // HOW create version of dcTitleFromTriples that always returns string
       // WHEN no rush
-      throw new Error('no title');
+      throw new Error("no title");
     }
     return {
       id,
@@ -62,19 +66,30 @@ export const enrichRdfTree = async ({
   // Recursive function to traverse and transform each node
   const traverseAndTransform = async (
     node: UITreeViewBaseItemType
-  ): Promise<UITreeViewBaseItemType> => {
-    // Apply work to the current node
-    const transformedNode = await leafToUI(node);
+  ): Promise<UITreeViewBaseItemType | undefined> => {
+    try {
+      // Apply work to the current node
+      const transformedNode = await leafToUI(node);
 
-    // Recursively apply to all children if they exist
-    if (node.children && node.children.length > 0) {
-      transformedNode.children = await Promise.all(
-        node.children.map(async (child) => await traverseAndTransform(child))
-      );
+      // Recursively apply to all children if they exist
+      if (node.children && node.children.length > 0) {
+        const transformedChildren = await Promise.all(
+          node.children.map((child) => traverseAndTransform(child))
+        );
+        // Filter out undefined children
+        transformedNode.children = transformedChildren.filter(
+          (child): child is UITreeViewBaseItemType => child !== undefined
+        );
+      }
+
+      return transformedNode;
+    } catch (err) {
+      console.warn(`Failed to convert node to UI ${node.id}: ${err}`);
+      return undefined;
     }
-
-    return transformedNode;
   };
   // Start the transformation from the root
-  return Promise.all(tree.map((node) => traverseAndTransform(node)));
+  return (
+    await Promise.all(tree.map((node) => traverseAndTransform(node)))
+  ).filter((item): item is UITreeViewBaseItemType => item !== undefined);
 };

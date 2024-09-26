@@ -1,6 +1,8 @@
 import { ACLEDTriples } from "./__mocks__/argsForACLEDCatalog";
 import { CatalogService } from "../../index";
 import { result } from "../apiFactory/operations/mockData/fromFusekiAfterKafka2";
+import { systemIntergrationRealData } from "./__mocks__/systemIntergrationRealData";
+import { shorten } from "../utils/shorten";
 
 describe("DCAT3InterpretationByCola: ACLEDTriples", () => {
   const service = new CatalogService({ writeEnabled: true });
@@ -81,6 +83,33 @@ describe("DCAT3InterpretationByCola: fromFusekiAfterKafka2", () => {
         "published": "2024-09-13T07:00:00+00:00",
         "title": "acled",
       }
+    `);
+  });
+});
+
+describe("DCAT3InterpretationByCola: systemIntergrationRealData", () => {
+  const triples = systemIntergrationRealData;
+  const service = new CatalogService({ writeEnabled: true });
+  const interpretation = service.interpretation;
+  const ID = {
+    bbc: "http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset",
+    acled: "http://telicent.io/catalog#acled_data_dataset",
+  };
+  it("titles", async () => {
+    expect(
+      [
+        `bbc.title: ${interpretation.dcTitleFromTriples(ID.bbc, triples)}`,
+        `acled.title: ${interpretation.dcTitleFromTriples(ID.acled, triples)}`,
+        `bbc.rights: ${interpretation.rightsFromTriples(ID.bbc, triples)}`,
+        `acled.rights: ${interpretation.rightsFromTriples(ID.acled, triples)}`,
+      ].map(shorten)
+    ).toMatchInlineSnapshot(`
+      [
+        "…",
+        "…",
+        "…",
+        "a…",
+      ]
     `);
   });
 });
