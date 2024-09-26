@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontologyservice",
-  "version": "0.0.12-rc2",
+  "version": "0.0.12-rc3",
   "private": false,
   "description": "Simple client-side library for working with RDF ontologies. Includes basic CRUD abilities and functions to help you navigate an ontology hierarchy.",
   "main": "./dist/ontologyservice.mjs",
@@ -45,7 +45,6 @@
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",
     "testcontainers": "^10.10.4",
-    "testing": "file:@nrwl/nx-plugin/testing",
     "ts-jest": "^29.1.1",
     "tsc": "^2.0.4",
     "typedoc": "^0.25.3",
