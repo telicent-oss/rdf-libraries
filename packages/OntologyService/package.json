@@ -35,7 +35,7 @@
     "registry": "https://www.npmjs.com/"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "0.0.11"
+    "@telicent-oss/rdfservice": "0.30.0-dev3"
   },
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",
