@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/catalogservice",
-  "version": "0.0.1-TELFE-1.19",
+  "version": "0.0.1-TELFE-1.20",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",
   "main": "./dist/catalogservice.js",
@@ -43,7 +43,7 @@
     "registry": "https://www.npmjs.com/"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "^0.0.6-TELFE-1.8",
+    "@telicent-oss/rdfservice": "^0.0.6-TELFE-1.9",
     "@types/cors": "2.8.17",
     "cors": "2.8.5",
     "express": "4.19.2",

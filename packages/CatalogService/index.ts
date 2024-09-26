@@ -526,7 +526,16 @@ export class CatalogService extends RdfService {
 
     // Construct the SPARQL query with inline conditions
     const query = `
-        SELECT DISTINCT ?uri ?title ?published ?description ?creator ?rights ?modified ?accessRights ?_type 
+        SELECT DISTINCT 
+          ?uri
+          ?title
+          ?published
+          ?description
+          ?creator
+          ?rights
+          # ?modified #  If Unset, groups by every instance, creating dupes
+          ?accessRights
+          ?_type 
                (GROUP_CONCAT(DISTINCT ?literal; SEPARATOR=", ") AS ?concatLit)
         WHERE {
             ${owner ? `
@@ -555,14 +564,22 @@ export class CatalogService extends RdfService {
             FILTER (?_type IN (${dcatTypes.map(type => `<${type}>`).join(', ')})) .
             OPTIONAL { ?uri dct:title ?title } .
             OPTIONAL { ?uri dct:published ?published } .
-            OPTIONAL { ?uri dct:modified ?modified } .
+            # OPTIONAL { ?uri dct:modified ?modified } .
             OPTIONAL { ?uri dct:description ?description } .
             OPTIONAL { ?uri dct:creator ?creator } .
             OPTIONAL { ?uri dct:rights ?rights } .
             OPTIONAL { ?uri dct:accessRights ?accessRights } .
         }
-        GROUP BY ?uri ?title ?published ?modified ?description 
-                 ?creator ?accessRights ?rights ?_type
+        GROUP BY
+          ?uri
+          ?title
+          ?published
+          # ?modified
+          ?description 
+          ?creator
+          ?accessRights
+          ?rights
+          ?_type
     `;
 
     // Optionally, log the query for debugging purposes
