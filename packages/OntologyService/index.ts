@@ -165,9 +165,6 @@ export class AppliedStyle {
   }
 }
 
-
-
-
 export class Diagram extends RDFSResource {
   uuid: string
   title: string
@@ -1053,14 +1050,14 @@ export class OntologyService extends RdfService {
   }
 
   /**
-   * @method getStyles 
+   * @method getAppliedStyles 
    * @remarks
    * returns a dictionary object of styles for each specified class. If no classes are specified, it will get all the styles for every class it finds with style
    * pass the classes in as an array of URIs
    * @param classes - An array of URIs (strings) of the classes whose styles are required
    * @returns {Promise<AppliedStyle[]>} - An array of styles
   */
-  async getStyles(classes: LongURI[] = []): Promise<AppliedStyle[]> {
+  async getAppliedStyles(classes: LongURI[] = []): Promise<AppliedStyle[]> {
     let filter = ""
 
     if (classes.length > 0) {
@@ -1079,7 +1076,7 @@ export class OntologyService extends RdfService {
   }
 
   /**
-     * @method getLegacyStylesStyles 
+     * @method getStyles 
      * @deprecated
      * @remarks
      * returns an array  styles for each specified class. If no classes are specified, it will get all the styles for every class it finds with style
@@ -1087,7 +1084,7 @@ export class OntologyService extends RdfService {
      * @param classes - An array of URIs (strings) of the classes whose styles are required
      * @returns {Promise<StyleResponse>} - a dictionary keyed by the class URIs, with the values being style objects
     */
-  async getLegacyStyles(classes: LongURI[]): Promise<StyleResponse> {
+  async getStyles(classes: LongURI[]): Promise<StyleResponse> {
     const filter = classes.length > 0 ? 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )' : "";
 
     const query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`
