@@ -26,6 +26,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
+    "@microsoft/api-extractor": "^7.47.9",
     "@nrwl/workspace": "19.5.4",
     "@nx/jest": "19.5.4",
     "@nx/js": "19.5.4",
@@ -44,7 +45,7 @@
     "prettier": "^2.8.8",
     "ts-jest": "^29.2.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4"
+    "typescript": "^5.4.5"
   },
   "nx": {
     "targets": {

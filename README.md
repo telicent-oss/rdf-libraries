@@ -8,7 +8,7 @@ This is a monorepo, which contains sub-packages:
 
 ## Install
 
-This monorepo's sub-packages are published to https://www.npmjs.com/org/telicent-oss:
+This monorepo's sub-packages are published to https://www.npmjs.com/org/telicent-oss
 
 ```sh
 yarn install @telicent-oss/ontologyservice
