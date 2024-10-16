@@ -13,24 +13,18 @@ jobs:
         with:
           fetch-depth: 0
       # Cache node_modules
-      - uses: pnpm/action-setup@v4
-        name: Install pnpm
-        with:
-          version: 9.1.0 # keep in sync with packageManager field in root package.json
-          run_install: false
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 20.14
           registry-url: 'https://registry.npmjs.org'
           scope: "telicent-oss"
-          cache: 'pnpm'
       # Install dependencies using pnpm
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: yarn install --frozen-lockfile
 
       # Ensure Nx is available
       - name: Install Nx CLI globally
-        run: pnpm add -g nx
+        run: yarn global add nx
       # switch from projects to --all when ready
       - uses: nrwl/nx-set-shas@v4
       - name: Test
