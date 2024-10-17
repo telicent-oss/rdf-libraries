@@ -140,10 +140,8 @@ describe("RdfService", () => {
     //guid1 was created at the start of the tests using simple sparql update
     const query = `PREFIX : <${testDefaultNamespace}>
                   SELECT ?p ?o WHERE { :${guid1} ?p ?o }`;
-    console.log(query)
     expect.assertions(1);
     const data = await rs.runQuery(query);
-    console.log({ data })
     expect(data.results.bindings.length).toEqual(2);
   });
 
