@@ -845,11 +845,10 @@ export class RdfService {
     const response = await fetch(this.queryEndpoint, {
       method: 'POST',
       headers: {
-        'Expects': 'application/sparql-results+json',
-        'Content-Type': 'application/x-www-form-urlencoded',
+        'Content-Type': 'application/sparql-query',
         'Accept': 'application/sparql-results+json',
       },
-      body: new URLSearchParams({ query })
+      body: query
     })
     if (!response.ok) {
       throw response.statusText
