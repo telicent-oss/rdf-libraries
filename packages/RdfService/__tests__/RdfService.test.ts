@@ -138,7 +138,8 @@ describe("RdfService", () => {
 
   it("should add a triple using SPARQL update", async () => {
     //guid1 was created at the start of the tests using simple sparql update
-    const query = `SELECT ?p ?o WHERE { :${guid1} ?p ?o }`;
+    const query = `PREFIX : <${testDefaultNamespace}>
+                  SELECT ?p ?o WHERE { :${guid1} ?p ?o }`;
     expect.assertions(1);
     const data = await rs.runQuery(query);
     expect(data.results.bindings.length).toEqual(2);
