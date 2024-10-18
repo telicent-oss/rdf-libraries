@@ -17,11 +17,10 @@
   },
   "types": "./dist/types.d.ts",
   "scripts": {
-    "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
-    "open-docs": "open ./dist/docs/index.html",
+    "generate-docs": "./node_modules/.bin/typedoc --out docs .",
+    "open-docs": "open ./docs/index.html",
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
-    "publish": "npm publish --access public --provenance",
     "publish:dry-run": "npm publish --access public --provenance --dry-run",
     "lint": "eslint **/*.ts"
   },
@@ -47,10 +46,10 @@
     "testcontainers": "^10.10.4",
     "ts-jest": "^29.1.1",
     "tsc": "^2.0.4",
-    "typedoc": "^0.25.3",
+    "typedoc": "^0.26.7",
     "typescript": "^5.2.2",
     "vite": "^4.5.3",
-    "vite-plugin-dts": "^3.6.3",
+    "vite-plugin-dts": "^4.2.3",
     "vite-tsconfig-paths": "^4.2.1"
   }
 }
