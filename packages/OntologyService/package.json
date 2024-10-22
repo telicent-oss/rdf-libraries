@@ -52,5 +52,8 @@
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
     "vite-tsconfig-paths": "^4.2.1"
+  },
+  "resolutions": {
+    "rollup": "3.29.5"
   }
 }
