@@ -1,6 +1,5 @@
-
 import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty,   } from "../index";
-import { QueryResponse, SPOQuerySolution } from "../../RdfService/index";
+import { QueryResponse, SPOQuerySolution } from "@telicent-oss/RdfService";
 const os = new OntologyService(
   "http://localhost:3030/",
   "ontology_test",
