@@ -301,7 +301,14 @@ export default class RdfService {
   async runQuery<T>(query: string) {
     if (isEmptyString(query)) throw Error("runQuery: A valid query is required");
 
-    const response = await fetch(this.queryEndpoint + encodeURIComponent(this.sparqlPrefixes + query))
+    const response = await fetch(this.queryEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/sparql-query',
+        'Accept': 'application/sparql-results+json',
+      },
+      body: this.sparqlPrefixes + query
+    });
     if (!response.ok) {
       throw response.statusText
     }
