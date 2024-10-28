@@ -5,35 +5,58 @@
   * @author Ian Bailey
   */
 
-import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, SPOQuerySolution, ResourceDescription, StringsDict, LongURI, PrefixedURI } from "@telicent-oss/rdfservice";
+import { createQueryResponseSchema, RdfService, SPARQLQuerySolution, SPARQLResultBinding, SparQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, SPOQuerySolution, ResourceDescription, StringsDict, LongURI, PrefixedURI } from "@telicent-oss/rdfservice";
+import { z } from "zod";
 
 export { RDFSResource, type QueryResponse, type TypedNodeQuerySolution, type SPOQuerySolution } from "@telicent-oss/rdfservice"
 
+export const OntologyStyle = z.object({
+  defaultIcons: z.object({
+    riIcon: z.string(),
+    faIcon: z.string(),
+    faUnicode: z.string(),
+    faClass: z.string(),
+  }),
+  defaultStyles: z.object({
+    shape: z.string(),
+    borderRadius: z.string(),
+    borderWidth: z.string(),
+    selectedBorderWidth: z.string(),
+    dark: z.object({
+      backgroundColor: z.string(),
+      color: z.string(),
+    }),
+    light: z.object({
+      backgroundColor: z.string(),
+      color: z.string(),
+    }),
+  }),
+});
 
-export type OntologyStyle = {
-  defaultIcons: {
-    riIcon: string;
-    faIcon: string;
-    faUnicode: string;
-    faClass: string;
-  };
-  defaultStyles: {
-    shape: string;
-    borderRadius: string;
-    borderWidth: string;
-    selectedBorderWidth: string;
-    dark: {
-      backgroundColor: string;
-      color: string;
-    };
-    light: {
-      backgroundColor: string;
-      color: string;
-    };
-  };
-};
+export const StyleResponse = z.record(z.string(), OntologyStyle);
+export type StyleResponseType = z.infer<typeof StyleResponse>;
+// export type StyleResponse = Record<string, typeof OntologyStyle>;
 
-export type StyleResponse = Record<string, OntologyStyle>;
+export const StylesQuerySolution = z.object({
+  cls: SparQLResultBinding,
+  style: SparQLResultBinding
+});
+
+export const IconStyle = z.object({
+  classUri: z.string(),
+  backgroundColor: z.string(),
+  color: z.string(),
+  iconFallbackText: z.string(),
+  alt: z.string(),
+
+  faIcon: z.string().optional(),
+  faUnicode: z.string().optional(),
+  shape: z.string().optional(),
+});
+
+export const IconStyleArray = z.array(IconStyle);
+
+export type IconStyleArrayType = z.infer<typeof IconStyleArray>;
 
 export type ResourceDict = {
   [key: LongURI]: RDFSResource[];
@@ -87,16 +110,9 @@ export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
   item: SPARQLResultBinding
 }
 
-
-
 export interface SuperClassQuerySolution extends SPARQLQuerySolution {
   super: SPARQLResultBinding,
   subRel: SPARQLResultBinding
-}
-
-export type StylesQuerySolution = {
-  cls: SPARQLResultBinding,
-  style: SPARQLResultBinding
 }
 
 export type DiagramListQuerySolution = {
@@ -1063,8 +1079,10 @@ export class OntologyService extends RdfService {
     if (classes.length > 0) {
       filter = 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )';
     }
-    const query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`
-    const spOut = await this.runQuery<StylesQuerySolution>(query)
+    const query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`;
+    const spOut = await this.runQuery(query);
+
+    const result = await StylesQuerySolution.spa(spOut)
 
     const statements = spOut.results.bindings
 
@@ -1084,59 +1102,84 @@ export class OntologyService extends RdfService {
      * @param classes - An array of URIs (strings) of the classes whose styles are required
      * @returns {Promise<StyleResponse>} - a dictionary keyed by the class URIs, with the values being style objects
     */
-  async getStyles(classes: LongURI[]): Promise<StyleResponse> {
+  async getStyles(classes: LongURI[]): Promise<StyleResponseType> {
+    const queryResponseSchema = createQueryResponseSchema(StylesQuerySolution)
     const filter = classes.length > 0 ? 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )' : "";
 
     const query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`
-    const spOut = await this.runQuery<StylesQuerySolution>(query)
+    const spOut = await this.runQuery(query); // StylesQuerySolution
+    const result = queryResponseSchema.safeParse(spOut);
 
-    const statements = spOut.results.bindings;
+    if (!result.success) {
+      console.warn(`Style response had the following error: ${result.error}`);
+    }
+
+    if (!result.data) {
+      console.warn("Empty style response")
+      return {} as StyleResponseType;
+    }
+
+    const statements = result.data.results.bindings;
     const styles = statements.reduce((acc, statement) => {
       try {
-        const style = JSON.parse(decodeURIComponent(statement.style.value))
-        acc[statement.cls.value] = {
-          defaultIcons: {
-            riIcon: "",
-            faIcon: style.icon,
-            faUnicode: style.faUnicode,
-            faClass: style.faClass,
-          },
-          defaultStyles: {
-            shape: style.shape,
-            borderRadius: "",
-            borderWidth: "",
-            selectedBorderWidth: "",
-            dark: {
-              backgroundColor: "",
-              color: style.light,
-            },
-            light: {
-              backgroundColor: "",
-              color: style.light,
-            },
-          }
+        const styleValue = OntologyStyle.safeParse(JSON.parse(decodeURIComponent(statement.style.value)));
+        if (styleValue.success) {
+          acc[statement.cls.value] = styleValue.data;
         }
       } catch (err) {
         console.warn(`Could not parse styles for ${statement.cls.value}`);
       }
       return acc
-    }, {} as StyleResponse)
+    }, {} as StyleResponseType)
 
     return styles;
   }
 
-  /**
-   * @method setStyle 
-   * @remarks
-   * sets the default style for a class. Deletes any previous styles
-   * @param uri - The URI of the class that have the style assigned
-   * @param styleObj - A style object for the class - call makeStyleObject to get one
-  */
-  setStyle(uri: LongURI, styleObj: Style) {
-    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
-    this.deleteRelationships(uri, this.telicentStyle)
-    this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL")
-  }
+  // DS specific methods
+
+  flattenStyles = (data: StyleResponse): z.array(z.infer<typeof> IconStyle >) => {
+  return Object.entries(data).map(([classUri, style]) => ({
+    classUri,
+    backgroundColor: style.defaultStyles.dark.backgroundColor,
+    color: style.defaultStyles.dark.color,
+    iconFallbackText: getTypeInitials(classUri),
+    alt: getOntologyClass(classUri),
+    shape: style.defaultStyles.shape,
+    faUnicode: style.defaultIcons.faUnicode,
+    faIcon: style.defaultIcons.faIcon,
+  }));
+};
+
+// async findIconMemoised = (classUri: string) {                                           
+//   const foundIcon = styles.find((style) => style.classUri === classUri); 
+//                                                                                                
+//   if (foundIcon) return foundIcon;                                                             
+//                                                                                                
+//   const alt = getOntologyClass(classUri);                                                      
+//   const iconFallbackText = getTypeInitials(classUri);                                          
+//                                                                                                
+//   return {                                                                                     
+//     classUri,                                                                                  
+//     color: "#DDDDDD",                                                                          
+//     backgroundColor: "#121212",                                                                
+//     iconFallbackText,                                                                          
+//     alt,                                                                                       
+//   };                                                                                           
+// };                                                                                             
+
+
+/**
+ * @method setStyle 
+ * @remarks
+ * sets the default style for a class. Deletes any previous styles
+ * @param uri - The URI of the class that have the style assigned
+ * @param styleObj - A style object for the class - call makeStyleObject to get one
+*/
+setStyle(uri: LongURI, styleObj: Style) {
+  const styleStr = encodeURIComponent(JSON.stringify(styleObj))
+  this.deleteRelationships(uri, this.telicentStyle)
+  this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL")
+}
 
   /**
    * @method getAllDiagrams 
@@ -1145,21 +1188,21 @@ export class OntologyService extends RdfService {
    * @returns array of objects summarising all the diagrams
   */
   async getAllDiagrams() {
-    const query = `SELECT ?uri ?uuid ?title WHERE {
+  const query = `SELECT ?uri ?uuid ?title WHERE {
             ?uri a <${this.telDiagram}> . 
             OPTIONAL {?uri <${this.telUUID}> ?uuid} 
             ?uri <${this.dcTitle}> ?title .
         }`
-    const spOut = await this.runQuery<DiagramQuerySolution>(query)
-    const statements = spOut.results.bindings
-    const diagrams: Diagram[] = []
-    statements.forEach((statement: DiagramQuerySolution) => {
-      const diag = new Diagram(this, undefined, undefined, undefined, statement)
-      diagrams.push(diag)
-    })
+  const spOut = await this.runQuery<DiagramQuerySolution>(query)
+  const statements = spOut.results.bindings
+  const diagrams: Diagram[] = []
+  statements.forEach((statement: DiagramQuerySolution) => {
+    const diag = new Diagram(this, undefined, undefined, undefined, statement)
+    diagrams.push(diag)
+  })
 
-    return diagrams
-  }
+  return diagrams
+}
 
   /**
    * @method getDiagram 
@@ -1170,7 +1213,7 @@ export class OntologyService extends RdfService {
   */
   async getDiagram(uri: LongURI) {
 
-    const query = `
+  const query = `
         SELECT ?uri ?_type ?uuid ?title  WHERE {
             BIND(<${uri}> as ?uri)
             BIND(<${this.telDiagram}> as ?_type)
@@ -1179,23 +1222,23 @@ export class OntologyService extends RdfService {
             OPTIONAL {<${uri}> <${this.dcTitle}> ?title } 
         }`
 
-    const spOut = await this.runQuery<DiagramQuerySolution>(query)
-    const statements = spOut.results.bindings
+  const spOut = await this.runQuery<DiagramQuerySolution>(query)
+  const statements = spOut.results.bindings
 
-    if (statements.length > 1) {
-      this.warn(`More than one diagram found from getDiagram query with provided URI: ${uri}`)
+  if (statements.length > 1) {
+    this.warn(`More than one diagram found from getDiagram query with provided URI: ${uri}`)
+    return undefined
+  }
+  else {
+    if (statements.length < 1) {
+      this.warn(`No diagram with URI ${uri} found from getDiagram query`)
       return undefined
     }
     else {
-      if (statements.length < 1) {
-        this.warn(`No diagram with URI ${uri} found from getDiagram query`)
-        return undefined
-      }
-      else {
-        return new Diagram(this, undefined, undefined, undefined, statements[0])
-      }
+      return new Diagram(this, undefined, undefined, undefined, statements[0])
     }
   }
+}
 
   /**
    * @method getHierarchy 
@@ -1206,8 +1249,8 @@ export class OntologyService extends RdfService {
    * @param defaultCls the default ontologyservice class to use if the correct one cannot be found
    * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
   */
-  protected async getHierarchy(filterString = "rdfs:Class, owl:Class", subRel = "rdfs:subClassOf"): Promise<HierarchyNode[]> {
-    const query: string = `SELECT 
+  protected async getHierarchy(filterString = "rdfs:Class, owl:Class", subRel = "rdfs:subClassOf"): Promise < HierarchyNode[] > {
+  const query: string = `SELECT 
     ?uri 
     (group_concat(DISTINCT ?type) as ?_type) 
     (group_concat(DISTINCT ?sub) as ?subs) 
@@ -1227,70 +1270,70 @@ export class OntologyService extends RdfService {
     const output: HierarchyNode[] = []
 
     let defaultCls = undefined
-    if (subRel == "rdfs:subPropertyOf") {
-      defaultCls = RDFProperty
+    if(subRel == "rdfs:subPropertyOf") {
+  defaultCls = RDFProperty
+}
+    else {
+  defaultCls = RDFSClass
+}
+
+
+if (spOut.results?.bindings.length > 0) {
+  spOut.results.bindings.forEach((statement: HierarchyQuerySolution) => {
+    let cls = defaultCls
+    if (statement._type) {
+      const types = statement._type.value.split(" ")
+      cls = this.lookupClass(types[0], defaultCls)
+    }
+    const item = new cls(this, undefined, undefined, statement)
+    const node: HierarchyNode = { item: item, id: statement.uri.value, label: '', rdfsLabels: [], children: [], parents: [], style: undefined, expanded: false }
+    if (statement.labels) {
+      node.rdfsLabels = statement.labels.value.split("||")
+    }
+    if (statement.styles) {
+      const stArray = statement.styles.value.split("||")
+      try {
+        node.style = JSON.parse(decodeURIComponent(stArray[0]))
+      }
+      catch {
+        this.warn(`Unable to decode style for URI ${statement.uri.value}`)
+      }
+
+    }
+    if (!(statement.supers)) {
+      //we've found an item at the top of its hierarchy, so add it to the output array
+      output.push(node)
+    }
+    dict[statement.uri.value] = node
+
+  });
+  //second pass - now add all the subs and supers for each item
+  spOut.results.bindings.forEach((statement: HierarchyQuerySolution) => {
+    const node: HierarchyNode = dict[statement.uri.value]
+    if (node.rdfsLabels.length > 0) {
+      node.label = node.rdfsLabels[0]
     }
     else {
-      defaultCls = RDFSClass
+      node.label = this.shorten(statement.uri.value)
     }
-
-
-    if (spOut.results?.bindings.length > 0) {
-      spOut.results.bindings.forEach((statement: HierarchyQuerySolution) => {
-        let cls = defaultCls
-        if (statement._type) {
-          const types = statement._type.value.split(" ")
-          cls = this.lookupClass(types[0], defaultCls)
-        }
-        const item = new cls(this, undefined, undefined, statement)
-        const node: HierarchyNode = { item: item, id: statement.uri.value, label: '', rdfsLabels: [], children: [], parents: [], style: undefined, expanded: false }
-        if (statement.labels) {
-          node.rdfsLabels = statement.labels.value.split("||")
-        }
-        if (statement.styles) {
-          const stArray = statement.styles.value.split("||")
-          try {
-            node.style = JSON.parse(decodeURIComponent(stArray[0]))
-          }
-          catch {
-            this.warn(`Unable to decode style for URI ${statement.uri.value}`)
-          }
-
-        }
-        if (!(statement.supers)) {
-          //we've found an item at the top of its hierarchy, so add it to the output array
-          output.push(node)
-        }
-        dict[statement.uri.value] = node
-
-      });
-      //second pass - now add all the subs and supers for each item
-      spOut.results.bindings.forEach((statement: HierarchyQuerySolution) => {
-        const node: HierarchyNode = dict[statement.uri.value]
-        if (node.rdfsLabels.length > 0) {
-          node.label = node.rdfsLabels[0]
-        }
-        else {
-          node.label = this.shorten(statement.uri.value)
-        }
-        if (statement.supers) {
-          const supers: string[] = statement.supers.value.split(' ')
-          supers.forEach((sup: string) => {
-            const superNode: HierarchyNode = dict[sup]
-            node.parents.push(superNode)
-          });
-        }
-        if (statement.subs) {
-          const subs: string[] = statement.subs.value.split(' ')
-          subs.forEach((sub: string) => {
-            const subNode: HierarchyNode = dict[sub]
-            node.children.push(subNode)
-          });
-        }
-
+    if (statement.supers) {
+      const supers: string[] = statement.supers.value.split(' ')
+      supers.forEach((sup: string) => {
+        const superNode: HierarchyNode = dict[sup]
+        node.parents.push(superNode)
       });
     }
-    return output
+    if (statement.subs) {
+      const subs: string[] = statement.subs.value.split(' ')
+      subs.forEach((sub: string) => {
+        const subNode: HierarchyNode = dict[sub]
+        node.children.push(subNode)
+      });
+    }
+
+  });
+}
+return output
   }
 
   /**
@@ -1299,9 +1342,9 @@ export class OntologyService extends RdfService {
    * fetches a complete hierarchy model of classes 
    * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
   */
-  async getClassHierarchy(): Promise<HierarchyNode[]> {
-    return await this.getHierarchy("rdfs:Class, owl:Class, rdfs:Datatype", "rdfs:subClassOf")
-  }
+  async getClassHierarchy(): Promise < HierarchyNode[] > {
+  return await this.getHierarchy("rdfs:Class, owl:Class, rdfs:Datatype", "rdfs:subClassOf")
+}
 
   /**
    * @method getPropertyHierarchy 
@@ -1309,9 +1352,9 @@ export class OntologyService extends RdfService {
    * fetches a complete hierarchy model of properties 
    * @returns an array of HierarchyNode objects (only the top ones are in the array, use each node's subs property to get their sub nodes)
   */
-  async getPropertyHierarchy(): Promise<HierarchyNode[]> {
-    return await this.getHierarchy("rdf:Property, owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:AsymmetricProperty, owl:DeprecatedProperty, owl:FunctionalProperty, owl:OntologyProperty, owl:InverseFunctionalProperty, owl:IrreflexiveProperty, owl:ReflexiveProperty,owl:SymmetricProperty, owl:TransitiveProperty", "rdfs:subPropertyOf")
-  }
+  async getPropertyHierarchy(): Promise < HierarchyNode[] > {
+  return await this.getHierarchy("rdf:Property, owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:AsymmetricProperty, owl:DeprecatedProperty, owl:FunctionalProperty, owl:OntologyProperty, owl:InverseFunctionalProperty, owl:IrreflexiveProperty, owl:ReflexiveProperty,owl:SymmetricProperty, owl:TransitiveProperty", "rdfs:subPropertyOf")
+}
 
 
 }

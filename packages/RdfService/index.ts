@@ -2,11 +2,29 @@
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
   */
+import { z } from "zod"
 export const emptyUriErrorMessage = "Cannot have an empty URI"
 export const emptyPredicateErrorMessage = "predicate must be provided"
 export const noColonInPrefixException = "W3C/XML prefixes must end with a : (colon) character"
 export const unknownPrefixException = "Unknown Prefix "
 export const unrecognisedIdField = "ID field is not in the results"
+
+// zod alternatives 
+export const createQueryResponseSchema = <T>(bindingsSchema: z.ZodType<T>) =>
+  z.object({
+    head: z.object({
+      vars: z.array(z.string()),
+    }),
+    results: z.object({
+      bindings: z.array(bindingsSchema), // Use the passed in schema for T
+    }),
+    boolean: z.boolean().optional(),
+  });
+
+
+
+
+
 const isEmptyString = (str: string) => !Boolean(str);
 
 export type RDFBasetype = "URI" | "LITERAL" | "BNODE";
@@ -14,6 +32,13 @@ export type RDFBasetype = "URI" | "LITERAL" | "BNODE";
 export type PrefixedURI = string;
 
 export type LongURI = string;
+
+export const SparQLResultBinding = z.object(
+  {
+    value: z.string(),
+    type: z.string(),
+  }
+)
 
 export interface SPARQLResultBinding {
   value: LongURI | string;
