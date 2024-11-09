@@ -78,7 +78,6 @@ describe("CatalogService", () => {
           "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
         ]
       `);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
     },
     60 * SEC
   );
@@ -104,9 +103,7 @@ describe("CatalogService", () => {
         TITLES.dataservice1
       );
       await cat.addOwnedService(ds1);
-      await new Promise((resolve) => setTimeout(resolve, 2000)); // 
 
-      // await new Promise(resolve => setTimeout(resolve, 1000))
       const data = await catalogService.runQuery(
         `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`
       );
@@ -127,14 +124,11 @@ describe("CatalogService", () => {
           "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
         ]
       `);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
       const ownedResources = await cat.getOwnedResources();
-      await new Promise((resolve) => setTimeout(resolve, 2000));
       expect(ownedResources.map((el) => el.uri)).toEqual([
         `http://telicent.io/data/${TITLES.dataset1}`,
         `http://telicent.io/data/${TITLES.dataservice1}`,
       ]);
-      await new Promise((resolve) => setTimeout(resolve, 5000));
     },
     60 * SEC
   );
@@ -155,22 +149,16 @@ describe("CatalogService", () => {
       
       // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
       const d1 = await DCATDataset.createAsync(catalogService, dataset1, "dataset1");
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       await cat.addOwnedDataset(d1);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       const ds1 = await DCATDataService.createAsync(
         catalogService,
         dataservice1,
         "dataservice1"
       );
-      await new Promise((resolve) => setTimeout(resolve, 1000));
       await cat.addOwnedService(ds1);
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      await new Promise((resolve) => setTimeout(resolve, 3000));
       const data = await catalogService.runQuery(
         `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`
       );
-      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       expect(formatDataAsArray(makeStatic(data.results).bindings))
         .toMatchInlineSnapshot(`

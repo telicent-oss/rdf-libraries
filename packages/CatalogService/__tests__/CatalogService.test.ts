@@ -16,10 +16,6 @@ const SEC = 1000;
 const initialTripleCount = 11;
 const initialNodeCount = 3;
 
-function delays(ms: number) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
 describe("CatalogService", () => {
   let environment: StartedDockerComposeEnvironment;
   let catalogService: CatalogService;
@@ -28,7 +24,6 @@ describe("CatalogService", () => {
     ({ catalogService, environment} = await setupContainer());
 
     await catalogService.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
-    await delays(1000);
     const cat = new DCATCatalog(catalogService, id1, "Catalog One", "2022-01-01");
     new DCATDataset(
       catalogService,
@@ -47,7 +42,6 @@ describe("CatalogService", () => {
     );
     await ds1.setPublished("2022-01-03");
     await cat.addOwnedResource(ds1);
-    await delays(3000);
   }, 60 * SEC);
 
   afterAll(async () => {
