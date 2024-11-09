@@ -19,7 +19,6 @@ describe.skip("apiFactory", () => {
     api = await setup({ hostName: "http://localhost:3030/"});
   }, 60 * SEC);
   afterAll(async () => {
-    await Promise.all(api._service.workAsync);
     await environment.down({ removeVolumes: true });
   }, 60 * SEC);
   it(

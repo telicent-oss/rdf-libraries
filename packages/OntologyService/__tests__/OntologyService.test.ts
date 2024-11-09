@@ -24,19 +24,20 @@ describe("OntologyService - Integration Test with Fuseki", () => {
     //this ends up being a big it
     const ats: boolean = await os.checkTripleStore();
     expect(ats).toBeTruthy();
-    os.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
+    await os.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
     await delays(1000);
-    const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
-    const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
-    const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
-    const g13 = new RDFSClass(os, `${testDefaultNamespace}ONT13`);
-    const g111 = new OWLClass(os, `${testDefaultNamespace}ONT111`);
-    const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);
-    const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
+    const g1 = await RDFSClass.createAsync(os, `${testDefaultNamespace}ONT1`);
+    const g11 = await RDFSClass.createAsync(os, `${testDefaultNamespace}ONT11`);
+    const g12 = await RDFSClass.createAsync(os, `${testDefaultNamespace}ONT12`);
+    const g13 = await RDFSClass.createAsync(os, `${testDefaultNamespace}ONT13`);
+    const g111 = await OWLClass.createAsync(os, `${testDefaultNamespace}ONT111`);
+    const g121 = await OWLClass.createAsync(os, `${testDefaultNamespace}ONT121`);
+    const p1 = await RDFProperty.createAsync(os, `${testDefaultNamespace}prop1`);
     const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
     const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
-    p1.addSubProperty(p2)
-    p3.addSuperProperty(p2)
+    await p1.addSubProperty(p2)
+
+    await p3.addSuperProperty(p2)
     await delays(1000);
     //after a short wait, we should now have a predictable number of items
     const triples: QueryResponse<SPOQuerySolution> = await os.runQuery<SPOQuerySolution>("SELECT * WHERE {?s ?p ?o}");

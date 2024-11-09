@@ -16,7 +16,7 @@ import {
 } from "../common";
 import { shorten } from "../../../../utils/shorten";
 
-export const tryInstantiate = ({
+export const tryInstantiate = async ({
   type,
   id,
   service,
@@ -29,7 +29,7 @@ export const tryInstantiate = ({
 }): // NOTE: TS cannot infer return type correct due to
 // reliance on constructor signature being the same
 // (DCATCatalog is different)
-DCATCatalog | DCATDataset | DCATDataService => {
+Promise<DCATCatalog | DCATDataset | DCATDataService> => {
   // console.log(
   //   'tryInstantiate',
   //   JSON.stringify(
@@ -48,13 +48,17 @@ DCATCatalog | DCATDataset | DCATDataService => {
   // );
   if (service.nodes[id]) {
     try {
-      if (type === CATALOG_URI) {
-        return new DCATCatalog(service, id);
-      } else if (type === DATASET_URI) {
-        return new DCATDataset(service, id);
-      } else if (type === SERVICE_URI) {
-        return new DCATDataService(service, id);
-      }
+      return await (
+        type === CATALOG_URI
+          ? DCATCatalog.createAsync(service, id)
+          : type === DATASET_URI
+          ? DCATDataset.createAsync(service, id)
+          : type === SERVICE_URI
+          ? DCATDataService.createAsync(service, id)
+          : (() => {
+              throw "Never here";
+            })()
+      );
     } catch (err) {
       throw err instanceof Error
         ? new HumanError(
@@ -77,13 +81,15 @@ DCATCatalog | DCATDataset | DCATDataService => {
   const title = service.interpretation.dcTitleFromTriples(id, triples, { assert: true });
   const published = service.interpretation.dcPublishedFromTriples(id, triples, { assert: true });
   
-  if (type === CATALOG_URI) {
-    return new DCATCatalog(service, id, title, published );
-  } else if (type === DATASET_URI) {
-    return new DCATDataset(service, id, title, published );
-  } else if (type === SERVICE_URI) {
-    return new DCATDataService(service, id, title, published );
-  }
-  throw TypeError(`type "${type}" is not handled`);
-
+  return await (
+    type === CATALOG_URI
+      ? DCATCatalog.createAsync(service, id, title, published)
+      : type === DATASET_URI
+      ? DCATDataset.createAsync(service, id, title, published)
+      : type === SERVICE_URI
+      ? DCATDataService.createAsync(service, id, title, published)
+      : (() => {
+          throw TypeError(`type "${type}" is not handled`);
+        })()
+  );
 };

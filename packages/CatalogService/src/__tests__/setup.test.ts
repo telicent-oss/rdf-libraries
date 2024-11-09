@@ -30,7 +30,6 @@ describe("CatalogService", () => {
   }, 60 * SEC);
 
   afterAll(async () => {
-    await Promise.all(catalogService.workAsync);
     await environment.down({ removeVolumes: true });
   }, 60 * SEC);
 
@@ -92,26 +91,20 @@ describe("CatalogService", () => {
         dataset1: "dataset1",
         dataservice1: "dataservice1",
       };
-      const cat = new DCATCatalog(catalogService, cat1, TITLES.cat1);
-      await Promise.all(cat.workAsync); // TODO remove; Just paranoid
+
+      const cat = await DCATCatalog.createAsync(catalogService, cat1, TITLES.cat1);
       expect(cat.statement).toMatchInlineSnapshot(`undefined`);
       // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
-      const d1 = new DCATDataset(catalogService, dataset1, TITLES.dataset1);
-      await Promise.all(d1.workAsync); // TODO remove; Just paranoid
+      const d1 = await DCATDataset.createAsync(catalogService, dataset1, TITLES.dataset1);
       await cat.addOwnedDataset(d1);
-      await Promise.all(d1.workAsync);
-      await Promise.all(cat.workAsync);
 
-      const ds1 = new DCATDataService(
+      const ds1 = await DCATDataService.createAsync(
         catalogService,
         dataservice1,
         TITLES.dataservice1
       );
-      await Promise.all(ds1.workAsync); // TODO remove; Just paranoid
       await cat.addOwnedService(ds1);
-      await Promise.all(cat.workAsync);
-      await Promise.all(ds1.workAsync);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000)); // 
 
       // await new Promise(resolve => setTimeout(resolve, 1000))
       const data = await catalogService.runQuery(
@@ -136,7 +129,6 @@ describe("CatalogService", () => {
       `);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       const ownedResources = await cat.getOwnedResources();
-      await Promise.all(cat.workAsync);
       await new Promise((resolve) => setTimeout(resolve, 2000));
       expect(ownedResources.map((el) => el.uri)).toEqual([
         `http://telicent.io/data/${TITLES.dataset1}`,
@@ -153,39 +145,27 @@ describe("CatalogService", () => {
   it.skip(
     "Specialised getOwned___ methods should return correct items",
     async () => {
-      const cat = new DCATCatalog(catalogService, cat1, "cat1");
-      const catChild = new DCATCatalog(
+      const cat = await DCATCatalog.createAsync(catalogService, cat1, "cat1");
+      const catChild = await DCATCatalog.createAsync(
         catalogService,
         `${testDefaultNamespace}catChild`,
         "catChild"
       );
       await cat.addOwnedCatalog(catChild);
-      await Promise.all(cat.workAsync);
-      await Promise.all(catChild.workAsync);
-
-      await Promise.all(cat.workAsync); // TODO remove; Just paranoid
+      
       // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
-      const d1 = new DCATDataset(catalogService, dataset1, "dataset1");
-      await Promise.all(d1.workAsync); // TODO remove; Just paranoid
+      const d1 = await DCATDataset.createAsync(catalogService, dataset1, "dataset1");
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await cat.addOwnedDataset(d1);
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      await Promise.all(d1.workAsync);
-      await Promise.all(cat.workAsync);
-      await Promise.all(d1.service.workAsync);
-
-      const ds1 = new DCATDataService(
+      const ds1 = await DCATDataService.createAsync(
         catalogService,
         dataservice1,
         "dataservice1"
       );
-      await Promise.all(ds1.workAsync); // TODO remove; Just paranoid
       await new Promise((resolve) => setTimeout(resolve, 1000));
       await cat.addOwnedService(ds1);
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      await Promise.all(cat.workAsync);
-      await Promise.all(ds1.workAsync);
-      await Promise.all(ds1.service.workAsync);
       await new Promise((resolve) => setTimeout(resolve, 3000));
       const data = await catalogService.runQuery(
         `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`
@@ -215,7 +195,6 @@ describe("CatalogService", () => {
       `);
 
       const ownedDatasets = await cat.getOwnedDatasets();
-      await Promise.all(cat.workAsync);
       expect(ownedDatasets.map((el) => el.uri)).toMatchInlineSnapshot(`
         [
           "http://telicent.io/data/dataset1",
@@ -223,7 +202,6 @@ describe("CatalogService", () => {
       `);
 
       const ownedDataServices = await cat.getOwnedServices();
-      await Promise.all(cat.workAsync);
       expect(ownedDataServices.map((el) => el.uri)).toMatchInlineSnapshot(`
         [
           "http://telicent.io/data/dataservice1",
@@ -231,7 +209,6 @@ describe("CatalogService", () => {
       `);
 
       const ownedCatalogs = await cat.getOwnedCatalogs();
-      await Promise.all(cat.workAsync);
       expect(ownedCatalogs.map((el) => el.uri)).toMatchInlineSnapshot(`
         [
           "http://telicent.io/data/catChild",

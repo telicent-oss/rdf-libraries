@@ -134,6 +134,7 @@ dist
 
 .nx/cache
 
+.DS_Store
 *.gitignored.*
 packages/.DS_Store
 

@@ -1,5 +1,8 @@
+import { AsyncInitializable } from './utils';
+
 export * from './schema';
 export * from './types';
+export * from './utils';
 const DEBUG = false;
 const NO_WARNINGS = globalThis?.process?.env?.NO_WARNINGS; // TODO Read from config
 /*
@@ -124,13 +127,16 @@ export type XsdDataType = "xsd:string" | //	Character strings (but not all Unico
 
 
 //A wrapper class for an RDFS Resource - i.e. typed node in the graph  
-export class RDFSResource {
+export class RDFSResource extends AsyncInitializable {
   uri: string;
   types: string[];
   statement?: TypedNodeQuerySolution;
+  public constructorAsync:Promise<unknown>[] = []
   protected service: RdfService;
+  
   // TODO makes args and option object
   public constructor(service: RdfService, uri? : string, type:string = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
+    super();
     this.uri = ''
     this.types = []
     this.service = service
@@ -181,7 +187,7 @@ export class RDFSResource {
       if ((type)&& !(this.types.includes(type))) {
         this.types.push(type)
         
-        this.service.instantiate(type, this.uri)
+        this.constructorAsync.push(this.service.instantiate(type, this.uri));
       }
       else {
         throw new Error("An RDFResource requires a type, or a statement PropertyQuery object")
@@ -189,6 +195,12 @@ export class RDFSResource {
     }
     this.service.nodes[this.uri] = this
     
+  }
+  
+
+  public async getAllConstructorAsync() {
+    await Promise.all(this.constructorAsync);
+    return;
   }
   /**
    * @method addLiteral
@@ -403,17 +415,20 @@ export class RDFSResource {
       const query = `SELECT DISTINCT ?uri ?_type ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?_type} FILTER isIRI(?uri) }`
       const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query)
       if (!spOut?.results?.bindings) return {}
-      const output:RelatedResources = {}
-      spOut.results.bindings.forEach((statement:RelatedNodeQuerySolution) => {
-        const related = new RDFSResource(this.service,undefined,undefined,statement)
-        if (!(statement.predicate.value in output)) {
-          output[statement.predicate.value] = []
-        }
-        if (output[statement.predicate.value].indexOf(related) < 0) {
-          output[statement.predicate.value].push(related)
-        } 
-        
-      })
+      const output: RelatedResources = {};
+      await Promise.all( 
+        spOut.results.bindings.map(
+          async (statement: RelatedNodeQuerySolution) => {
+            const related = await RDFSResource.createAsync(this.service, undefined, undefined, statement);
+            if (!(statement.predicate.value in output)) {
+              output[statement.predicate.value] = [];
+            }
+            if (output[statement.predicate.value].indexOf(related) < 0) {
+              output[statement.predicate.value].push(related);
+            }
+          }
+        )
+      );
       return output
     }
 
@@ -726,8 +741,8 @@ export class RDFSResource {
 
 
 export type RDFSResourceDescendant = new (...args:any[]) => RDFSResource;
-export class RdfService {
-  public workAsync:Promise<unknown>[] = [];
+export class RdfService extends AsyncInitializable {
+  public constructorAsync:Promise<unknown>[] = [];
   /**
     * A fallback security label if none is specified
     */
@@ -787,6 +802,7 @@ export class RdfService {
    * @param {boolean} [write=false] - set to true if you want to update the data, default is false (read only)
   */
   constructor(triplestoreUri = "http://localhost:3030/", dataset = "ds", defaultNamespace = "http://telicent.io/data/", defaultSecurityLabel = "", write=false) {
+    super();
     this.defaultSecurityLabel = defaultSecurityLabel
     this.dataset = dataset
     this.triplestoreUri = triplestoreUri
@@ -832,6 +848,11 @@ export class RdfService {
     this.classLookup = {}
     this.classLookup[this.rdfsResource] = RDFSResource
     this.nodes = {}
+  }
+
+  async getAllConstructorAsync() {
+    await Promise.all(this.constructorAsync);
+    return;
   }
 
   inCache(uri:string) {
@@ -963,7 +984,7 @@ export class RdfService {
     if (isEmptyString(query))
       throw Error("runQuery: A valid query is required");
 
-    const responseAsync = fetch(this.queryEndpoint, {
+    const response = await fetch(this.queryEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/sparql-query',
@@ -971,14 +992,11 @@ export class RdfService {
       },
       body: this.sparqlPrefixes + query
     })
-    this.workAsync.push(responseAsync);
-    const response = await responseAsync;
+    
     if (!response.ok) {
       throw response.statusText;
     }
-    const jsonAsync = response.json();
-    this.workAsync.push(jsonAsync);
-    const results: QueryResponse<T> = await jsonAsync;
+    const results: QueryResponse<T> = await response.json();
     
     DEBUG && console.log('SPARQL');
     DEBUG && console.log(this.sparqlPrefixes + query);
@@ -1044,9 +1062,7 @@ export class RdfService {
       if (!response.ok) {
         throw response.statusText;
       }
-      const textAsync = response.text()
-      this.workAsync.push(textAsync);
-      return await textAsync;
+      return await response.text();
     } else {
       console.warn("service is in read only node, updates are not permitted");
       return "service is in read only node, updates are not permitted";
@@ -1186,13 +1202,13 @@ export class RdfService {
    * @param securityLabel - the security label to apply to new data. If none provided, the default will be used. 
    * @returns  the resulting instance's URI as a string
   */
-  instantiate(cls: string, uri?: string, securityLabel?: string):string {
+  async instantiate(cls: string, uri?: string, securityLabel?: string):Promise<string> {
     if (isEmptyString(cls)) throw Error("Cannot have an empty cls");
 
     if (!uri) {
       uri = this.mintUri()
     }
-    this.workAsync.push(this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel));
+    await this.insertTriple(uri, this.rdfType, cls, undefined, securityLabel);
     return uri
   }
 }

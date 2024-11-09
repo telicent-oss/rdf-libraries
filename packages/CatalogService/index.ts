@@ -36,7 +36,7 @@ export interface DcatResourceFindSolution extends DcatResourceQuerySolution {
 
 
 export type RankWrapper = {
-    score?: Number,
+    score?: number,
     item: DCATResource
 }
 
@@ -54,13 +54,7 @@ export class DCATResource extends RDFSResource {
      * @param {DCATCatalog} catalog - optional catalog this resource belongs to
     */
     service: CatalogService
-    // TODO remove workAsync
-    // HOW 
-    //  1. Write full test coverage
-    //  2. Add https://typescript-eslint.io/rules/no-floating-promises/
-    //  3. Refactor to always return async work (can this be enforced?)
-    // WHEN https://telicent.atlassian.net/browse/TELFE-636
-    public workAsync: Promise<unknown>[] = [];
+    // Promises created in service constructor
     // TODO Great candidate for well-typed params object
     constructor(
         service: CatalogService,
@@ -104,15 +98,16 @@ export class DCATResource extends RDFSResource {
             }
 
             if ((title) && (title != "")) {
-              this.setTitle(title)
+              this.constructorAsync.push(this.setTitle(title));
             }
             
             if ((published) && (published != "")) {
-              
-              this.setPublished(published)
+              this.constructorAsync.push(this.setPublished(published));
             }
             if ((catalog) && (type == "http://www.w3.org/ns/dcat#Resource")) {
+              this.constructorAsync.push(
                 this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri)
+              );
             }
         }
     }
@@ -131,10 +126,12 @@ export class DCATDataset extends DCATResource {
   ) {
     super(service, uri, title, published, type, catalog, statement);
     if (catalog) {
-      this.service.insertTriple(
-        catalog.uri,
-        `http://www.w3.org/ns/dcat#Dataset`,
-        this.uri
+      this.constructorAsync.push(
+        this.service.insertTriple(
+          catalog.uri,
+          `http://www.w3.org/ns/dcat#Dataset`,
+          this.uri
+        )
       );
     }
   }
@@ -159,46 +156,40 @@ export class DCATCatalog extends DCATDataset {
             // WHY: so dev can choose when to start async operations
             //  const catalog = new DCATCatalog(..)
             //  catalog.loadAsync()
-            this.addOwnedCatalog(catalog);
+            const addOwnedCatalogAsync = this.addOwnedCatalog(catalog);
+            if (addOwnedCatalogAsync !== undefined) {
+              this.constructorAsync.push(addOwnedCatalogAsync);
+            }
         }
     }
 
     addOwnedCatalog(catalog:DCATCatalog) {
         if (catalog) {
-            const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Catalog`,catalog.uri);
-            this.workAsync.push(work)
-            return work;
+            return this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Catalog`,catalog.uri);
         }
     }
     addOwnedDataset(dataset:DCATDataset) {
         if (dataset) {
-            const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Dataset`,dataset.uri);
-            this.workAsync.push(work);
-            return work;
+            return this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Dataset`,dataset.uri);
         }
     }
     addOwnedService(service:DCATDataService) {
         if (service) {
-            const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#DataService`,service.uri);
-            this.workAsync.push(work);
-            return work;
+            return this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#DataService`,service.uri);
         }
     }
 
     addOwnedResource(resource:DCATResource) {
       switch(resource.className) {
         case 'DCATCatalog':
-          this.addOwnedCatalog(resource as DCATCatalog);
-          break;
+          return this.addOwnedCatalog(resource as DCATCatalog);
         case 'DCATDataset':
-          this.addOwnedDataset(resource as DCATDataset);
-          break;
+          return this.addOwnedDataset(resource as DCATDataset);
         case 'DCATDataService':
-          this.addOwnedService(resource as DCATDataService);
-          break;
+          return this.addOwnedService(resource as DCATDataService);
         default:
           console.warn('addOwnedResource(): no match', resource.className, Object.prototype.toString.call(resource));
-          this.workAsync.push(this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri));
+          return this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri);
         }
     }
 
@@ -234,7 +225,7 @@ export class DCATDataService extends DCATCatalog {
       super(service, uri, title, published, type, catalog, statement);
   
       if (catalog) {
-        this.workAsync.push(
+        this.constructorAsync.push(
           this.service.insertTriple(
             catalog.uri,
           //   `http://www.w3.org/ns/dcat#Service`,
@@ -307,7 +298,7 @@ export class CatalogService extends RdfService {
 
   }
 
-
+  
 
   compareScores(a: RankWrapper, b: RankWrapper) {
         if ((!a.score) || (!b.score)) {
@@ -437,9 +428,7 @@ export class CatalogService extends RdfService {
    * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
    */
   async getAllDatasets(): Promise<DCATDataset[]> {
-    const work = this.getAllDCATResources("dcat:Dataset");
-    this.workAsync.push(work);
-    return work;
+    return this.getAllDCATResources("dcat:Dataset");
   }
 
   /**
@@ -447,9 +436,9 @@ export class CatalogService extends RdfService {
    * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
    */
   async getDataServices(): Promise<DCATDataService[]> {
-    const work = this.getAllDCATResources("dcat:DataService");
-    this.workAsync.push(work);
-    return (work as unknown) as Promise<DCATDataService[]>; // !CRITICAL verify
+    return this.getAllDCATResources("dcat:DataService") as unknown as Promise<
+      DCATDataService[]
+    >; // !CRITICAL validate
   }
 
   /**
@@ -457,11 +446,9 @@ export class CatalogService extends RdfService {
    * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
    */
   async getAllCatalogs(): Promise<DCATCatalog[]> {
-    const work = this.getAllDCATResources("dcat:Catalog") as Promise<
+    return this.getAllDCATResources("dcat:Catalog") as Promise<
       DCATCatalog[]
     >;
-    this.workAsync.push(work);
-    return work;
   }
 
   /**
@@ -500,7 +487,7 @@ export class CatalogService extends RdfService {
                   OPTIONAL {?uri dct:accessRights ?accessRights} 
             } GROUP BY ?uri ?title ?published ?modified ?description ?creator ?accessRights ?rights ?_type
             `
-        let results = await this.runQuery<DcatResourceFindSolution>(query)
+        const results = await this.runQuery<DcatResourceFindSolution>(query)
         return this.rankedWrap(results, matchingText)
     }
 

@@ -18,11 +18,12 @@ export const setup = async (options: {
   let catalogService = options.catalogService;
   
   if (options.hostName) {
-    catalogService = new CatalogService({
-      writeEnabled: true,
-      triplestoreUri: options.hostName,
-      dataset: "catalog",
-  });
+    catalogService = await CatalogService.createAsync({
+        writeEnabled: true,
+        triplestoreUri: options.hostName,
+        dataset: "catalog",
+      }
+    );
   }
   if (catalogService === undefined) {
     throw new Error(`Invalid params - must set hostName (${options.hostName}) or catalogService (${options.catalogService})`);

@@ -27,7 +27,7 @@ export const createMocks = async ({
     let r: DCATDataService | DCATCatalog | DCATDataset;
     switch (mock.classType) {
       case "DCATCatalog":
-        r = new DCATCatalog(
+        r = await DCATCatalog.createAsync(
           catalogService,
           mock.uri,
           mock.title,
@@ -37,7 +37,7 @@ export const createMocks = async ({
         );
         break;
       case "DCATDataService":
-        r = new DCATDataService(
+        r = await DCATDataService.createAsync(
           catalogService,
           mock.uri,
           mock.title,
@@ -47,7 +47,7 @@ export const createMocks = async ({
         );
         break;
       case "DCATDataset":
-        r = new DCATDataset(
+        r = await DCATDataset.createAsync(
           catalogService,
           mock.uri,
           mock.title,
@@ -60,8 +60,6 @@ export const createMocks = async ({
         throw "no";
     }
 
-    await Promise.all(r.workAsync);
-    await Promise.all(catalogService.workAsync);
     await r.setDescription(mock.description);
     await r.setCreator(mock.creator);
     await r.setRights(mock.rights);
@@ -69,11 +67,9 @@ export const createMocks = async ({
     await r.setModified(mock.modified);
     await r.setAccessRights(mock.accessRights);
 
-    await Promise.all(r.workAsync);
 
     if (parent?.addOwnedResource) {
-      parent.addOwnedResource(r);
-      await Promise.all(parent.workAsync);
+      await parent.addOwnedResource(r);
     }
 
     return r;
@@ -87,7 +83,7 @@ export const createMocks = async ({
     published: "2022-01-01",
   })) as DCATCatalog;
 
-  let catalog1_1: DCATCatalog | undefined =
+  const catalog1_1: DCATCatalog | undefined =
     mockSet === MockSet.COMPLEX
       ? ((await createResource({
           mock: MOCK.catalog1_1,
@@ -127,11 +123,9 @@ export const createMocks = async ({
     });
   }
 
-  let catalog2: DCATCatalog | undefined;
-
   if (mockSet === MockSet.COMPLEX) {
-    catalog2 = (await createResource({
+    await createResource({
       mock: MOCK.catalog2,
-    })) as DCATCatalog;
+    }) as DCATCatalog;
   }
 };

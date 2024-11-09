@@ -27,10 +27,10 @@ describe("CatalogService", () => {
   beforeAll(async () => {
     ({ catalogService, environment} = await setupContainer());
 
-    catalogService.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
+    await catalogService.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
     await delays(1000);
     const cat = new DCATCatalog(catalogService, id1, "Catalog One", "2022-01-01");
-    const d1 = new DCATDataset(
+    new DCATDataset(
       catalogService,
       id2,
       "Dataset One",
@@ -45,20 +45,19 @@ describe("CatalogService", () => {
       undefined,
       undefined
     );
-    ds1.setPublished("2022-01-03");
-    cat.addOwnedResource(ds1);
+    await ds1.setPublished("2022-01-03");
+    await cat.addOwnedResource(ds1);
     await delays(3000);
   }, 60 * SEC);
 
   afterAll(async () => {
-    await Promise.all(catalogService.workAsync);
     await environment.down({ removeVolumes: true });
   }, 60 * SEC);
 
   it(
     "should be running properly and connected to a triplestore",
     async () => {
-      let ats: boolean = await catalogService.checkTripleStore();
+      const ats: boolean = await catalogService.checkTripleStore();
       expect(ats).toBeTruthy();
     },
     60 * SEC
@@ -78,9 +77,10 @@ describe("CatalogService", () => {
   it(
     "Should find catalog-owned items",
     async () => {
-      const cat = new DCATCatalog(catalogService, id1);
-      const d1 = new DCATDataset(catalogService, id2);
-      const ds1 = new DCATDataService(catalogService, id3);
+      const cat = await DCATCatalog.createAsync(catalogService, id1);
+      const d1 = await DCATDataset.createAsync(catalogService, id2);
+      const ds1 = await DCATDataService.createAsync(catalogService, id3);
+      
       const ownedResources = await cat.getOwnedResources();
       expect(ownedResources.length).toEqual(2);
       const objs: DCATResource[] = [];

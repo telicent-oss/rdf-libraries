@@ -5,9 +5,9 @@
   * @author Ian Bailey
   */
 
-import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "../RdfService";
+import  { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType } from "@telicent-oss/RdfService";
 
-export {RDFSResource} from "../RdfService"
+export {RDFSResource} from "@telicent-oss/RdfService"
 
 
 export interface InheritedDomainQuerySolution extends SPARQLQuerySolution {
@@ -118,29 +118,33 @@ export class Diagram extends RDFSResource {
       if (!uuid) {
         uuid = crypto.randomUUID()
       }
-      this.setUUID(uuid)
+      this.constructorAsync.push(this.setUUID(uuid));
       if (!uri) {
         uri = this.service.mintUri()
       }
       if (title) {
-        this.setTitle(title)
+        this.constructorAsync.push(this.setTitle(title))
       }
     } 
   }
 
   async setUUID(uuid:string, securityLabel?:string) {
-    this.addLiteral(this.service.telUUID,uuid,securityLabel,"xsd:string",true)
+    return this.addLiteral(this.service.telUUID,uuid,securityLabel,"xsd:string",true)
   }
 
   async getDiagramElements() : Promise<DiagramElement[]> {
     const query = `SELECT `
     const spOut = await this.service.runQuery<DiagramElementQuerySolution>(query)
-    const elems:DiagramElement[] = []
-    spOut.results.bindings.forEach((statement:DiagramElementQuerySolution) => {
-     // const style:Style = JSON.parse(decodeURIComponent(statement.style.value))
-      elems.push(new DiagramElement(this.service,undefined,undefined,statement))
-    })
-    return elems
+    const elemPromises = spOut.results.bindings.map(
+      async (statement: DiagramElementQuerySolution) =>
+        DiagramElement.createAsync(
+          this.service,
+          undefined,
+          undefined,
+          statement
+        )
+    );
+    return await Promise.all(elemPromises);
   }
 
  // { uri: uri, uuid: '', title: '', diagramElements: {}, diagramRelationships: {} }
@@ -198,12 +202,12 @@ export class RDFProperty extends RDFSResource {
     let uri:string = ''
     if (typeof subProperty === "string") {
       uri = subProperty
-      this.service.insertTriple(uri, this.service.rdfsSubPropertyOf, this.uri)
+      await this.service.insertTriple(uri, this.service.rdfsSubPropertyOf, this.uri)
       const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
-      return new RDFProperty(this.service,undefined,undefined,statement)
+      return await RDFProperty.createAsync(this.service,undefined,undefined,statement);
     } else {
       uri = subProperty.uri
-      this.service.insertTriple(uri, this.service.rdfsSubPropertyOf, this.uri)
+      await this.service.insertTriple(uri, this.service.rdfsSubPropertyOf, this.uri)
       return subProperty
     }
     
@@ -220,12 +224,12 @@ export class RDFProperty extends RDFSResource {
     let uri:string = ''
     if (typeof superProperty === "string") {
       uri = superProperty
-      this.service.insertTriple(this.uri, this.service.rdfsSubPropertyOf,uri)
+      await this.service.insertTriple(this.uri, this.service.rdfsSubPropertyOf,uri)
       const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
-      return new RDFProperty(this.service,undefined,undefined,statement)
+      return await RDFProperty.createAsync(this.service, undefined, undefined, statement);
     } else {
       uri = superProperty.uri
-      this.service.insertTriple(this.uri, this.service.rdfsSubPropertyOf, uri)
+      await this.service.insertTriple(this.uri, this.service.rdfsSubPropertyOf, uri)
       return superProperty
     }
   }
@@ -299,9 +303,12 @@ export class OWLDatatypeProperty extends RDFProperty {
   }
 }
 
-
 //A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
+
 export class RDFSClass extends RDFSResource {
+  createAsync() {
+
+  }
   /**
    * @method constructor
    * @remarks
@@ -324,11 +331,12 @@ export class RDFSClass extends RDFSResource {
     else
     {
       if (superClass) {
-        this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, superClass.uri)
+        this.constructorAsync.push(
+          this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, superClass.uri)
+        );
       }
     }     
   }
-
   /**
    * @method getSubClasses
    * @remarks
@@ -698,14 +706,11 @@ export class OntologyService extends RdfService {
 
     const statements = spOut.results.bindings
 
-    const diagrams:Diagram[] = []
+    const diagrams = statements.map((statement: DiagramQuerySolution) =>
+      Diagram.createAsync(this, undefined, undefined, undefined, statement)
+    );
 
-    statements.forEach((statement:DiagramQuerySolution) => {
-      const diag = new Diagram(this,undefined,undefined,undefined,statement)
-      diagrams.push(diag)
-    })
-
-    return diagrams
+    return await Promise.all(diagrams);
   }
 
   /**
@@ -741,7 +746,7 @@ export class OntologyService extends RdfService {
       }
       else
       {
-        return new Diagram(this,undefined,undefined,undefined,statements[0])
+        return await Diagram.createAsync(this, undefined, undefined, undefined, statements[0]);
       }
     }
   }
@@ -764,13 +769,12 @@ export class OntologyService extends RdfService {
 
     const spOut = await this.runQuery<TypedNodeQuerySolution>(query)
     const statements = spOut.results.bindings;
-    const properties:RDFProperty[] = []
-    statements.forEach((statement:TypedNodeQuerySolution) => {
-      const prop = new RDFProperty(this,undefined,undefined,statement)
-      properties.push(prop)
-    })
+    const rdfPropertyPromises = statements.map(
+      (statement: TypedNodeQuerySolution) =>
+        RDFProperty.createAsync(this, undefined, undefined, statement)
+    );
 
-    return properties
+    return await Promise.all(rdfPropertyPromises);
   }
 }
 

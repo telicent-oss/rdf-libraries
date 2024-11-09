@@ -33,7 +33,6 @@ describe("transformRdfToTree: SIMPLE", () => {
     }
   }, 60 * SEC);
   afterAll(async () => {
-    await Promise.all(api._service.workAsync);
     await environment.down({ removeVolumes: true });
   }, 60 * SEC);
   it(
@@ -108,7 +107,6 @@ describe("transformRdfToTree: COMPLEX", () => {
     api = await setup({ catalogService, mockSet: MockSet.COMPLEX });
   }, 60 * SEC);
   afterAll(async () => {
-    await Promise.all(api._service.workAsync);
     await environment.down({ removeVolumes: true });
   }, 50 * SEC);
 
