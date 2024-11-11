@@ -4,7 +4,6 @@ export * from './schema';
 export * from './types';
 export * from './utils';
 const DEBUG = false;
-const NO_WARNINGS = globalThis?.process?.env?.NO_WARNINGS; // TODO Read from config
 /*
   * @module RdfService @remarks 
   * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
@@ -280,7 +279,7 @@ export class RDFSResource extends AsyncInitializable {
   */   
   async setTitle(title:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
     if (isEmptyString(title)) throw new Error("invalid title string")
-    return this.addLiteral(this.service.dcTitle,title,securityLabel,xsdDatatype,deleteAllPrevious)
+    return await this.addLiteral(this.service.dcTitle,title,securityLabel,xsdDatatype,deleteAllPrevious)
   }
   /**
    * @method setDescription 
@@ -741,7 +740,11 @@ export class RDFSResource extends AsyncInitializable {
 
 
 export type RDFSResourceDescendant = new (...args:any[]) => RDFSResource;
+export type RDFServiceConfig = Partial<{
+  NO_WARNINGS: boolean;
+}>
 export class RdfService extends AsyncInitializable {
+  public config:RDFServiceConfig;
   public constructorAsync:Promise<unknown>[] = [];
   /**
     * A fallback security label if none is specified
@@ -801,8 +804,16 @@ export class RdfService extends AsyncInitializable {
    * @param {string} [defaultSecurityLabel=""] - the security label to apply to data being created in the triplestore (only works in Telicent CORE stack)
    * @param {boolean} [write=false] - set to true if you want to update the data, default is false (read only)
   */
-  constructor(triplestoreUri = "http://localhost:3030/", dataset = "ds", defaultNamespace = "http://telicent.io/data/", defaultSecurityLabel = "", write=false) {
+  constructor(
+    triplestoreUri = "http://localhost:3030/", 
+    dataset = "ds", 
+    defaultNamespace = "http://telicent.io/data/", 
+    defaultSecurityLabel = "", 
+    write=false, 
+    config: { NO_WARNINGS?: boolean } = {}
+  ) {
     super();
+    this.config = config;
     this.defaultSecurityLabel = defaultSecurityLabel
     this.dataset = dataset
     this.triplestoreUri = triplestoreUri
@@ -1041,7 +1052,7 @@ export class RdfService extends AsyncInitializable {
       const sl = securityLabel ?? this.defaultSecurityLabel;
 
       if (isEmptyString(sl)) {
-        if (!NO_WARNINGS) {
+        if (!this.config?.NO_WARNINGS) {
           console.warn("Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible")
         }
       }

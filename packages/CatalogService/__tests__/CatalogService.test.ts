@@ -15,17 +15,19 @@ const id3 = `${testDefaultNamespace}dataservice1`;
 const SEC = 1000;
 const initialTripleCount = 11;
 const initialNodeCount = 3;
+const triplestoreUri = "http://localhost:3030/";
+const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true }};
 
 describe("CatalogService", () => {
   let environment: StartedDockerComposeEnvironment;
   let catalogService: CatalogService;
 
   beforeAll(async () => {
-    ({ catalogService, environment} = await setupContainer());
+    ({ catalogService, environment} = await setupContainer(catalogServiceOptions));
 
     await catalogService.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
-    const cat = new DCATCatalog(catalogService, id1, "Catalog One", "2022-01-01");
-    new DCATDataset(
+    const cat = await DCATCatalog.createAsync(catalogService, id1, "Catalog One", "2022-01-01");
+    await DCATDataset.createAsync(
       catalogService,
       id2,
       "Dataset One",
@@ -33,7 +35,7 @@ describe("CatalogService", () => {
       undefined,
       cat
     );
-    const ds1 = new DCATDataService(
+    const ds1 = await DCATDataService.createAsync(
       catalogService,
       id3,
       "Data Service One",
@@ -42,6 +44,11 @@ describe("CatalogService", () => {
     );
     await ds1.setPublished("2022-01-03");
     await cat.addOwnedResource(ds1);
+    /**
+     * Required when running test from scratch (restarting while watchAll=true seems fine)
+     * See https://telicent.atlassian.net/browse/TELFE-788
+     */
+    await new Promise((resolve)=> setTimeout(resolve, 2000));
   }, 60 * SEC);
 
   afterAll(async () => {
@@ -90,9 +97,9 @@ describe("CatalogService", () => {
   it(
     "Specialised getowned methods should return correct items",
     async () => {
-      const cat = new DCATCatalog(catalogService, id1);
-      const d1 = new DCATDataset(catalogService, id2);
-      const ds1 = new DCATDataService(catalogService, id3);
+      const cat = await DCATCatalog.createAsync(catalogService, id1);
+      const d1 = await DCATDataset.createAsync(catalogService, id2);
+      const ds1 = await DCATDataService.createAsync(catalogService, id3);
       const ownedDatasets = await cat.getOwnedDatasets();
       expect(ownedDatasets.length).toEqual(1);
       expect(ownedDatasets[0] === d1).toBeTruthy();
@@ -106,11 +113,11 @@ describe("CatalogService", () => {
   it(
     `it should set titles properly`,
     async () => {
-      const cat = new DCATCatalog(catalogService, id1);
+      const cat = await DCATCatalog.createAsync(catalogService, id1);
       const catTitle = await cat.getDcTitle();
-      const d1 = new DCATDataset(catalogService, id2);
+      const d1 = await DCATDataset.createAsync(catalogService, id2);
       const d1Title = await d1.getDcTitle();
-      const ds1 = new DCATDataService(catalogService, id3);
+      const ds1 = await DCATDataService.createAsync(catalogService, id3);
       const ds1Title = await ds1.getDcTitle();
       expect(catTitle.length).toEqual(1);
       expect(catTitle[0]).toEqual("Catalog One");
@@ -125,11 +132,11 @@ describe("CatalogService", () => {
   it(
     `it should set published dates properly`,
     async () => {
-      const cat = new DCATCatalog(catalogService, id1);
+      const cat = await DCATCatalog.createAsync(catalogService, id1);
       const catPub = await cat.getDcPublished();
-      const d1 = new DCATDataset(catalogService, id2);
+      const d1 = await DCATDataset.createAsync(catalogService, id2);
       const d1Pub = await d1.getDcPublished();
-      const ds1 = new DCATDataService(catalogService, id3);
+      const ds1 = await DCATDataService.createAsync(catalogService, id3);
       const ds1Pub = await ds1.getDcPublished();
       expect(catPub.length).toEqual(1);
       expect(catPub[0]).toEqual("2022-01-01");

@@ -1,15 +1,18 @@
+import { RDFServiceConfig } from "@telicent-oss/RdfService";
+import { createACLEDMock } from "./createACLEDMock";
 import { makeStatic } from "./__tests__/utils/makeStatic";
 import { apiFactory } from "./apiFactory/apiFactory";
 export { apiFactory, type Api } from "./apiFactory/apiFactory";
 import {
   CatalogService,
+  formatDataAsArray,
 } from "../index";
 import { DEBUG, MOCK, MockSet } from "./setup/constants";
 import { createMocks } from "./createMocks";
-import { createACLEDMock } from "./createACLEDMock";
 
 export const setup = async (options: {
-  hostName?: string;
+  config: RDFServiceConfig
+  triplestoreUri?: string;
   mockSet?: MockSet;
   catalogService?: CatalogService;
 }) => {
@@ -17,16 +20,21 @@ export const setup = async (options: {
   
   let catalogService = options.catalogService;
   
-  if (options.hostName) {
+  if (options.triplestoreUri && catalogService === undefined) {
+    /**
+     * WARNING instantiation may be stateful, and required to reset
+     * See https://telicent.atlassian.net/browse/TELFE-787
+     */
     catalogService = await CatalogService.createAsync({
         writeEnabled: true,
-        triplestoreUri: options.hostName,
+        triplestoreUri: options.triplestoreUri,
         dataset: "catalog",
+        config: options.config
       }
     );
   }
   if (catalogService === undefined) {
-    throw new Error(`Invalid params - must set hostName (${options.hostName}) or catalogService (${options.catalogService})`);
+    throw new Error(`Invalid params - must set hostName (${options.triplestoreUri}) or catalogService (${options.catalogService})`);
   }
   
   if (!(await catalogService.checkTripleStore())) {
@@ -39,9 +47,8 @@ export const setup = async (options: {
     await createMocks({ mockSet: options.mockSet, catalogService })
   }
 
-  const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
-  const data = await catalogService.runQuery(query);
-  const dataFormatted = JSON.stringify(makeStatic(data.results), null, 2)
+  const data = await catalogService.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`);
+  const dataFormatted = formatDataAsArray(makeStatic(data.results).bindings)
   DEBUG && console.info(dataFormatted);
   return apiFactory(catalogService, MOCK);
 };

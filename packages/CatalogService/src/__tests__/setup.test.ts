@@ -15,18 +15,19 @@ import { SEC } from "../constants";
 
 // QUESTION Why does order of result change when I incr. number?
 const testDefaultNamespace = "http://telicent.io/data/";
-const cat1 = `${testDefaultNamespace}cat1`;
-const dataset1 = `${testDefaultNamespace}dataset1`;
-const dataservice1 = `${testDefaultNamespace}dataservice1`;
-
+const cat1Uri = `${testDefaultNamespace}cat1`;
+const dataset1Uri = `${testDefaultNamespace}dataset1`;
+const dataservice1Uri = `${testDefaultNamespace}dataservice1`;
+const triplestoreUri = "http://localhost:3030/";
 const initialTripleCount = 11;
+const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true }};
 
 describe("CatalogService", () => {
   let environment: StartedDockerComposeEnvironment;
   let catalogService: CatalogService;
 
   beforeAll(async () => {
-    ({ catalogService, environment } = await setupContainer());
+    ({ catalogService, environment } = await setupContainer(catalogServiceOptions));
   }, 60 * SEC);
 
   afterAll(async () => {
@@ -40,9 +41,15 @@ describe("CatalogService", () => {
   it(
     `setup() should have added the expected amount of triples: ${initialTripleCount}`,
     async () => {
-      const api = await setup({
-        hostName: "http://localhost:3030/",
+      
+      await setup({
+        ...catalogServiceOptions,
         mockSet: MockSet.SIMPLE,
+        /**
+         * WARNING Re-using the same service causes problems. Unsure why
+         * See https://telicent.atlassian.net/browse/TELFE-787
+         */
+        // catalogService,
       });
       const query = `SELECT ?s ?p ?o WHERE { ?s ?p ?o }`;
       const data = await catalogService.runQuery(query);
@@ -91,17 +98,27 @@ describe("CatalogService", () => {
         dataservice1: "dataservice1",
       };
 
-      const cat = await DCATCatalog.createAsync(catalogService, cat1, TITLES.cat1);
+      const cat = await DCATCatalog.createAsync(
+        catalogService,
+        cat1Uri,
+        TITLES.cat1
+      );
       expect(cat.statement).toMatchInlineSnapshot(`undefined`);
       // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
-      const d1 = await DCATDataset.createAsync(catalogService, dataset1, TITLES.dataset1);
+      const d1 = await DCATDataset.createAsync(
+        catalogService,
+        dataset1Uri,
+        TITLES.dataset1
+      );
       await cat.addOwnedDataset(d1);
 
       const ds1 = await DCATDataService.createAsync(
         catalogService,
-        dataservice1,
+        dataservice1Uri,
         TITLES.dataservice1
       );
+      // Required https://telicent.atlassian.net/browse/TELFE-788
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       await cat.addOwnedService(ds1);
 
       const data = await catalogService.runQuery(
@@ -139,20 +156,24 @@ describe("CatalogService", () => {
   it.skip(
     "Specialised getOwned___ methods should return correct items",
     async () => {
-      const cat = await DCATCatalog.createAsync(catalogService, cat1, "cat1");
+      const cat = await DCATCatalog.createAsync(catalogService, cat1Uri, "cat1");
       const catChild = await DCATCatalog.createAsync(
         catalogService,
         `${testDefaultNamespace}catChild`,
         "catChild"
       );
       await cat.addOwnedCatalog(catChild);
-      
+
       // REQUIREMENT 6.1 Search by dataResourceFilter: selected data-resources
-      const d1 = await DCATDataset.createAsync(catalogService, dataset1, "dataset1");
+      const d1 = await DCATDataset.createAsync(
+        catalogService,
+        dataset1Uri,
+        "dataset1"
+      );
       await cat.addOwnedDataset(d1);
       const ds1 = await DCATDataService.createAsync(
         catalogService,
-        dataservice1,
+        dataservice1Uri,
         "dataservice1"
       );
       await cat.addOwnedService(ds1);

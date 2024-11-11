@@ -1,4 +1,5 @@
 import "jest-fetch-mock";
+import { RDFServiceConfig } from "@telicent-oss/RdfService";
 import {
   CatalogService,
 } from "../../../index";
@@ -10,7 +11,7 @@ import { checkPort } from "./checkPort";
 
 const SEC = 1000;
 
-export async function setupContainer() {
+export async function setupContainer(options: { triplestoreUri: string; config: RDFServiceConfig  }) {
   await checkPort(3030, 60 * SEC);
   const environment = await new DockerComposeEnvironment(
     "./",
@@ -24,8 +25,9 @@ export async function setupContainer() {
 
   const catalogService = await CatalogService.createAsync({
       writeEnabled: true,
-      triplestoreUri: "http://localhost:3030/",
+      triplestoreUri:  options.triplestoreUri,
       dataset: "catalog",
+      config: options.config
     }
   );
 

@@ -14,9 +14,11 @@ import { shorten } from "../utils/shorten";
 describe.skip("apiFactory", () => {
   let environment: StartedDockerComposeEnvironment;
   let api: Api;
+  const triplestoreUri = "http://localhost:3030/";
+  const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true }};
   beforeAll(async () => {
-    ({ environment } = await setupContainer());
-    api = await setup({ hostName: "http://localhost:3030/"});
+    ({ environment } = await setupContainer(catalogServiceOptions));
+    api = await setup(catalogServiceOptions);
   }, 60 * SEC);
   afterAll(async () => {
     await environment.down({ removeVolumes: true });

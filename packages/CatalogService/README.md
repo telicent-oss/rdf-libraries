@@ -35,14 +35,14 @@ import {
 } from "@company-oss/catalogservice";
 
 // Initialize the CatalogService
-const catalogService = new CatalogService({
+const catalogService = await CatalogService.createAsync({
   writeEnabled: true,
   triplestoreUri: "http://localhost:3030",
   dataset: "dataset",
 });
 
 // Create Catalog
-const catalog1 = new DCATCatalog(
+const catalog1 = await DCATCatalog.createAsync(
   catalogService,
   "http://mysche.ma/data/catalog1",
   "Catalog",
@@ -77,14 +77,14 @@ import {
 } from "@company-oss/catalogservice";
 
 // Initialize the CatalogService
-const catalogService = new CatalogService({
+const catalogService = await CatalogService.createAsync({
   writeEnabled: true,
   triplestoreUri: "http://localhost:3030/"
   dataset: "dataset"
 });
 const DC3 = 'http://mysche.ma/data/'
 // Create Catalog 1
-const catalog1 = new DCATCatalog(
+const catalog1 = await DCATCatalog.createAsync(
   catalogService,
   `${DC3}catalog1`,
   "Catalog 1",
@@ -92,7 +92,7 @@ const catalog1 = new DCATCatalog(
 );
 
 // Create nested Catalog 1_1
-const catalog1_1 = new DCATCatalog(
+const catalog1_1 = await DCATCatalog.createAsync(
   catalogService,
   `${DC3}catalog1_1`,
   "Catalog 1_1",
@@ -101,7 +101,7 @@ const catalog1_1 = new DCATCatalog(
 catalog1.addSubCatalog(catalog1_1);
 
 // Add DataService to Catalog1_1
-const dataService1_1_1 = new DCATDataService(
+const dataService1_1_1 = await DCATDataService.createAsync(
   catalogService,
   `${DC3}catalog1_1/DataService1_1_1`,
   "Data Service 1_1_1"
@@ -109,14 +109,14 @@ const dataService1_1_1 = new DCATDataService(
 catalog1_1.addOwnedResource(dataService1_1_1);
 
 // Add DataSets to Catalog1_1
-const dataSet1_1_1 = new DCATDataset(
+const dataSet1_1_1 = await DCATDataset.createAsync(
   catalogService,
   `${DC3}catalog1_1/DataSet1_1_1`,
   "Data Set 1_1_1",
   "2023-03-01",
   catalog1_1
 );
-const dataSet1_1_2 = new DCATDataset(
+const dataSet1_1_2 = await DCATDataset.createAsync(
   catalogService,
   `${DC3}catalog1_1/DataSet1_1_2`,
   "Data Set 1_1_2",
@@ -125,7 +125,7 @@ const dataSet1_1_2 = new DCATDataset(
 );
 
 // Create Catalog 2
-const catalog2 = new DCATCatalog(
+const catalog2 = await DCATCatalog.createAsync(
   catalogService,
   `${DC3}catalog2`,
   "Catalog 2",
@@ -133,7 +133,7 @@ const catalog2 = new DCATCatalog(
 );
 
 // Add DataSet to Catalog2
-const dataSet2_1 = new DCATDataset(
+const dataSet2_1 = await DCATDataset.createAsync(
   catalogService,
   `${DC3}catalog2/DataSet2_1`,
   "Data Set 2_1",
@@ -157,7 +157,7 @@ You can find a working example in https://github.com/Telicent-oss/catalog
   <summary>Click here to see simple example</summary>
 
 ```tsx
-export const catalogService = new CatalogService({
+export const catalogService = await CatalogService.createAsync({
   writeEnabled: true,
   triplestoreUri: `${config.env.TRIPLE_STORE_URL}/`,
   dataset: "catalog",

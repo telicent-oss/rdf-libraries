@@ -19,14 +19,19 @@ const DATASET = "http://www.w3.org/ns/dcat#Dataset";
 const SERVICE = "http://www.w3.org/ns/dcat#DataService";
 const CATALOG = "http://www.w3.org/ns/dcat#Catalog";
 const CONNECTIONS = [DATASET, SERVICE, CATALOG];
+const triplestoreUri = "http://localhost:3030/";
+const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true }};
 
 describe("transformRdfToTree: SIMPLE", () => {
   let catalogService: CatalogService;
   let environment: StartedDockerComposeEnvironment;
   beforeAll(async () => {
     try {
-      ({ catalogService, environment } = await setupContainer());
-      api = await setup({ catalogService });
+      ({ catalogService, environment } = await setupContainer(catalogServiceOptions));
+      api = await setup({
+        ...catalogServiceOptions,
+        catalogService
+      });
     } catch (err) {
       console.error(err);
       throw err;
@@ -50,7 +55,7 @@ describe("transformRdfToTree: SIMPLE", () => {
       const tree = transformRdfToTree({
         triples,
         edgePredicate: (triple) => CONNECTIONS.includes(triple.p.value),
-        reverseEdgePredicate: (triple) => false,
+        reverseEdgePredicate: () => false,
       });
       expect(tree).toMatchInlineSnapshot(`
         [
@@ -103,8 +108,12 @@ describe("transformRdfToTree: COMPLEX", () => {
   let catalogService: CatalogService;
   let environment: StartedDockerComposeEnvironment;
   beforeAll(async () => {
-    ({ catalogService, environment } = await setupContainer());
-    api = await setup({ catalogService, mockSet: MockSet.COMPLEX });
+    ({ catalogService, environment } = await setupContainer(catalogServiceOptions));
+    api = await setup({
+      ...catalogServiceOptions,
+      catalogService,
+      mockSet: MockSet.COMPLEX
+    });
   }, 60 * SEC);
   afterAll(async () => {
     await environment.down({ removeVolumes: true });

@@ -5,7 +5,7 @@
   * @author Ian Bailey
   */
 
-import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource } from "@telicent-oss/rdfservice";
+import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, RDFServiceConfig } from "@telicent-oss/rdfservice";
 import { DCAT3InterpretationByCola } from "./src/DCAT3Interpretation/DCAT3InterpretationByCola";
 import { IDCAT3Interpretation } from "./src/DCAT3Interpretation/types";
 import packageJSON from './package.json';
@@ -154,7 +154,7 @@ export class DCATCatalog extends DCATDataset {
         if (catalog) { 
             // TODO: Move async to loadAsync() fn
             // WHY: so dev can choose when to start async operations
-            //  const catalog = new DCATCatalog(..)
+            //  const catalog = await DCATCatalog.createAsync(..)
             //  catalog.loadAsync()
             const addOwnedCatalogAsync = this.addOwnedCatalog(catalog);
             if (addOwnedCatalogAsync !== undefined) {
@@ -272,13 +272,13 @@ export class CatalogService extends RdfService {
     dataset?: string;
     defaultNamespace?:string;
     defaultSecurityLabel?:string;
+    config?: RDFServiceConfig;
   }) {
     const { writeEnabled, interpretation, triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel } = {
       ...CatalogService.DEFAULT_CONSTRUCTOR_ARGS,
       ...options
     };
-
-        super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, writeEnabled)
+        super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, writeEnabled, options.config)
         
         this.dcat = "http://www.w3.org/ns/dcat#"
 
@@ -294,6 +294,7 @@ export class CatalogService extends RdfService {
         this.classLookup[this.dcatDataService] = DCATDataService
         this.classLookup[this.dcatCatalog] = DCATCatalog
         this.addPrefix("dcat:", this.dcat)
+        
         this.interpretation = interpretation || new DCAT3InterpretationByCola(this);
 
   }
