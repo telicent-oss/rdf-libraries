@@ -36,6 +36,8 @@
   },
   "dependencies": {
     "@telicent-oss/rdfservice": "*",
+    "@types/lodash": "^4.17.13",
+    "lodash": "^4.17.21",
     "zod": "^3.23.8"
   },
   "devDependencies": {
