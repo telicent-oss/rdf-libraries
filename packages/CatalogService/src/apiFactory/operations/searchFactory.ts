@@ -39,7 +39,7 @@ export const searchFactory = (service: CatalogService) => {
       return [];
     }
 
-    const resourceTriples = await getAllResourceTriples({ service, hasAccess });
+    const resourceTriples = await getAllResourceTriples({ service, hasAccess }); // -------
     const ownerTriple =
       dataResourceFilter === "all"
         ? undefined
@@ -85,7 +85,7 @@ export const searchFactory = (service: CatalogService) => {
       )
     ).filter((el): el is UIDataResourceType => el !== undefined);
     const searchResult = await Promise.all(foundForUI);
-    console.log(JSON.stringify({ rdfTriples, resourceTriples, searchResult }, null, 2));
+    console.log(JSON.stringify({ owner, found, foundForUI }, null, 2));
     return searchResult;
   };
 };
