@@ -1,4 +1,4 @@
-name: Publish NX
+name: publish-nx.yml
 on:
   workflow_dispatch:
   push:
@@ -17,47 +17,45 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      # This enables task distribution via Nx Cloud
-      # Run this command as early as possible, before dependencies are installed
-      # Learn more at https://nx.dev/ci/reference/nx-cloud-cli#npx-nxcloud-startcirun
-      # Connect your workspace by running "nx connect" and uncomment this
-      # - run: yarn nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
-
-      # Cache node_modules
-      #
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-          registry-url: "https://registry.npmjs.org"
-          cache: "yarn"
+          registry-url: 'https://registry.npmjs.org/'
+          scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
-
-      - name: Install dependencies
-        run: | 
-          yarn install --frozen-lockfile
-
-      - uses: nrwl/nx-set-shas@v4
-
-      - name: build packages
-        run: npx nx affected:build
-
-      # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud
-      # - run: yarn nx-cloud record -- echo Hello World
-      # Nx Affected runs only tasks affected by the changes in this PR/commit. Learn more: https://nx.dev/ci/features/affected
-      - name: publish packages
-        run: | 
+      - run: yarn install --frozen-lockfile
+      - run: npx nx run @telicent-oss/rdfservice:build
+      - run: npx nx run @telicent-oss/ontologyservice:build
+      - run: npx nx run @telicent-oss/catalogservice:build
+      - run: |
           cd ./packages/RdfService
-          npm publish
+          local_version=$(node -p "require('./package.json').version")
+          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
+          if [ "$published_version" != "$local_version" ]; then
+            npm publish --access public --provenance
+          else
+            echo "No changes in version. Skipping publish."
+          fi
           cd -
-          
+      - run: |
           cd ./packages/OntologyService
-          npm publish
+          local_version=$(node -p "require('./package.json').version")
+          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
+          if [ "$published_version" != "$local_version" ]; then
+            npm publish --access public --provenance
+          else
+            echo "No changes in version. Skipping publish."
+          fi
           cd -
-
+      - run: |
           cd ./packages/CatalogService
-          npm publish
+          local_version=$(node -p "require('./package.json').version")
+          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
+          if [ "$published_version" != "$local_version" ]; then
+            npm publish --access public --provenance
+          else
+            echo "No changes in version. Skipping publish."
+          fi
           cd -
-        shell: bash
         env:
           NPM_CONFIG_PROVENANCE: true

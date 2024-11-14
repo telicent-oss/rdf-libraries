@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontologyservice",
-  "version": "0.0.6",
+  "version": "0.31.3",
   "private": false,
   "description": "Simple client-side library for working with RDF ontologies. Includes basic CRUD abilities and functions to help you navigate an ontology hierarchy.",
   "main": "./dist/ontologyservice.mjs",
@@ -21,6 +21,8 @@
     "open-docs": "open ./dist/docs/index.html",
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
+    "publish": "npm publish --access public --provenance",
+    "publish:dry-run": "npm publish --access public --provenance --dry-run",
     "lint": "eslint **/*.ts"
   },
   "author": "",
@@ -43,10 +45,11 @@
     "eslint-plugin-tsdoc": "^0.2.17",
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",
+    "typescript": "^5.5.4",
+    "testcontainers": "^10.10.4",
     "ts-jest": "^29.1.1",
     "tsc": "^2.0.4",
     "typedoc": "^0.25.3",
-    "typescript": "^5.5.0",
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
     "vite-tsconfig-paths": "^4.2.1"

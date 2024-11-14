@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { RDFTripleType } from "@telicent-oss/rdfservice";
 import { CatalogService } from "../../index";
 import { IDCAT3Interpretation } from "./types";
 
-// TODO Implement or delete
+// !WARNING Not used; Implement or delete
 // HOW
 //  Decide what to do with existing DCAT/RDF classes;
 //     - How/where serialize / deserialize?
@@ -24,6 +26,21 @@ export class DCAT3InterpretationByBailey implements IDCAT3Interpretation {
       );
     }
     this.service = service;
+  }
+  dcTitleFromTriples(id: string, triples: RDFTripleType[], options?: { assert: boolean; }): string | undefined {
+    throw new Error("Method not implemented.");
+  }
+  dcPublishedFromTriples(id: string, triples: RDFTripleType[], options?: { assert: boolean; }): string | undefined {
+    throw new Error("Method not implemented.");
+  }
+  creatorNameFromTriples(id: string, triples: RDFTripleType[], options?: { assert: boolean; }): string | undefined {
+    throw new Error("Method not implemented.");
+  }
+  creatorEmailFromTriples(id: string, triples: RDFTripleType[], options?: { assert: boolean; }): string | undefined {
+    throw new Error("Method not implemented.");
+  }
+  rightsFromTriples(id: string, triples: RDFTripleType[], options?: { assert: boolean; }): string | undefined {
+    throw new Error("Method not implemented.");
   }
 
 }

@@ -75,16 +75,21 @@ describe("RdfService", () => {
     if (!fuseki) return
     await fuseki.stop()
   });
+
+  afterAll(async () => {
+    if (!fuseki) return
+    await fuseki.stop()
+  });
   
   it("should be running properly and connected to a triplestore", async () => {
     const ats: boolean = await rs.checkTripleStore();
     expect(ats).toBeTruthy();
   });
 
-  // it.skip("should find basic text matches", async () => {
-  //   const found = await rs.find("label")
-  //   expect(found.length).toEqual(2)
-  // });
+  it("should find basic text matches", async () => {
+    const found = await rs.find("label")
+    expect(found.length).toEqual(2)
+  });
 
   it(`should have added the expected amount of triples: ${initialTripleCount}`, async () => {
     //guid2 was created at the start of the tests using insertTriple method (includes two literals)

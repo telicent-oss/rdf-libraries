@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # Update GitHub Actions weekly
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Root
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+
+  # Packages
+  - package-ecosystem: "npm"
+    directory: "/packages/CatalogService"
+    schedule:
+      interval: "weekly"
+  
+  - package-ecosystem: "npm"
+    directory: "/packages/OntologyService"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/packages/RdfService"
+    schedule:
+      interval: "weekly"

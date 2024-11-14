@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RDFTripleSchema, RDFTripleType } from "@telicent-oss/rdfservice";
+import { RDFTripleSchema } from "@telicent-oss/rdfservice";
 import { CatalogService, formatDataAsArray } from "../../../index";
 
 import {
@@ -30,6 +30,7 @@ export const searchFactory = (service: CatalogService) => {
       // ADD `hasAccess` to `getAllRDFTriples`
       // WHEN know priority
     });
+    console.log({ rdfTriples });
 
     const triples = rdfTriples.results.bindings.map((el) =>
       RDFTripleSchema.parse(el)
@@ -40,6 +41,7 @@ export const searchFactory = (service: CatalogService) => {
     }
 
     const resourceTriples = await getAllResourceTriples({ service, hasAccess });
+    console.log({ resourceTriples });
     const ownerTriple =
       dataResourceFilter === "all"
         ? undefined
@@ -85,6 +87,7 @@ export const searchFactory = (service: CatalogService) => {
       )
     ).filter((el): el is UIDataResourceType => el !== undefined);
     const searchResult = await Promise.all(foundForUI);
+    console.log({ searchResult });
     return searchResult;
   };
 };
