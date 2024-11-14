@@ -691,7 +691,7 @@ export class CatalogService extends RdfService {
       const response = await this.runQuery<DcatResourceFindSolution>(query);
       DEBUG && console.log("respones", response.results.bindings);
       // Wrap and return the results using the rankedWrap method
-      return this.rankedWrap(response, searchText || "") as unknown as DCATRankWrapper[];
+      return this.rankedWrapForDCAT(response, searchText || "") as unknown as DCATRankWrapper[];
     } catch (error) {
       DEBUG && console.error("Error executing SPARQL query:", error);
       throw error;
