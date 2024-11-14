@@ -85,7 +85,7 @@ export const searchFactory = (service: CatalogService) => {
       )
     ).filter((el): el is UIDataResourceType => el !== undefined);
     const searchResult = await Promise.all(foundForUI);
-    console.log(JSON.stringify({ owner, found, foundForUI }, null, 2));
+    console.log(JSON.stringify({ owner, triples, found, foundForUI }, null, 2));
     return searchResult;
   };
 };
