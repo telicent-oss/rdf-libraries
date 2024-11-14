@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { RDFTripleSchema } from "@telicent-oss/rdfservice";
+import safeStringify from 'fast-safe-stringify';
 import { CatalogService, formatDataAsArray } from "../../../index";
 
 import {
@@ -85,7 +86,7 @@ export const searchFactory = (service: CatalogService) => {
       )
     ).filter((el): el is UIDataResourceType => el !== undefined);
     const searchResult = await Promise.all(foundForUI);
-    console.log(JSON.stringify({ owner, triples, found, foundForUI }, null, 2));
+    console.log(safeStringify({ owner, triples, found, foundForUI }, undefined, 2));
     return searchResult;
   };
 };
