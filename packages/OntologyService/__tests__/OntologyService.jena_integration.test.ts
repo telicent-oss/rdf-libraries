@@ -28,7 +28,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       ))
       .start()
     os = new OntologyService(
-      `http://localhost:${fuseki.getMappedPort(3030)}/`,
+      `http://127.0.0.1:${fuseki.getMappedPort(3030)}/`,
       "ontology_test",
       undefined,
       undefined,
@@ -85,7 +85,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     }
     if (testFullOntology) {
       const os2 = new OntologyService(
-        "http://localhost:3030/",
+        "http://127.0.0.1:3030/",
         "ontology",
         undefined,
         undefined,
@@ -157,7 +157,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     expect(p2subs[0] === p3)
     if (testFullOntology) {
       const os2 = new OntologyService(
-        "http://localhost:3030/",
+        "http://127.0.0.1:3030/",
         "ontology",
         undefined,
         undefined,
@@ -180,7 +180,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     expect(g12_subs.length).toEqual(1);
     if (testFullOntology) {
       const os2 = new OntologyService(
-        "http://localhost:3030/",
+        "http://127.0.0.1:3030/",
         "ontology",
         undefined,
         undefined,

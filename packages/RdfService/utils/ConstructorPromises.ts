@@ -3,7 +3,7 @@
 Usage:
 
 ```ts
-class SomeClass extends AsyncInitializable {
+class SomeClass extends ConstructorPromises {
     constructor(public id: number) {
         super();
         this.constructorPromises.push(this.workAsync());
@@ -19,21 +19,21 @@ const instance1 = await SomeClass.createAsync(101); // WORKS
 const instance2 = await SomeClass.createAsync("102"); // TS ERROR
 ```
 */
-export abstract class AsyncInitializable {
+export abstract class ConstructorPromises {
     constructorPromises: Promise<unknown>[] = [];
     // TODO warn if instantiated via `new Class` instead of `Class.createAsync`
     // Define a strongly typed static factory method
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    static async createAsync<T extends AsyncInitializable, Args extends any[]>(
+    static async createAsync<T extends ConstructorPromises, Args extends any[]>(
         this: new (...args: Args) => T,
         ...args: Args
     ): Promise<T> {
         const instance = new this(...args);
-        await instance.getAsyncPromises();
+        await instance.getConstructorPromises();
         return instance;
     }
 
-    async getAsyncPromises(): Promise<void> {
+    async getConstructorPromises(): Promise<void> {
         await Promise.all(this.constructorPromises);
     }
 }

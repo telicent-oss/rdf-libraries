@@ -1,2 +1,2 @@
-export { AsyncInitializable } from './AsyncInitializable';
+export { ConstructorPromises } from './ConstructorPromises';
 export { getConfig } from './getConfig';

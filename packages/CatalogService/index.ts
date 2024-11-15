@@ -104,14 +104,14 @@ export class DCATResource extends RDFSResource {
             }
 
             if ((title) && (title != "")) {
-              this.constructorAsync.push(this.setTitle(title));
+              this.constructorPromises.push(this.setTitle(title));
             }
             
             if ((published) && (published != "")) {
-              this.constructorAsync.push(this.setPublished(published));
+              this.constructorPromises.push(this.setPublished(published));
             }
             if ((catalog) && (type == "http://www.w3.org/ns/dcat#Resource")) {
-              this.constructorAsync.push(
+              this.constructorPromises.push(
                 this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri)
               );
             }
@@ -141,7 +141,7 @@ export class DCATDataset extends DCATResource {
   ) {
     super(service, uri, title, published, type, catalog, statement);
     if (catalog) {
-      this.constructorAsync.push(
+      this.constructorPromises.push(
         this.service.insertTriple(
           catalog.uri,
           `http://www.w3.org/ns/dcat#Dataset`,
@@ -173,7 +173,7 @@ export class DCATCatalog extends DCATDataset {
             //  catalog.loadAsync()
             const addOwnedCatalogAsync = this.addOwnedCatalog(catalog);
             if (addOwnedCatalogAsync !== undefined) {
-              this.constructorAsync.push(addOwnedCatalogAsync);
+              this.constructorPromises.push(addOwnedCatalogAsync);
             }
         }
     }
@@ -241,7 +241,7 @@ export class DCATDataService extends DCATCatalog {
       super(service, uri, title, published, type, catalog, statement);
   
       if (catalog) {
-        this.constructorAsync.push(
+        this.constructorPromises.push(
           this.service.insertTriple(
             catalog.uri,
           //   `http://www.w3.org/ns/dcat#Service`,

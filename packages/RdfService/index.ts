@@ -1,4 +1,4 @@
-import { AsyncInitializable } from './utils';
+import { ConstructorPromises } from './utils';
 
 export * from './schema';
 export * from './types';
@@ -162,11 +162,11 @@ export type XsdDataType = "xsd:string" | //	Character strings (but not all Unico
 
 
 //A wrapper class for an RDFS Resource - i.e. typed node in the graph  
-export class RDFSResource extends AsyncInitializable {
+export class RDFSResource extends ConstructorPromises {
   uri: LongURI;
   types: LongURI[];
   statement?: TypedNodeQuerySolution;
-  public constructorAsync:Promise<unknown>[] = []
+  public constructorPromises:Promise<unknown>[] = []
   protected service: RdfService;
   
   // TODO makes args and option object
@@ -227,7 +227,7 @@ export class RDFSResource extends AsyncInitializable {
       if ((type) && !(this.types.includes(type))) {
         this.types.push(type)
         
-        this.constructorAsync.push(this.service.instantiate(type, this.uri));
+        this.constructorPromises.push(this.service.instantiate(type, this.uri));
       }
       else {
         throw new Error("An RDFResource requires a type, or a statement PropertyQuery object")
@@ -239,7 +239,7 @@ export class RDFSResource extends AsyncInitializable {
   
 
   public async getAllConstructorAsync() {
-    await Promise.all(this.constructorAsync);
+    await Promise.all(this.constructorPromises);
     return;
   }
   /**
@@ -858,7 +858,7 @@ export class RDFSResource extends AsyncInitializable {
 
 export type RDFSResourceDescendant = {
   new (...args:any[]): RDFSResource;
-  createAsync<T extends AsyncInitializable, Args extends any[]>(
+  createAsync<T extends ConstructorPromises, Args extends any[]>(
     this: new (...args: Args) => T,
     ...args: Args
   ): Promise<T>;
@@ -867,9 +867,9 @@ export type RDFSResourceDescendant = {
 export type RDFServiceConfig = Partial<{
   NO_WARNINGS: boolean;
 }>
-export class RdfService extends AsyncInitializable {
+export class RdfService extends ConstructorPromises {
   public config: RDFServiceConfig;
-  public constructorAsync: Promise<unknown>[] = [];
+  public constructorPromises: Promise<unknown>[] = [];
 
   /**
    * A fallback security label if none is specified
@@ -988,7 +988,7 @@ export class RdfService extends AsyncInitializable {
   }
 
   async getAllConstructorAsync() {
-    await Promise.all(this.constructorAsync);
+    await Promise.all(this.constructorPromises);
     return;
   }
 

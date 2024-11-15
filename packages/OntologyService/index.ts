@@ -5,7 +5,6 @@
   * @author Ian Bailey
   */
 
-
 import { RdfService, SPARQLQuerySolution, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, XsdDataType, ResourceDescription, StringsDict, LongURI } from "@telicent-oss/rdfservice";
 
 export { RDFSResource, type QueryResponse, type TypedNodeQuerySolution, type SPOQuerySolution } from "@telicent-oss/rdfservice"
@@ -188,12 +187,12 @@ export class Diagram extends RDFSResource {
       if (!uuid) {
         uuid = crypto.randomUUID()
       }
-      this.constructorAsync.push(this.setUUID(uuid));
+      this.constructorPromises.push(this.setUUID(uuid));
       if (!uri) {
         uri = this.service.mintUri()
       }
       if (title) {
-        this.constructorAsync.push(this.setTitle(title))
+        this.constructorPromises.push(this.setTitle(title))
       }
     }
   }
@@ -633,7 +632,7 @@ export class RDFSClass extends OntologyItem {
     }
     else {
       if (superClass) {
-        this.constructorAsync.push(
+        this.constructorPromises.push(
           this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, superClass.uri)
         );
       }
@@ -1337,6 +1336,4 @@ export class OntologyService extends RdfService {
   async getPropertyHierarchy(): Promise<HierarchyNode[]> {
     return await this.getHierarchy("rdf:Property, owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:AsymmetricProperty, owl:DeprecatedProperty, owl:FunctionalProperty, owl:OntologyProperty, owl:InverseFunctionalProperty, owl:IrreflexiveProperty, owl:ReflexiveProperty,owl:SymmetricProperty, owl:TransitiveProperty", "rdfs:subPropertyOf")
   }
-
-
 }

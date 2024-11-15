@@ -1,6 +1,6 @@
-import { AsyncInitializable } from "./utils";
+import { ConstructorPromises } from "./utils";
 
-class ExampleClass extends AsyncInitializable {
+class ExampleClass extends ConstructorPromises {
   name: string;
 
   constructor(name: string) {
@@ -9,7 +9,7 @@ class ExampleClass extends AsyncInitializable {
   }
 }
 
-test("AsyncInitializable", async() => {
+test("ConstructorPromises", async() => {
     const instancePromise = ExampleClass.createAsync("Alice");
     const instance = await instancePromise;
     expect(instance.name).toMatchInlineSnapshot('"Alice"');
