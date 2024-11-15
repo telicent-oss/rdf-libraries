@@ -286,7 +286,7 @@ export class Diagram extends RDFSResource {
   }
 
   async setUUID(uuid: string, securityLabel?: string) {
-    this.addLiteral(
+    return this.addLiteral(
       this.service.telUUID,
       uuid,
       securityLabel,

@@ -1,5 +1,4 @@
 import { RDFTripleType } from "@telicent-oss/rdfService";
-import { formatDataAsArray } from "../../../../__tests__/utils/formatDataAsArray";
 import {
   DCATDataset,
   DCATDataService,
@@ -12,9 +11,7 @@ import {
   SERVICE_URI,
   CATALOG_URI,
   RESOURCE_URI_TYPE,
-  UIDataResourceType,
 } from "../common";
-import { shorten } from "../../../../utils/shorten";
 
 export const tryInstantiate = async ({
   type,

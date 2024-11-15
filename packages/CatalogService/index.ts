@@ -117,15 +117,7 @@ export class DCATResource extends RDFSResource {
             }
         }
     }
-    // MERGE ARTIFACT
-    // setPublisher(publisher:RDFSResource | string) {
-    //     if (publisher instanceof RDFSResource) {
-    //         this.service.insertTriple(this.uri,`${this.service.dc}publisher`, publisher.uri)
-    //     }
-    //     else {
-    //         this.service.insertTriple(this.uri,`${this.service.dc}publisher`, publisher)
-    //     }
-    // }
+
 }
 
 export class DCATDataset extends DCATResource { 
