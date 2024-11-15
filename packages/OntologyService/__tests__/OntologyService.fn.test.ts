@@ -55,7 +55,6 @@ describe("testing functions within the ontology service", () => {
     // results check - return is an array of length 1
     expect(res.length).toBe(1);
     // get keys of the object
-    const keys = Object.keys(res[0]);
     expect(Object.keys(res[0])).toMatchInlineSnapshot(`
       [
         "constructorPromises",
