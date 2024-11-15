@@ -6,14 +6,29 @@ export * from './utils';
 const DEBUG = false;
 
 /*
-  * @module RdfService @remarks 
-  * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
-  */
-export const emptyUriErrorMessage = "Cannot have an empty URI"
-export const emptyPredicateErrorMessage = "predicate must be provided"
-export const noColonInPrefixException = "W3C/XML prefixes must end with a : (colon) character"
-export const unknownPrefixException = "Unknown Prefix "
-export const unrecognisedIdField = "ID field is not in the results"
+ * @module RdfService @remarks
+ * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
+ */
+import { z } from "zod";
+export const emptyUriErrorMessage = "Cannot have an empty URI";
+export const emptyPredicateErrorMessage = "predicate must be provided";
+export const noColonInPrefixException =
+  "W3C/XML prefixes must end with a : (colon) character";
+export const unknownPrefixException = "Unknown Prefix ";
+export const unrecognisedIdField = "ID field is not in the results";
+
+// zod alternatives
+export const createQueryResponseSchema = <T>(bindingsSchema: z.ZodType<T>) =>
+  z.object({
+    head: z.object({
+      vars: z.array(z.string()),
+    }),
+    results: z.object({
+      bindings: z.array(bindingsSchema), // Use the passed in schema for T
+    }),
+    boolean: z.boolean().optional(),
+  });
+
 const isEmptyString = (str: string) => !Boolean(str);
 
 export type RDFBasetype = "URI" | "LITERAL" | "BNODE";
@@ -22,142 +37,185 @@ export type PrefixedURI = string;
 
 export type LongURI = string;
 
+export const SparQLResultBinding = z.object(
+  {
+    value: z.string(),
+    type: z.string(),
+  },
+);
+
 export interface SPARQLResultBinding {
   value: LongURI | string;
   type: string;
 }
 
 export interface SPARQLQuerySolution {
-
 }
 
 export interface CountQuerySolution extends SPARQLQuerySolution {
-  count: SPARQLResultBinding
+  count: SPARQLResultBinding;
 }
 
 export interface TypedNodeQuerySolution extends SPARQLQuerySolution {
-  uri: SPARQLResultBinding,
-  _type?: SPARQLResultBinding,
+  uri: SPARQLResultBinding;
+  _type?: SPARQLResultBinding;
 }
 
 export interface RelatedNodeQuerySolution extends TypedNodeQuerySolution {
-  predicate: SPARQLResultBinding
+  predicate: SPARQLResultBinding;
 }
 
 export interface LiteralPropertyQuerySolution {
-  predicate: SPARQLResultBinding,
-  literal: SPARQLResultBinding
+  predicate: SPARQLResultBinding;
+  literal: SPARQLResultBinding;
 }
 
-
 export interface SPOQuerySolution extends SPARQLQuerySolution {
-  s: SPARQLResultBinding,
-  p: SPARQLResultBinding,
-  o: SPARQLResultBinding
+  s: SPARQLResultBinding;
+  p: SPARQLResultBinding;
+  o: SPARQLResultBinding;
 }
 
 export interface SPOOSQuerySolution extends SPOQuerySolution {
-  invP: SPARQLResultBinding,
-  invS: SPARQLResultBinding,
-  oType: SPARQLResultBinding,
-  invType: SPARQLResultBinding,
-  invFurther: SPARQLResultBinding
+  invP: SPARQLResultBinding;
+  invS: SPARQLResultBinding;
+  oType: SPARQLResultBinding;
+  invType: SPARQLResultBinding;
+  invFurther: SPARQLResultBinding;
 }
 
 export interface RelatingQuerySolution extends SPARQLQuerySolution {
-  relating: SPARQLResultBinding,
-  pred: SPARQLResultBinding
+  relating: SPARQLResultBinding;
+  pred: SPARQLResultBinding;
 }
 
 export interface RelatedQuerySolution extends SPARQLQuerySolution {
-  related: SPARQLResultBinding,
-  pred: SPARQLResultBinding
+  related: SPARQLResultBinding;
+  pred: SPARQLResultBinding;
 }
 
 export interface ResourceFindSolution extends TypedNodeQuerySolution {
-  concatLit: SPARQLResultBinding,
+  concatLit: SPARQLResultBinding;
 }
 
 export type RankWrapper = {
-  score?: number,
-  item: RDFSResource
-}
+  score?: number;
+  item: RDFSResource;
+};
 
 export type QueryResponse<T = SPARQLQuerySolution> = {
   "head": {
-    "vars": string[]
-  },
+    "vars": string[];
+  };
   "results": {
-    "bindings": T[]
-  },
-  boolean?: boolean
-}
+    "bindings": T[];
+  };
+  boolean?: boolean;
+};
 
 export type StringsDict = {
-  [key: string]: string[]
-}
+  [key: string]: string[];
+};
 
 export type ResourceDescription = {
   outLinks: {
     [key: LongURI]: StringsDict;
-  },
+  };
   literals: StringsDict;
   inLinks: {
     [key: LongURI]: StringsDict;
-  },
-  furtherInLinks: string[]
-}
+  };
+  furtherInLinks: string[];
+};
 
 export type RelatedResources = {
   [key: LongURI]: RDFSResource[];
-}
+};
 
 export type RelatedLiterals = {
   [key: LongURI]: string[];
-}
-
+};
 
 /**
-  * @typeParam XsdDataType
-  */
-export type XsdDataType = "xsd:string" | //	Character strings (but not all Unicode character strings)
-  "xsd:boolean" |  // true / false
-  "xsd:decimal" | // Arbitrary-precision decimal numbers
-  "xsd:integer" | // Arbitrary-size integer numbers
-  "xsd:double" | // 	64-bit floating point numbers incl. ±Inf, ±0, NaN
-  "xsd:float" | // 	32-bit floating point numbers incl. ±Inf, ±0, NaN
-  "xsd:date" | // 	Dates (yyyy-mm-dd) with or without timezone
-  "xsd:time" | // 	Times (hh:mm:ss.sss…) with or without timezone
-  "xsd:dateTime" | // 	Date and time with or without timezone
-  "xsd:dateTimeStamp" | // Date and time with required timezone
-  "xsd:gYear" | // 	Gregorian calendar year
-  "xsd:gMonth" | // 	Gregorian calendar month
-  "xsd:gDay" | // 	Gregorian calendar day of the month
-  "xsd:gYearMonth" | // 	Gregorian calendar year and month
-  "xsd:gMonthDay" | // 	Gregorian calendar month and day
-  "xsd:duration" | // 	Duration of time
-  "xsd:yearMonthDuration" | //	Duration of time (months and years only)
-  "xsd:dayTimeDuration" | //Duration of time (days, hours, minutes, seconds only)
-  "xsd:byte" | //-128…+127 (8 bit)
-  "xsd:short" | //	-32768…+32767 (16 bit)
-  "xsd:int" | //	-2147483648…+2147483647 (32 bit)
-  "xsd:long" | //-9223372036854775808…+9223372036854775807 (64 bit)
-  "xsd:unsignedByte" | //	0…255 (8 bit)
-  "xsd:unsignedShort" | //	0…65535 (16 bit)
-  "xsd:unsignedInt" | //	0…4294967295 (32 bit)
-  "xsd:unsignedLong" | //	0…18446744073709551615 (64 bit)
-  "xsd:positiveInteger" | //	Integer numbers >0
-  "xsd:nonNegativeInteger" | //	Integer numbers ≥0
-  "xsd:negativeInteger" | //	Integer numbers <0
-  "xsd:nonPositiveInteger" | //	Integer numbers ≤0
-  "xsd:hexBinary" | //	Hex-encoded binary data
-  "xsd:base64Binary" | //	Base64-encoded binary data
-  "xsd:anyURI" | //	Absolute or relative URIs and IRIs
-  "xsd:language" | //	Language tags per [BCP47]
-  "xsd:normalizedString" | //	Whitespace-normalized strings
-  "xsd:token" | //	Tokenized strings
-  "xsd:NMTOKEN" | //	XML NMTOKENs
-  "xsd:Name" | //	XML Names
+ * @typeParam XsdDataType
+ */
+export type XsdDataType =
+  | "xsd:string"
+  | //	Character strings (but not all Unicode character strings)
+  "xsd:boolean"
+  | // true / false
+  "xsd:decimal"
+  | // Arbitrary-precision decimal numbers
+  "xsd:integer"
+  | // Arbitrary-size integer numbers
+  "xsd:double"
+  | // 	64-bit floating point numbers incl. ±Inf, ±0, NaN
+  "xsd:float"
+  | // 	32-bit floating point numbers incl. ±Inf, ±0, NaN
+  "xsd:date"
+  | // 	Dates (yyyy-mm-dd) with or without timezone
+  "xsd:time"
+  | // 	Times (hh:mm:ss.sss…) with or without timezone
+  "xsd:dateTime"
+  | // 	Date and time with or without timezone
+  "xsd:dateTimeStamp"
+  | // Date and time with required timezone
+  "xsd:gYear"
+  | // 	Gregorian calendar year
+  "xsd:gMonth"
+  | // 	Gregorian calendar month
+  "xsd:gDay"
+  | // 	Gregorian calendar day of the month
+  "xsd:gYearMonth"
+  | // 	Gregorian calendar year and month
+  "xsd:gMonthDay"
+  | // 	Gregorian calendar month and day
+  "xsd:duration"
+  | // 	Duration of time
+  "xsd:yearMonthDuration"
+  | //	Duration of time (months and years only)
+  "xsd:dayTimeDuration"
+  | //Duration of time (days, hours, minutes, seconds only)
+  "xsd:byte"
+  | //-128…+127 (8 bit)
+  "xsd:short"
+  | //	-32768…+32767 (16 bit)
+  "xsd:int"
+  | //	-2147483648…+2147483647 (32 bit)
+  "xsd:long"
+  | //-9223372036854775808…+9223372036854775807 (64 bit)
+  "xsd:unsignedByte"
+  | //	0…255 (8 bit)
+  "xsd:unsignedShort"
+  | //	0…65535 (16 bit)
+  "xsd:unsignedInt"
+  | //	0…4294967295 (32 bit)
+  "xsd:unsignedLong"
+  | //	0…18446744073709551615 (64 bit)
+  "xsd:positiveInteger"
+  | //	Integer numbers >0
+  "xsd:nonNegativeInteger"
+  | //	Integer numbers ≥0
+  "xsd:negativeInteger"
+  | //	Integer numbers <0
+  "xsd:nonPositiveInteger"
+  | //	Integer numbers ≤0
+  "xsd:hexBinary"
+  | //	Hex-encoded binary data
+  "xsd:base64Binary"
+  | //	Base64-encoded binary data
+  "xsd:anyURI"
+  | //	Absolute or relative URIs and IRIs
+  "xsd:language"
+  | //	Language tags per [BCP47]
+  "xsd:normalizedString"
+  | //	Whitespace-normalized strings
+  "xsd:token"
+  | //	Tokenized strings
+  "xsd:NMTOKEN"
+  | //	XML NMTOKENs
+  "xsd:Name"
+  | //	XML Names
   "xsd:NCName";
 
 
@@ -180,26 +238,26 @@ export class RDFSResource extends ConstructorPromises {
       if (statement.uri.value in this.service.nodes) { // we've already created an object for this item
         const existingItem = this.service.nodes[statement.uri.value]
         if (statement._type) {
-          const newTypes = statement._type.value.split(' ')
+          const newTypes = statement._type.value.split(" ");
           newTypes.forEach((typ: LongURI) => {
             if (!(existingItem.types.includes(typ))) {
-              existingItem.types.push(typ)
+              existingItem.types.push(typ);
             }
-          })
+          });
         }
         return existingItem
       } else {
         // TODO handle object not created
 
       }
-      this.uri = statement.uri.value
+      this.uri = statement.uri.value;
       if ((statement._type) && !(this.types.includes(statement._type.value))) {
-        this.types = statement._type.value.split(' ')
+        this.types = statement._type.value.split(" ");
       }
       //no need to instantiate this data in the triplestore as it's already come from a query
     } else {
       if (uri) {
-        this.uri = uri
+        this.uri = uri;
         if (uri in this.service.nodes) { //we've already created an object for this item
           const existingItem:RDFSResource = this.service.nodes[uri]
           // WARNING
@@ -215,14 +273,13 @@ export class RDFSResource extends ConstructorPromises {
             );
             
           }
-          if ((type) && !(existingItem.types.includes(type))) {
-            existingItem.types.push(type)
+          if (type && !(existingItem.types.includes(type))) {
+            existingItem.types.push(type);
           }
           return existingItem
         }
-      }
-      else {
-        this.uri = this.service.mintUri()
+      } else {
+        this.uri = this.service.mintUri();
       }
       if ((type) && !(this.types.includes(type))) {
         this.types.push(type)
@@ -233,8 +290,7 @@ export class RDFSResource extends ConstructorPromises {
         throw new Error("An RDFResource requires a type, or a statement PropertyQuery object")
       }
     }
-    this.service.nodes[this.uri] = this
-
+    this.service.nodes[this.uri] = this;
   }
   
 
@@ -244,23 +300,41 @@ export class RDFSResource extends ConstructorPromises {
   }
   /**
    * @method addLiteral
-   * @remarks 
-   * Adds a literal property 
+   * @remarks
+   * Adds a literal property
    *
    * @param predicate - The second position in the triple (the PREDICATE)
    * @param text - the literal to be assigned to the triple
-   * @param {boolean} deletePrevious - remove any existing properties with that predicate type - defaults to false 
-  */
-  async addLiteral(predicate: LongURI, text: string, securityLabel?: string, xsdDatatype?: XsdDataType, deleteAllPrevious: boolean = false) {
-    if (isEmptyString(predicate)) throw new Error("Cannot have an empty predicate")
-    if (isEmptyString(text)) throw new Error("Cannot have empty text in a triple")
-    return await this.service.insertTriple(this.uri, predicate, text, "LITERAL", securityLabel, xsdDatatype, deleteAllPrevious)
+   * @param {boolean} deletePrevious - remove any existing properties with that predicate type - defaults to false
+   */
+  async addLiteral(
+    predicate: LongURI,
+    text: string,
+    securityLabel?: string,
+    xsdDatatype?: XsdDataType,
+    deleteAllPrevious: boolean = false,
+  ) {
+    if (isEmptyString(predicate)) {
+      throw new Error("Cannot have an empty predicate");
+    }
+    if (isEmptyString(text)) {
+      throw new Error("Cannot have empty text in a triple");
+    }
+    return await this.service.insertTriple(
+      this.uri,
+      predicate,
+      text,
+      "LITERAL",
+      securityLabel,
+      xsdDatatype,
+      deleteAllPrevious,
+    );
   }
 
   /**
-   * @method addLabel 
+   * @method addLabel
    * @remarks
-   * simple convenience function to add an rdfs:label 
+   * simple convenience function to add an rdfs:label
    *
    * @param {string} label - the literal text of the rdfs:label
    * @param {boolean} deletePrevious - remove any existing labels - defaults to false 
@@ -270,9 +344,9 @@ export class RDFSResource extends ConstructorPromises {
       return this.addLiteral(this.service.rdfsLabel,label,securityLabel,xsdDatatype,deleteAllPrevious)
     }
   /**
-   * @method addComment 
+   * @method addComment
    * @remarks
-   * simple convenience function to add an rdfs:comment 
+   * simple convenience function to add an rdfs:comment
    *
    * @param {string} comment - the literal text of the rdfs:comment
    * @param {boolean} deletePrevious - remove any existing comments - defaults to false 
@@ -311,7 +385,7 @@ export class RDFSResource extends ConstructorPromises {
   }
 
   /**
-   * @method setTitle 
+   * @method setTitle
    * @remarks
    * Adds a dublin core title to a node
    * @param {string} title - the title to be applied (simple text)
@@ -410,7 +484,7 @@ export class RDFSResource extends ConstructorPromises {
   /**
    * @method setAltLabel
    * @remarks
-   * Adds a SKOS alternative label to a node 
+   * Adds a SKOS alternative label to a node
    * @param {string} label - the title to be applied (simple text)
    * @param {boolean} deletePrevious - remove any existing labels - defaults to false 
   */
@@ -452,7 +526,7 @@ export class RDFSResource extends ConstructorPromises {
   async getRelated(predicate?: string):Promise<RelatedResources> {
     let predString = ''
     if (predicate) {
-      predString = ` BIND (<${predicate}> AS ?predicate) .`
+      predString = ` BIND (<${predicate}> AS ?predicate) .`;
     }
     // MERGE PREVIOUS const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?type} FILTER isIRI(?uri) } GROUP BY ?uri ?predicate`
     const query = `SELECT DISTINCT ?uri ?_type ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?_type} FILTER isIRI(?uri) }`
@@ -507,73 +581,92 @@ export class RDFSResource extends ConstructorPromises {
   protected async describeNode(furtherInRel?: LongURI): Promise<ResourceDescription> {
     let invFurtherClause = ''
     if (furtherInRel) {
-      invFurtherClause = ` . OPTIONAL {?invS <${furtherInRel}> ?invFurther}`
+      invFurtherClause = ` . OPTIONAL {?invS <${furtherInRel}> ?invFurther}`;
     }
-    const query: string = `SELECT ?s ?p ?o ?invP ?invS ?oType ?invType ?invFurther WHERE {
+    const query: string =
+      `SELECT ?s ?p ?o ?invP ?invS ?oType ?invType ?invFurther WHERE {
       BIND (<${this.uri}> AS ?s) .
       OPTIONAL {?s ?p ?o OPTIONAL {?o a ?oType} }
       OPTIONAL {?invS ?invP ?s OPTIONAL {?invS a ?invType} ${invFurtherClause} }
-    }`
-    const description: ResourceDescription = { literals: {}, inLinks: {}, outLinks: {}, furtherInLinks: [] }
-    const spOut = await this.service.runQuery<SPOOSQuerySolution>(query)
+    }`;
+    const description: ResourceDescription = {
+      literals: {},
+      inLinks: {},
+      outLinks: {},
+      furtherInLinks: [],
+    };
+    const spOut = await this.service.runQuery<SPOOSQuerySolution>(query);
     spOut.results.bindings.forEach((statement: SPOOSQuerySolution) => {
       if (statement.p) {
         if ((statement.o) && (statement.o.type.toUpperCase() == "LITERAL")) {
-          if (!(Object.keys(description.literals).includes(statement.p.value))) {
-            description.literals[statement.p.value] = [statement.o.value]
-          }
-          else {
-            if (!(description.literals[statement.p.value].includes(statement.o.value))) {
-              description.literals[statement.p.value].push(statement.o.value)
+          if (
+            !(Object.keys(description.literals).includes(statement.p.value))
+          ) {
+            description.literals[statement.p.value] = [statement.o.value];
+          } else {
+            if (
+              !(description.literals[statement.p.value].includes(
+                statement.o.value,
+              ))
+            ) {
+              description.literals[statement.p.value].push(statement.o.value);
             }
           }
-        }
-        else {
-          let pObj: StringsDict = {}
-          if (!(Object.keys(description.outLinks).includes(statement.p.value))) {
-            description.outLinks[statement.p.value] = pObj
+        } else {
+          let pObj: StringsDict = {};
+          if (
+            !(Object.keys(description.outLinks).includes(statement.p.value))
+          ) {
+            description.outLinks[statement.p.value] = pObj;
+          } else {
+            pObj = description.outLinks[statement.p.value];
           }
-          else {
-            pObj = description.outLinks[statement.p.value]
-          }
-          let oArray: LongURI[] = []
+          let oArray: LongURI[] = [];
           if (statement.o) {
             if (!(Object.keys(pObj).includes(statement.o.value))) {
-              pObj[statement.o.value] = oArray
+              pObj[statement.o.value] = oArray;
             } else {
-              oArray = pObj[statement.o.value]
+              oArray = pObj[statement.o.value];
             }
-            if ((statement.oType) && !(oArray.includes(statement.oType.value))) {
-              oArray.push(statement.oType.value)
+            if (
+              (statement.oType) && !(oArray.includes(statement.oType.value))
+            ) {
+              oArray.push(statement.oType.value);
             }
           }
         }
       }
       if ((statement.invP) && (statement.invS)) {
-        let pObj: StringsDict = {}
-        if (!(Object.keys(description.inLinks).includes(statement.invP.value))) {
-          description.inLinks[statement.invP.value] = pObj
+        let pObj: StringsDict = {};
+        if (
+          !(Object.keys(description.inLinks).includes(statement.invP.value))
+        ) {
+          description.inLinks[statement.invP.value] = pObj;
+        } else {
+          pObj = description.inLinks[statement.invP.value];
         }
-        else {
-          pObj = description.inLinks[statement.invP.value]
-        }
-        let sArray: LongURI[] = []
+        let sArray: LongURI[] = [];
         if (statement.o) {
           if (!(Object.keys(pObj).includes(statement.invS.value))) {
-            pObj[statement.invS.value] = sArray
+            pObj[statement.invS.value] = sArray;
           } else {
-            sArray = pObj[statement.invS.value]
+            sArray = pObj[statement.invS.value];
           }
-          if ((statement.invType) && !(sArray.includes(statement.invType.value))) {
-            sArray.push(statement.invType.value)
+          if (
+            (statement.invType) && !(sArray.includes(statement.invType.value))
+          ) {
+            sArray.push(statement.invType.value);
           }
         }
-        if ((statement.invFurther) && !(description.furtherInLinks.includes(statement.invFurther.value))) {
-          description.furtherInLinks.push(statement.invFurther.value)
+        if (
+          (statement.invFurther) &&
+          !(description.furtherInLinks.includes(statement.invFurther.value))
+        ) {
+          description.furtherInLinks.push(statement.invFurther.value);
         }
       }
-    })
-    return description
+    });
+    return description;
   }
 
   /**
@@ -583,9 +676,9 @@ export class RDFSResource extends ConstructorPromises {
    *
    * @param predicate - the predicate relating to the literal properties that are returned
    * @returns - a RelatedLiterals object
-  */
+   */
   async getLiterals(predicate?: LongURI): Promise<RelatedLiterals> {
-    let predString = ''
+    let predString = "";
     if (predicate) {
       predString = ` BIND (<${predicate}> AS ?predicate) .`
      }
@@ -629,16 +722,17 @@ export class RDFSResource extends ConstructorPromises {
    * Simple function to get all rdfs labels
    *
    * @returns - an array of strings
-  */
+   */
   async getLabels(): Promise<string[]> {
-    const lits: RelatedLiterals = await this.getLiterals(this.service.rdfsLabel)
-    let labels: string[] = []
+    const lits: RelatedLiterals = await this.getLiterals(
+      this.service.rdfsLabel,
+    );
+    let labels: string[] = [];
     if (this.service.rdfsLabel in lits) {
-      labels = lits[this.service.rdfsLabel]
+      labels = lits[this.service.rdfsLabel];
     }
-    return labels
+    return labels;
   }
-
 
   /**
    * @method getPrefLabels
@@ -646,17 +740,19 @@ export class RDFSResource extends ConstructorPromises {
    * Simple function to get all skos preferred labels
    *
    * @returns - an array of strings
-  */
+   */
   async getPrefLabel(): Promise<string[]> {
-    const lits: RelatedLiterals = await this.getLiterals(`${this.service.skos}prefLabel`)
-    let labels: string[] = []
+    const lits: RelatedLiterals = await this.getLiterals(
+      `${this.service.skos}prefLabel`,
+    );
+    let labels: string[] = [];
     if (`${this.service.skos}prefLabel` in lits) {
-      labels = lits[`${this.service.skos}prefLabel`]
+      labels = lits[`${this.service.skos}prefLabel`];
     }
     if (labels.length > 1) {
-      this.service.warn(`More than one SKOS preferred label on ${this.uri}`)
+      this.service.warn(`More than one SKOS preferred label on ${this.uri}`);
     }
-    return labels
+    return labels;
   }
 
   /**
@@ -665,16 +761,17 @@ export class RDFSResource extends ConstructorPromises {
    * Simple function to get all skos alternative labels
    *
    * @returns - an array of strings
-  */
+   */
   async getAltLabels(): Promise<string[]> {
-    const lits: RelatedLiterals = await this.getLiterals(`${this.service.skos}altLabel`)
-    let labels: string[] = []
+    const lits: RelatedLiterals = await this.getLiterals(
+      `${this.service.skos}altLabel`,
+    );
+    let labels: string[] = [];
     if (`${this.service.skos}altLabel` in lits) {
-      labels = lits[`${this.service.skos}altLabel`]
+      labels = lits[`${this.service.skos}altLabel`];
     }
-    return labels
+    return labels;
   }
-
 
   /**
    * @method getComments
@@ -682,14 +779,16 @@ export class RDFSResource extends ConstructorPromises {
    * Simple function to get all rdfs comments
    *
    * @returns - an array of strings
-  */
+   */
   async getComments(): Promise<string[]> {
-    const lits: RelatedLiterals = await this.getLiterals(this.service.rdfsComment)
-    let comments: string[] = []
+    const lits: RelatedLiterals = await this.getLiterals(
+      this.service.rdfsComment,
+    );
+    let comments: string[] = [];
     if (this.service.rdfsComment in lits) {
-      comments = lits[this.service.rdfsComment]
+      comments = lits[this.service.rdfsComment];
     }
-    return comments
+    return comments;
   }
 
   /**
@@ -703,7 +802,7 @@ export class RDFSResource extends ConstructorPromises {
     const lits:RelatedLiterals = await this.getLiterals(this.service.dcTitle)
     let titles:string[] = []
     if (this.service.dcTitle in lits) {
-      titles = lits[this.service.dcTitle]
+      titles = lits[this.service.dcTitle];
     }
     if (titles.length > 1) {
       console.warn(`More than one Dublin Core title tag on ${this.uri}`)
@@ -782,17 +881,21 @@ export class RDFSResource extends ConstructorPromises {
    * Simple function to get all dublin core published tags. There should only be one though
    *
    * @returns - an array of strings
-  */
+   */
   async getDcPublished(): Promise<string[]> {
-    const lits: RelatedLiterals = await this.getLiterals(this.service.dcPublished)
-    let pubs: string[] = []
+    const lits: RelatedLiterals = await this.getLiterals(
+      this.service.dcPublished,
+    );
+    let pubs: string[] = [];
     if (this.service.dcPublished in lits) {
-      pubs = lits[this.service.dcPublished]
+      pubs = lits[this.service.dcPublished];
     }
     if (pubs.length > 1) {
-      this.service.warn(`More than one Dublin Core published tag on ${this.uri}`)
+      this.service.warn(
+        `More than one Dublin Core published tag on ${this.uri}`,
+      );
     }
-    return pubs
+    return pubs;
   }
 
   /**
@@ -801,17 +904,19 @@ export class RDFSResource extends ConstructorPromises {
    * Simple function to get all dublin core published tags. There should only be one though
    *
    * @returns - an array of strings
-  */
+   */
   async getDcCreated(): Promise<string[]> {
-    const lits: RelatedLiterals = await this.getLiterals(this.service.dcCreated)
-    let pubs: string[] = []
+    const lits: RelatedLiterals = await this.getLiterals(
+      this.service.dcCreated,
+    );
+    let pubs: string[] = [];
     if (this.service.dcCreated in lits) {
-      pubs = lits[this.service.dcCreated]
+      pubs = lits[this.service.dcCreated];
     }
     if (pubs.length > 1) {
-      this.service.warn(`More than one Dublin Core created tag on ${this.uri}`)
+      this.service.warn(`More than one Dublin Core created tag on ${this.uri}`);
     }
-    return pubs
+    return pubs;
   }
 
 

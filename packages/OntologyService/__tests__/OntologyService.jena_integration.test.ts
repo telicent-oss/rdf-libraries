@@ -1,41 +1,58 @@
-import { GenericContainer, StartedTestContainer, Wait } from "testcontainers"
-import { OntologyService, RDFSClass, OWLClass, RDFSResource, RDFProperty, OWLObjectProperty, OWLDatatypeProperty, HierarchyNode, Style, QueryResponse, SPOQuerySolution, Diagram, DiagramElement, DiagramProperty } from "../index";
+import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
+import {
+  Diagram,
+  DiagramElement,
+  DiagramProperty,
+  HierarchyNode,
+  OntologyService,
+  OWLClass,
+  OWLDatatypeProperty,
+  OWLObjectProperty,
+  QueryResponse,
+  RDFProperty,
+  RDFSClass,
+  RDFSResource,
+  SPOQuerySolution,
+  Style,
+} from "../index";
 
-let os: OntologyService
-const testFullOntology = false
+let os: OntologyService;
+const testFullOntology = false;
 
 const rdfsClass = "http://www.w3.org/2000/01/rdf-schema#Class";
 const owlClass = "http://www.w3.org/2002/07/owl#Class";
 const testDefaultNamespace = "http://telicent.io/data/";
 
-const initialNodeCount: number = 6
-const finalNodeCount: number = 10
-const expectedTripleCount: number = 19
+const initialNodeCount: number = 6;
+const finalNodeCount: number = 10;
+const expectedTripleCount: number = 22;
 
 function delay(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
-
-  let fuseki: StartedTestContainer
+  let fuseki: StartedTestContainer;
   beforeAll(async () => {
-    fuseki = await new GenericContainer('atomgraph/fuseki')
+    fuseki = await new GenericContainer("atomgraph/fuseki")
       .withExposedPorts(3030)
       .withCommand(["--mem", "ontology_test/"])
       .withWaitStrategy(Wait.forAll(
-        [Wait.forListeningPorts(), Wait.forLogMessage(/Start Fuseki \(http=\d+\)/)],
+        [
+          Wait.forListeningPorts(),
+          Wait.forLogMessage(/Start Fuseki \(http=\d+\)/),
+        ],
       ))
-      .start()
+      .start();
     os = new OntologyService(
       `http://127.0.0.1:${fuseki.getMappedPort(3030)}/`,
       "ontology_test",
       undefined,
       undefined,
-      true
+      true,
     );
 
-    os.setWarnings = false
+    os.setWarnings = false;
 
     const updates = [
       "DELETE WHERE {?s ?p ?o }", //clear the dataset
@@ -45,33 +62,35 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       `INSERT DATA {<${testDefaultNamespace}ONT121> <${os.rdfType}> <${os.owlClass}> . }`,
       `INSERT DATA {<${testDefaultNamespace}ONT11> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT1> . }`,
       `INSERT DATA {<${testDefaultNamespace}ONT12> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT1> . }`,
-      `INSERT DATA {<${testDefaultNamespace}ONT121> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT12> . }`
-    ] //this ends up being a big it
+      `INSERT DATA {<${testDefaultNamespace}ONT121> <${os.rdfsSubClassOf}> <${testDefaultNamespace}ONT12> . }`,
+      `INSERT DATA {<http://ies.data.gov.uk/ontology/ies4#Accent> <http://telicent.io/ontology/style> '{"defaultStyles":{"dark":{"backgroundColor":"#1F0F05","color":"#FF9F5E"},"light":{"backgroundColor":"#1F0F05","color":"#FF9F5E"},"shape":"ellipse","borderRadius":"9999px","borderWidth":"2px","selectedBorderWidth":"3px"},"defaultIcons":{"riIcon":"ri-meteor-line","faIcon":"fa-regular fa-clock","faUnicode":"","faClass":"fa-regular"}}' .}`,
+      `INSERT DATA {<http://ies.data.gov.uk/ontology/ies4#PeriodOfTime> <http://telicent.io/ontology/style> '{"defaultStyles":{"dark":{"backgroundColor":"#1F0F05","color":"#FF9F5E"},"light":{"backgroundColor":"#1F0F05","color":"#FF9F5E"},"shape":"ellipse","borderRadius":"9999px","borderWidth":"2px","selectedBorderWidth":"3px"},"defaultIcons":{"riIcon":"ri-meteor-line","faIcon":"fa-regular fa-clock","faUnicode":"","faClass":"fa-regular"}}' .}`,
+      `INSERT DATA {<http://ies.data.gov.uk/ontology/ies4#ArbitraryPeriod> <http://telicent.io/ontology/style> '{"defaultStyles":{"dark":{"backgroundColor":"#1F0F05","color":"#FF9F5E"},"light":{"backgroundColor":"#1F0F05","color":"#FF9F5E"},"shape":"ellipse","borderRadius":"9999px","borderWidth":"2px","selectedBorderWidth":"3px"},"defaultIcons":{"riIcon":"ri-meteor-line","faIcon":"fa-regular fa-clock","faUnicode":"","faClass":"fa-regular"}}' .}`,
+    ];
+    //this ends up being a big it
 
-    await os.runUpdate(updates)
+    await os.runUpdate(updates);
     const g2 = new RDFSClass(os, `${testDefaultNamespace}ONT2`);
     const g21 = new OWLClass(os, `${testDefaultNamespace}ONT21`);
-    g21.addLabel("G21")
+    g21.addLabel("G21");
     const g211 = new OWLClass(os, `${testDefaultNamespace}ONT211`);
     const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
     const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
     const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
-    const mystyle = new Style()
-    g2.setStyle(mystyle)
-
+    const mystyle = new Style();
+    g2.setStyle(mystyle);
 
     await g2.addSubClass(g21);
     await g21.addSubClass(g211);
 
-    await p1.addSubProperty(p2)
-    await p3.addSuperProperty(p2)
-
+    await p1.addSubProperty(p2);
+    await p3.addSuperProperty(p2);
   }, 60000);
 
   afterAll(() => {
-    if (!fuseki) return
-    fuseki.stop()
-  })
+    if (!fuseki) return;
+    fuseki.stop();
+  });
 
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
     try {
@@ -79,9 +98,9 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       expect(ats).toBeTruthy();
     } catch (e) {
       if (e instanceof Error) {
-        console.error(e.message)
+        console.error(e.message);
       }
-      throw new Error(e as string)
+      throw new Error(e as string);
     }
     if (testFullOntology) {
       const os2 = new OntologyService(
@@ -89,36 +108,41 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         "ontology",
         undefined,
         undefined,
-        false
+        false,
       );
-      os2.setWarnings = false
+      os2.setWarnings = false;
       const h = await os2.getClassHierarchy();
       h.forEach((node) => {
         node.children.forEach((subNode) => {
-          if (subNode.item.uri == "http://www.w3.org/2000/01/rdf-schema#Literal") {
+          if (
+            subNode.item.uri == "http://www.w3.org/2000/01/rdf-schema#Literal"
+          ) {
             //console.log(subNode)
           }
         });
-      })
+      });
     }
   });
 
   it("should cache classes appropriately", async () => {
     expect(Object.keys(os.nodes).length).toEqual(initialNodeCount);
-    await os.getAllClasses(true)
+    await os.getAllClasses(true);
     expect(Object.keys(os.nodes).length).toEqual(finalNodeCount);
   });
 
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
     try {
-      const triples: QueryResponse<SPOQuerySolution> = await os.runQuery<SPOQuerySolution>("SELECT * WHERE {?s ?p ?o}");
+      const triples: QueryResponse<SPOQuerySolution> = await os.runQuery<
+        SPOQuerySolution
+      >("SELECT * WHERE {?s ?p ?o}");
       expect(triples.results.bindings.length).toEqual(expectedTripleCount);
+
       expect(Object.keys(os.nodes).length).toEqual(finalNodeCount);
     } catch (e) {
       if (e instanceof Error) {
-        console.error(e.message)
+        console.error(e.message);
       }
-      throw new Error(e as string)
+      throw new Error(e as string);
     }
   });
 
@@ -133,7 +157,6 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
     expect(g1.types.length).toEqual(1);
     expect(g11.types.length).toEqual(1);
-
   });
 
   it("it should not accidently create any new Typescript objects while doing so", async () => {
@@ -144,29 +167,32 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     expect(Object.keys(os.nodes).length).toEqual(finalNodeCount);
   });
 
-  it('should detect two subproperty relationships that have been created', async () => {
+  it("should detect two subproperty relationships that have been created", async () => {
     const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
     const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
     const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
     expect(Object.keys(os.nodes).length).toEqual(finalNodeCount); // just make sure no extra properties got made
-    const p1subs: RDFProperty[] = await p1.getSubProperties()
-    expect(p1subs.length).toEqual(1)
-    expect(p1subs[0] === p2)
-    const p2subs: RDFProperty[] = await p2.getSubProperties()
-    expect(p2subs.length).toEqual(1)
-    expect(p2subs[0] === p3)
+    const p1subs: RDFProperty[] = await p1.getSubProperties();
+    expect(p1subs.length).toEqual(1);
+    expect(p1subs[0] === p2);
+    const p2subs: RDFProperty[] = await p2.getSubProperties();
+    expect(p2subs.length).toEqual(1);
+    expect(p2subs[0] === p3);
     if (testFullOntology) {
       const os2 = new OntologyService(
         "http://127.0.0.1:3030/",
         "ontology",
         undefined,
         undefined,
-        false
+        false,
       );
-      os2.setWarnings = false
-      const prop = new OWLObjectProperty(os2, "http://ies.data.gov.uk/ontology/ies4#isPartOf")
+      os2.setWarnings = false;
+      const prop = new OWLObjectProperty(
+        os2,
+        "http://ies.data.gov.uk/ontology/ies4#isPartOf",
+      );
     }
-  })
+  });
 
   it("should detect that subclasses were created", async () => {
     const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
@@ -184,23 +210,24 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         "ontology",
         undefined,
         undefined,
-        false
+        false,
       );
-      os2.setWarnings = false
-      const entity = new RDFSClass(os2, "http://ies.data.gov.uk/ontology/ies4#Entity")
+      os2.setWarnings = false;
+      const entity = new RDFSClass(
+        os2,
+        "http://ies.data.gov.uk/ontology/ies4#Entity",
+      );
       //const entity = new RDFSClass(os2,"http://www.w3.org/2002/07/owl#Thing")
 
-      const diags: Diagram[] = await os2.getAllDiagrams()
-      const diag: Diagram = diags[0]
-      const elems = await diag.getDiagramElements()
+      const diags: Diagram[] = await os2.getAllDiagrams();
+      const diag: Diagram = diags[0];
+      const elems = await diag.getDiagramElements();
       // elems.forEach((elem:DiagramElement) => {
       //   console.log(elem.uri, elem.types, elem.baseType, elem.constructor.name)
       //  })
-      const rels = await diag.getDiagramRelations()
+      const rels = await diag.getDiagramRelations();
 
-
-      const phy = await os2.getClassHierarchy()
-
+      const phy = await os2.getClassHierarchy();
     }
 
     expect(g1_subs.includes(g11)).toBeTruthy();
@@ -217,8 +244,8 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const tops: RDFSClass[] = await os.getTopClasses();
     const all: RDFSClass[] = await os.getAllClasses();
     expect(all.length > tops.length).toBeTruthy;
-    expect(tops.length).toEqual(2)
-    expect(all.length).toEqual(7)
+    expect(tops.length).toEqual(2);
+    expect(all.length).toEqual(7);
   });
 
   it("should return JS class for provided URI", () => {
@@ -232,14 +259,70 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
   });
 
   it("should get a hierarchy", async () => {
-    const hy: HierarchyNode[] = await os.getClassHierarchy()
-    expect(hy.length).toEqual(2)
-    const phy: HierarchyNode[] = await os.getPropertyHierarchy()
-    expect(phy.length).toEqual(1)
+    const hy: HierarchyNode[] = await os.getClassHierarchy();
+    expect(hy.length).toEqual(2);
+    const phy: HierarchyNode[] = await os.getPropertyHierarchy();
+    expect(phy.length).toEqual(1);
   });
 
-  afterAll(() => {
-    delay(1000)
+  it("should retrieve all styles if an empty array is passed in", async () => {
+    const styles = await os.getFlattenedStyles([]);
+    expect(styles.length).toEqual(3);
   });
 
+  it("should retrieve the icon for the target uri", async () => {
+    const styles = await os.getFlattenedStyles([]);
+    const icon = os.findIcon(
+      styles,
+      "http://ies.data.gov.uk/ontology/ies4#Accent",
+    );
+
+    expect(icon).toEqual({
+      "alt": "http://ies.data.gov.uk/ontology/ies4#Accent",
+      "backgroundColor": "#1F0F05",
+      "classUri": "http://ies.data.gov.uk/ontology/ies4#Accent",
+      "color": "#FF9F5E",
+      "faIcon": "fa-regular fa-clock",
+      "faUnicode": "",
+      "iconFallbackText": "A",
+      "shape": "ellipse",
+    });
+  });
+
+  it("should retrieve fallback text and colours if the targeturi does not exist", async () => {
+    const styles = await os.getFlattenedStyles([]);
+    const icon = os.findIcon(
+      styles,
+      "http://ies.data.gov.uk/ontology/ies4#IDontExist",
+    );
+
+    expect(icon).toEqual({
+      "alt": "http://ies.data.gov.uk/ontology/ies4#IDontExist",
+      "backgroundColor": "#121212",
+      "classUri": "http://ies.data.gov.uk/ontology/ies4#IDontExist",
+      "color": "#DDDDDD",
+      "iconFallbackText": "IDE",
+    });
+  });
+
+  it("should handle an incorrect uri without crashing the app", async () => {
+    const styles = await os.getFlattenedStyles([]);
+    const icon = os.findIcon(
+      styles,
+      "InvalidUrl",
+    );
+
+    expect(icon).toEqual({
+      "alt": "InvalidUrl",
+      "backgroundColor": "#121212",
+      "classUri": "InvalidUrl",
+      "color": "#DDDDDD",
+      "iconFallbackText": "InvalidUrl",
+    });
+  });
+
+  afterAll(async () => {
+    delay(1000);
+    await fuseki.stop();
+  });
 });
