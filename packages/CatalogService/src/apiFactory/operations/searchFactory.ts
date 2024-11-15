@@ -39,7 +39,7 @@ export const searchFactory = (service: CatalogService) => {
       return [];
     }
 
-    const resourceTriples = await getAllResourceTriples({ service, hasAccess }); // -------
+    const resourceTriples = await getAllResourceTriples({ service, hasAccess });
     const ownerTriple =
       dataResourceFilter === "all"
         ? undefined
