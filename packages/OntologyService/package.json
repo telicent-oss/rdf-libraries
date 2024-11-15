@@ -35,7 +35,7 @@
     "registry": "https://www.npmjs.com/"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "^0.0.6-TELFE-1.12",
+    "@telicent-oss/rdfservice": "*",
     "@types/lodash": "^4.17.13",
     "lodash": "^4.17.21",
     "zod": "^3.23.8"
