@@ -19,7 +19,6 @@ export const getValuesByCola = async (
   const publishDate = interpretation.dcPublishedFromTriples(el.uri, triples);
   // TODO Likely fully remove getLiteralsList
   // WHY Making a sparql seems wasteful and confusing
-  // SEE comments in DCAT3InterpretationByBailey
   // HOW 
   //  1. Get consensus on arch
   //  2. Remove getLiteralsList in RdfService/index.ts

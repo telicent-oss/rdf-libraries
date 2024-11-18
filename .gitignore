@@ -133,10 +133,12 @@ dist
 
 
 .nx/cache
+.nx/workspace-data
 
+.DS_Store
 *.gitignored.*
 packages/.DS_Store
 
-
 # IDE
 .vscode
+gitignored

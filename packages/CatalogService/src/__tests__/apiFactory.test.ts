@@ -1,5 +1,5 @@
 import "jest-fetch-mock";
-import { setup } from "../../index";
+import { CatalogService, setup } from "../../index";
 import { Api } from "../apiFactory/apiFactory";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { setupContainer } from "./utils/setupContainer";
@@ -10,23 +10,35 @@ import { shorten } from "../utils/shorten";
 // HOW
 //  1. First version - be able to fully disable "ByCola" logic
 //    (as you default "ByBailey")
-//  2. See TODO in DCAT3InterpretationByBailey.ts
+// WHEN https://telicent.atlassian.net/browse/TELFE-807
 describe.skip("apiFactory", () => {
   let environment: StartedDockerComposeEnvironment;
   let api: Api;
+  let catalogService: CatalogService;
+  const triplestoreUri = "http://localhost:3030/";
+  const catalogServiceOptions = {
+    triplestoreUri,
+    config: { NO_WARNINGS: true },
+  };
   beforeAll(async () => {
-    ({ environment } = await setupContainer());
-    api = await setup({ hostName: "http://localhost:3030/"});
+    ({ environment, catalogService } = await setupContainer(
+      catalogServiceOptions
+    ));
+    api = await setup(catalogServiceOptions);
+    await new Promise((resolve) => setTimeout(resolve, 2 * 1000));
   }, 60 * SEC);
   afterAll(async () => {
-    await Promise.all(api._service.workAsync);
     await environment.down({ removeVolumes: true });
   }, 60 * SEC);
   it(
     "inits",
-    () => {
+    async () => {
       expect(api).toBeDefined();
       expect(api.search).toBeDefined();
+      expect(
+        (await catalogService.runQuery(`SELECT ?s ?p ?o WHERE { ?s ?p ?o }`))
+          .results.bindings.length
+      ).toMatchInlineSnapshot(`26`);
     },
     10 * SEC
   );
@@ -35,7 +47,7 @@ describe.skip("apiFactory", () => {
     async () => {
       const res = await api.search({
         dataResourceFilters: ["all"],
-        searchText: "",
+        searchText: "data",
       });
       const resMasked = res.map((el) => ({
         ...el,

@@ -37,27 +37,22 @@ For more info, see [API section](README.md#API).
 
 ## Local development
 
-Requires [pnpm](https://pnpm.io/) and [nx](https://nx.dev/getting-started/intro).
-
-```sh
-# Install pnpm
-pnpm install # IMPORTANT: yarn & npm may cause downstream problems during development
-pnpm add <npm-package> --filter @telicent-oss/<packageName> # Add dependency to specific package
-```
+Requires [nx](https://nx.dev/getting-started/intro).
 
 Some useful `nx` commands
 
 ```sh
-npx nx affected:build # build impacted packages
-npx nx affected:test # run tests on impacted packages
-npx nx affected:generate-docs # gen docs on impacted packages
-# npx nx @telicent-oss/rdfservice:build # Build rdfservice package only
-npx nx @telicent-oss/ontologyservice:test  # Test ontologyservice package only
-npx nx run @telicent-oss/rdfservice:lint # Run "lint" from ./packages/rdfservice/package.json
-npx nx test @telicent-oss/ontologyservice --watch -t setStyles # flags work
+# For all impacted packages
+npx nx affected:build # build
+npx nx affected:test # test
+npx nx affected:generate-docs # gen docs
+# For individual packages
+cd rdfservice && npx nx build # Build
+cd ontologyservice && npx nx test # Test
+cd catalogservice && npx nx lint # Lint
 ```
 
-To develop multiple packages:
+To dev workflow multiple package:
 
 ```sh
 cd ./packages/RdfService; # In producer package...

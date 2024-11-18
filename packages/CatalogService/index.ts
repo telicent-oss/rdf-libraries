@@ -5,7 +5,7 @@
   * @author Ian Bailey
   */
 
-import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource } from "@telicent-oss/rdfservice";
+import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, RDFServiceConfig, LongURI, ResourceFindSolution, RDFSResourceDescendant, RankWrapper } from "@telicent-oss/rdfservice";
 import { DCAT3InterpretationByCola } from "./src/DCAT3Interpretation/DCAT3InterpretationByCola";
 import { IDCAT3Interpretation } from "./src/DCAT3Interpretation/types";
 import packageJSON from './package.json';
@@ -20,6 +20,11 @@ export const version = packageJSON?.version;
 
 const DEBUG = false;
 
+export type DCATRankWrapper = {
+  score?: number,
+  item: DCATResource
+}
+
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
     title: SPARQLResultBinding,
     description?: SPARQLResultBinding,
@@ -31,16 +36,20 @@ export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
 }
 
 export interface DcatResourceFindSolution extends DcatResourceQuerySolution {
-    concatLit: SPARQLResultBinding,
+  concatLit: SPARQLResultBinding,
 }
 
 
-export type RankWrapper = {
-    score?: Number,
-    item: DCATResource
-}
 
-type DCATResourceDescendant = new (...args:any[]) => DCATResource
+
+
+
+// RULE RATIONALE: 
+//  Don't know/care what instantiation params of ancestors are; 
+//  Just care new instance inherits from DCATResource
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// type DCATResourceDescendant = new (...args:any[]) => DCATResource
+
 export class DCATResource extends RDFSResource {
     className = 'DCATResource'
     /**
@@ -54,13 +63,7 @@ export class DCATResource extends RDFSResource {
      * @param {DCATCatalog} catalog - optional catalog this resource belongs to
     */
     service: CatalogService
-    // TODO remove workAsync
-    // HOW 
-    //  1. Write full test coverage
-    //  2. Add https://typescript-eslint.io/rules/no-floating-promises/
-    //  3. Refactor to always return async work (can this be enforced?)
-    // WHEN https://telicent.atlassian.net/browse/TELFE-636
-    public workAsync: Promise<unknown>[] = [];
+    // Promises created in service constructor
     // TODO Great candidate for well-typed params object
     constructor(
         service: CatalogService,
@@ -82,12 +85,9 @@ export class DCATResource extends RDFSResource {
             if (!statement.title) {
                 console.warn(`No title set for ${this.uri} in query response`)
             }
-
             if (!statement.published) {
                 console.warn(`No published date set for ${this.uri} in query response`)
             }
-
-
             if ((uri) || (title) || (published) || (type)) {
                 console.warn(`individual parameters such as uri, title, etc. should not be set if the statement parameter is set: ${JSON.stringify(statement, null, 2)}`)
             }
@@ -104,21 +104,23 @@ export class DCATResource extends RDFSResource {
             }
 
             if ((title) && (title != "")) {
-              this.setTitle(title)
+              this.constructorPromises.push(this.setTitle(title));
             }
             
             if ((published) && (published != "")) {
-              
-              this.setPublished(published)
+              this.constructorPromises.push(this.setPublished(published));
             }
             if ((catalog) && (type == "http://www.w3.org/ns/dcat#Resource")) {
+              this.constructorPromises.push(
                 this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri)
+              );
             }
         }
     }
+
 }
 
-export class DCATDataset extends DCATResource {
+export class DCATDataset extends DCATResource { 
   className = 'DCATDataset'
   constructor(
     service: CatalogService,
@@ -131,10 +133,12 @@ export class DCATDataset extends DCATResource {
   ) {
     super(service, uri, title, published, type, catalog, statement);
     if (catalog) {
-      this.service.insertTriple(
-        catalog.uri,
-        `http://www.w3.org/ns/dcat#Dataset`,
-        this.uri
+      this.constructorPromises.push(
+        this.service.insertTriple(
+          catalog.uri,
+          `http://www.w3.org/ns/dcat#Dataset`,
+          this.uri
+        )
       );
     }
   }
@@ -157,48 +161,42 @@ export class DCATCatalog extends DCATDataset {
         if (catalog) { 
             // TODO: Move async to loadAsync() fn
             // WHY: so dev can choose when to start async operations
-            //  const catalog = new DCATCatalog(..)
+            //  const catalog = await DCATCatalog.createAsync(..)
             //  catalog.loadAsync()
-            this.addOwnedCatalog(catalog);
+            const addOwnedCatalogAsync = this.addOwnedCatalog(catalog);
+            if (addOwnedCatalogAsync !== undefined) {
+              this.constructorPromises.push(addOwnedCatalogAsync);
+            }
         }
     }
 
     addOwnedCatalog(catalog:DCATCatalog) {
         if (catalog) {
-            const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Catalog`,catalog.uri);
-            this.workAsync.push(work)
-            return work;
+            return this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Catalog`,catalog.uri);
         }
     }
     addOwnedDataset(dataset:DCATDataset) {
         if (dataset) {
-            const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Dataset`,dataset.uri);
-            this.workAsync.push(work);
-            return work;
+            return this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Dataset`,dataset.uri);
         }
     }
     addOwnedService(service:DCATDataService) {
         if (service) {
-            const work = this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#DataService`,service.uri);
-            this.workAsync.push(work);
-            return work;
+            return this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#DataService`,service.uri);
         }
     }
 
     addOwnedResource(resource:DCATResource) {
       switch(resource.className) {
         case 'DCATCatalog':
-          this.addOwnedCatalog(resource as DCATCatalog);
-          break;
+          return this.addOwnedCatalog(resource as DCATCatalog);
         case 'DCATDataset':
-          this.addOwnedDataset(resource as DCATDataset);
-          break;
+          return this.addOwnedDataset(resource as DCATDataset);
         case 'DCATDataService':
-          this.addOwnedService(resource as DCATDataService);
-          break;
+          return this.addOwnedService(resource as DCATDataService);
         default:
           console.warn('addOwnedResource(): no match', resource.className, Object.prototype.toString.call(resource));
-          this.workAsync.push(this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri));
+          return this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri);
         }
     }
 
@@ -220,6 +218,7 @@ export class DCATCatalog extends DCATDataset {
 
 }
 
+
 export class DCATDataService extends DCATCatalog {
     className = 'DCATDataService'
     constructor(
@@ -234,7 +233,7 @@ export class DCATDataService extends DCATCatalog {
       super(service, uri, title, published, type, catalog, statement);
   
       if (catalog) {
-        this.workAsync.push(
+        this.constructorPromises.push(
           this.service.insertTriple(
             catalog.uri,
           //   `http://www.w3.org/ns/dcat#Service`,
@@ -246,15 +245,61 @@ export class DCATDataService extends DCATCatalog {
     }
   }
 
+  export class vcardKind extends RDFSResource {
+    service: CatalogService
+    constructor(service: CatalogService, uri?: string, type: string = "http://www.w3.org/2006/vcard/ns#Kind", statement?: DcatResourceQuerySolution) {
+        let cached = false
+        if (uri) {
+            cached = service.inCache(uri)
+        }
+        super(service, uri, type, statement)  
+        this.service = service
+        if (cached) {
+          return this
+        }
+    }
+
+    async setFormattedName(name:string) {
+      const promise = this.addLiteral(`${this.service.vcard}fn`, name);
+      this.constructorPromises.push(promise)
+      return promise
+    }
+    setGivenName(name:string) {
+      const promise = this.addLiteral(`${this.service.vcard}given-name`, name)
+      this.constructorPromises.push(promise)
+      return promise
+        
+    }
+    setFamilyName(name:string) {
+        const promise = this.addLiteral(`${this.service.vcard}family-name`, name)
+        this.constructorPromises.push(promise)
+        return promise
+    }
+    setEmail(emailAddress:string) {
+        
+        const promise = this.service.insertTriple(this.uri,`${this.service.vcard}hasEmail`, `mailto:`+emailAddress)
+      this.constructorPromises.push(promise)
+      return promise
+    }
+}
+
+export class vcardIndividual extends vcardKind {
+}
+
+export class vcardOrganization extends vcardKind {  
+}
+
+export class vcardGroup extends vcardKind {
+}
 
 export class CatalogService extends RdfService {
   static DEFAULT_CONSTRUCTOR_ARGS = {
     triplestoreUri: "http://localhost:3030/",
     dataset: "catalog",
     defaultNamespace: "http://telicent.io/catalog/",
-    defaultSecurityLabel: ""
+    defaultSecurityLabel: "",
   };
-  
+
   dcat: string;
   dcatCatalog: string;
   dcatResource: string;
@@ -265,7 +310,9 @@ export class CatalogService extends RdfService {
   dcat_dataset: string;
   dcatDataService: string;
   dcat_service: string;
+  vcard: string;
   interpretation: IDCAT3Interpretation;
+
   /**
    * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
    * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore
@@ -279,96 +326,111 @@ export class CatalogService extends RdfService {
     interpretation?: IDCAT3Interpretation;
     triplestoreUri?: string;
     dataset?: string;
-    defaultNamespace?:string;
-    defaultSecurityLabel?:string;
+    defaultNamespace?: string;
+    defaultSecurityLabel?: string;
+    config?: RDFServiceConfig;
   }) {
-    const { writeEnabled, interpretation, triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel } = {
+    const {
+      writeEnabled,
+      interpretation,
+      triplestoreUri,
+      dataset,
+      defaultNamespace,
+      defaultSecurityLabel,
+    } = {
       ...CatalogService.DEFAULT_CONSTRUCTOR_ARGS,
-      ...options
+      ...options,
     };
+    super(
+      triplestoreUri,
+      dataset,
+      defaultNamespace,
+      defaultSecurityLabel,
+      writeEnabled,
+      options.config
+    );
 
-        super(triplestoreUri, dataset, defaultNamespace, defaultSecurityLabel, writeEnabled)
-        
-        this.dcat = "http://www.w3.org/ns/dcat#"
+    this.dcat = "http://www.w3.org/ns/dcat#";
+    this.vcard = "http://www.w3.org/2006/vcard/ns#";
 
-        this.dcatResource = `${this.dcat}Resource`
-        this.dcatCatalog = `${this.dcat}Catalog`
-        this.dcatDataset = `${this.dcat}Dataset`
-        this.dcat_dataset = `${this.dcat}dataset` // TODO WARNING NOT Dataset
-        this.dcatDataService = `${this.dcat}DataService`
-        this.dcat_service = `${this.dcat}service`
+    this.dcatResource = `${this.dcat}Resource`;
+    this.dcatCatalog = `${this.dcat}Catalog`;
+    this.dcatDataset = `${this.dcat}Dataset`;
+    this.dcat_dataset = `${this.dcat}dataset`; // TODO WARNING NOT Dataset
+    this.dcatDataService = `${this.dcat}DataService`;
+    this.dcat_service = `${this.dcat}service`;
 
-        this.classLookup[this.dcatResource] = DCATResource
-        this.classLookup[this.dcatDataset] = DCATDataset
-        this.classLookup[this.dcatDataService] = DCATDataService
-        this.classLookup[this.dcatCatalog] = DCATCatalog
-        this.addPrefix("dcat:", this.dcat)
-        this.interpretation = interpretation || new DCAT3InterpretationByCola(this);
+    this.classLookup[this.dcatResource] = DCATResource;
+    this.classLookup[this.dcatDataset] = DCATDataset;
+    this.classLookup[this.dcatDataService] = DCATDataService;
+    this.classLookup[this.dcatCatalog] = DCATCatalog;
+    this.addPrefix("dcat:", this.dcat);
+    this.addPrefix("vcard:", this.vcard);
 
+    this.interpretation = interpretation || new DCAT3InterpretationByCola(this);
   }
 
-
-
-  compareScores(a: RankWrapper, b: RankWrapper) {
-        if ((!a.score) || (!b.score)) {
-            return 0
-    }
-    if (a.score < b.score) {
-            return 1
-    }
-    if (a.score > b.score) {
-            return -1
-    }
-        return 0
-  }
-
-
-    rankedWrap(queryReturn: QueryResponse<DcatResourceFindSolution>, matchingText: string) {
-        let items:RankWrapper[] = []
-        let cls: DCATResourceDescendant =  DCATResource;
-        let re = matchingText ? new RegExp(matchingText.toLowerCase(), "g") : undefined;
-        let concatLit: string = ''
-        if (queryReturn?.results?.bindings) {
-            if (queryReturn?.head?.vars) {
-        for (let i in queryReturn.results.bindings) {
-                    let binding = queryReturn.results.bindings[i]
+  async rankedWrapForDCAT(
+    queryReturn: QueryResponse<ResourceFindSolution>,
+    matchingText: string
+  ) {
+    const items: RankWrapper[] = [];
+    let Class: RDFSResourceDescendant = DCATResource;
+    const re = matchingText
+      ? new RegExp(matchingText.toLowerCase(), "g")
+      : undefined;
+    let concatLit: string = "";
+    if (queryReturn?.results?.bindings) {
+      if (queryReturn?.head?.vars) {
+        for (const i in queryReturn.results.bindings) {
+          const binding = queryReturn.results.bindings[i];
           if (binding._type) {
-                        // !CRITICAL Defensive coding; Increase stability
-                        // HOW
-                        //  - fix types
-                        //  - Consider replacing with tryInstantiate()
-                        // WHY
-                        //  - Had bug where `cls` was not being re-assigned, 
-                        //    thus creating instances of wrong class
-                        //    and if this INCORRECT DESERIALIZING code was
-                        //    executed before CORRECT DESERIALIZING code, then
-                        //    incorrect instances where stored in cache.
-                        //    De-serialization into the helper classes 
-                        //    at runtime is very important; and should be
-                        //    more secured to increase confidence
-                        // WHEN
-                        //  - A.S.A.P
-                        cls = this.classLookup[binding._type.value] as DCATResourceDescendant;
-                    }
-                    let item = new cls(this, undefined, undefined, undefined, undefined, undefined, binding)
+            // !CRITICAL Defensive coding; Increase stability
+            // HOW
+            //  - fix types
+            //  - Consider replacing with tryInstantiate()
+            // WHY
+            //  - Had bug where `cls` was not being re-assigned,
+            //    thus creating instances of wrong class
+            //    and if this INCORRECT DESERIALIZING code was
+            //    executed before CORRECT DESERIALIZING code, then
+            //    incorrect instances where stored in cache.
+            //    De-serialization into the helper classes
+            //    at runtime is very important; and should be
+            //    more secured to increase confidence
+            // WHEN
+            //  - A.S.A.P
+            // MERGE QUESTION
+            // const types = binding._type.value.split(" ");
+            const classKey = binding._type.value
+            Class = this.classLookup[classKey] as RDFSResourceDescendant
+             || RDFSResource;
+          }
+          const instance = await Class.createAsync(
+            this,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            binding
+          );
           //The query concatenates all the matching literals in the result - we can then count the number of matches to provide a basic score for ranking search results.
-                    let score = 0
+          let score = 0;
           if (binding.concatLit) {
-                        concatLit = binding.concatLit.value
-                        let match = re ? concatLit.match(re) : false
+            concatLit = binding.concatLit.value;
+            const match = re ? concatLit.match(re) : false;
             if (match) {
-                            score = match.length
+              score = match.length;
             } //Cosplay strong typing
           }
 
-                    var wrapper: RankWrapper = { item: item, score: score }
-                    items.push(wrapper)
+          items.push({ item: instance, score: score });
         }
       }
     }
-        return items.sort(this.compareScores)
+    return items.sort(this.compareScores);
   }
-
 
   /**
    * Returns all instances of the specified resourceType (e.g. dcat:Dataset, dcat:DataService)
@@ -377,30 +439,35 @@ export class CatalogService extends RdfService {
    * @param {string} catalogRelation - OPTIONAL - prefixed property identifier. If set, this will only return datasets belonging to the catalog via catalogRelation
    * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
    */
-    async getAllDCATResources(cls?: string, catalog?: string, catalogRelation?: string): Promise<DCATResource[]> {
-        let resources: DCATResource[] = []
-        let catalogSelect = ''
-        let relFilter = ''
+  async getAllDCATResources(
+    cls?: string,
+    catalog?: string,
+    catalogRelation?: string
+  ): Promise<DCATResource[]> {
+    const resources: DCATResource[] = [];
+    let catalogSelect = "";
+    let relFilter = "";
     if (!catalogRelation) {
-            catalogRelation = '?catRel'
-            relFilter = 'FILTER (?catRel in (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, rdf:type))'
-        }
-        else {
-            catalogRelation = `<${catalogRelation}>`
+      catalogRelation = "?catRel";
+      relFilter =
+        "FILTER (?catRel in (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, rdf:type))";
+    } else {
+      catalogRelation = `<${catalogRelation}>`;
     }
     if (catalog) {
-            catalogSelect = `<${catalog}> ${catalogRelation} ?uri .`
+      catalogSelect = `<${catalog}> ${catalogRelation} ?uri .`;
     }
-        let typeSelect = ''
+    let typeSelect = "";
     if (cls) {
       // REQUIREMENT 6.3 Search by dataResourceFilter: selected data-resources
       // Perfect. cls is optional.
-            typeSelect = `BIND (<${cls}> as ?_type)`
+      typeSelect = `BIND (<${cls}> as ?_type)`;
     } else {
-            typeSelect = 'FILTER (?_type IN (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, dcat:DatasetSeries))'
+      typeSelect =
+        "FILTER (?_type IN (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, dcat:DatasetSeries))";
     }
     // !CRITICAL PREFIX below is hacked in.
-    let query = `
+    const query = `
             PREFIX dcat: <http://www.w3.org/ns/dcat#>
             PREFIX dct: <http://purl.org/dc/terms/>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -416,20 +483,30 @@ export class CatalogService extends RdfService {
                 OPTIONAL {?uri dct:description ?description} 
                 OPTIONAL {?uri dct:creator ?creator} 
                 OPTIONAL {?uri dct:rights ?rights} 
-            }`
-        const results = await this.runQuery<DcatResourceQuerySolution>(query)
+            }`;
+    const results = await this.runQuery<DcatResourceQuerySolution>(query);
     results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
-            var cls = DCATResource
+      let Class = DCATResource;
       if (statement._type) {
-                cls = (this.lookupClass(statement._type.value, DCATResource) as unknown) as typeof DCATResource
-            }
-            var dcr = new cls(this, undefined, undefined, undefined, undefined, undefined, statement)
-            resources.push(dcr)
-        })
+         Class = this.lookupClass(
+          statement._type.value,
+          DCATResource
+        ) as unknown as typeof DCATResource;
+      }
+      const dcatResource = new Class(
+        this,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        statement
+      );
+      resources.push(dcatResource);
+    });
     // REQUIREMENT 6.4 Search by dataResourceFilter: selected data-resources
     // I don't see any sort clause, but I assume the returned sort order will be sensible; Or can be made sensible.
-        return resources
-
+    return resources;
   }
 
   /**
@@ -437,9 +514,7 @@ export class CatalogService extends RdfService {
    * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
    */
   async getAllDatasets(): Promise<DCATDataset[]> {
-    const work = this.getAllDCATResources("dcat:Dataset");
-    this.workAsync.push(work);
-    return work;
+    return this.getAllDCATResources("dcat:Dataset");
   }
 
   /**
@@ -447,9 +522,9 @@ export class CatalogService extends RdfService {
    * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
    */
   async getDataServices(): Promise<DCATDataService[]> {
-    const work = this.getAllDCATResources("dcat:DataService");
-    this.workAsync.push(work);
-    return (work as unknown) as Promise<DCATDataService[]>; // !CRITICAL verify
+    return this.getAllDCATResources("dcat:DataService") as unknown as Promise<
+      DCATDataService[]
+    >; // !CRITICAL validate
   }
 
   /**
@@ -457,11 +532,7 @@ export class CatalogService extends RdfService {
    * @returns {Array} - An array of DataService objects with URIs, titles, and published dates
    */
   async getAllCatalogs(): Promise<DCATCatalog[]> {
-    const work = this.getAllDCATResources("dcat:Catalog") as Promise<
-      DCATCatalog[]
-    >;
-    this.workAsync.push(work);
-    return work;
+    return this.getAllDCATResources("dcat:Catalog") as Promise<DCATCatalog[]>;
   }
 
   /**
@@ -472,8 +543,16 @@ export class CatalogService extends RdfService {
    */
   // REQUIREMENT 7.1 Search by input text
   // Code. Hm. This looks like it won't take search and dataresource owner....
-    async find(matchingText: string, dcatTypes: string[] = [this.dcatCatalog, this.dcatDataService, this.dcatDataset], owner: DCATCatalog | DCATDataService | DCATDataset): Promise<RankWrapper[]> {
-      let query = `
+  async findWithOwner(
+    matchingText: string,
+    dcatTypes: LongURI[] = [
+      this.dcatCatalog,
+      this.dcatDataService,
+      this.dcatDataset,
+    ],
+    owner: DCATCatalog | DCATDataService | DCATDataset
+  ): Promise<RankWrapper[]> {
+    const query = `
             SELECT DISTINCT ?uri ?title ?published ?description ?creator ?rights ?modified ?accessRights ?_type (group_concat(DISTINCT ?literal) as ?concatLit)
               WHERE {
                   {
@@ -499,11 +578,12 @@ export class CatalogService extends RdfService {
                   OPTIONAL {?uri dct:rights ?rights} 
                   OPTIONAL {?uri dct:accessRights ?accessRights} 
             } GROUP BY ?uri ?title ?published ?modified ?description ?creator ?accessRights ?rights ?_type
-            `
-        let results = await this.runQuery<DcatResourceFindSolution>(query)
-        return this.rankedWrap(results, matchingText)
-    }
+            `;
+    const results = await this.runQuery<ResourceFindSolution>(query);
+    return this.rankedWrap(results, matchingText);
+  }
 
+  
   /**
    * Finds DCAT resources based on provided parameters.
    *
@@ -512,20 +592,19 @@ export class CatalogService extends RdfService {
    */
   async findWithParams({
     searchText,
-    owner, 
+    owner,
     accessRights,
     dcatTypes = [
-        "http://www.w3.org/ns/dcat#Catalog",
-        "http://www.w3.org/ns/dcat#DataService",
-        "http://www.w3.org/ns/dcat#Dataset",
+      "http://www.w3.org/ns/dcat#Catalog",
+      "http://www.w3.org/ns/dcat#DataService",
+      "http://www.w3.org/ns/dcat#Dataset",
     ],
   }: {
-      searchText?: string;
-      owner?: DCATCatalog | DCATDataService | DCATDataset;
-      accessRights?: string;
-      dcatTypes?: string[];
-  }): Promise<RankWrapper[]> {
-
+    searchText?: string;
+    owner?: DCATCatalog | DCATDataService | DCATDataset;
+    accessRights?: string;
+    dcatTypes?: string[];
+  }): Promise<DCATRankWrapper[]> {
     // Construct the SPARQL query with inline conditions
     const query = `
         SELECT DISTINCT 
@@ -540,30 +619,42 @@ export class CatalogService extends RdfService {
           ?_type 
                (GROUP_CONCAT(DISTINCT ?literal; SEPARATOR=", ") AS ?concatLit)
         WHERE {
-            ${owner ? `
+            ${
+              owner
+                ? `
                 {
-                    ${/* Include the parent */''}
+                    ${/* Include the parent */ ""}
                     ?uri a ?_type .
                     ?uri ?pred ?literal .
                     FILTER(?uri = <${owner.uri}>) .
-                    ${searchText ? '?uri ?pred ?literal .' : ''}
+                    ${searchText ? "?uri ?pred ?literal ." : ""}
                 }
                 UNION
                 {
-                    ${/* Include children datasets and services */''}
+                    ${/* Include children datasets and services */ ""}
                     ?uri a ?_type .
                     ?uri ?pred ?literal .
-                    ${owner ? `<${owner.uri}> ?catRel ?uri .` : ''}
-                    ${searchText ? '?uri ?pred ?literal .' : ''}
+                    ${owner ? `<${owner.uri}> ?catRel ?uri .` : ""}
+                    ${searchText ? "?uri ?pred ?literal ." : ""}
                 }
-            ` : `
-              ${/* When no owner is specified, include all relevant resources */''}
+            `
+                : `
+              ${
+                /* When no owner is specified, include all relevant resources */ ""
+              }
                 ?uri a ?_type .
-                ${searchText ? '?uri ?pred ?literal .' : ''}
-            `}
-            ${accessRights ? `?uri dct:accessRights "${accessRights}" .` : ''}
-            ${searchText ? `FILTER(CONTAINS(LCASE(?literal), "${searchText.toLowerCase()}")) .` : ''}
-            FILTER (?_type IN (${dcatTypes.map(type => `<${type}>`).join(', ')})) .
+                ${searchText ? "?uri ?pred ?literal ." : ""}
+            `
+            }
+            ${accessRights ? `?uri dct:accessRights "${accessRights}" .` : ""}
+            ${
+              searchText
+                ? `FILTER(CONTAINS(LCASE(?literal), "${searchText.toLowerCase()}")) .`
+                : ""
+            }
+            FILTER (?_type IN (${dcatTypes
+              .map((type) => `<${type}>`)
+              .join(", ")})) .
             OPTIONAL { ?uri dct:title ?title } .
             OPTIONAL { ?uri dct:published ?published } .
             # OPTIONAL { ?uri dct:modified ?modified } .
@@ -588,14 +679,14 @@ export class CatalogService extends RdfService {
     DEBUG && console.log("Constructed SPARQL Query:", query);
 
     try {
-        // Execute the query using the runQuery method
-        const response = await this.runQuery<DcatResourceFindSolution>(query);
-        DEBUG && console.log('respones', response.results.bindings);
-        // Wrap and return the results using the rankedWrap method
-        return this.rankedWrap(response, searchText || '');
+      // Execute the query using the runQuery method
+      const response = await this.runQuery<DcatResourceFindSolution>(query);
+      DEBUG && console.log("respones", response.results.bindings);
+      // Wrap and return the results using the rankedWrap method
+      return this.rankedWrapForDCAT(response, searchText || "") as unknown as DCATRankWrapper[];
     } catch (error) {
-        DEBUG && console.error("Error executing SPARQL query:", error);
-        throw error;
+      DEBUG && console.error("Error executing SPARQL query:", error);
+      throw error;
     }
   }
 }

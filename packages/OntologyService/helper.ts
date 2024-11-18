@@ -1,12 +1,8 @@
-
 //import { SPARQL } from "packages/RdfService";
 
-
-
-
-import {OntologyService,  Style } from "./index";
+import { OntologyService, Style } from "./index";
 /*
- * @function makeStyleObject 
+ * @function makeStyleObject
  * @remarks
  * creates a js object with the provided colours, icons, etc. If you leave them unset, they'll default to the grey box.
  * @param string - An array of URIs (strings) of the classes whose styles are required
@@ -16,8 +12,12 @@ import {OntologyService,  Style } from "./index";
  * @param string - The unicode representation of the font awesome icon
  * @param string - The class string of font awesome icon - usually ontologyService also included in the faIcon string
  * @returns object - a style object for use in other methods
-*/
-export const makeStyleObject = new Style("#888","#000","fa-solid fa-question")
+ */
+export const makeStyleObject = new Style(
+  "#888",
+  "#000",
+  "fa-solid fa-question",
+);
 /*
 const doesExist = (target: string, elementList: AllElements) => Boolean(target in elementList)
 

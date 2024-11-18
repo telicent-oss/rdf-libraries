@@ -1,4 +1,4 @@
-import { LiteralPropertyQuerySolution, RDFTripleType, RelatedLiterals } from "@telicent-oss/rdfservice";
+import { RDFTripleType } from "@telicent-oss/rdfservice";
 import { CatalogService, DCATResourceSchema, RDF_TYPE_URI } from "../../index";
 import { findTripleBySchema } from "../utils/triplesOrNeighborWithType";
 import { z, ZodSchema } from "zod";
@@ -13,7 +13,7 @@ const TERM = {
 }
 
 const findTripleWithTriples = (triples:RDFTripleType[]) =>
-  ({ s, p, o, label }: { s?: ZodSchema; p?:ZodSchema; o?: ZodSchema, label:string}) => {
+  ({ s, p, o }: { s?: ZodSchema; p?:ZodSchema; o?: ZodSchema, label:string}) => {
     const result = triples.find(findTripleBySchema({ s, p, o }));
     return result;
   }

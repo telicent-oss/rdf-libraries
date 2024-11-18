@@ -35,7 +35,7 @@ export const enrichRdfTree = async ({
       throw error;
     }
 
-    const instance = tryInstantiate({
+    const instance = await tryInstantiate({
       id,
       type,
       service,

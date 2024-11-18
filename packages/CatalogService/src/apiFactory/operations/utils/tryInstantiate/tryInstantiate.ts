@@ -1,5 +1,4 @@
 import { RDFTripleType } from "@telicent-oss/rdfService";
-import { formatDataAsArray } from "../../../../__tests__/utils/formatDataAsArray";
 import {
   DCATDataset,
   DCATDataService,
@@ -12,11 +11,9 @@ import {
   SERVICE_URI,
   CATALOG_URI,
   RESOURCE_URI_TYPE,
-  UIDataResourceType,
 } from "../common";
-import { shorten } from "../../../../utils/shorten";
 
-export const tryInstantiate = ({
+export const tryInstantiate = async ({
   type,
   id,
   service,
@@ -29,32 +26,20 @@ export const tryInstantiate = ({
 }): // NOTE: TS cannot infer return type correct due to
 // reliance on constructor signature being the same
 // (DCATCatalog is different)
-DCATCatalog | DCATDataset | DCATDataService => {
-  // console.log(
-  //   'tryInstantiate',
-  //   JSON.stringify(
-  //     { type, id, triples },
-  //     (key, value) => {
-  //       // Check if the current value is an object with type 'literal'
-  //       if (value && value.type === 'literal') {
-  //         // Return a new object with the shortened value
-  //         return { ...value, value: shorten(value.value, 100) };
-  //       }
-  //       // Return the value unchanged
-  //       return value;
-  //     },
-  //     2
-  //   )
-  // );
+Promise<DCATCatalog | DCATDataset | DCATDataService> => {
   if (service.nodes[id]) {
     try {
-      if (type === CATALOG_URI) {
-        return new DCATCatalog(service, id);
-      } else if (type === DATASET_URI) {
-        return new DCATDataset(service, id);
-      } else if (type === SERVICE_URI) {
-        return new DCATDataService(service, id);
-      }
+      return await (
+        type === CATALOG_URI
+          ? DCATCatalog.createAsync(service, id)
+          : type === DATASET_URI
+          ? DCATDataset.createAsync(service, id)
+          : type === SERVICE_URI
+          ? DCATDataService.createAsync(service, id)
+          : (() => {
+              throw "Never here";
+            })()
+      );
     } catch (err) {
       throw err instanceof Error
         ? new HumanError(
@@ -72,18 +57,18 @@ DCATCatalog | DCATDataset | DCATDataService => {
   // TODO Perhaps remove
   // WHY I'm not currently using these classes for much at all
   // HOW consider creating a few query building fn, and util fns and leave it at that
-  // console.log(formatDataAsArray(triples).join('\n'))
-  
   const title = service.interpretation.dcTitleFromTriples(id, triples, { assert: true });
   const published = service.interpretation.dcPublishedFromTriples(id, triples, { assert: true });
   
-  if (type === CATALOG_URI) {
-    return new DCATCatalog(service, id, title, published );
-  } else if (type === DATASET_URI) {
-    return new DCATDataset(service, id, title, published );
-  } else if (type === SERVICE_URI) {
-    return new DCATDataService(service, id, title, published );
-  }
-  throw TypeError(`type "${type}" is not handled`);
-
+  return await (
+    type === CATALOG_URI
+      ? DCATCatalog.createAsync(service, id, title, published)
+      : type === DATASET_URI
+      ? DCATDataset.createAsync(service, id, title, published)
+      : type === SERVICE_URI
+      ? DCATDataService.createAsync(service, id, title, published)
+      : (() => {
+          throw TypeError(`type "${type}" is not handled`);
+        })()
+  );
 };
