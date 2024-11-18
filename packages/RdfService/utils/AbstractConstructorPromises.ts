@@ -14,9 +14,22 @@ class SomeClass extends AbstractConstructorPromises {
     }
 }
 
-const instance1 = await SomeClass.createAsync(101); // WORKS
+* AbstractConstructorPromises gives classes a static factory function 
+* called `createAsync`. Which makes it more convenient to:
+* 1. Instantiate a class
+* 2. WAIT for any promises created in the constructor to resolve
+* 3. Retain type-checking of constructor params
 
-const instance2 = await SomeClass.createAsync("102"); // TS ERROR
+* WORKS FINE
+* Without using createAsync:
+const instance100Promise = new SomeClass(100); 
+await Promise.all(instance100Promise.constructorPromises);
+* With createAsync:
+const instance101 = await SomeClass.createAsync(101);
+
+* Same as above, but creates TS ERRORS!
+const instance102Promise = new SomeClass("102");
+const instance103 = await SomeClass.createAsync("103");
 ```
 */
 export abstract class AbstractConstructorPromises {

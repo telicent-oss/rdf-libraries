@@ -5,6 +5,8 @@ class ExampleClass extends AbstractConstructorPromises {
 
   constructor(name: string) {
     super();
+    const somethingAsync = Promise.resolve();
+    this.constructorPromises.push(somethingAsync);
     this.name = name;
   }
 }

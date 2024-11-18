@@ -1092,11 +1092,6 @@ export class RdfService extends AbstractConstructorPromises {
     this.nodes = {};
   }
 
-  async getAllConstructorAsync() {
-    await Promise.all(this.constructorPromises);
-    return;
-  }
-
   inCache(uri: LongURI) {
     if (uri in this.nodes) {
       return true;
