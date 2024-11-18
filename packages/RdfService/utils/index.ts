@@ -1,2 +1,2 @@
-export { ConstructorPromises } from './ConstructorPromises';
+export { AbstractConstructorPromises } from './AbstractConstructorPromises';
 export { getConfig } from './getConfig';

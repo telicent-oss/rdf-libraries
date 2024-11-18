@@ -111,16 +111,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         false,
       );
       os2.setWarnings = false;
-      const h = await os2.getClassHierarchy();
-      h.forEach((node) => {
-        node.children.forEach((subNode) => {
-          if (
-            subNode.item.uri == "http://www.w3.org/2000/01/rdf-schema#Literal"
-          ) {
-            //console.log(subNode)
-          }
-        });
-      });
+      await os2.getClassHierarchy();
     }
   });
 
@@ -222,9 +213,6 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       const diags: Diagram[] = await os2.getAllDiagrams();
       const diag: Diagram = diags[0];
       const elems = await diag.getDiagramElements();
-      // elems.forEach((elem:DiagramElement) => {
-      //   console.log(elem.uri, elem.types, elem.baseType, elem.constructor.name)
-      //  })
       const rels = await diag.getDiagramRelations();
 
       const phy = await os2.getClassHierarchy();

@@ -27,22 +27,6 @@ export const tryInstantiate = async ({
 // reliance on constructor signature being the same
 // (DCATCatalog is different)
 Promise<DCATCatalog | DCATDataset | DCATDataService> => {
-  // console.log(
-  //   'tryInstantiate',
-  //   JSON.stringify(
-  //     { type, id, triples },
-  //     (key, value) => {
-  //       // Check if the current value is an object with type 'literal'
-  //       if (value && value.type === 'literal') {
-  //         // Return a new object with the shortened value
-  //         return { ...value, value: shorten(value.value, 100) };
-  //       }
-  //       // Return the value unchanged
-  //       return value;
-  //     },
-  //     2
-  //   )
-  // );
   if (service.nodes[id]) {
     try {
       return await (
@@ -73,8 +57,6 @@ Promise<DCATCatalog | DCATDataset | DCATDataService> => {
   // TODO Perhaps remove
   // WHY I'm not currently using these classes for much at all
   // HOW consider creating a few query building fn, and util fns and leave it at that
-  // console.log(formatDataAsArray(triples).join('\n'))
-  
   const title = service.interpretation.dcTitleFromTriples(id, triples, { assert: true });
   const published = service.interpretation.dcPublishedFromTriples(id, triples, { assert: true });
   

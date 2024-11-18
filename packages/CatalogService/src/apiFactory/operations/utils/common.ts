@@ -129,9 +129,6 @@ export const getAllRDFTriples = async (options: {
   hasAccess?: boolean;
 }) =>
   RDFResponseSchema.parse(
-    // Math.random()
-    //   ? (console.log("New result", result), result)
-    //   :
     await options.service.runQuery(`
       SELECT DISTINCT ?s ?p ?o
       WHERE {

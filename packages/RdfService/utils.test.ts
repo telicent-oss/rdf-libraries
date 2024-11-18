@@ -1,6 +1,6 @@
-import { ConstructorPromises } from "./utils";
+import { AbstractConstructorPromises } from "./utils";
 
-class ExampleClass extends ConstructorPromises {
+class ExampleClass extends AbstractConstructorPromises {
   name: string;
 
   constructor(name: string) {
@@ -9,7 +9,7 @@ class ExampleClass extends ConstructorPromises {
   }
 }
 
-test("ConstructorPromises", async() => {
+test("AbstractConstructorPromises", async() => {
     const instancePromise = ExampleClass.createAsync("Alice");
     const instance = await instancePromise;
     expect(instance.name).toMatchInlineSnapshot('"Alice"');

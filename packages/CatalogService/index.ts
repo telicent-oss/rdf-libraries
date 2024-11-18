@@ -370,7 +370,7 @@ export class CatalogService extends RdfService {
     this.interpretation = interpretation || new DCAT3InterpretationByCola(this);
   }
 
-  rankedWrapForDCAT(
+  async rankedWrapForDCAT(
     queryReturn: QueryResponse<ResourceFindSolution>,
     matchingText: string
   ) {
@@ -406,7 +406,7 @@ export class CatalogService extends RdfService {
             Class = this.classLookup[classKey] as RDFSResourceDescendant
              || RDFSResource;
           }
-          const instance = new Class(
+          const instance = await Class.createAsync(
             this,
             undefined,
             undefined,

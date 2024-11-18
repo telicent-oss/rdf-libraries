@@ -1,4 +1,4 @@
-import { ConstructorPromises } from './utils';
+import { AbstractConstructorPromises } from './utils';
 
 export * from './schema';
 export * from './types';
@@ -220,7 +220,7 @@ export type XsdDataType =
 
 
 //A wrapper class for an RDFS Resource - i.e. typed node in the graph  
-export class RDFSResource extends ConstructorPromises {
+export class RDFSResource extends AbstractConstructorPromises {
   uri: LongURI;
   types: LongURI[];
   statement?: TypedNodeQuerySolution;
@@ -963,7 +963,7 @@ export class RDFSResource extends ConstructorPromises {
 
 export type RDFSResourceDescendant = {
   new (...args:any[]): RDFSResource;
-  createAsync<T extends ConstructorPromises, Args extends any[]>(
+  createAsync<T extends AbstractConstructorPromises, Args extends any[]>(
     this: new (...args: Args) => T,
     ...args: Args
   ): Promise<T>;
@@ -972,7 +972,7 @@ export type RDFSResourceDescendant = {
 export type RDFServiceConfig = Partial<{
   NO_WARNINGS: boolean;
 }>
-export class RdfService extends ConstructorPromises {
+export class RdfService extends AbstractConstructorPromises {
   public config: RDFServiceConfig;
   public constructorPromises: Promise<unknown>[] = [];
 
