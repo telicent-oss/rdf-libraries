@@ -1,13 +1,15 @@
 import { resolve } from "path";
-import { defineConfig } from "vite";
+import { defineConfig, PluginOption } from "vite";
 import dts from "vite-plugin-dts";
 
-module.exports = defineConfig({
+const dtsPlugin = dts({ insertTypesEntry: true }) as unknown as PluginOption
+export default defineConfig({
   build: {
+    minify: false,
     lib: {
       entry: resolve(__dirname, 'index.ts'),
       name: '@telicent-oss/catalogservice',
     }
   },
-  plugins: [dts({ insertTypesEntry: true })]
+  plugins: [dtsPlugin]
 });

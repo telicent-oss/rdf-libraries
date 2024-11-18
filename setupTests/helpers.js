@@ -13,10 +13,10 @@ function writeJson(jsonData){
 }
 
 
-function runTests(){
+async function runTests(){
     obj = new OntologyService()
     obj.getAllElements()//.then(console.log)
-    obj.instantiate("http://cls")//.then(console.log)
+    await obj.instantiate("http://cls")//.then(console.log)
     obj.insertTriple("http://x","http://y","http://abc")
     obj.insertTriple("http://x","http://yy","test","LITERAL","xsd:string")
     obj.deleteNode("http://abc")
@@ -28,5 +28,5 @@ function runTests(){
     obj.getDiagram('http://ies.data.gov.uk/diagrams#EAID_5DF03A2C_F6DF_4433_82D5_7E5C14B6045C')//.then(console.log)
 }
 
-runTests()
+await runTests()
 

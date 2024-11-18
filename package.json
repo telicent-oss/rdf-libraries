@@ -4,6 +4,7 @@
   "description": "Simple client-side lib for working with ontologies",
   "scripts": {
     "test": "./scripts/run-packages.sh test",
+    "clean": "yarn test --clearCache; yarn clean cache",
     "build": "./scripts/run-packages.sh build",
     "generate-docs": "./scripts/run-packages.sh generate-docs",
     "open-docs": "./scripts/run-packages.sh open-docs",

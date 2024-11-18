@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/rdfservice",
-  "version": "0.31.3",
+  "version": "0.0.6",
   "private": false,
   "description": "RdfService is a helper library that abstracts away the complexity of interacting with RDF triplestores, providing basic CRUD abilities.",
   "main": "./dist/rdfservice.mjs",
@@ -10,6 +10,11 @@
   "module": "./dist/rdfservice.mjs",
   "exports": {
     ".": {
+      "import": "./dist/rdfservice.mjs",
+      "require": "./dist/rdfservice.umd.js",
+      "types": "./dist/types.d.ts"
+    },
+    "./index": {
       "import": "./dist/rdfservice.mjs",
       "require": "./dist/rdfservice.umd.js",
       "types": "./dist/types.d.ts"
@@ -41,11 +46,11 @@
     "eslint-plugin-tsdoc": "^0.2.17",
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",
-    "testcontainers": "^10.10.4",
+    "testcontainers": "^10.14.0",
     "ts-jest": "^29.1.1",
     "tsc": "^2.0.4",
     "typedoc": "^0.25.3",
-    "typescript": "^5.2.2",
+    "typescript": "^5.5.4",
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
     "vite-tsconfig-paths": "^4.2.1"

@@ -3,24 +3,35 @@
   "version": "0.0.1",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",
-  "main": "./dist/catalogservice.mjs",
+  "main": "./dist/catalogservice.js",
   "files": [
     "dist"
   ],
-  "module": "./dist/catalogservice.mjs",
+  "type": "module",
+  "module": "./dist/catalogservice.js",
+  "// IDEA": "Have method to link directly to src",
   "exports": {
     ".": {
-      "import": "./dist/catalogservice.mjs",
+      "import": "./dist/catalogservice.js",
       "require": "./dist/catalogservice.umd.js",
+      "types": "./dist/types.d.ts"
+    },
+    "./index": {
+      "import": "./dist/catalogservice.js",
+      "require": "./dist/catalogservice.umd.cjs",
       "types": "./dist/types.d.ts"
     }
   },
   "types": "./dist/types.d.ts",
   "scripts": {
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
-    "test": "jest test",
+    "test": "jest --runInBand ",
+    "test:updateSnapshot": "yarn test -- --updateSnapshot",
+    "test:100": "for i in {1..100}; do echo \"Test run: $i\" && yarn jest && sleep .5 || break; done",
     "build": "rm -rf ./dist && vite build",
-    "lint": "eslint **/*.ts"
+    "lint": "eslint **/*.ts",
+    "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
+    "start:store": "yarn start:triple-store-for-local-dev-and-tests"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -32,22 +43,37 @@
     "registry": "https://www.npmjs.com/"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "file:../RdfService"
+    "@telicent-oss/rdfservice": "*",
+    "@types/cors": "2.8.17",
+    "cors": "2.8.5",
+    "express": "4.19.2",
+    "snapshot-diff": "0.10.0",
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@microsoft/tsdoc": "^0.14.2",
+    "@types/diff": "^5.2.2",
+    "@types/express": "^4.17.21",
     "@types/jest": "^29.4.0",
     "@types/node": "16.11.7",
+    "@types/tcp-port-used": "^1.0.4",
+    "diff": "^7.0.0",
     "eslint-plugin-tsdoc": "^0.2.17",
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",
+    "tcp-port-used": "^1.0.2",
+    "testcontainers": "^10.14.0",
     "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
     "tsc": "^2.0.4",
     "typedoc": "^0.25.3",
-    "typescript": "^5.2.2",
-    "vite": "^4.5.2",
+    "typescript": "^5.5.4",
+    "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
     "vite-tsconfig-paths": "^4.2.1"
+  },
+  "engines": {
+    "node": ">=20.14.0"
   },
   "resolutions": {
     "rollup": "3.29.5"

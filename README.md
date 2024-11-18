@@ -3,8 +3,9 @@
 Simple client-side library exported as a JavaScript package, for working with ontologies.
 
 This is a monorepo, which contains sub-packages:
-* [packages/OntologyService/README.md](packages/OntologyService/README.md)
-* [packages/RdfService/README.md](packages/RdfService/README.md)
+
+- [packages/OntologyService/README.md](packages/OntologyService/README.md)
+- [packages/RdfService/README.md](packages/RdfService/README.md)
 
 ## Install
 
@@ -17,10 +18,14 @@ yarn install @telicent-oss/ontologyservice
 ## Usage
 
 A simple example:
+
 ```tsx
 import OntologyService from "@telicent-oss/ontologyservice";
 
-const ontologyService = new OntologyService("http://localhost:3030/", "ontology");
+const ontologyService = new OntologyService(
+  "http://localhost:3030/",
+  "ontology"
+);
 
 const diagrams = await ontologyService.getAllDiagrams();
 ```
@@ -32,28 +37,23 @@ For more info, see [API section](README.md#API).
 
 ## Local development
 
-Requires [pnpm](https://pnpm.io/) and [nx](https://nx.dev/getting-started/intro).
-
-```sh
-# Install pnpm
-pnpm install # IMPORTANT: yarn & npm may cause downstream problems during development
-pnpm add <npm-package> --filter @telicent-oss/<packageName> # Add dependency to specific package
-```
+Requires [nx](https://nx.dev/getting-started/intro).
 
 Some useful `nx` commands
+
 ```sh
 # For all impacted packages
 npx nx affected:build # build
 npx nx affected:test # test
 npx nx affected:generate-docs # gen docs
-
 # For individual packages
 cd rdfservice && npx nx build # Build
 cd ontologyservice && npx nx test # Test
+cd catalogservice && npx nx lint # Lint
 ```
 
+To dev workflow multiple package:
 
-To develop multiple packages:
 ```sh
 cd ./packages/RdfService; # In producer package...
 echo "console.log('hi');" >> ./src/index.ts; # ...edit producer feature
@@ -65,6 +65,7 @@ npx nx affected:test # Test affected
 ```
 
 Build all packages simultaneously:
+
 ```sh
 npx nx run-many -t build
 ```
@@ -80,6 +81,5 @@ Developer notes:
 
 ## API
 
-* [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)
-* [RDF Service API docs](https://telicent-oss.github.io/rdf-libraries/rdf-service/docs/)
-
+- [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)
+- [RDF Service API docs](https://telicent-oss.github.io/rdf-libraries/rdf-service/docs/)

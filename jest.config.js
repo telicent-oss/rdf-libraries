@@ -1,6 +1,11 @@
-const { getJestProjects } = require('@nx/jest');
+import { getJestProjects } from "@nx/jest";
+import { pathsToModuleNameMapper } from "ts-jest/utils";
+import { compilerOptions } from "./tsconfig"; // Adjust the path to your tsconfig
 
-module.exports = {
+export default {
   projects: getJestProjects(),
-  testEnvironment: 'node'
+  testEnvironment: "node",
+  moduleNameMapper: pathsToModuleNameMapper(compilerOptions.paths, {
+    prefix: "<rootDir>",
+  }),
 };

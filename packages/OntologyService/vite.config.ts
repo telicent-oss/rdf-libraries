@@ -1,7 +1,8 @@
 import { resolve } from "path";
-import { defineConfig } from "vite";
+import { defineConfig, PluginOption } from "vite";
 import dts from "vite-plugin-dts";
 
+const dtsPlugin = dts({ insertTypesEntry: true }) as unknown as PluginOption
 module.exports = defineConfig({
   build: {
     lib: {
@@ -9,5 +10,5 @@ module.exports = defineConfig({
       name: '@telicent-oss/ontologyservice',
     }
   },
-  plugins: [dts({ insertTypesEntry: true })]
+  plugins: [dtsPlugin]
 });

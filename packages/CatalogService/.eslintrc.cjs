@@ -15,6 +15,10 @@ module.exports =  {
     sourceType: "module"
   },
   rules: {
-    "tsdoc/syntax": "warn"
+    "tsdoc/syntax": "warn",
+    "@typescript-eslint/no-floating-promises": ["error", {
+      "ignoreVoid": false,
+      "ignoreIIFE": false
+    }]
   }
 };

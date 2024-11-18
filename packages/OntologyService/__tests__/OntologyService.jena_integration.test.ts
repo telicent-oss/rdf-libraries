@@ -45,7 +45,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       ))
       .start();
     os = new OntologyService(
-      `http://localhost:${fuseki.getMappedPort(3030)}/`,
+      `http://127.0.0.1:${fuseki.getMappedPort(3030)}/`,
       "ontology_test",
       undefined,
       undefined,
@@ -104,23 +104,14 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     }
     if (testFullOntology) {
       const os2 = new OntologyService(
-        "http://localhost:3030/",
+        "http://127.0.0.1:3030/",
         "ontology",
         undefined,
         undefined,
         false,
       );
       os2.setWarnings = false;
-      const h = await os2.getClassHierarchy();
-      h.forEach((node) => {
-        node.children.forEach((subNode) => {
-          if (
-            subNode.item.uri == "http://www.w3.org/2000/01/rdf-schema#Literal"
-          ) {
-            //console.log(subNode)
-          }
-        });
-      });
+      await os2.getClassHierarchy();
     }
   });
 
@@ -180,7 +171,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     expect(p2subs[0] === p3);
     if (testFullOntology) {
       const os2 = new OntologyService(
-        "http://localhost:3030/",
+        "http://127.0.0.1:3030/",
         "ontology",
         undefined,
         undefined,
@@ -206,7 +197,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     expect(g12_subs.length).toEqual(1);
     if (testFullOntology) {
       const os2 = new OntologyService(
-        "http://localhost:3030/",
+        "http://127.0.0.1:3030/",
         "ontology",
         undefined,
         undefined,
@@ -222,9 +213,6 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
       const diags: Diagram[] = await os2.getAllDiagrams();
       const diag: Diagram = diags[0];
       const elems = await diag.getDiagramElements();
-      // elems.forEach((elem:DiagramElement) => {
-      //   console.log(elem.uri, elem.types, elem.baseType, elem.constructor.name)
-      //  })
       const rels = await diag.getDiagramRelations();
 
       const phy = await os2.getClassHierarchy();

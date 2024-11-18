@@ -1,3 +1,10 @@
+import { AbstractConstructorPromises } from './utils';
+
+export * from './schema';
+export * from './types';
+export * from './utils';
+const DEBUG = false;
+
 /*
  * @module RdfService @remarks
  * A fairly simple class that provides methods for creating, reading and deleting RDF triples @author Ian Bailey
@@ -211,23 +218,25 @@ export type XsdDataType =
   | //	XML Names
   "xsd:NCName";
 
-//A wrapper class for an RDFS Resource - i.e. typed node in the graph
-export class RDFSResource {
+
+//A wrapper class for an RDFS Resource - i.e. typed node in the graph  
+export class RDFSResource extends AbstractConstructorPromises {
   uri: LongURI;
   types: LongURI[];
+  statement?: TypedNodeQuerySolution;
+  public constructorPromises:Promise<unknown>[] = []
   protected service: RdfService;
-  public constructor(
-    service: RdfService,
-    uri?: LongURI,
-    type: LongURI = "http://www.w3.org/2000/01/rdf-schema#Resource",
-    statement?: TypedNodeQuerySolution,
-  ) {
-    this.uri = "";
-    this.types = [];
-    this.service = service;
+  
+  // TODO makes args and option object
+  public constructor(service: RdfService, uri? : LongURI, type:LongURI = "http://www.w3.org/2000/01/rdf-schema#Resource", statement? : TypedNodeQuerySolution) {
+    super();
+    this.uri = ''
+    this.types = []
+    this.service = service
+    this.statement = statement
     if (statement) {
-      if (statement.uri.value in this.service.nodes) { //we've already created an object for this item
-        const existingItem = this.service.nodes[statement.uri.value];
+      if (statement.uri.value in this.service.nodes) { // we've already created an object for this item
+        const existingItem = this.service.nodes[statement.uri.value]
         if (statement._type) {
           const newTypes = statement._type.value.split(" ");
           newTypes.forEach((typ: LongURI) => {
@@ -236,7 +245,10 @@ export class RDFSResource {
             }
           });
         }
-        return existingItem;
+        return existingItem
+      } else {
+        // TODO handle object not created
+
       }
       this.uri = statement.uri.value;
       if ((statement._type) && !(this.types.includes(statement._type.value))) {
@@ -247,31 +259,44 @@ export class RDFSResource {
       if (uri) {
         this.uri = uri;
         if (uri in this.service.nodes) { //we've already created an object for this item
-          const existingItem: RDFSResource = this.service.nodes[uri];
-          if (existingItem.constructor.name != this.constructor.name) {
+          const existingItem:RDFSResource = this.service.nodes[uri]
+          // WARNING
+          // Comparing constructor names like so:
+          //      if (existingItem.constructor.name != this.constructor.name) {
+          // Won't work when code was minified - as the name of the class was minified. 
+          // In JS, function are first class citizens; Classes are lipstick on a pig.
+          if (existingItem.constructor != this.constructor) {
             throw Error(
-              `Attempt to create a different type of object with uri ${uri}, existing: ${existingItem.constructor.name}, new: ${this.constructor.name}`,
+              `Cached instance for ${uri} has unexpected constructor "${existingItem.constructor.name}", ` +
+                `expected "${this.constructor.name}" ` +
+                `(names may be minified)`
             );
+            
           }
           if (type && !(existingItem.types.includes(type))) {
             existingItem.types.push(type);
           }
-          //this.service.warn(`Existing item: ${uri}`)
-          return existingItem;
+          return existingItem
         }
       } else {
         this.uri = this.service.mintUri();
       }
-      if (type && !(this.types.includes(type))) {
-        this.types.push(type);
-        this.service.instantiate(type, this.uri);
-      } else {
-        throw new Error(
-          "An RDFResource requires a type, or a statement PropertyQuery object",
-        );
+      if ((type) && !(this.types.includes(type))) {
+        this.types.push(type)
+        
+        this.constructorPromises.push(this.service.instantiate(type, this.uri));
+      }
+      else {
+        throw new Error("An RDFResource requires a type, or a statement PropertyQuery object")
       }
     }
     this.service.nodes[this.uri] = this;
+  }
+  
+
+  public async getAllConstructorAsync() {
+    await Promise.all(this.constructorPromises);
+    return;
   }
   /**
    * @method addLiteral
@@ -312,46 +337,51 @@ export class RDFSResource {
    * simple convenience function to add an rdfs:label
    *
    * @param {string} label - the literal text of the rdfs:label
-   * @param {boolean} deletePrevious - remove any existing labels - defaults to false
-   */
-  async addLabel(
-    label: string,
-    securityLabel?: string,
-    xsdDatatype: XsdDataType = "xsd:string",
-    deleteAllPrevious: boolean = false,
-  ) {
-    if (isEmptyString(label)) throw new Error("invalid label string");
-    await this.addLiteral(
-      this.service.rdfsLabel,
-      label,
-      securityLabel,
-      xsdDatatype,
-      deleteAllPrevious,
-    );
-  }
-
+   * @param {boolean} deletePrevious - remove any existing labels - defaults to false 
+  */
+    async addLabel(label: string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = false) {
+      if (isEmptyString(label)) throw new Error("invalid label string")
+      return this.addLiteral(this.service.rdfsLabel,label,securityLabel,xsdDatatype,deleteAllPrevious)
+    }
   /**
    * @method addComment
    * @remarks
    * simple convenience function to add an rdfs:comment
    *
    * @param {string} comment - the literal text of the rdfs:comment
-   * @param {boolean} deletePrevious - remove any existing comments - defaults to false
-   */
-  async addComment(
-    comment: string,
-    securityLabel?: string,
-    xsdDatatype: XsdDataType = "xsd:string",
-    deleteAllPrevious: boolean = false,
-  ) {
-    if (isEmptyString(comment)) throw new Error("invalid comment string");
-    await this.addLiteral(
-      this.service.rdfsComment,
-      comment,
-      securityLabel,
-      xsdDatatype,
-      deleteAllPrevious,
-    );
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to false 
+  */
+  async addComment(comment: string, securityLabel?: string, xsdDatatype: XsdDataType = "xsd:string", deleteAllPrevious: boolean = false) {
+    if (isEmptyString(comment)) throw new Error("invalid comment string")
+    return this.addLiteral(this.service.rdfsComment,comment,securityLabel,xsdDatatype,deleteAllPrevious)
+  }
+
+
+    /**
+    * Adds a value by a key
+    */   
+    async setKeyValue(options: { key:string; value:string; securityLabel?:string; xsdDatatype:XsdDataType; deleteAllPrevious:boolean}) {
+      if (options.key) throw new Error(`Expected key to be set, instead got ${options.key}`);
+      return this.addLiteral(
+        options.key,
+        options.value,
+        options?.securityLabel,
+        options?.xsdDatatype || "xsd:string",
+        options?.deleteAllPrevious || false
+      )
+    }
+  
+
+  /**
+   * @method setTitle 
+   * @remarks
+   * Adds a dublin core title to a node
+   * @param {string} title - the title to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async set(title:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+    if (isEmptyString(title)) throw new Error("invalid title string")
+    return this.addLiteral(this.service.dcTitle,title,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -359,22 +389,48 @@ export class RDFSResource {
    * @remarks
    * Adds a dublin core title to a node
    * @param {string} title - the title to be applied (simple text)
-   * @param {boolean} deletePrevious - remove any existing comments - defaults to true
-   */
-  async setTitle(
-    title: string,
-    securityLabel?: string,
-    xsdDatatype: XsdDataType = "xsd:string",
-    deleteAllPrevious: boolean = true,
-  ) {
-    if (isEmptyString(title)) throw new Error("invalid title string");
-    this.addLiteral(
-      this.service.dcTitle,
-      title,
-      securityLabel,
-      xsdDatatype,
-      deleteAllPrevious,
-    );
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */
+  async setTitle(title: string, securityLabel?: string, xsdDatatype: XsdDataType = "xsd:string", deleteAllPrevious: boolean = true) {
+    if (isEmptyString(title)) throw new Error("invalid title string")
+    return await this.addLiteral(this.service.dcTitle,title,securityLabel,xsdDatatype,deleteAllPrevious)
+  }
+  /**
+   * @method setDescription 
+   * @remarks
+   * Adds a dublin core description to a node
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description}
+   * @param {string} description - the description to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async setDescription(description:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+    if (isEmptyString(description)) throw new Error("invalid description string")
+    return this.addLiteral(this.service.dcDescription,description,securityLabel,xsdDatatype,deleteAllPrevious)
+  }
+
+  /**
+   * @method setCreator 
+   * @remarks
+   * Adds a dublin core creator to a node
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/creator}
+   * @param {string} creator - the creator to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async setCreator(creator:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+    if (isEmptyString(creator)) throw new Error("invalid creator string")
+    return this.addLiteral(this.service.dcCreator,creator,securityLabel,xsdDatatype,deleteAllPrevious)
+  }
+  /**
+   * @method setRights 
+   * @remarks
+   * Adds a dublin core rights to a node
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/rights}
+   * @param {string} rights - the rights to be applied (simple text)
+   * @param {boolean} deletePrevious - remove any existing comments - defaults to true 
+  */   
+  async setRights(rights:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+    if (isEmptyString(rights)) throw new Error("invalid rights string")
+    return this.addLiteral(this.service.dcRights,rights,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -382,45 +438,47 @@ export class RDFSResource {
    * @remarks
    * Adds a dublin core published to a node
    * @param {string} publishedDate - the title to be applied (simple text)
-   * @param {boolean} deletePrevious - remove any existing published dates - defaults to true
-   */
-  async setPublished(
-    publishedDate: string,
-    securityLabel?: string,
-    xsdDatatype: XsdDataType = "xsd:string",
-    deleteAllPrevious: boolean = true,
-  ) {
-    if (isEmptyString(publishedDate)) throw new Error("invalid published date");
-    this.addLiteral(
-      this.service.dcPublished,
-      publishedDate,
-      securityLabel,
-      xsdDatatype,
-      deleteAllPrevious,
-    );
+   * @param {boolean} deletePrevious - remove any existing published dates - defaults to true 
+  */
+  async setPublished(publishedDate: string, securityLabel?: string, xsdDatatype: XsdDataType = "xsd:string", deleteAllPrevious: boolean = true) {
+    if (isEmptyString(publishedDate)) throw new Error("invalid published date")
+    return this.addLiteral(this.service.dcPublished,publishedDate,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
+  /**
+   * @method setModified
+   * @remarks
+   * Adds a dublin core modified to a node
+   * @param {string} modified - date
+   * @param {boolean} deletePrevious - remove any existing modified dates - defaults to true 
+  */   
+    async setModified(modified:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+      if (isEmptyString(modified)) throw new Error("invalid modified date")
+      return this.addLiteral(this.service.dcModified,modified,securityLabel,xsdDatatype,deleteAllPrevious)
+    }
+
+    /**
+   * @method setAccessRights
+   * @remarks
+   * Adds a dublin core modified to a node
+   * @param {string} modified - date
+   * @param {boolean} deletePrevious - remove any existing modified dates - defaults to true 
+  */   
+    async setAccessRights(modified:string, securityLabel?:string, xsdDatatype:XsdDataType="xsd:string", deleteAllPrevious:boolean = true) {
+      if (isEmptyString(modified)) throw new Error("invalid modified date")
+      return this.addLiteral(this.service.dcAccessRights,modified,securityLabel,xsdDatatype,deleteAllPrevious)
+    }
+  
   /**
    * @method setPrefLabel
    * @remarks
    * Adds a SKOS preferred label to a node - will overwrite all previous prefLabels by default
    * @param {string} label - the label to be applied (simple text)
-   * @param {boolean} deletePrevious - remove any existing labels - defaults to true
-   */
-  async setPrefLabel(
-    label: string,
-    securityLabel?: string,
-    xsdDatatype: XsdDataType = "xsd:string",
-    deleteAllPrevious: boolean = true,
-  ) {
-    if (isEmptyString(label)) throw new Error("invalid skos:prefLabel");
-    this.addLiteral(
-      `${this.service.skos}prefLabel`,
-      label,
-      securityLabel,
-      xsdDatatype,
-      deleteAllPrevious,
-    );
+   * @param {boolean} deletePrevious - remove any existing labels - defaults to true 
+  */
+  async setPrefLabel(label: string, securityLabel?: string, xsdDatatype: XsdDataType = "xsd:string", deleteAllPrevious: boolean = true) {
+    if (isEmptyString(label)) throw new Error("invalid skos:prefLabel")
+    return this.addLiteral(`${this.service.skos}prefLabel`,label,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
   /**
@@ -428,42 +486,35 @@ export class RDFSResource {
    * @remarks
    * Adds a SKOS alternative label to a node
    * @param {string} label - the title to be applied (simple text)
-   * @param {boolean} deletePrevious - remove any existing labels - defaults to false
-   */
-  async setAltLabel(
-    label: string,
-    securityLabel?: string,
-    xsdDatatype: XsdDataType = "xsd:string",
-    deleteAllPrevious: boolean = false,
-  ) {
-    if (isEmptyString(label)) throw new Error("invalid skos:altLabel");
-    this.addLiteral(
-      `${this.service.skos}altLabel`,
-      label,
-      securityLabel,
-      xsdDatatype,
-      deleteAllPrevious,
-    );
+   * @param {boolean} deletePrevious - remove any existing labels - defaults to false 
+  */
+  async setAltLabel(label: string, securityLabel?: string, xsdDatatype: XsdDataType = "xsd:string", deleteAllPrevious: boolean = false) {
+    if (isEmptyString(label)) throw new Error("invalid skos:altLabel")
+    return this.addLiteral(`${this.service.skos}altLabel`,label,securityLabel,xsdDatatype,deleteAllPrevious)
   }
 
-  async countRelated(rel: LongURI): Promise<number> {
-    const query =
-      `SELECT (count(DISTINCT ?item) as ?count) WHERE {<${this.uri}> ${rel} ?item}`;
-    const queryReturn = await this.service.runQuery<CountQuerySolution>(query);
+  async countRelated(rel:string):Promise<number> {
+    // MERGE PREVIOUSLY const query = `SELECT (count(DISTINCT ?item) as ?count) WHERE {<${this.uri}> ${rel} ?item}`
+    const query = `SELECT DISTINCT (count(DISTINCT ?item) as ?count) WHERE {<${this.uri}> ${rel} ?item}`
+    const queryReturn = await this.service.runQuery<CountQuerySolution>(query)
     if (queryReturn.results.bindings.length < 1) {
-      return 0;
-    } else {
-      if (queryReturn.results.bindings.length > 1) {
-        throw "Count query should never return more than one binding";
-      } else {
-        if (queryReturn.results.bindings[0].count) {
-          return Number(queryReturn.results.bindings[0].count.value);
-        } else {
-          return 0;
+      return 0
+    }
+    else {
+        if (queryReturn.results.bindings.length > 1) {
+            throw new Error('Count query should never return more than one binding')
+        }
+        else {
+          if (queryReturn.results.bindings[0].count) {
+            return Number( queryReturn.results.bindings[0].count.value)
+          } else {
+            return 0
+          }
         }
       }
     }
-  }
+  
+
 
   /**
    * @method getRelated
@@ -471,73 +522,64 @@ export class RDFSResource {
    * Simple function to get all objects related to this node by a predicate
    * @param predicate - the predicate relating to the objects that are returned
    * @returns -  a RelatedResources object
-   */
-  async getRelated(predicate?: LongURI): Promise<RelatedResources> {
-    let predString = "";
+  */
+  async getRelated(predicate?: string):Promise<RelatedResources> {
+    let predString = ''
     if (predicate) {
       predString = ` BIND (<${predicate}> AS ?predicate) .`;
     }
-    const query =
-      `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?type} FILTER isIRI(?uri) } GROUP BY ?uri ?predicate`;
-    const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query);
-    if (!spOut?.results?.bindings) return {};
+    // MERGE PREVIOUS const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?type} FILTER isIRI(?uri) } GROUP BY ?uri ?predicate`
+    const query = `SELECT DISTINCT ?uri ?_type ?predicate WHERE {${predString} <${this.uri}> ?predicate ?uri . OPTIONAL {?uri a ?_type} FILTER isIRI(?uri) }`
+    const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query)
+    if (!spOut?.results?.bindings) return {}
     const output: RelatedResources = {};
-    spOut.results.bindings.forEach((statement: RelatedNodeQuerySolution) => {
-      const related = new RDFSResource(
-        this.service,
-        undefined,
-        undefined,
-        statement,
-      );
-      if (!(statement.predicate.value in output)) {
-        output[statement.predicate.value] = [];
-      }
-      if (output[statement.predicate.value].indexOf(related) < 0) {
-        output[statement.predicate.value].push(related);
-      }
-    });
-    return output;
+    await Promise.all( 
+      spOut.results.bindings.map(
+        async (statement: RelatedNodeQuerySolution) => {
+          const related = await RDFSResource.createAsync(this.service, undefined, undefined, statement);
+          if (!(statement.predicate.value in output)) {
+            output[statement.predicate.value] = [];
+          }
+          if (output[statement.predicate.value].indexOf(related) < 0) {
+            output[statement.predicate.value].push(related);
+          }
+        }
+      )
+    );
+    return output
   }
 
-  /**
-   * @method getRelating
-   * @remarks
-   * simple function to get all subjects relating to this node by a predicate - i.e. reverse relationships
-   *
-   * @param predicate - the predicate relating to the objects that are returned
-   * @returns a RelatedResources object
-   */
-  async getRelating(predicate: LongURI): Promise<RelatedResources> {
-    let predString = "";
-    if (predicate) {
-      predString = ` BIND (<${predicate}> AS ?predicate) .`;
+    /**
+     * @method getRelating 
+     * @remarks
+     * simple function to get all subjects relating to this node by a predicate - i.e. reverse relationships
+     *
+     * @param predicate - the predicate relating to the objects that are returned
+     * @returns a RelatedResources object
+    */
+    async getRelating(predicate: string):Promise<RelatedResources> {
+      let predString = ''
+      if (predicate) {
+        predString = ` BIND (<${predicate}> AS ?predicate) .`
+      }
+      const query = `SELECT DISTINCT ?uri ?_type ?predicate WHERE {${predString} ?uri ?predicate <${this.uri}> . OPTIONAL {?uri a ?_type} }`
+      const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query)
+      if (!spOut?.results?.bindings) return {}
+      const output:RelatedResources = {}
+      spOut.results.bindings.forEach((statement:RelatedNodeQuerySolution) => {
+        const related = new RDFSResource(this.service,undefined,undefined,statement)
+        if (!(statement.predicate.value in output)) {
+          output[statement.predicate.value] = []
+        }
+        if (output[statement.predicate.value].indexOf(related) < 0) {
+          output[statement.predicate.value].push(related)
+        } 
+      })
+      return output
     }
-    const query =
-      `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ?predicate WHERE {${predString} ?uri ?predicate <${this.uri}> . OPTIONAL {?uri a ?type} } GROUP BY ?uri ?predicate`;
-    const spOut = await this.service.runQuery<RelatedNodeQuerySolution>(query);
-    if (!spOut?.results?.bindings) return {};
-    const output: RelatedResources = {};
-    spOut.results.bindings.forEach((statement: RelatedNodeQuerySolution) => {
-      const related = new RDFSResource(
-        this.service,
-        undefined,
-        undefined,
-        statement,
-      );
-      if (!(statement.predicate.value in output)) {
-        output[statement.predicate.value] = [];
-      }
-      if (output[statement.predicate.value].indexOf(related) < 0) {
-        output[statement.predicate.value].push(related);
-      }
-    });
-    return output;
-  }
 
-  protected async describeNode(
-    furtherInRel?: LongURI,
-  ): Promise<ResourceDescription> {
-    let invFurtherClause = "";
+  protected async describeNode(furtherInRel?: LongURI): Promise<ResourceDescription> {
+    let invFurtherClause = ''
     if (furtherInRel) {
       invFurtherClause = ` . OPTIONAL {?invS <${furtherInRel}> ?invFurther}`;
     }
@@ -638,29 +680,41 @@ export class RDFSResource {
   async getLiterals(predicate?: LongURI): Promise<RelatedLiterals> {
     let predString = "";
     if (predicate) {
-      predString = ` BIND (<${predicate}> AS ?predicate) .`;
-    }
+      predString = ` BIND (<${predicate}> AS ?predicate) .`
+     }
+     // MERGE PREVIOUS const query = `SELECT ?literal ?predicate WHERE {${predString} <${this.uri}> ?predicate ?literal . FILTER isLiteral(?literal) }`
+    
+     const query = `SELECT DISTINCT ?literal ?predicate WHERE {${predString} <${this.uri}> ?predicate ?literal . FILTER isLiteral(?literal) }`
+     const spOut = await this.service.runQuery<LiteralPropertyQuerySolution>(query)
+     if (!spOut?.results?.bindings) return {}
+     const output:RelatedLiterals = {}
+     spOut.results.bindings.forEach((statement:LiteralPropertyQuerySolution) => {
+       const lit:string = statement.literal.value
+       if (!(statement.predicate.value in output)) {
+         output[statement.predicate.value] = []
+       }
+       if (output[statement.predicate.value].indexOf(lit) < 0) {
+         output[statement.predicate.value].push(lit)
+       } 
+     })
+     return output
+   }
 
-    const query =
-      `SELECT ?literal ?predicate WHERE {${predString} <${this.uri}> ?predicate ?literal . FILTER isLiteral(?literal) }`;
-    const spOut = await this.service.runQuery<LiteralPropertyQuerySolution>(
-      query,
-    );
-    if (!spOut?.results?.bindings) return {};
-    const output: RelatedLiterals = {};
-    spOut.results.bindings.forEach(
-      (statement: LiteralPropertyQuerySolution) => {
-        const lit: string = statement.literal.value;
-        if (!(statement.predicate.value in output)) {
-          output[statement.predicate.value] = [];
-        }
-        if (output[statement.predicate.value].indexOf(lit) < 0) {
-          output[statement.predicate.value].push(lit);
-        }
-      },
-    );
-    return output;
-  }
+  /**
+   * Get value by key
+   *
+   * @returns - an array of strings
+  */ 
+  async getLiteralsList(options: { key:string; validate?: (value:any) => void}):Promise<string[]> {
+    if (!options.key) throw new Error(`Expected key to be set, instead got ${options.key}`);
+    const lits:RelatedLiterals = await this.getLiterals(options.key)
+    let values:string[] = []
+    if (options.key in lits) {
+      values = lits[options.key]
+    }
+    options?.validate?.(values)
+    return values
+   }
 
   /**
    * @method getLabels
@@ -743,18 +797,83 @@ export class RDFSResource {
    * Simple function to get all dublin core title - there should only be one, but sometimes you get multiple with different lang strings
    *
    * @returns - an array of strings
-   */
-  async getDcTitle(): Promise<string[]> {
-    const lits: RelatedLiterals = await this.getLiterals(this.service.dcTitle);
-    let titles: string[] = [];
+  */ 
+  async getDcTitle(options: { isAssert?:boolean} = {}):Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcTitle)
+    let titles:string[] = []
     if (this.service.dcTitle in lits) {
       titles = lits[this.service.dcTitle];
     }
     if (titles.length > 1) {
-      this.service.warn(`More than one Dublin Core title tag on ${this.uri}`);
+      console.warn(`More than one Dublin Core title tag on ${this.uri}`)
+    } 
+    if (options.isAssert) {
+      if (titles.filter(Boolean).length === 0) {
+        throw TypeError(`Expected ${this.uri} to have title`)
+      }
     }
-    return titles;
-  }
+    return titles
+   }
+
+  /**
+   * @method getDescription
+   * @remarks
+   * Simple function to get all dublin core descriptions
+   * There should only be one, but sometimes you get multiple with different lang strings
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description}
+   *
+   * @returns - an array of strings
+  */ 
+  async getDcDescription():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcDescription)
+    let descriptions:string[] = []
+    if (this.service.dcDescription in lits) {
+      descriptions = lits[this.service.dcDescription]
+    }
+    if (descriptions.length > 1) {
+      console.warn(`More than one Dublin Core description tag on ${this.uri}`)
+    } 
+    return descriptions
+   }
+
+  /**
+   * @method getRights
+   * @remarks
+   * Simple function to get all dublin core rights
+   * There should only be one, but sometimes you get multiple with different lang strings
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description}
+   *
+   * @returns - an array of strings
+  */ 
+  async getDcRights():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcRights)
+    let rights:string[] = []
+    if (this.service.dcRights in lits) {
+      rights = lits[this.service.dcRights]
+    }
+    return rights
+   }
+
+  /**
+   * @method getCreator
+   * @remarks
+   * Simple function to get all dublin core creators
+   * There should only be one, but sometimes you get multiple with different lang strings
+   * {@link https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description}
+   *
+   * @returns - an array of strings
+  */ 
+  async getDcCreator():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcCreator)
+    let creators:string[] = []
+    if (this.service.dcCreator in lits) {
+      creators = lits[this.service.dcCreator]
+    }
+    if (creators.length > 1) {
+      console.warn(`More than one Dublin Core creator tag on ${this.uri}`)
+    } 
+    return creators
+   }
 
   /**
    * @method getDcPublished
@@ -799,9 +918,64 @@ export class RDFSResource {
     }
     return pubs;
   }
+
+
+  /**
+   * @method getDcModified
+   * @remarks
+   * Get dublin core "modified"
+   * https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#modified
+   * @returns - Date literal
+  */ 
+  async getDcModified():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcModified)
+    let pubs:string[] = []
+    if (this.service.dcModified in lits) {
+      pubs = lits[this.service.dcModified]
+    }
+    if (pubs.length > 1) {
+      console.warn(`More than one Dublin Core created tag on ${this.uri}`)
+    } 
+    return pubs
+   }
+  /**
+   * @method getDcAccessRights
+   * @remarks
+   * Get dublin core "modified"
+   * https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#modified
+   * @returns - Date literal
+  */ 
+  async getDcAccessRights():Promise<string[]> {
+    const lits:RelatedLiterals = await this.getLiterals(this.service.dcAccessRights)
+    let pubs:string[] = []
+    if (this.service.dcAccessRights in lits) {
+      pubs = lits[this.service.dcAccessRights]
+    }
+    if (pubs.length > 1) {
+      console.warn(`More than one Dublin Core created tag on ${this.uri}`)
+    } 
+    return pubs
+   }
+
 }
 
-export class RdfService {
+
+
+export type RDFSResourceDescendant = {
+  new (...args:any[]): RDFSResource;
+  createAsync<T extends AbstractConstructorPromises, Args extends any[]>(
+    this: new (...args: Args) => T,
+    ...args: Args
+  ): Promise<T>;
+}
+
+export type RDFServiceConfig = Partial<{
+  NO_WARNINGS: boolean;
+}>
+export class RdfService extends AbstractConstructorPromises {
+  public config: RDFServiceConfig;
+  public constructorPromises: Promise<unknown>[] = [];
+
   /**
    * A fallback security label if none is specified
    */
@@ -835,10 +1009,17 @@ export class RdfService {
 
   dct: LongURI;
   dcTitle: LongURI;
+  dcDescription: LongURI; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/description
+  // TODO QUESTION: Should these be dctCreator?. Feel like we need a value object { prefix: DublineCoreUri, id:  DublineCoreTerms} | { prefix, id }
+  dcCreator: LongURI; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/creator
+  dcAccessRights: LongURI; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/accessRights
+  // TODO! Perhaps misusing "rights" temporarily for demo
+  dcRights: LongURI; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#http://purl.org/dc/terms/rights
   dcCreated: LongURI;
+  dcModified: LongURI; // https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#modified
   dcPublished: LongURI;
   classLookup: {
-    [key: LongURI]: any;
+    [key: LongURI]: RDFSResourceDescendant;
   };
   updateCount: number;
 
@@ -858,7 +1039,10 @@ export class RdfService {
     defaultNamespace = "http://telicent.io/data/",
     defaultSecurityLabel = "",
     write = false,
+    config: { NO_WARNINGS?: boolean } = {}
   ) {
+    super();
+    this.config = config;
     this.defaultSecurityLabel = defaultSecurityLabel;
     this.dataset = dataset;
     this.triplestoreUri = `${triplestoreUri}${
@@ -874,7 +1058,7 @@ export class RdfService {
     this.dc = "http://purl.org/dc/elements/1.1/";
     this.dct = "http://purl.org/dc/terms/"; //@Dave -  DC items  to move up to the RdfService class. Didn't want to go messing with your code though
     this.xsd = "http://www.w3.org/2001/XMLSchema#";
-    this.rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#";
+    this.rdf = "http://www.w3.org/1999/02/22-rdf-syntax-ns#"; 
     this.rdfs = "http://www.w3.org/2000/01/rdf-schema#";
     this.owl = "http://www.w3.org/2002/07/owl#";
     this.skos = "http://www.w3.org/2004/02/skos/core#";
@@ -885,8 +1069,13 @@ export class RdfService {
     this.rdfsComment = `${this.rdfs}comment`;
 
     this.dcTitle = `${this.dct}title`;
+    this.dcDescription = `${this.dct}description`;
+    this.dcCreator = `${this.dct}creator`;
+    this.dcRights = `${this.dct}rights`;
     this.dcCreated = `${this.dct}created`;
+    this.dcModified = `${this.dct}modified`;
     this.dcPublished = `${this.dct}published`;
+    this.dcAccessRights = `${this.dct}accessRights`;
     this.prefixDict = {};
     this.addPrefix(":", defaultNamespace);
     this.addPrefix("xsd:", this.xsd);
@@ -920,18 +1109,20 @@ export class RdfService {
       console.warn(warning);
     }
   }
-
-  lookupClass(clsUri: LongURI, defaultCls: any) {
-    if (this.classLookup[clsUri]) {
-      return this.classLookup[clsUri];
-    } else {
+  
+  lookupClass<T extends RDFSResourceDescendant>(
+    clsUri: LongURI,
+    defaultCls: T
+  ) {
+    if (this.classLookup[clsUri]) return this.classLookup[clsUri];
+    else {
       return defaultCls;
     }
   }
 
   getAllElements() {
     this.warn(
-      "This has been deprecated - who wants to get everything at once ?",
+      "This has been deprecated - who wants to get everything at once ?"
     );
   }
 
@@ -1036,17 +1227,15 @@ export class RdfService {
    * @returns the results of the query in standard SPARQL JSON results format
    */
   async runQuery<T>(query: string): Promise<QueryResponse<T>> {
-    if (isEmptyString(query)) {
-      throw Error("runQuery: A valid query is required");
-    }
     const response = await fetch(this.queryEndpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/sparql-query",
-        "Accept": "application/sparql-results+json",
+        Accept: "application/sparql-results+json",
       },
       body: this.sparqlPrefixes + query,
     });
+
     if (!response.ok) {
       throw response.statusText;
     }
@@ -1075,10 +1264,11 @@ export class RdfService {
    */
   async runUpdate(
     updateQueries: string[],
-    securityLabel?: string,
+    securityLabel?: string
   ): Promise<string> {
     let updateQuery = this.sparqlPrefixes;
-    updateQueries.forEach((query: string) => {
+
+    updateQueries.map((query: string) => {
       updateQuery = `${updateQuery}
       ${query} ;
       `;
@@ -1089,15 +1279,18 @@ export class RdfService {
       const sl = securityLabel ?? this.defaultSecurityLabel;
 
       if (isEmptyString(sl)) {
-        this.warn(
-          "Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible",
-        );
+        if (!this.config?.NO_WARNINGS) {
+          console.warn(
+            "Security label is being set to an empty string. Please check your security policy as this may make the data inaccessible"
+          );
+        }
       }
 
       const postObject = {
         method: "POST",
-        headers: { //
-          "Accept": "*/*",
+        headers: {
+          //
+          Accept: "*/*",
           // 'Security-Label': sl, Temporarily removed because if this label is applied
           //  it omits CORS headers from the pre-flight response
           "Content-Type": "application/sparql-update",
@@ -1109,9 +1302,9 @@ export class RdfService {
       if (!response.ok) {
         throw response.statusText;
       }
-      return response.text();
+      return await response.text();
     } else {
-      this.warn("service is in read only node, updates are not permitted");
+      console.warn("service is in read only node, updates are not permitted");
       return "service is in read only node, updates are not permitted";
     }
   }
@@ -1133,7 +1326,7 @@ export class RdfService {
   #checkObject(
     object: string,
     objectType: RDFBasetype = "URI",
-    xsdDatatype?: XsdDataType,
+    xsdDatatype?: XsdDataType
   ): string {
     let o: string = "";
     if (objectType === "URI") {
@@ -1174,7 +1367,7 @@ export class RdfService {
     objectType?: RDFBasetype,
     securityLabel?: string,
     xsdDatatype?: XsdDataType,
-    deleteAllPrevious: boolean = false,
+    deleteAllPrevious: boolean = false
   ): Promise<string> {
     const updates: string[] = [];
     if (deleteAllPrevious) {
@@ -1182,7 +1375,10 @@ export class RdfService {
     }
     const o = this.#checkObject(object, objectType, xsdDatatype);
     updates.push(`INSERT DATA {<${subject}> <${predicate}> ${o} . }`);
-    return await this.runUpdate(updates, securityLabel);
+    const result = await this.runUpdate(updates, securityLabel);
+    DEBUG && console.log("INSERTED");
+    DEBUG && console.log(updates.join("\n"));
+    return result;
   }
 
   /**
@@ -1206,7 +1402,7 @@ export class RdfService {
     predicate: LongURI,
     object: LongURI | string,
     objectType: RDFBasetype,
-    xsdDatatype?: XsdDataType,
+    xsdDatatype?: XsdDataType
   ) {
     const o = this.#checkObject(object, objectType, xsdDatatype);
     return await this.runUpdate([
@@ -1259,17 +1455,30 @@ export class RdfService {
    * Instantiates the provided class (cls parameter). You can also specify a URI (uri parameter), otherwise it'll set the URI for you based on the defaultUriStub and a GUID
    *
    * @param cls - The class (uri of an rdfs:Class or owl:Class) that is to be instantiated
-   * @param uri - The uri of the instantiated item - if unset, one will be constructed using the defaultUriStub
+   * @param clsURI - The uri of the instantiated item - if unset, one will be constructed using the defaultUriStub
    * @param securityLabel - the security label to apply to new data. If none provided, the default will be used.
    * @returns  the resulting instance's URI as a string
    */
-  instantiate(clsURI: LongURI, uri?: LongURI, securityLabel?: string): string {
-    if (isEmptyString(clsURI)) throw Error("Cannot have an empty cls");
+  async instantiate(
+    clsURI: LongURI,
+    uri?: LongURI,
+    securityLabel?: string
+  ): Promise<string> {
+    if (isEmptyString(clsURI))
+      throw new Error(
+        "Cannot have an empty clsURI ( The uri of the instantiated item - if unset, one will be constructed using the defaultUriStub)"
+      );
 
     if (!uri) {
       uri = this.mintUri();
     }
-    this.insertTriple(uri, this.rdfType, clsURI, undefined, securityLabel);
+    await this.insertTriple(
+      uri,
+      this.rdfType,
+      clsURI,
+      undefined,
+      securityLabel
+    );
     return uri;
   }
 
@@ -1305,7 +1514,7 @@ export class RdfService {
   }
 
   compareScores(a: RankWrapper, b: RankWrapper) {
-    if ((!a.score) || (!b.score)) {
+    if (!a.score || !b.score) {
       return 0;
     }
     if (a.score < b.score) {
@@ -1317,28 +1526,35 @@ export class RdfService {
     return 0;
   }
 
-  rankedWrap(
+  async rankedWrap(
     queryReturn: QueryResponse<ResourceFindSolution>,
-    matchingText: string,
+    matchingText: string
   ) {
     const items = [];
-    let clss = RDFSResource;
+    let Class: RDFSResourceDescendant = RDFSResource;
     const re = new RegExp(matchingText.toLowerCase(), "g");
     let concatLit: string = "";
     if (
-      matchingText && (matchingText != "") && (queryReturn.results) &&
-      (queryReturn.results.bindings)
+      matchingText &&
+      matchingText != "" &&
+      queryReturn.results &&
+      queryReturn.results.bindings
     ) {
-      if ((queryReturn.head) && (queryReturn.head.vars)) {
+      if (queryReturn.head && queryReturn.head.vars) {
         for (const i in queryReturn.results.bindings) {
           const binding = queryReturn.results.bindings[i];
           if (binding._type) {
             const types = binding._type.value.split(" ");
-            clss = this.lookupClass(types[0], RDFSResource);
+            Class = this.lookupClass(types[0], RDFSResource);
           } else {
-            clss = RDFSResource;
+            Class = RDFSResource;
           }
-          const item = new clss(this, undefined, undefined, binding);
+          const item = await Class.createAsync(
+            this,
+            undefined,
+            undefined,
+            binding
+          );
           //The query concatenates all the matching literals in the result - we can then count the number of matches to provide a basic score for ranking search results.
           let score = 0;
           if (binding.concatLit) {
