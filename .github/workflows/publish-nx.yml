@@ -22,8 +22,7 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
-          env:
-            NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
       - run: npx nx run build --force
       - run: |
