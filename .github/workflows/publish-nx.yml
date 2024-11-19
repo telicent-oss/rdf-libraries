@@ -22,9 +22,10 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
-          token: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          env:
+            NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
-      - run: npx nx run build
+      - run: npx nx run build --force
       - run: |
           cd ./packages/RdfService
           local_version=$(node -p "require('./package.json').version")
