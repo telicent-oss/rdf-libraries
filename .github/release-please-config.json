@@ -16,6 +16,14 @@
       "changelog-path": "CHANGELOG.md",
       "bumpPatchForMinorPreMajor": true,
       "release-type": "node"
+    },
+    "packages/CatalogService/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
     }
   }
 }
