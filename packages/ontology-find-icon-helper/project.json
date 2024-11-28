@@ -1,0 +1,25 @@
+{
+  "name": "@telicent-oss/ontology-find-icon-helper",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          {
+            "command": "yarn test"
+          }
+        ],
+        "cwd": "packages/ontology-find-icon-helper",
+        "parallel": false
+      }
+    },
+    "printhello": {
+      "executor": "nx:run-commands",
+      "outputs": [],
+      "options": {
+        "command": "echo hello"
+      }
+    }
+  }
+}
