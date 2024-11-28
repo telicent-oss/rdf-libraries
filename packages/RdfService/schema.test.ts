@@ -7,7 +7,7 @@ test("Fail when input is not a uri", () => {
       {
         "validation": "regex",
         "code": "invalid_string",
-        "message": "Invalid URI format. Ensure it starts with a valid scheme and is followed by '://', then a valid resource part without spaces.",
+        "message": "\\n  Invalid URI format. \\n  Ensure it starts with a valid scheme and is followed by '://',\\n  then a valid resource part without spaces.",
         "path": []
       },
       {
