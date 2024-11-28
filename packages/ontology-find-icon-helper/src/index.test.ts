@@ -42,6 +42,17 @@ describe("OntologyService Module", () => {
     `);
   });
 
+  it("inits incorrectly", async () => {
+    const instance = new (class Unknown {})() as unknown as OntologyService;
+    await expect(init(Promise.resolve(instance))).rejects
+      .toThrowErrorMatchingInlineSnapshot(`
+      "
+            Expected moduleOntologyService instance of OntologyService
+            instead got "{}"
+            (object)"
+    `);
+  });
+
   it("inits", async () => {
     expect(await init(Promise.resolve(ontologyService))).toBeUndefined();
   });

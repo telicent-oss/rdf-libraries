@@ -16,7 +16,7 @@ export const URISegmentOrHashSchema = z.string().regex(permissiveUriRegex, {
   try {
     const url = new URL(value);
     // Check for hash or at least one path segment
-    return url.hash !== '' || url.pathname.split('/').length > 1
+    return url.hash !== '' || (url.pathname !== '/' && url.pathname !== '');
   } catch {
     return false;
   }
