@@ -1,5 +1,32 @@
 import z from 'zod';
-import { isValidURI } from './isValidURI';
+import { isValidURI, permissiveUriRegex } from './isValidURI';
+
+
+/**
+ * RE: Name "URISegmentOrHashSchema"
+ * the requirement for a url segment or a hash is likely mentioned
+ * in specs - I prefer naming it literally for readability and grepping
+ */
+export const URISegmentOrHashSchema = z.string().regex(permissiveUriRegex, {
+  message: `
+  Invalid URI format. 
+  Ensure it starts with a valid scheme and is followed by '://',
+  then a valid resource part without spaces.`,
+}).refine(value => {
+  try {
+    const url = new URL(value);
+    // Check for hash or at least one path segment
+    return url.hash !== '' || url.pathname.split('/').length > 1
+  } catch {
+    return false;
+  }
+}, {
+  message: "URI must include either a hash or at least one URI segment."
+});
+
+
+
+
 
 
 // Schema for the object representing "o", "p", or "s" within each triple
