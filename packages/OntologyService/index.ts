@@ -99,6 +99,7 @@ export const FlattenedStyle = z.object({
 
 export type FlattenedStyleType = z.infer<typeof FlattenedStyle>;
 
+export type FlattenedStyleTypeForFindIcon = Omit<FlattenedStyleType, "shape" | "faUnicode" | "faIcon">;
 export const IconStyle = z.object({
   classUri: z.string(),
   backgroundColor: z.string(),
@@ -110,6 +111,7 @@ export const IconStyle = z.object({
   faUnicode: z.string().optional(),
   shape: z.string().optional(),
 });
+export type IconStyleType = z.infer<typeof IconStyle>;
 
 export const IconStyleArray = z.array(IconStyle);
 
