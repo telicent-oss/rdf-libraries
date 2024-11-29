@@ -6,15 +6,21 @@ jest.mock("@telicent-oss/ontologyservice", () => {
 
   // Extending the actual OntologyService class
   class MockOntologyService extends actual.OntologyService {
-    getFlattenedStyles = jest.fn(() =>
-      Promise.resolve([
-        {
-          classUri: "http://example.com#test",
-          backgroundColor: "<backgroundColor>",
-          color: "<color>",
-          iconFallbackText: "<iconFallbackText>",
+    getStyles = jest.fn(() =>
+      Promise.resolve({
+        ["http://example.com#term"]: {
+          defaultStyles: {
+            dark: {
+              backgroundColor: "<backgroundColor>",
+              color: "<color>",
+            },
+          },
+          defaultIcons: {
+            faIcon: "<faIcon>",
+            faUnicode: "<faUnicode>",
+          },
         },
-      ])
+      })
     );
   }
 
@@ -35,7 +41,8 @@ describe("OntologyService Module", () => {
   });
 
   it("Fails to finds icon by class URI, if not init'd", async () => {
-    expect(() => findByClassUri("testUri")).toThrowErrorMatchingInlineSnapshot(`
+    expect(() => findByClassUri("http://domain.com#test"))
+      .toThrowErrorMatchingInlineSnapshot(`
       "
             Expected moduleStyles to be type FlattenedStyleType, 
             instead got "undefined" (undefined)"
@@ -47,7 +54,7 @@ describe("OntologyService Module", () => {
     await expect(init(Promise.resolve(instance))).rejects
       .toThrowErrorMatchingInlineSnapshot(`
       "
-            Expected moduleOntologyService instance of OntologyService
+            Expected moduleOntologyService instance of OntologyService with getStyles()
             instead got "{}"
             (object)"
     `);
@@ -78,13 +85,17 @@ describe("OntologyService Module", () => {
   it("finds icon by class URI", async () => {
     await init(Promise.resolve(ontologyService));
 
-    const result = findByClassUri("http://example.com#test");
+    const result = findByClassUri("http://example.com#term");
     expect(result).toMatchInlineSnapshot(`
       {
+        "alt": "term",
         "backgroundColor": "<backgroundColor>",
-        "classUri": "http://example.com#test",
+        "classUri": "http://example.com#term",
         "color": "<color>",
-        "iconFallbackText": "<iconFallbackText>",
+        "faIcon": "<faIcon>",
+        "faUnicode": "<faUnicode>",
+        "iconFallbackText": "T",
+        "shape": undefined,
       }
     `);
   });
@@ -94,7 +105,7 @@ describe("OntologyService Module", () => {
     const result = findByClassUri("http://example.com#does-not-exist");
     expect(result).toMatchInlineSnapshot(`
       {
-        "alt": "http://example.com#does-not-exist",
+        "alt": "does-not-exist",
         "backgroundColor": "#121212",
         "classUri": "http://example.com#does-not-exist",
         "color": "#DDDDDD",
