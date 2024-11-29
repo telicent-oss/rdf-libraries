@@ -1405,7 +1405,7 @@ export class OntologyService extends RdfService {
   }
 
   // DS specific methods
-  async getFlattenedStyles(classes: LongURI[]) {
+  async PROPOSED_getFlattenedStyles(classes: LongURI[]) {
     const styles = await this.getStyles(classes);
     return Object.entries(styles).map(([classUri, style]) => {
       return ({
@@ -1421,7 +1421,7 @@ export class OntologyService extends RdfService {
     });
   }
 
-  findIcon(styles: FlattenedStyleType[], classUri: LongURI) {
+  PROPOSED_findIcon(styles: FlattenedStyleType[], classUri: LongURI) {
     const foundIcon = styles.find((style) => style.classUri === classUri);
 
     if (foundIcon) return foundIcon;
