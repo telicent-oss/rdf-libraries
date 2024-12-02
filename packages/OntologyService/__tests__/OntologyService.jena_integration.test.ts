@@ -254,13 +254,13 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
   });
 
   it("should retrieve all styles if an empty array is passed in", async () => {
-    const styles = await os.getFlattenedStyles([]);
+    const styles = await os.PROPOSED_getFlattenedStyles([]);
     expect(styles.length).toEqual(3);
   });
 
   it("should retrieve the icon for the target uri", async () => {
-    const styles = await os.getFlattenedStyles([]);
-    const icon = os.findIcon(
+    const styles = await os.PROPOSED_getFlattenedStyles([]);
+    const icon = os.PROPOSED_findIcon(
       styles,
       "http://ies.data.gov.uk/ontology/ies4#Accent",
     );
@@ -278,8 +278,8 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
   });
 
   it("should retrieve fallback text and colours if the targeturi does not exist", async () => {
-    const styles = await os.getFlattenedStyles([]);
-    const icon = os.findIcon(
+    const styles = await os.PROPOSED_getFlattenedStyles([]);
+    const icon = os.PROPOSED_findIcon(
       styles,
       "http://ies.data.gov.uk/ontology/ies4#IDontExist",
     );
@@ -294,8 +294,8 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
   });
 
   it("should handle an incorrect uri without crashing the app", async () => {
-    const styles = await os.getFlattenedStyles([]);
-    const icon = os.findIcon(
+    const styles = await os.PROPOSED_getFlattenedStyles([]);
+    const icon = os.PROPOSED_findIcon(
       styles,
       "InvalidUrl",
     );

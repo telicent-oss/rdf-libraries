@@ -99,6 +99,7 @@ export const FlattenedStyle = z.object({
 
 export type FlattenedStyleType = z.infer<typeof FlattenedStyle>;
 
+export type FlattenedStyleTypeForFindIcon = Omit<FlattenedStyleType, "shape" | "faUnicode" | "faIcon">;
 export const IconStyle = z.object({
   classUri: z.string(),
   backgroundColor: z.string(),
@@ -110,6 +111,7 @@ export const IconStyle = z.object({
   faUnicode: z.string().optional(),
   shape: z.string().optional(),
 });
+export type IconStyleType = z.infer<typeof IconStyle>;
 
 export const IconStyleArray = z.array(IconStyle);
 
@@ -1403,7 +1405,7 @@ export class OntologyService extends RdfService {
   }
 
   // DS specific methods
-  async getFlattenedStyles(classes: LongURI[]) {
+  async PROPOSED_getFlattenedStyles(classes: LongURI[]) {
     const styles = await this.getStyles(classes);
     return Object.entries(styles).map(([classUri, style]) => {
       return ({
@@ -1419,7 +1421,7 @@ export class OntologyService extends RdfService {
     });
   }
 
-  findIcon(styles: FlattenedStyleType[], classUri: LongURI) {
+  PROPOSED_findIcon(styles: FlattenedStyleType[], classUri: LongURI) {
     const foundIcon = styles.find((style) => style.classUri === classUri);
 
     if (foundIcon) return foundIcon;
