@@ -7,6 +7,9 @@ import { URISegmentOrHashSchema } from "@telicent-oss/RdfService";
 import { findIcon, flattenStyles } from "./context-utils";
 export * from './context-utils';
 
+// TODO Update ./findIcon with new behavior
+// @see {@link https://telicent.atlassian.net/browse/TELFE-839}
+
 type IconStyleType = FlattenedStyleTypeForFindIcon | FlattenedStyleType;
 
 // **module** scoped variables
@@ -35,45 +38,6 @@ const assertModuleOntologyService = () => {
   }
 }
 
-
-/**
- * Originally due to the work in TELFE-655, we intended to do:
- * 
- * ```diff
- * export const init = async (
- *   ontologyServicePromise: Promise<OntologyService>
- * ):Promise<void> => {
- *   moduleOntologyService = await ontologyServicePromise;
- *   assertModuleOntologyService()
- * - moduleStylesPromise = moduleOntologyService.getStyles([]).then(flattenStyles);
- * + moduleStylesPromise = moduleOntologyService.getFlattenedStyles([]);
- *   moduleStyles = await moduleStylesPromise;
- * };
- * 
- * export const findByClassUri = (maybeClassUri: IconStyleType["classUri"]) => {
- *   assertModulesStyles();
- *   const classUri = URISegmentOrHashSchema.parse(maybeClassUri);
- * -  return findIcon(moduleStyles, classUri)
- * +  return moduleOntologyService.PROPOSED_findIcon(moduleStyles as FlattenedStyleType[], classUri);
- * }
- * ```
- * 
- * The goal was to remove the half-baked \@telicent-oss/ds "DSProviders/findIcon" functionality
- * from all apps.
- * 
- * However, after removing said code, and wiring-in the functions in this file -
- * we realized PROPOSED_findIcon was slightly different from the original code.
- * This impacted all of Search app's unit tests.
- * ALSO, the very act of re-wiring the unit tests, unintentionally made the icon
- * resolution logic more correctly draw from test mock data - which also caused changes
- * to test case actual output.
- * 
- * Rather than trying to verify two sources of diffs on test case output
- * And to keep the QA to "check for parity" - we decided to use the pre-existing,
- * but perhaps incorrect findIcon logic from the design system 
- * (but moved into this package @see "context-utils.ts")
- * 
-*/
 
 export const init = async (
   ontologyServicePromise: Promise<OntologyService>
