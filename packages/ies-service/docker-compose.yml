@@ -1,0 +1,20 @@
+version: "3.3"
+
+services:
+
+  telicent-jena-smart-cache:
+    command:
+      - --config
+      - /fuseki/config/config.ttl
+    environment:
+      ADMIN_PASSWORD: password
+      JWKS_URL: "disabled"
+    image: telicent/smart-cache-graph
+    ports:
+      - mode: ingress
+        target: 3030
+        published: "3030"
+        protocol: tcp
+    volumes:
+      - ./volume:/fuseki/config:ro
+      - ./data:/fuseki/data:ro
