@@ -1,0 +1,75 @@
+{
+  "name": "@telicent-oss/ies-service",
+  "version": "0.0.1",
+  "private": false,
+  "description": "Simple client-side library for working with IES data.",
+  "main": "./dist/ies-service.js",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "module": "./dist/ies-service.js",
+  "// IDEA": "Have method to link directly to src",
+  "exports": {
+    ".": {
+      "import": "./dist/ies-service.js",
+      "require": "./dist/ies-service.umd.js",
+      "types": "./dist/types.d.ts"
+    },
+    "./index": {
+      "import": "./dist/ies-service.js",
+      "require": "./dist/ies-service.umd.cjs",
+      "types": "./dist/types.d.ts"
+    }
+  },
+  "types": "./dist/types.d.ts",
+  "scripts": {
+    "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
+    "test": "jest --runInBand ",
+    "build": "rm -rf ./dist && vite build",
+    "lint": "eslint **/*.ts",
+    "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
+    "start:store": "yarn start:triple-store-for-local-dev-and-tests"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
+  },
+  "publishConfig": {
+    "registry": "https://www.npmjs.com/"
+  },
+  "dependencies": {
+    "@telicent-oss/rdfservice": "*",
+    "snapshot-diff": "0.10.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@microsoft/tsdoc": "^0.14.2",
+    "@types/diff": "^5.2.2",
+    "@types/jest": "^29.4.0",
+    "@types/node": "16.11.7",
+    "@types/tcp-port-used": "^1.0.4",
+    "diff": "^7.0.0",
+    "eslint-plugin-tsdoc": "^0.2.17",
+    "jest-fetch-mock": "^3.0.3",
+    "remove": "^0.1.5",
+    "tcp-port-used": "^1.0.2",
+    "testcontainers": "^10.14.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typedoc": "^0.25.3",
+    "typescript": "^5.5.4",
+    "vite": "^4.5.3",
+    "vite-plugin-dts": "^3.6.3",
+    "vite-tsconfig-paths": "^4.2.1"
+  },
+  "engines": {
+    "node": ">=20.14.0"
+  },
+  "resolutions": {
+    "rollup": "3.29.5"
+  }
+}
