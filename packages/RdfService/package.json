@@ -40,7 +40,7 @@
   "author": "",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@microsoft/tsdoc": "^0.14.2",
+    "@microsoft/tsdoc": "^0.15.1",
     "@types/jest": "^29.4.0",
     "@types/node": "16.11.7",
     "eslint-plugin-tsdoc": "^0.2.17",
