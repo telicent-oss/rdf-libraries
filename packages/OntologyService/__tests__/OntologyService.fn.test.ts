@@ -76,7 +76,7 @@ describe("testing functions within the ontology service", () => {
     const os = new OntologyService(MOCK_URL);
     try {
       // runQuery should be tested as part of the RDFService tests - mock that an error occurs (maybe in jena)
-      const runQueryMock = jest.spyOn(os, "runQuery").mockImplementation(() => {
+      jest.spyOn(os, "runQuery").mockImplementation(() => {
         throw new Error("Does this handle?");
       });
       // run function

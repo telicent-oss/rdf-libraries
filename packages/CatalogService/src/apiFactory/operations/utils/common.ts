@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RDFTripleSchema, RDFTripleType } from "@telicent-oss/rdfservice/index";
+import { RDFTripleSchema, RDFTripleType } from "@telicent-oss/rdfservice";
 import {
   CatalogService,
   DCATCatalog,

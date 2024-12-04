@@ -1,4 +1,4 @@
-import { RDFTripleType } from "@telicent-oss/rdfservice/index";
+import { RDFTripleType } from "@telicent-oss/rdfservice";
 import { UITreeViewBaseItemType } from "./common";
 
 type EdgePredicate = (triple: RDFTripleType) => boolean;

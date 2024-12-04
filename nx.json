@@ -4,7 +4,7 @@
     "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
   },
   "release": {
-    "projects": ["@telicent-oss/rdfservice", "@telicent-oss/ontologyservice", "@telicent-oss/ies-service"],
+    "projects": ["@telicent-oss/rdfservice", "@telicent-oss/ontologyservice", "@telicent-oss/ies-service", "@telicent-oss/catalogservice"],
     "version": {
       "conventionalCommits": true
     },

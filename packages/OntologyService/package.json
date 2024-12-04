@@ -23,7 +23,8 @@
     "build": "rm -rf ./dist && vite build",
     "publish": "npm publish --access public --provenance",
     "publish:dry-run": "npm publish --access public --provenance --dry-run",
-    "lint": "eslint **/*.ts"
+    "lint": "eslint **/*.ts",
+    "tsc:noEmit": "tsc --noEmit"
   },
   "author": "",
   "license": "Apache-2.0",

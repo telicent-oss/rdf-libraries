@@ -1,5 +1,6 @@
 //import { SPARQL } from "packages/RdfService";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { OntologyService, Style } from "./index";
 /*
  * @function makeStyleObject
