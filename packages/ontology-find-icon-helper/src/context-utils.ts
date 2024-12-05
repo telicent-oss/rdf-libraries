@@ -1,7 +1,7 @@
 // Moved from telicent-oss/telicent-ds/src/contexts/context-utils.ts
 // WARNING: Likely deprecated
 
-import startCase from "lodash.startcase";
+import startCase from "lodash/startcase";
 import {
   IconStyleType,
   StyleResponseType,
