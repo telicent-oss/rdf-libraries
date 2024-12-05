@@ -1,4 +1,4 @@
-import { RDFServiceConfig } from "@telicent-oss/RdfService";
+import { RDFServiceConfig } from "@telicent-oss/rdfservice";
 import { createACLEDMock } from "./createACLEDMock";
 import { makeStatic } from "./__tests__/utils/makeStatic";
 import { apiFactory } from "./apiFactory/apiFactory";
