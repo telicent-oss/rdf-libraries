@@ -1,4 +1,4 @@
-import { RDFTripleType } from "@telicent-oss/rdfService";
+import { RDFTripleType } from "@telicent-oss/rdfservice";
 import {
   DCATDataset,
   DCATDataService,
