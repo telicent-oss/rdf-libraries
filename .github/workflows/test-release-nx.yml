@@ -12,24 +12,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # Cache node_modules
       - uses: actions/setup-node@v4
         with:
           node-version: 20.14
           registry-url: 'https://registry.npmjs.org'
           scope: "telicent-oss"
-      # Install dependencies using pnpm
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
-
-      # Ensure Nx is available
-      - name: Install Nx CLI globally
-        run: yarn global add nx
-      # switch from projects to --all when ready
-      - uses: nrwl/nx-set-shas@v4
-      - name: Test
-        run: |
-          npx nx run-many --target=test --projects=@telicent-oss/rdfservice,@telicent-oss/ontologyservice,@telicent-oss/ies-service
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
+          token: ${{ secrets.NPM_REGISTRY_TOKEN }}
+      # TODO add node_modules cache
+      - run: yarn install --frozen-lockfile
+      - run: yarn global add nx
+      # TODO test nx affected in ci
+      # - uses: nrwl/nx-set-shas@v4
+      # - uses: npx nx affected:test --base=$NX_BASE --head=$NX_HEAD
+      - run: yarn test
