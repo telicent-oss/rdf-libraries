@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-set -e  # Exit on error
-set -x  # Print commands and their arguments as they are executed
+# set -e  # Exit on error
+# set -x  # Print commands and their arguments as they are executed
 
 error_handler() {
   echo "Error occurred at $(date), while executing command: $BASH_COMMAND"
