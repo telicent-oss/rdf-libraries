@@ -1,10 +1,7 @@
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
-import {
-  RdfService,
-  RDFSResource,
-  RelatedLiterals,
-  RelatedResources,
-} from "../index";
+import { RdfService } from "../AbstractConstructorPromises.RDFService";
+import { RDFSResource, RelatedResources } from "../AbstractConstructorPromises.RDFSResource";
+import { RelatedLiterals } from "../../types";
 let rs: RdfService;
 
 const rdfsResource = "http://www.w3.org/2000/01/rdf-schema#Resource";

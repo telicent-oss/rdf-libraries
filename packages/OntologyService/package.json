@@ -23,7 +23,8 @@
     "build": "rm -rf ./dist && vite build",
     "publish": "npm publish --access public --provenance",
     "publish:dry-run": "npm publish --access public --provenance --dry-run",
-    "lint": "eslint **/*.ts"
+    "lint": "eslint **/*.ts",
+    "tsc:noEmit": "yarn tsc --noEmit"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -55,6 +56,9 @@
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
     "vite-tsconfig-paths": "^4.2.1"
+  },
+  "engines": {
+    "node": ">=20.14.0"
   },
   "resolutions": {
     "rollup": "3.29.5"

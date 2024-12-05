@@ -50,3 +50,4 @@ export abstract class AbstractConstructorPromises {
         await Promise.all(this.constructorPromises);
     }
 }
+

@@ -1,8 +1,7 @@
-import { RDFTripleType } from "@telicent-oss/rdfservice/index";
+import { RDFTripleType } from "@telicent-oss/rdfservice";
 import {
   DCATResourceSchema,
   UITreeViewBaseItemType,
-  DCATResourceType,
 } from "./common";
 import { CatalogService } from "../../../../index";
 import { findTypeInTripleOrNeighbor } from "../../../utils/triplesOrNeighborWithType";

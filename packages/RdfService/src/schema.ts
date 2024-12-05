@@ -1,5 +1,5 @@
 import z from 'zod';
-import { isValidURI, permissiveUriRegex } from './isValidURI';
+import { isValidURI, permissiveUriRegex } from './utils/isValidURI';
 
 
 /**
@@ -57,3 +57,11 @@ export const RDFTripleSchema = z.object({
 
 // Schema for the entire RDF dataset
 export const RDFSchema = z.array(RDFTripleSchema);
+
+
+export const SparQLResultBinding = z.object(
+  {
+    value: z.string(),
+    type: z.string(),
+  },
+);

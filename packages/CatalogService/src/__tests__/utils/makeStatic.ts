@@ -1,4 +1,4 @@
-import { RDFTripleSchema } from "@telicent-oss/rdfservice/index";
+import { RDFTripleSchema } from "@telicent-oss/rdfservice";
 import { shorten } from "../../utils/shorten";
 
 export const makeStatic = (obj: any) =>

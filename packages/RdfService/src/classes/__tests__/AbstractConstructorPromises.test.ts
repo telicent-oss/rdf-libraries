@@ -1,4 +1,5 @@
-import { AbstractConstructorPromises } from "./utils";
+import { AbstractConstructorPromises } from "../AbstractConstructorPromises";
+
 
 class ExampleClass extends AbstractConstructorPromises {
   name: string;

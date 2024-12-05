@@ -1,5 +1,5 @@
 import "jest-fetch-mock"; // WARNING: fails if: import fetchMock from "jest-fetch-mock";
-import { RDFTripleSchema } from "@telicent-oss/rdfservice/index";
+import { RDFTripleSchema } from "@telicent-oss/rdfservice";
 import { transformRdfToTree } from "../apiFactory/operations/utils/transformRdfToTree";
 import { enrichRdfTree } from "../apiFactory/operations/utils/enrichRdfTree";
 import { Api } from "../apiFactory/apiFactory";

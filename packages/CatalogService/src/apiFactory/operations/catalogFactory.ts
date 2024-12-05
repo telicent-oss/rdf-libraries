@@ -14,7 +14,7 @@ import {
   RDF_TYPE_URI,
   DCATResourceSchema,
 } from "./utils/common";
-import { RDFTripleSchema } from "@telicent-oss/rdfservice/index";
+import { RDFTripleSchema } from "@telicent-oss/rdfservice";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
 import { findTripleBySchema } from "../../utils/triplesOrNeighborWithType";
 import { z } from "zod";

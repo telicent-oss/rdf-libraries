@@ -8,7 +8,6 @@
 import {
   createQueryResponseSchema,
   LongURI,
-  PrefixedURI,
   QueryResponse,
   RdfService,
   RDFSResource,
@@ -16,7 +15,6 @@ import {
   SPARQLQuerySolution,
   SPARQLResultBinding,
   SparQLResultBinding,
-  SPOQuerySolution,
   StringsDict,
   TypedNodeQuerySolution,
   XsdDataType,
@@ -453,6 +451,7 @@ abstract class OntologyItem extends RDFSResource {
 
   //dummy function to be overriden by subclasses
   // TODO Good chance this method could be replaced with interface or abstract class
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async describe(): Promise<any> {
     return undefined;
   }
@@ -544,8 +543,8 @@ export class RDFProperty extends OntologyItem {
   }
 
   async getNodes(
-    nodeURIs: string[],
-    optionalPredicates: string[] = [],
+    // nodeURIs: string[],
+    // optionalPredicates: string[] = [],
   ): Promise<RDFSResource[]> {
     const out: RDFSResource[] = [];
 
@@ -1634,8 +1633,21 @@ export class OntologyService extends RdfService {
    */
   async getPropertyHierarchy(): Promise<HierarchyNode[]> {
     return await this.getHierarchy(
-      "rdf:Property, owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:AsymmetricProperty, owl:DeprecatedProperty, owl:FunctionalProperty, owl:OntologyProperty, owl:InverseFunctionalProperty, owl:IrreflexiveProperty, owl:ReflexiveProperty,owl:SymmetricProperty, owl:TransitiveProperty",
-      "rdfs:subPropertyOf",
+      [
+        "rdf:Property",
+        "owl:ObjectProperty",
+        "owl:DatatypeProperty",
+        "owl:AnnotationProperty",
+        "owl:AsymmetricProperty",
+        "owl:DeprecatedProperty",
+        "owl:FunctionalProperty",
+        "owl:OntologyProperty",
+        "owl:InverseFunctionalProperty",
+        "owl:IrreflexiveProperty",
+        "owl:ReflexiveProperty,owl:SymmetricProperty",
+        "owl:TransitiveProperty",
+      ].join(", "),
+      "rdfs:subPropertyOf"
     );
   }
 }
