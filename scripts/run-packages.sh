@@ -18,6 +18,7 @@ if [ -f nx.json ]; then
   
   # Run Nx command for all packages except the root, passing additional arguments if provided
   nx run-many --target="$TARGET" --all --verbose --exclude="$PACKAGE_NAME" "$@";
+  nx run-many --target="$TARGET" --maxWorkers=1 --all --verbose --exclude="$PACKAGE_NAME" "$@";
 else
   echo "Not an Nx workspace (nx.json not found), skipping script."
   exit 1
