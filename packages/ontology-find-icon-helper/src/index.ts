@@ -2,7 +2,7 @@ import {
   OntologyService,
   type FlattenedStyleType,
   type FlattenedStyleTypeForFindIcon,
-} from "@telicent-oss/OntologyService";
+} from "@telicent-oss/ontologyservice";
 import { URISegmentOrHashSchema } from "@telicent-oss/RdfService";
 import { findIcon, flattenStyles } from "./context-utils";
 export * from './context-utils';
