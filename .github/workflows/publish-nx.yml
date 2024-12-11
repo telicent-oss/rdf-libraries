@@ -23,7 +23,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
+      - run: npm whoami
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
+      - run: npx nx run build --force
       - run: |
           npx nx run @telicent-oss/rdfservice:build
           cd ./packages/RdfService
@@ -36,6 +40,7 @@ jobs:
           fi
           cd -
       - run: |
+          sleep 30 # let RDF publish perculate through
           npx nx run @telicent-oss/ontologyservice:build
           cd ./packages/OntologyService
           local_version=$(node -p "require('./package.json').version")
@@ -47,6 +52,7 @@ jobs:
           fi
           cd -
       - run: |
+          sleep 30 # let RDF publish perculate through
           npx nx run @telicent-oss/catalogservice:build
           cd ./packages/CatalogService
           local_version=$(node -p "require('./package.json').version")
@@ -58,6 +64,7 @@ jobs:
           fi
           cd -
       - run: |
+          sleep 30 # let RDF publish perculate through
           npx nx run @telicent-oss/ies-service:build
           cd ./packages/ies-service
           local_version=$(node -p "require('./package.json').version")
@@ -69,6 +76,7 @@ jobs:
           fi
           cd -
       - run: |
+          sleep 30 # let RDF publish perculate through
           npx nx run @telicent-oss/ontology-find-icon-helper:build
           cd ./packages/ontology-find-icon-helper
           local_version=$(node -p "require('./package.json').version")
