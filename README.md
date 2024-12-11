@@ -39,6 +39,12 @@ For more info, see [API section](README.md#API).
 
 Requires [nx](https://nx.dev/getting-started/intro).
 
+```sh
+yarn install
+# yarn cache can cause packages/* to be unreachable
+# Solution: `yarn cache clean`
+```
+
 Some useful `nx` commands
 
 ```sh
