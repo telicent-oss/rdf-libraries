@@ -26,23 +26,23 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install
       - run: yarn build
-      - run: cd ./packages/RdfService && npm publish --access public --provenance && true
+      - run: cd ./packages/RdfService && npm publish --access public --provenance || true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-      - run: cd ./packages/OntologyService && npm publish --access public --provenance && true
+      - run: cd ./packages/OntologyService && npm publish --access public --provenance || true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-      - run: cd ./packages/CatalogService && npm publish --access public --provenance && true
+      - run: cd ./packages/CatalogService && npm publish --access public --provenance || true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-      - run: cd ./packages/ies-service && npm publish --access public --provenance && true
+      - run: cd ./packages/ies-service && npm publish --access public --provenance || true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-      - run: cd ./packages/ontology-find-icon-helper && npm publish --access public --provenance && true
+      - run: cd ./packages/ontology-find-icon-helper && npm publish --access public --provenance || true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
