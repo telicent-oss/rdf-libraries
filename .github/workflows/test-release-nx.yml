@@ -27,9 +27,8 @@ jobs:
         run: yarn global add nx
       # switch from projects to --all when ready
       - uses: nrwl/nx-set-shas@v4
-      - name: Test
-        run: |
-          yarn test
+      - run: cd ./packages/RdfService && yarn test
+      - run: cd ./packages/ontology-find-icon-helper && yarn test
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
