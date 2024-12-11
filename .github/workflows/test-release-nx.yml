@@ -19,17 +19,13 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           scope: "telicent-oss"
       # Install dependencies using pnpm
-      - name: Install dependencies
-        run: yarn install --frozen-lockfile
+      - run: yarn install --frozen-lockfile
 
       # Ensure Nx is available
-      # - name: Install Nx CLI globally
-        # run: yarn global add nx
+      - run: yarn global add nx
       # switch from projects to --all when ready
-      # - uses: nrwl/nx-set-shas@v4
-      - run: cd ./packages/RdfService && yarn build && yarn test
-      - run: cd ./packages/OntologyService && yarn build && yarn test
-      - run: cd ./packages/ontology-find-icon-helper && yarn test
+      - uses: nrwl/nx-set-shas@v4
+      - run: yarn test
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
