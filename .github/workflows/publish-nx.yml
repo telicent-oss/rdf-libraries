@@ -23,7 +23,11 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: npm whoami
+      - run: |
+          if ! npm whoami; then
+            echo "Authentication failed: Check NPM_REGISTRY_TOKEN"
+            exit 1
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
