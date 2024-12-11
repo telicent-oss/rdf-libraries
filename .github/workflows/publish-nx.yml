@@ -1,18 +1,18 @@
-name: publish-nx.yml
+name: publish-nx.yaml
 on:
   workflow_dispatch:
   push:
-    tags:
-      - v*.*.*
-      - v*.*.*-*
-permissions:
-  actions: read
-  contents: read
-  id-token: write # needed for provenance data generation
+    branches:
+      - main
+    paths:
+      - CHANGELOG.md
 
 jobs:
   main:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,74 +22,27 @@ jobs:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
-          token: ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: |
-          if ! npm whoami; then
-            echo "Authentication failed: Check NPM_REGISTRY_TOKEN"
-            exit 1
-          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: yarn install --frozen-lockfile
-      - run: npx nx run build --force
-      - run: |
-          npx nx run @telicent-oss/rdfservice:build
-          cd ./packages/RdfService
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
-      - run: |
-          sleep 30 # let RDF publish perculate through
-          npx nx run @telicent-oss/ontologyservice:build
-          cd ./packages/OntologyService
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
-      - run: |
-          sleep 30 # let RDF publish perculate through
-          npx nx run @telicent-oss/catalogservice:build
-          cd ./packages/CatalogService
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
-      - run: |
-          sleep 30 # let RDF publish perculate through
-          npx nx run @telicent-oss/ies-service:build
-          cd ./packages/ies-service
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
-      - run: |
-          sleep 30 # let RDF publish perculate through
-          npx nx run @telicent-oss/ontology-find-icon-helper:build
-          cd ./packages/ontology-find-icon-helper
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
+      - run: yarn install
+      - run: yarn build
+      - run: cd ./packages/RdfService && npm publish --access public --provenance
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+      - run: cd ./packages/OntologyService && npm publish --access public --provenance && true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+      - run: cd ./packages/CatalogService && npm publish --access public --provenance && true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+      - run: cd ./packages/ies-service && npm publish --access public --provenance && true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+      - run: cd ./packages/ontology-find-icon-helper && npm publish --access public --provenance && true
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
