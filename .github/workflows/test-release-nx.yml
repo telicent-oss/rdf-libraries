@@ -25,4 +25,4 @@ jobs:
       # - uses: nrwl/nx-set-shas@v4
       # - uses: npx nx affected:test --base=$NX_BASE --head=$NX_HEAD
       - run: yarn build
-      - run: yarn test
+      - run: yarn nx 
