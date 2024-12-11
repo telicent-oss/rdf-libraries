@@ -26,7 +26,7 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install
       - run: yarn build
-      - run: cd ./packages/RdfService && npm publish --access public --provenance
+      - run: cd ./packages/RdfService && npm publish --access public --provenance && true
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
