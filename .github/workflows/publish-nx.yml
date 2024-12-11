@@ -21,7 +21,7 @@ jobs:
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org/'
-          scope: 'telicent-oss'
+          scope: '@telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: |
           if ! npm whoami; then
