@@ -8,7 +8,7 @@ import { RDFResponseSchema } from "../apiFactory/operations/utils/common";
 import { makeStatic } from "./utils/makeStatic";
 
 import { setupContainer } from "./utils/setupContainer";
-import { SEC } from "../constants";
+import { SEC } from "../../archieve/constants";
 import { formatDataAsArray } from "./utils/formatDataAsArray";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { CatalogService, MockSet } from "../../index";
@@ -20,17 +20,19 @@ const SERVICE = "http://www.w3.org/ns/dcat#DataService";
 const CATALOG = "http://www.w3.org/ns/dcat#Catalog";
 const CONNECTIONS = [DATASET, SERVICE, CATALOG];
 const triplestoreUri = "http://localhost:3030/";
-const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true }};
+const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true } };
 
 describe("transformRdfToTree: SIMPLE", () => {
   let catalogService: CatalogService;
   let environment: StartedDockerComposeEnvironment;
   beforeAll(async () => {
     try {
-      ({ catalogService, environment } = await setupContainer(catalogServiceOptions));
+      ({ catalogService, environment } = await setupContainer(
+        catalogServiceOptions
+      ));
       api = await setup({
         ...catalogServiceOptions,
-        catalogService
+        catalogService,
       });
     } catch (err) {
       console.error(err);
@@ -108,11 +110,13 @@ describe("transformRdfToTree: COMPLEX", () => {
   let catalogService: CatalogService;
   let environment: StartedDockerComposeEnvironment;
   beforeAll(async () => {
-    ({ catalogService, environment } = await setupContainer(catalogServiceOptions));
+    ({ catalogService, environment } = await setupContainer(
+      catalogServiceOptions
+    ));
     api = await setup({
       ...catalogServiceOptions,
       catalogService,
-      mockSet: MockSet.COMPLEX
+      mockSet: MockSet.COMPLEX,
     });
   }, 60 * SEC);
   afterAll(async () => {

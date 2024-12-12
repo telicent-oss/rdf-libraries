@@ -1,4 +1,4 @@
-import { formatDataAsArray } from "../../__tests__/utils/formatDataAsArray";
+import { formatDataAsArray } from "../../../src/__tests__/utils/formatDataAsArray";
 import { ACLEDTriples } from "./argsForACLEDCatalog";
 test("ACLEDTriples", () => {
   expect(formatDataAsArray(ACLEDTriples).join("\n")).toMatchInlineSnapshot(`

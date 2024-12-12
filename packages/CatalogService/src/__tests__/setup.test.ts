@@ -11,7 +11,7 @@ import { makeStatic } from "./utils/makeStatic";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { setupContainer } from "./utils/setupContainer";
 import { formatDataAsArray } from "./utils/formatDataAsArray";
-import { SEC } from "../constants";
+import { SEC } from "../../archieve/constants";
 
 // QUESTION Why does order of result change when I incr. number?
 const testDefaultNamespace = "http://telicent.io/data/";
@@ -20,14 +20,16 @@ const dataset1Uri = `${testDefaultNamespace}dataset1`;
 const dataservice1Uri = `${testDefaultNamespace}dataservice1`;
 const triplestoreUri = "http://localhost:3030/";
 const initialTripleCount = 11;
-const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true }};
+const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true } };
 
 describe("CatalogService", () => {
   let environment: StartedDockerComposeEnvironment;
   let catalogService: CatalogService;
 
   beforeAll(async () => {
-    ({ catalogService, environment } = await setupContainer(catalogServiceOptions));
+    ({ catalogService, environment } = await setupContainer(
+      catalogServiceOptions
+    ));
   }, 60 * SEC);
 
   afterAll(async () => {
@@ -41,7 +43,6 @@ describe("CatalogService", () => {
   it(
     `setup() should have added the expected amount of triples: ${initialTripleCount}`,
     async () => {
-      
       await setup({
         ...catalogServiceOptions,
         mockSet: MockSet.SIMPLE,
@@ -156,7 +157,11 @@ describe("CatalogService", () => {
   it.skip(
     "Specialised getOwned___ methods should return correct items",
     async () => {
-      const cat = await DCATCatalog.createAsync(catalogService, cat1Uri, "cat1");
+      const cat = await DCATCatalog.createAsync(
+        catalogService,
+        cat1Uri,
+        "cat1"
+      );
       const catChild = await DCATCatalog.createAsync(
         catalogService,
         `${testDefaultNamespace}catChild`,

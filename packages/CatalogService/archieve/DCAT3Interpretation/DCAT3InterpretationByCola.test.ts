@@ -1,6 +1,6 @@
 import { ACLEDTriples } from "./__mocks__/argsForACLEDCatalog";
 import { CatalogService } from "../../index";
-import { result } from "../apiFactory/operations/mockData/fromFusekiAfterKafka2";
+import { result } from "../../src/apiFactory/operations/mockData/fromFusekiAfterKafka2";
 import { systemIntergrationRealData } from "./__mocks__/systemIntergrationRealData";
 import { shorten } from "../utils/shorten";
 

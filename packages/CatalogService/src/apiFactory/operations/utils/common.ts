@@ -1,27 +1,37 @@
 import { z } from "zod";
-import { RDFTripleSchema, RDFTripleType } from "@telicent-oss/rdfservice/index";
 import {
-  CatalogService,
-  DCATCatalog,
-  DCATDataset,
-  DCATDataService,
-} from "../../../../index";
-import { session } from "../../../constants";
-import { getValuesByBailey } from "./getValuesByBailey";
-import { getValuesByCola } from "./getValuesByCola";
-// import { result } from "../mockData/fromFusekiAfterKafka2";
+  RDFTripleSchema,
+  RDFTripleType,
+  TripleObjectSchema,
+} from "@telicent-oss/rdfservice/index";
+import { CatalogService, DCATResource } from "../../../../index";
+
+// predicate
+export const RDF_TYPE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+
+// object or subject
+export const DATASET_URI: string = "http://www.w3.org/ns/dcat#Dataset";
+export const SERVICE_URI: string = "http://www.w3.org/ns/dcat#DataService";
+export const CATALOG_URI: string = "http://www.w3.org/ns/dcat#Catalog";
+export const RESOURCE_URI: string = "http://www.w3.org/ns/dcat#Resource";
+
+// hierarchy relationship
+export const DATASET_PROP_URI = "http://www.w3.org/ns/dcat#dataset";
+export const SERVICE_PROP_URI = "http://www.w3.org/ns/dcat#service";
+export const CATALOG_PROP_URI = "http://www.w3.org/ns/dcat#catalog";
+export const SERVES_PROP_URI = "http://www.w3.org/ns/dcat#servesDataset";
+
 export const UIDataResourceSchema = z.object({
   title: z.string(),
   id: z.string(),
   description: z.string(),
   creator: z.string(),
-  userHasAccess: z.boolean(),
   publishDate: z.string(),
   modified: z.string(),
   accessRights: z.string(),
   rights: z.string(),
   contactEmail: z.string(),
-  type: z.enum(["Catalog", "DataService", "Dataset"]),
+  type: z.enum([SERVICE_URI, DATASET_URI, CATALOG_URI, RESOURCE_URI]),
 });
 export type UIDataResourceType = z.infer<typeof UIDataResourceSchema>;
 
@@ -67,14 +77,40 @@ export const RDFResponseSchema = z.object({
   }),
 });
 
-// predicate
-export const RDF_TYPE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";
+export type ResourceQueryType = {
+  s: z.infer<typeof TripleObjectSchema>;
+  p: z.infer<typeof TripleObjectSchema>;
+  o: z.infer<typeof TripleObjectSchema>;
+  relationship?: z.infer<typeof TripleObjectSchema>;
+  partner?: z.infer<typeof TripleObjectSchema>;
+  resourceTitle?: z.infer<typeof TripleObjectSchema>;
+};
+// Schema for other result
+export const ResourceQuerySchema = z.object({
+  o: TripleObjectSchema,
+  p: TripleObjectSchema,
+  s: TripleObjectSchema,
+  relationship: z.optional(TripleObjectSchema),
+  partner: z.optional(TripleObjectSchema),
+  resourceTitle: z.optional(TripleObjectSchema),
+});
 
-// object or subject
-export const DATASET_URI = "http://www.w3.org/ns/dcat#Dataset";
-export const SERVICE_URI = "http://www.w3.org/ns/dcat#DataService";
-export const CATALOG_URI = "http://www.w3.org/ns/dcat#Catalog";
-export const RESOURCE_URI = "http://www.w3.org/ns/dcat#Resource";
+export const ResourceDetailResponseSchema = z.object({
+  head: z.object({
+    vars: z.tuple([
+      z.literal("s"),
+
+      z.literal("p"),
+      z.literal("o"),
+      z.literal("relationship"),
+      z.literal("partner"),
+      z.literal("resourceTitle"),
+    ]),
+  }),
+  results: z.object({
+    bindings: z.array(ResourceQuerySchema), // Assuming bindings can hold any structure
+  }),
+});
 
 export const DCATResourceSchema = z.union([
   z.literal(DATASET_URI),
@@ -104,6 +140,11 @@ export const typeStatementMatcherWithId =
   ({ s, p }: RDFTripleType) =>
     s.value === id && p.value === RDF_TYPE_URI;
 
+export const dataResourceObjByURI =
+  (findUri: string) =>
+  ({ uri }: DCATResource) =>
+    findUri === uri;
+
 export const createEntitySchema = (entityUri: RESOURCE_URI_TYPE) =>
   RDFTripleSchema.refine(
     ({ o, p }) => o.value === entityUri && p.value === RDF_TYPE_URI,
@@ -124,44 +165,64 @@ export const ResourceSchema = z.union([
 
 export type ResourceType = z.infer<typeof ResourceSchema>;
 
-export const getAllRDFTriples = async (options: {
+export const getAllResources = async (options: {
   service: CatalogService;
   hasAccess?: boolean;
 }) =>
   RDFResponseSchema.parse(
     await options.service.runQuery(`
-      SELECT DISTINCT ?s ?p ?o
-      WHERE {
-        ${
-          options.hasAccess
-            ? // REQUIREMENTS 8.1 Search by user-owned data-resources
-              `?s dct:accessRights "${session.user.name}" .`
-            : ""
+    SELECT ?s ?p ?o WHERE {
+      {
+        SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${DATASET_URI}> AS ?o) WHERE {
+          ?s <${RDF_TYPE_URI}> <${DATASET_URI}> .
         }
-        ?s ?p ?o
-      }`)
+      } UNION {
+        SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${SERVICE_URI}> AS ?o) WHERE {
+          ?s <${RDF_TYPE_URI}> <${SERVICE_URI}>  .
+        }
+      } UNION {
+        SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${CATALOG_URI}> AS ?o) WHERE {
+          ?s <${RDF_TYPE_URI}> <${CATALOG_URI}> .
+        }
+      }      
+    } 
+  `)
   );
 
-/**
- * Read UI data from the DCAT instances
- * @param options
- * @returns
- */
-export const uiDataResourceFromInstanceWithTriples =
-  (triples: RDFTripleType[]) =>
-  /**
-   *
-   * @param el
-   * @returns
-   */
-  async (
-    el: DCATDataset | DCATDataService | DCATCatalog
-  ): Promise<UIDataResourceType> => {
-    // Note: Renaming from spec-specific to spec-agnostic values
-    // Rationale: For now, keeping spec concepts out of UI
-    return UIDataResourceSchema.parse(
-      el.service.interpretation
-        ? await getValuesByCola(el, triples)
-        : await getValuesByBailey(el)
-    );
-  };
+export const getAllResourcesWithDetails = async (options: {
+  service: CatalogService;
+}) =>
+  ResourceDetailResponseSchema.parse(
+    await options.service.runQuery(`
+      SELECT ?s  ?p ?o ?relationship ?partner ?resourceTitle WHERE {
+        
+        {
+          SELECT ?s ?p ?o  WHERE {
+            {
+              SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${DATASET_URI}> AS ?o) WHERE {
+                ?s <${RDF_TYPE_URI}> <${DATASET_URI}> .
+                
+              }
+            } UNION {
+              SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${SERVICE_URI}> AS ?o) WHERE {
+                ?s <${RDF_TYPE_URI}> <${SERVICE_URI}>  .
+                
+              }
+            } UNION {
+              SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${CATALOG_URI}> AS ?o) WHERE {
+                ?s <${RDF_TYPE_URI}> <${CATALOG_URI}> .
+               
+              }
+            }      
+          }
+        }
+        OPTIONAL {
+          ?s ?relationship ?partner .
+          FILTER(?relationship in (<${DATASET_PROP_URI}>, <${SERVICE_PROP_URI}>, <${CATALOG_PROP_URI}>))
+        }
+        OPTIONAL {
+          ?s dct:title ?resourceTitle .
+        }
+      } 
+    `)
+  );

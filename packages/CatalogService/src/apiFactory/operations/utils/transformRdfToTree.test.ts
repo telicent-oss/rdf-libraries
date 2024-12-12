@@ -8,8 +8,8 @@ import {
   RESOURCE_URI,
   SERVICE_URI,
 } from "./common";
-import { ACLEDTriples } from "../../../DCAT3Interpretation/__mocks__/argsForACLEDCatalog";
-import { findTripleBySchema } from "../../../utils/triplesOrNeighborWithType";
+import { ACLEDTriples } from "../../../../archieve/DCAT3Interpretation/__mocks__/argsForACLEDCatalog";
+import { findTripleBySchema } from "../../../../archieve/utils/triplesOrNeighborWithType";
 import { RDFTripleType } from "@telicent-oss/rdfservice";
 import { formatDataAsArray } from "packages/CatalogService/src/__tests__/utils/formatDataAsArray";
 

@@ -1,3 +1,7 @@
+docker-compose.yml
+data
+graph-config
+
 # Logs
 logs
 *.log

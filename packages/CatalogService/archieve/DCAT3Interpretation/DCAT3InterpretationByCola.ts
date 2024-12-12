@@ -3,29 +3,50 @@ import { CatalogService, DCATResourceSchema, RDF_TYPE_URI } from "../../index";
 import { findTripleBySchema } from "../utils/triplesOrNeighborWithType";
 import { z, ZodSchema } from "zod";
 import { IDCAT3Interpretation } from "./types";
-import { formatDataAsArray } from "../__tests__/utils/formatDataAsArray";
+import { formatDataAsArray } from "../../src/__tests__/utils/formatDataAsArray";
 
 const TERM = {
-  published: 'http://purl.org/dc/terms/issued',
+  published: "http://purl.org/dc/terms/issued",
   owner: {
-    publisher: 'http://purl.org/dc/terms/publisher',
-  }
-}
+    publisher: "http://purl.org/dc/terms/publisher",
+  },
+};
 
-const findTripleWithTriples = (triples:RDFTripleType[]) =>
-  ({ s, p, o }: { s?: ZodSchema; p?:ZodSchema; o?: ZodSchema, label:string}) => {
+const findTripleWithTriples =
+  (triples: RDFTripleType[]) =>
+  ({
+    s,
+    p,
+    o,
+  }: {
+    s?: ZodSchema;
+    p?: ZodSchema;
+    o?: ZodSchema;
+    label: string;
+  }) => {
     const result = triples.find(findTripleBySchema({ s, p, o }));
     return result;
-  }
+  };
 
-  const findTripleWithTriplesAssert = (triples:RDFTripleType[]) =>
-  ({ s, p, o, label }: { s?: ZodSchema; p?:ZodSchema; o?: ZodSchema, label:string}) => {
+const findTripleWithTriplesAssert =
+  (triples: RDFTripleType[]) =>
+  ({
+    s,
+    p,
+    o,
+    label,
+  }: {
+    s?: ZodSchema;
+    p?: ZodSchema;
+    o?: ZodSchema;
+    label: string;
+  }) => {
     const result = triples.find(findTripleBySchema({ s, p, o }));
     if (result === undefined) {
       throw new Error(`Expected to find ${label}`);
     }
     return result;
-  }
+  };
 
 export class DCAT3InterpretationByCola implements IDCAT3Interpretation {
   private service: CatalogService;
@@ -44,15 +65,13 @@ export class DCAT3InterpretationByCola implements IDCAT3Interpretation {
     this.service = service;
   }
 
-
-
   dcTitleFromTriples = (
     id: string,
     triples: RDFTripleType[],
     options: { assert: boolean }
   ) => {
-    let titleTriple:RDFTripleType|undefined;
-    let typeTriple:RDFTripleType|undefined;
+    let titleTriple: RDFTripleType | undefined;
+    let typeTriple: RDFTripleType | undefined;
     {
       // TODO Check if can delete this block
       // WHEN Have time to test
@@ -95,7 +114,7 @@ export class DCAT3InterpretationByCola implements IDCAT3Interpretation {
         titleTriple: ${JSON.stringify(titleTriple)}
         in
 
-${formatDataAsArray(triples, 80).join('\n')}
+${formatDataAsArray(triples, 80).join("\n")}
       `);
     }
   };
@@ -105,20 +124,20 @@ ${formatDataAsArray(triples, 80).join('\n')}
     triples: RDFTripleType[],
     options: { assert: boolean }
   ) => {
-    {
-      // TODO Check if can delete this block
-      // WHEN Have time to test
-      const publishedTriple = triples.find(
-        findTripleBySchema({
-          s: z.literal(id),
-          p: z.literal(TERM.published),
-        })
-      );
+    // {
+    //   // TODO Check if can delete this block
+    //   // WHEN Have time to test
+    //   const publishedTriple = triples.find(
+    //     findTripleBySchema({
+    //       s: z.literal(id),
+    //       p: z.literal(TERM.published),
+    //     })
+    //   );
 
-      if (publishedTriple?.o.value) {
-        return publishedTriple?.o.value;
-      }
-    }
+    //   if (publishedTriple?.o.value) {
+    //     return publishedTriple?.o.value;
+    //   }
+    // }
     {
       const typeTriple = triples.find(
         findTripleBySchema({
@@ -139,8 +158,10 @@ ${formatDataAsArray(triples, 80).join('\n')}
       }
     }
     if (options?.assert) {
-      throw new Error(`dcPublishedFromTriples failed to find "${TERM.published}" for "${id}" in ${triples.length} triples
-        ${formatDataAsArray(triples, 80).join('\n')}`);
+      throw new Error(`dcPublishedFromTriples failed to find "${
+        TERM.published
+      }" for "${id}" in ${triples.length} triples
+        ${formatDataAsArray(triples, 80).join("\n")}`);
     }
   };
 
@@ -149,7 +170,9 @@ ${formatDataAsArray(triples, 80).join('\n')}
     triples: RDFTripleType[],
     options: { assert: boolean }
   ) => {
-    const getTriple = options?.assert ? findTripleWithTriplesAssert(triples) : findTripleWithTriples(triples);
+    const getTriple = options?.assert
+      ? findTripleWithTriplesAssert(triples)
+      : findTripleWithTriples(triples);
 
     const resource = getTriple({
       label: "resource",
@@ -160,7 +183,7 @@ ${formatDataAsArray(triples, 80).join('\n')}
     const publisher = getTriple({
       label: `publisher for ${resource?.s.value}`,
       s: z.literal(resource?.s.value),
-      p: z.literal('http://purl.org/dc/terms/publisher'),
+      p: z.literal("http://purl.org/dc/terms/publisher"),
       o: undefined,
     });
     const email = getTriple({
@@ -176,32 +199,34 @@ ${formatDataAsArray(triples, 80).join('\n')}
       o: undefined,
     });
 
-    let emailValue = (email?.o.value || '');
-    emailValue = emailValue.substring(emailValue.lastIndexOf('/') + 1);
+    let emailValue = email?.o.value || "";
+    emailValue = emailValue.substring(emailValue.lastIndexOf("/") + 1);
 
     return {
       name: name?.o.value,
-      email: emailValue
-    }
+      email: emailValue,
+    };
   };
   creatorNameFromTriples = (
     id: string,
     triples: RDFTripleType[],
     options: { assert: boolean }
-  ) => this.creatorFromTriples(id,triples, options)?.name
+  ) => this.creatorFromTriples(id, triples, options)?.name;
 
   creatorEmailFromTriples = (
     id: string,
     triples: RDFTripleType[],
     options: { assert: boolean }
-  ) => this.creatorFromTriples(id,triples, options)?.email
-  
+  ) => this.creatorFromTriples(id, triples, options)?.email;
+
   rightsFromTriples = (
     id: string,
     triples: RDFTripleType[],
     options: { assert: boolean }
   ) => {
-    const getTriple = options?.assert ? findTripleWithTriplesAssert(triples) : findTripleWithTriples(triples);
+    const getTriple = options?.assert
+      ? findTripleWithTriplesAssert(triples)
+      : findTripleWithTriples(triples);
 
     const resource = getTriple({
       label: "resource",
@@ -212,7 +237,7 @@ ${formatDataAsArray(triples, 80).join('\n')}
     const rights = getTriple({
       label: `rights for ${resource?.s.value}, for ${id}`,
       s: z.literal(resource?.s.value),
-      p: z.literal('http://purl.org/dc/terms/rights'),
+      p: z.literal("http://purl.org/dc/terms/rights"),
       o: undefined,
     });
     const description = getTriple({
@@ -222,6 +247,6 @@ ${formatDataAsArray(triples, 80).join('\n')}
       o: undefined,
     });
 
-    return description?.o.value
+    return description?.o.value;
   };
 }

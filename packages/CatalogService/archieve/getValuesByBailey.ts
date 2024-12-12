@@ -1,9 +1,15 @@
-import { DCATDataset, DCATDataService, DCATCatalog, UIDataResourceType, UIDataResourceSchema } from "../../../../index";
-import { session } from "../../../constants";
+import {
+  DCATDataset,
+  DCATDataService,
+  DCATCatalog,
+  UIDataResourceType,
+  UIDataResourceSchema,
+} from "../index";
+import { session } from "./constants";
 
 export const getValuesByBailey = async (
   el: DCATDataset | DCATDataService | DCATCatalog
-):Promise<UIDataResourceType> => {
+): Promise<UIDataResourceType> => {
   // TODO More validation ceremony
   // HOW Stricter validation when needed (frontend v.s. RDF/schema specs)
   // WHEN Have locked down UI requirements
@@ -51,7 +57,7 @@ export const getValuesByBailey = async (
   const dcCreator = await el.getDcCreator();
   const dcPublished = await el.getDcPublished();
   const dcModified = await el.getDcModified();
-  
+
   return {
     id: el.uri,
     title: dcTitle[0],

@@ -3,8 +3,8 @@ import { CatalogService, setup } from "../../index";
 import { Api } from "../apiFactory/apiFactory";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { setupContainer } from "./utils/setupContainer";
-import { SEC } from "../constants";
-import { shorten } from "../utils/shorten";
+import { SEC } from "../../archieve/constants";
+import { shorten } from "../../archieve/utils/shorten";
 
 // !TODO Fix test
 // HOW
