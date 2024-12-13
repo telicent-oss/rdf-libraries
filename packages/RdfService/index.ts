@@ -1249,7 +1249,7 @@ export class RdfService extends AbstractConstructorPromises {
     this.triplestoreUri = `${triplestoreUri}${
       triplestoreUri.endsWith("/") ? "" : "/"
     }`;
-    this.queryEndpoint = this.triplestoreUri + dataset + "/query?query=";
+    this.queryEndpoint = this.triplestoreUri + dataset + "/query";
     this.updateEndpoint = this.triplestoreUri + dataset + "/update";
     this.#writeEnabled = write;
     this.updateCount = 0;
