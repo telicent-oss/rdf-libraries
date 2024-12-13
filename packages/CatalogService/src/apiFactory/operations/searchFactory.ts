@@ -22,7 +22,6 @@ export const searchFactory = (service: CatalogService) => {
     // Simplify to get all Data Resources, need to keep an eye on this to check it doesnt
     // become too expensive
     const resources = await getAllResources();
-    console.log("Resources", resources);
     const re = params.searchText
       ? new RegExp(params.searchText.toLowerCase(), "gi")
       : undefined;
