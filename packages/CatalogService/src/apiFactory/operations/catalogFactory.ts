@@ -6,6 +6,7 @@ import {
   getAllResourcesWithDetails,
   ResourceQuerySchema,
   ResourceQueryType,
+  ResourceDetailResponseSchema,
 } from "./utils/common";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
 

@@ -165,55 +165,27 @@ export const ResourceSchema = z.union([
 
 export type ResourceType = z.infer<typeof ResourceSchema>;
 
-export const getAllResources = async (options: {
-  service: CatalogService;
-  hasAccess?: boolean;
-}) =>
-  RDFResponseSchema.parse(
-    await options.service.runQuery(`
-    SELECT ?s ?p ?o WHERE {
-      {
-        SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${DATASET_URI}> AS ?o) WHERE {
-          ?s <${RDF_TYPE_URI}> <${DATASET_URI}> .
-        }
-      } UNION {
-        SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${SERVICE_URI}> AS ?o) WHERE {
-          ?s <${RDF_TYPE_URI}> <${SERVICE_URI}>  .
-        }
-      } UNION {
-        SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${CATALOG_URI}> AS ?o) WHERE {
-          ?s <${RDF_TYPE_URI}> <${CATALOG_URI}> .
-        }
-      }      
-    } 
-  `)
-  );
-
 export const getAllResourcesWithDetails = async (options: {
   service: CatalogService;
 }) =>
   ResourceDetailResponseSchema.parse(
     await options.service.runQuery(`
       SELECT ?s  ?p ?o ?relationship ?partner ?resourceTitle WHERE {
-        
         {
           SELECT ?s ?p ?o  WHERE {
             {
               SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${DATASET_URI}> AS ?o) WHERE {
                 ?s <${RDF_TYPE_URI}> <${DATASET_URI}> .
-                
               }
             } UNION {
               SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${SERVICE_URI}> AS ?o) WHERE {
                 ?s <${RDF_TYPE_URI}> <${SERVICE_URI}>  .
-                
               }
             } UNION {
               SELECT ?s (<${RDF_TYPE_URI}> AS ?p) (<${CATALOG_URI}> AS ?o) WHERE {
                 ?s <${RDF_TYPE_URI}> <${CATALOG_URI}> .
-               
               }
-            }      
+            }
           }
         }
         OPTIONAL {
@@ -223,6 +195,6 @@ export const getAllResourcesWithDetails = async (options: {
         OPTIONAL {
           ?s dct:title ?resourceTitle .
         }
-      } 
+      }
     `)
   );

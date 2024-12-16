@@ -12,16 +12,20 @@ export const searchFactory = (service: CatalogService) => {
     }
     return [...cachedResources];
   };
-  return async function search(
+  return searchFactoryFn(getAllResources);
+};
+
+export const searchFactoryFn =
+  (getResourcesFn: () => Promise<DCATResource[]>) =>
+  async (
     params: UISearchParamsType
-  ): Promise<Array<z.infer<typeof UIDataResourceSchema>>> {
+  ): Promise<Array<z.infer<typeof UIDataResourceSchema>>> => {
     const { hasAccess, dataResourceFilter } = transformDataResourceFilters(
       params.dataResourceFilters
     );
-
     // Simplify to get all Data Resources, need to keep an eye on this to check it doesnt
     // become too expensive
-    const resources = await getAllResources();
+    const resources = await getResourcesFn();
     const re = params.searchText
       ? new RegExp(params.searchText.toLowerCase(), "gi")
       : undefined;
@@ -40,7 +44,6 @@ export const searchFactory = (service: CatalogService) => {
           item: resource,
           score: 0,
         }))
-
         .filter((resource) => {
           if (re) {
             const match = resource.item.toFindString().match(re);
@@ -65,7 +68,5 @@ export const searchFactory = (service: CatalogService) => {
         })
         .map(async (resource) => await resource.item.toUIRepresentation())
     );
-
     return found;
   };
-};

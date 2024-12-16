@@ -84,6 +84,7 @@ export class DCATResource extends RDFSResource {
     uri?: string,
     title?: string,
     type: LongURI = "http://www.w3.org/ns/dcat#Resource",
+    catalog?: DCATCatalog,
     statement?: DcatResourceQuerySolution
   ) {
     let cached = false;
@@ -109,7 +110,8 @@ export class DCATResource extends RDFSResource {
         this.description = statement?.description.value;
       }
       if (statement?.contactEmail) {
-        this.contactEmail = statement?.contactEmail.value;
+        let email = statement?.contactEmail.value;
+        this.contactEmail = email.substring(email.lastIndexOf("/") + 1);
       }
       if (statement?.creator) {
         this.creator = statement?.creator.value;
@@ -154,6 +156,15 @@ export class DCATResource extends RDFSResource {
       if (title && title != "") {
         this.constructorPromises.push(this.setTitle(title));
       }
+      if (catalog) {
+        this.constructorPromises.push(
+          this.service.insertTriple(
+            catalog.uri,
+            `http://www.w3.org/ns/dcat#Resource`,
+            this.uri
+          )
+        );
+      }
     }
   }
 
@@ -166,7 +177,6 @@ export class DCATResource extends RDFSResource {
       await this.getDcModified(),
       await this.getDcIssued(),
     ]);
-
     return {
       id: this.id ?? this.uri,
       uri: this.uri,
@@ -180,6 +190,7 @@ export class DCATResource extends RDFSResource {
       type: this.dataResourceType ?? RESOURCE_URI,
       contactEmail: this.contactEmail,
       rights: this.rights,
+      owner: this.owner,
     };
   }
 }
@@ -191,9 +202,10 @@ export class DCATDataset extends DCATResource {
     uri?: string,
     title?: string,
     type: string = "http://www.w3.org/ns/dcat#Dataset",
+    catalog?: DCATCatalog,
     statement?: DcatResourceQuerySolution
   ) {
-    super(service, uri, title, type, statement);
+    super(service, uri, title, type, catalog, statement);
   }
 }
 
@@ -204,9 +216,10 @@ export class DCATCatalog extends DCATDataset {
     uri?: string,
     title?: string,
     type: string = "http://www.w3.org/ns/dcat#Catalog",
+    catalog?: DCATCatalog,
     statement?: DcatResourceQuerySolution
   ) {
-    super(service, uri, title, type, statement);
+    super(service, uri, title, type, catalog, statement);
     // NOTE: catalog not called in test...perhaps service invokes with context of nodes?
   }
 
@@ -214,7 +227,7 @@ export class DCATCatalog extends DCATDataset {
     if (catalog) {
       return this.service.insertTriple(
         this.uri,
-        `http://www.w3.org/ns/dcat#Catalog`,
+        `http://www.w3.org/ns/dcat#catalog`,
         catalog.uri
       );
     }
@@ -223,7 +236,7 @@ export class DCATCatalog extends DCATDataset {
     if (dataset) {
       return this.service.insertTriple(
         this.uri,
-        `http://www.w3.org/ns/dcat#Dataset`,
+        `http://www.w3.org/ns/dcat#dataset`,
         dataset.uri
       );
     }
@@ -232,7 +245,7 @@ export class DCATCatalog extends DCATDataset {
     if (service) {
       return this.service.insertTriple(
         this.uri,
-        `http://www.w3.org/ns/dcat#DataService`,
+        `http://www.w3.org/ns/dcat#service`,
         service.uri
       );
     }
@@ -284,9 +297,10 @@ export class DCATDataService extends DCATCatalog {
     uri?: string,
     title?: string,
     type: string = "http://www.w3.org/ns/dcat#DataService",
+    catalog?: DCATCatalog,
     statement?: DcatResourceQuerySolution
   ) {
-    super(service, uri, title, type, statement);
+    super(service, uri, title, type, catalog, statement);
   }
 }
 
@@ -490,12 +504,11 @@ export class CatalogService extends RdfService {
     catalog?: string,
     catalogRelation?: string
   ): Promise<DCATResource[]> {
-    const resources: DCATResource[] = [];
     let catalogSelect = "";
     let relFilter = "";
     if (!catalogRelation) {
       catalogRelation = "?catRel";
-      relFilter = `FILTER (?catRel in (<${this.dcat_dataset}>, <${this.dcat_service}>, <${this.dcat_catalog}>))`;
+      relFilter = `FILTER (?catRel in (<${this.dcat_dataset}>, <${this.dcat_service}>, <${this.dcat_catalog}>, <${this.dcatResource}>))`;
     } else {
       catalogRelation = `<${catalogRelation}>`;
     }
@@ -531,18 +544,17 @@ export class CatalogService extends RdfService {
             WHERE {
                 ${catalogSelect}
                 ${typeSelect}
-                
                 ?uri a ?_type .
                 OPTIONAL { ?uri dct:title ?title } .
                 OPTIONAL { ?uri dct:identifier ?id } .
                 OPTIONAL { 
                   ?uri dct:publisher ?publisher .
                   ?publisher <https://schema.org/email> ?contactEmail 
-                }
+                } .
                 OPTIONAL { 
                   ?uri dct:publisher ?publisher .
                   ?publisher <https://schema.org/name> ?creator 
-                }
+                } .
                 OPTIONAL { ?uri dct:description ?description } .
                 OPTIONAL { 
                   ?uri dct:rights ?dstRights .
@@ -550,29 +562,31 @@ export class CatalogService extends RdfService {
                 } .
                 OPTIONAL { ?uri dct:accessRights ?accessRights } .
                 OPTIONAL { 
-                  
                   ?owner ?catRel ?uri .
                   ${relFilter}
                 } .
             }`;
     const results = await this.runQuery<DcatResourceQuerySolution>(query);
-    results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
-      let Class = DCATResource;
-      if (statement._type) {
-        Class = this.lookupClass(
-          statement._type.value,
-          DCATResource
-        ) as unknown as typeof DCATResource;
+    const resources: DCATResource[] = results.results.bindings.map(
+      (statement: DcatResourceQuerySolution) => {
+        let Class = DCATResource;
+        if (statement._type) {
+          Class = this.lookupClass(
+            statement._type.value,
+            DCATResource
+          ) as unknown as typeof DCATResource;
+        }
+        const dcatResource = new Class(
+          this,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          statement
+        );
+        return dcatResource;
       }
-      const dcatResource = new Class(
-        this,
-        undefined,
-        undefined,
-        undefined,
-        statement
-      );
-      resources.push(dcatResource);
-    });
+    );
     // REQUIREMENT 6.4 Search by dataResourceFilter: selected data-resources
     // I don't see any sort clause, but I assume the returned sort order will be sensible; Or can be made sensible.
     return resources;

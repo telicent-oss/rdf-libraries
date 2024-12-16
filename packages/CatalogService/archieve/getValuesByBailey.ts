@@ -5,7 +5,7 @@ import {
   UIDataResourceType,
   UIDataResourceSchema,
 } from "../index";
-import { session } from "./constants";
+import { session } from "../src/utils/constants";
 
 export const getValuesByBailey = async (
   el: DCATDataset | DCATDataService | DCATCatalog

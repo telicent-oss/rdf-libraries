@@ -31,7 +31,7 @@ export const createMocks = async ({
           catalogService,
           mock.uri,
           mock.title,
-          published,
+          undefined,
           undefined
           // parent,
         );
@@ -41,7 +41,7 @@ export const createMocks = async ({
           catalogService,
           mock.uri,
           mock.title,
-          published,
+          undefined,
           undefined
           // catalog1
         );
@@ -51,7 +51,7 @@ export const createMocks = async ({
           catalogService,
           mock.uri,
           mock.title,
-          published,
+          undefined,
           undefined
           // catalog1
         );
@@ -61,12 +61,13 @@ export const createMocks = async ({
     }
 
     await r.setDescription(mock.description);
+    // This is incorrect for the new structure
     await r.setCreator(mock.creator);
+    // This is incorrect for the new structure
     await r.setRights(mock.rights);
     await r.setPublished(mock.published);
     await r.setModified(mock.modified);
     await r.setAccessRights(mock.accessRights);
-
 
     if (parent?.addOwnedResource) {
       await parent.addOwnedResource(r);
@@ -124,8 +125,8 @@ export const createMocks = async ({
   }
 
   if (mockSet === MockSet.COMPLEX) {
-    await createResource({
+    (await createResource({
       mock: MOCK.catalog2,
-    }) as DCATCatalog;
+    })) as DCATCatalog;
   }
 };

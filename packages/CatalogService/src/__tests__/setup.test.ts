@@ -11,7 +11,7 @@ import { makeStatic } from "./utils/makeStatic";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { setupContainer } from "./utils/setupContainer";
 import { formatDataAsArray } from "./utils/formatDataAsArray";
-import { SEC } from "../../archieve/constants";
+import { SEC } from "../utils/constants";
 
 // QUESTION Why does order of result change when I incr. number?
 const testDefaultNamespace = "http://telicent.io/data/";
@@ -66,11 +66,11 @@ describe("CatalogService", () => {
           "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/modified               | 2021-4-5",
           "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/accessRights           | Damir Sato",
           "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
-          "http://telicent.io/data/catalog1     | http://www.w3.org/ns/dcat#DataService           | http://telicent.io/data/dataservice1",
           "http://telicent.io/data/catalog1     | http://purl.org/dc/terms/description            | 2020 Royal Engineers’ Cornwall focused data catalog. Inclu…",
           "http://telicent.io/data/catalog1     | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Catalog",
+          "http://telicent.io/data/catalog1     | http://www.w3.org/ns/dcat#dataset               | http://telicent.io/data/dataset1",
+          "http://telicent.io/data/catalog1     | http://www.w3.org/ns/dcat#service               | http://telicent.io/data/dataservice1",
           "http://telicent.io/data/catalog1     | http://purl.org/dc/terms/creator                | Mario Giacomelli",
-          "http://telicent.io/data/catalog1     | http://www.w3.org/ns/dcat#Dataset               | http://telicent.io/data/dataset1",
           "http://telicent.io/data/catalog1     | http://purl.org/dc/terms/title                  | Catalog: Cornwall Data",
           "http://telicent.io/data/catalog1     | http://purl.org/dc/terms/rights                 | Effective Date: 25/10/20241.      1. Introduction      This agency is committed to ensuring the security and confidentiality of the personal and sensitive data we handle. This policy outlines the procedures and responsibilities for managing and protecting data to comply with relevant laws and regulations.      2. Purpose      The purpose of this policy is to:Ensure the proper handling, protection, and use of data.Comply with applicable data protection laws and regulations.Protect the privacy rights of individuals whose data we handle.      3. Scope      This policy applies to all employees, contractors, and third-party service providers of who have access to, or handle, data.      4. Data Collection      Lawful and Fair Collection: Data must be collected lawfully and fairly, and only for specified, explicit, and legitimate purposes.Consent: Where applicable, data subjects must provide informed consent for the collection and processing of their data.      5. Data Use      Purpose Limitation: Data must be used only for the purposes for which it was collected and not further processed in a manner incompatible with those purposes.Data Minimization: Only the minimum necessary data should be collected and processed.      6. Data Storage      Secure Storage: Data must be stored securely to prevent unauthorized access, loss, or damage. This includes physical and electronic storage measures.Retention Period: Data must be retained only for as long as necessary to fulfill the purposes for which it was collected, or as required by law.      For questions or concerns about this policy or data protection practices, contact John Smiley at 0394 300498.      Approved by:John Smiley   Head of Data Capture   The agency      25/03/2024",
           "http://telicent.io/data/catalog1     | http://purl.org/dc/terms/modified               | 2023-6-1",
@@ -129,17 +129,14 @@ describe("CatalogService", () => {
         .toMatchInlineSnapshot(`
         [
           "s                                    | p                                               | o",
-          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#DataService           | http://telicent.io/data/dataservice1",
           "http://telicent.io/data/cat1         | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Catalog",
-          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#Dataset               | http://telicent.io/data/dataset1",
+          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#dataset               | http://telicent.io/data/dataset1",
+          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#service               | http://telicent.io/data/dataservice1",
           "http://telicent.io/data/cat1         | http://purl.org/dc/terms/title                  | cat1",
-          "http://telicent.io/data/cat1         | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
           "http://telicent.io/data/dataset1     | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Dataset",
           "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/title                  | dataset1",
-          "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
           "http://telicent.io/data/dataservice1 | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#DataService",
           "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/title                  | dataservice1",
-          "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
         ]
       `);
       const ownedResources = await cat.getOwnedResources();
@@ -190,21 +187,17 @@ describe("CatalogService", () => {
         .toMatchInlineSnapshot(`
         [
           "s                                    | p                                               | o",
-          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#Dataset               | http://telicent.io/data/dataset1",
-          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#DataService           | http://telicent.io/data/dataservice1",
+          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#dataset               | http://telicent.io/data/dataset1",
+          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#service               | http://telicent.io/data/dataservice1",
           "http://telicent.io/data/cat1         | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Catalog",
           "http://telicent.io/data/cat1         | http://purl.org/dc/terms/title                  | cat1",
-          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#Catalog               | http://telicent.io/data/catChild",
-          "http://telicent.io/data/cat1         | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
+          "http://telicent.io/data/cat1         | http://www.w3.org/ns/dcat#catalog               | http://telicent.io/data/catChild",
           "http://telicent.io/data/catChild     | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Catalog",
           "http://telicent.io/data/catChild     | http://purl.org/dc/terms/title                  | catChild",
-          "http://telicent.io/data/catChild     | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
           "http://telicent.io/data/dataservice1 | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#DataService",
           "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/title                  | dataservice1",
-          "http://telicent.io/data/dataservice1 | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
           "http://telicent.io/data/dataset1     | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Dataset",
           "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/title                  | dataset1",
-          "http://telicent.io/data/dataset1     | http://purl.org/dc/terms/published              | ######## makeStatic() ########",
         ]
       `);
 
