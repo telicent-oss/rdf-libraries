@@ -8,6 +8,7 @@ import { findIcon, flattenStyles } from "./context-utils";
 export * from './context-utils';
 
 // TODO Update ./findIcon with new behavior
+// WHEN TELFE-839
 // @see {@link https://telicent.atlassian.net/browse/TELFE-839}
 
 type IconStyleType = FlattenedStyleTypeForFindIcon | FlattenedStyleType;
@@ -21,7 +22,7 @@ export let moduleStylesPromise:Promise<IconStyleType[]>;
 const assertModulesStyles= () => {
   if (typeof moduleStyles !== "object") {
     throw new Error(`
-      Expected moduleStyles to be type FlattenedStyleType, 
+      Expected moduleStyles to be of type FlattenedStyleType, 
       instead got "${moduleStyles}" (${typeof moduleStyles})`
     );
   }
