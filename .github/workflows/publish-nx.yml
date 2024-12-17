@@ -13,6 +13,10 @@ permissions:
 jobs:
   main:
     runs-on: ubuntu-latest
+    # TODO test if this removes need for env: below
+    # env:
+    #   NPM_CONFIG_PROVENANCE: true
+    #   NPM_REGISTRY_TOKEN:  ${{ secrets.NPM_REGISTRY_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -24,77 +28,9 @@ jobs:
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
+      - name: publish packages
+        run: npx nx release publish
+        shell: bash
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY }}
           NPM_CONFIG_PROVENANCE: true
-          NPM_REGISTRY_TOKEN:  ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: |
-          npx nx run @telicent-oss/rdfservice:build
-          cd ./packages/RdfService
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
-        env:
-          NPM_CONFIG_PROVENANCE: true
-          NPM_REGISTRY_TOKEN:  ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: |
-          npx nx run @telicent-oss/ontologyservice:build
-          cd ./packages/OntologyService
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
-        env:
-          NPM_CONFIG_PROVENANCE: true
-          NPM_REGISTRY_TOKEN:  ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: |
-          npx nx run @telicent-oss/catalogservice:build
-          cd ./packages/CatalogService
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
-        env:
-          NPM_CONFIG_PROVENANCE: true
-          NPM_REGISTRY_TOKEN:  ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: |
-          npx nx run @telicent-oss/ies-service:build
-          cd ./packages/ies-service
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
-        env:
-          NPM_CONFIG_PROVENANCE: true
-          NPM_REGISTRY_TOKEN:  ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: |
-          npx nx run @telicent-oss/ontology-find-icon-helper:build
-          cd ./packages/ontology-find-icon-helper
-          local_version=$(node -p "require('./package.json').version")
-          published_version=$(npm view $(node -p "require('./package.json').name") version || echo "0.0.0")
-          if [ "$published_version" != "$local_version" ]; then
-            npm publish --access public --provenance
-          else
-            echo "No changes in version. Skipping publish."
-          fi
-          cd -
-        env:
-          NPM_CONFIG_PROVENANCE: true
-          NPM_REGISTRY_TOKEN:  ${{ secrets.NPM_REGISTRY_TOKEN }}
-
