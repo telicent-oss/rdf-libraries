@@ -8,7 +8,9 @@ export const makeStatic = (obj: any) =>
       if (rdfParsed.data.p.value === "http://purl.org/dc/terms/published") {
         rdfParsed.data.o.value = "######## makeStatic() ########";
         return rdfParsed.data;
-      } else if (rdfParsed.data.p.value === "http://purl.org/dc/terms/description") {
+      } else if (
+        rdfParsed.data.p.value === "http://purl.org/dc/terms/description"
+      ) {
         rdfParsed.data.o.value = shorten(rdfParsed.data.o.value, 60);
         return rdfParsed.data;
       }

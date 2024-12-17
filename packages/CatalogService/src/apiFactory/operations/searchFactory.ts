@@ -1,90 +1,72 @@
 import { z } from "zod";
-import { RDFTripleSchema } from "@telicent-oss/rdfservice";
-import { CatalogService, formatDataAsArray } from "../../../index";
+import { CatalogService, DCATResource } from "../../../index";
 
-import {
-  UIDataResourceSchema,
-  uiDataResourceFromInstanceWithTriples,
-  typeStatementMatcherWithId,
-  DCATResourceSchema,
-  UISearchParamsType,
-  getAllRDFTriples,
-  UIDataResourceType,
-} from "./utils/common";
-import { getAllResourceTriples } from "./utils/getAllResourceTriples";
+import { UIDataResourceSchema, UISearchParamsType } from "./utils/common";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
-import { tryCatch } from "./utils/tryCatch";
-import { session } from "../../constants";
-import { tryInstantiate } from "./utils/tryInstantiate/tryInstantiate";
 
 export const searchFactory = (service: CatalogService) => {
-  return async function search(
+  let cachedResources: DCATResource[] | undefined = undefined;
+  const getAllResources = async () => {
+    if (!cachedResources) {
+      cachedResources = await service.getAllDCATResources();
+    }
+    return [...cachedResources];
+  };
+  return searchFactoryFn(getAllResources);
+};
+
+export const searchFactoryFn =
+  (getResourcesFn: () => Promise<DCATResource[]>) =>
+  async (
     params: UISearchParamsType
-  ): Promise<Array<z.infer<typeof UIDataResourceSchema>>> {
+  ): Promise<Array<z.infer<typeof UIDataResourceSchema>>> => {
     const { hasAccess, dataResourceFilter } = transformDataResourceFilters(
       params.dataResourceFilters
     );
-    const rdfTriples = await getAllRDFTriples({
-      service,
-      // TODO! Fix hasAccess
-      // ADD `hasAccess` to `getAllRDFTriples`
-      // WHEN know priority
-    });
-
-    const triples = rdfTriples.results.bindings.map((el) =>
-      RDFTripleSchema.parse(el)
-    );
-
-    if (triples.length === 0) {
-      return [];
-    }
-
-    const resourceTriples = await getAllResourceTriples({ service, hasAccess });
-    const ownerTriple =
-      dataResourceFilter === "all"
-        ? undefined
-        : resourceTriples.find(typeStatementMatcherWithId(dataResourceFilter));
-    const ownerType = tryCatch(
-      () =>
-        ownerTriple
-          ? DCATResourceSchema.parse(ownerTriple?.o.value)
-          : undefined,
-      `Expected ownerTriple.o.value ("${ownerTriple?.o.value}") to pass DCATResourceSchema`
-    );
-    const owner = ownerType
-      ? await tryInstantiate({
-          type: ownerType,
-          id: dataResourceFilter,
-          service,
+    // Simplify to get all Data Resources, need to keep an eye on this to check it doesnt
+    // become too expensive
+    const resources = await getResourcesFn();
+    const re = params.searchText
+      ? new RegExp(params.searchText.toLowerCase(), "gi")
+      : undefined;
+    const found = await Promise.all(
+      resources
+        .filter((resource) => {
+          if (!dataResourceFilter || dataResourceFilter === "all") {
+            return true;
+          }
+          return (
+            resource.uri === dataResourceFilter ||
+            resource.owner === dataResourceFilter
+          );
         })
-      : undefined; // Unnecessary
-    const found = await service.findWithParams({
-      searchText: params.searchText,
-      owner,
-      accessRights: hasAccess ? session.user.name : undefined,
-    });
-    const foundForUI = (
-      await Promise.all(
-        found
-          .map((el) => el.item)
-          .map(async (el) => {
-            try {
-              return await uiDataResourceFromInstanceWithTriples(triples)(el);
-            } catch (err) {
-              console.error(
-                [
-                  `uiDataResourceFromInstanceWithTriples Failed to convert to UI:`,
-                  `class for ${el.uri}`,
-                  `using:`,
-                  formatDataAsArray(triples, 100).join('\n'),
-                ].join("\n")
-              );
+        .map((resource) => ({
+          item: resource,
+          score: 0,
+        }))
+        .filter((resource) => {
+          if (re) {
+            const match = resource.item.toFindString().match(re);
+            if (match) {
+              resource.score = match.length;
             }
-            return undefined;
-          })
-      )
-    ).filter((el): el is UIDataResourceType => el !== undefined);
-    const searchResult = await Promise.all(foundForUI);
-    return searchResult;
+            return resource.score > 0;
+          }
+          return true;
+        })
+        .sort((a, b) => {
+          if (!a.score || !b.score) {
+            return 0;
+          }
+          if (a.score < b.score) {
+            return 1;
+          }
+          if (a.score > b.score) {
+            return -1;
+          }
+          return 0;
+        })
+        .map(async (resource) => await resource.item.toUIRepresentation())
+    );
+    return found;
   };
-};

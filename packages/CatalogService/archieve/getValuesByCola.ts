@@ -1,25 +1,29 @@
 import { RDFTripleType } from "@telicent-oss/rdfservice";
-import { DCATDataset, DCATDataService, DCATCatalog, UIDataResourceType } from "../../../../index";
+import {
+  DCATDataset,
+  DCATDataService,
+  DCATCatalog,
+  UIDataResourceType,
+} from "../../../../index";
 import { getValuesByBailey } from "./getValuesByBailey";
 
 export const getValuesByCola = async (
   el: DCATDataset | DCATDataService | DCATCatalog,
   // interpretation:DCAT3InterpretationByCola,
   triples: RDFTripleType[]
-
-):Promise<Partial<UIDataResourceType>> => {
+): Promise<Partial<UIDataResourceType>> => {
   const interpretation = el.service.interpretation;
   // const title = interpretation.dcTitleFromTriples(el.uri, triples, { assert: true });
   const creatorName = interpretation.creatorNameFromTriples(el.uri, triples);
   const creatorEmail = interpretation.creatorEmailFromTriples(el.uri, triples);
   const rights = interpretation.rightsFromTriples(el.uri, triples);
-  const baileyValues = await getValuesByBailey(el)
-  
+  const baileyValues = await getValuesByBailey(el);
+
   // Two alternatives
   const publishDate = interpretation.dcPublishedFromTriples(el.uri, triples);
   // TODO Likely fully remove getLiteralsList
   // WHY Making a sparql seems wasteful and confusing
-  // HOW 
+  // HOW
   //  1. Get consensus on arch
   //  2. Remove getLiteralsList in RdfService/index.ts
   //  3. remove the line below
@@ -33,8 +37,7 @@ export const getValuesByCola = async (
     publishDate,
     creator: creatorName,
     contactEmail: creatorEmail,
-    rights
+    rights,
     // owner?
-
   };
 };

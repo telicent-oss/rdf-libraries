@@ -1,243 +1,166 @@
-/** 
-  * @module CatalogService
-  * @remarks
-  * An extension of RdfService for managing DCAT data
-  * @author Ian Bailey
-  */
+/**
+ * @module CatalogService
+ * @remarks
+ * An extension of RdfService for managing DCAT data
+ * @author Ian Bailey
+ */
 
-import { RdfService, SPARQLResultBinding, QueryResponse, TypedNodeQuerySolution, RDFSResource, RDFServiceConfig, LongURI, ResourceFindSolution, RDFSResourceDescendant, RankWrapper } from "@telicent-oss/rdfservice";
-import { DCAT3InterpretationByCola } from "./src/DCAT3Interpretation/DCAT3InterpretationByCola";
-import { IDCAT3Interpretation } from "./src/DCAT3Interpretation/types";
-import packageJSON from './package.json';
+import {
+  RdfService,
+  SPARQLResultBinding,
+  QueryResponse,
+  TypedNodeQuerySolution,
+  RDFSResource,
+  RDFServiceConfig,
+  LongURI,
+  ResourceFindSolution,
+  RDFSResourceDescendant,
+  RankWrapper,
+} from "@telicent-oss/rdfservice";
+import packageJSON from "./package.json";
 export { formatDataAsArray } from "./src/__tests__/utils/formatDataAsArray";
+import { RESOURCE_URI } from "./src/apiFactory/operations/utils/common";
 
-export { RDFSResource } from "@telicent-oss/rdfservice"
-export * from "./src/setup"
-export * from "./src/setup/constants"
-export * from "./src/apiFactory/operations/utils/common"
+export { RDFSResource } from "@telicent-oss/rdfservice";
+export * from "./src/setup";
+export * from "./src/setup/constants";
+export * from "./src/apiFactory/operations/utils/common";
 export const version = packageJSON?.version;
 
-
-const DEBUG = false;
+const DEBUG = true;
 
 export type DCATRankWrapper = {
-  score?: number,
-  item: DCATResource
-}
+  score?: number;
+  item: DCATResource;
+};
 
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
-    title: SPARQLResultBinding,
-    description?: SPARQLResultBinding,
-    creator?: SPARQLResultBinding,
-    rights?: SPARQLResultBinding,
-    accessRights?: SPARQLResultBinding,
-    published?: SPARQLResultBinding,
-    modified?: SPARQLResultBinding,
+  id: SPARQLResultBinding;
+  title: SPARQLResultBinding;
+  description?: SPARQLResultBinding;
+  creator?: SPARQLResultBinding;
+  rights?: SPARQLResultBinding;
+  accessRights?: SPARQLResultBinding;
+  contactEmail?: SPARQLResultBinding;
+  owner?: SPARQLResultBinding;
 }
 
 export interface DcatResourceFindSolution extends DcatResourceQuerySolution {
-  concatLit: SPARQLResultBinding,
+  concatLit: SPARQLResultBinding;
 }
 
-
-
-
-
-
-// RULE RATIONALE: 
-//  Don't know/care what instantiation params of ancestors are; 
+// RULE RATIONALE:
+//  Don't know/care what instantiation params of ancestors are;
 //  Just care new instance inherits from DCATResource
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 // type DCATResourceDescendant = new (...args:any[]) => DCATResource
 
 export class DCATResource extends RDFSResource {
-    className = 'DCATResource'
-    /**
-     * The DCAT base class from which all the other classes inherit - a Resource published or curated by a single agent.
-     * @param {CatalogService} service - the CatalogService being used
-     * @param {DcatResourceQuerySolution} statement - SPARQL return binding - use this to initiate a DCATResource from a query response
-     * @param {string} uri - the uri of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
-     * @param {string} title - the title of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
-     * @param {string} published - ISO8601 string for the publication (defaults to now)
-     * @param {string} type - the type (class URI) of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
-     * @param {DCATCatalog} catalog - optional catalog this resource belongs to
-    */
-    service: CatalogService
-    // Promises created in service constructor
-    // TODO Great candidate for well-typed params object
-    constructor(
-        service: CatalogService,
-        uri?: string,
-        title?: string,
-        published: string = new Date().toISOString(),
-        type: string = "http://www.w3.org/ns/dcat#Resource",
-        catalog?:DCATCatalog,
-        statement?: DcatResourceQuerySolution
-    ) {
-        let cached = false
-        if (uri) {
-            cached = service.inCache(uri)
-        }
-        super(service, uri, type, statement)
-        this.service = service
-        if (statement != undefined) {
-            this.uri = statement.uri.value
-            if (!statement.title) {
-                console.warn(`No title set for ${this.uri} in query response`)
-            }
-            if (!statement.published) {
-                console.warn(`No published date set for ${this.uri} in query response`)
-            }
-            if ((uri) || (title) || (published) || (type)) {
-                console.warn(`individual parameters such as uri, title, etc. should not be set if the statement parameter is set: ${JSON.stringify(statement, null, 2)}`)
-            }
-        }
-        else {
-            if (cached) {
-                return this
-            }
-            if (uri == undefined) {
-                throw new Error("uri must be provided for a new resource")
-            }
-            if (title == undefined) {
-                throw new Error(`title must be provided for a new resource uri: ${uri}, type: ${type}`)
-            }
-
-            if ((title) && (title != "")) {
-              this.constructorPromises.push(this.setTitle(title));
-            }
-            
-            if ((published) && (published != "")) {
-              this.constructorPromises.push(this.setPublished(published));
-            }
-            if ((catalog) && (type == "http://www.w3.org/ns/dcat#Resource")) {
-              this.constructorPromises.push(
-                this.service.insertTriple(catalog.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri)
-              );
-            }
-        }
-    }
-
-}
-
-export class DCATDataset extends DCATResource { 
-  className = 'DCATDataset'
+  className = "DCATResource";
+  /**
+   * The DCAT base class from which all the other classes inherit - a Resource published or curated by a single agent.
+   * @param {CatalogService} service - the CatalogService being used
+   * @param {DcatResourceQuerySolution} statement - SPARQL return binding - use this to initiate a DCATResource from a query response
+   * @param {string} uri - the uri of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
+   * @param {string} title - the title of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
+   * @param {string} published - ISO8601 string for the publication (defaults to now)
+   * @param {string} type - the type (class URI) of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
+   * @param {DCATCatalog} catalog - optional catalog this resource belongs to
+   */
+  service: CatalogService;
+  title: string = "-";
+  id?: string;
+  dataResourceType?: LongURI;
+  contactEmail: string = "-";
+  description: string = "-";
+  creator: string = "-";
+  rights: string = "-";
+  owner: string = "-";
+  accessRights: string = "-";
+  // Promises created in service constructor
+  // TODO Great candidate for well-typed params object
   constructor(
     service: CatalogService,
     uri?: string,
     title?: string,
-    published?: string,
-    type: string = "http://www.w3.org/ns/dcat#Dataset",
+    type: LongURI = "http://www.w3.org/ns/dcat#Resource",
     catalog?: DCATCatalog,
     statement?: DcatResourceQuerySolution
   ) {
-    super(service, uri, title, published, type, catalog, statement);
-    if (catalog) {
-      this.constructorPromises.push(
-        this.service.insertTriple(
-          catalog.uri,
-          `http://www.w3.org/ns/dcat#Dataset`,
-          this.uri
-        )
-      );
+    let cached = false;
+    if (uri) {
+      cached = service.inCache(uri);
     }
-  }
-}
+    super(service, uri, type, statement);
+    this.service = service;
+    if (statement != undefined) {
+      this.uri = statement.uri.value;
+      if (!statement.title) {
+        console.warn(`No title set for ${this.uri} in query response`);
+      }
+      if (statement?.title) {
+        this.title = statement?.title.value;
+      }
+      if (statement?.id) {
+        this.id = statement?.id.value;
+      } else {
+        this.id = this.uri;
+      }
+      if (statement?.description) {
+        this.description = statement?.description.value;
+      }
+      if (statement?.contactEmail) {
+        let email = statement?.contactEmail.value;
+        this.contactEmail = email.substring(email.lastIndexOf("/") + 1);
+      }
+      if (statement?.creator) {
+        this.creator = statement?.creator.value;
+      }
+      if (statement?.rights) {
+        this.rights = statement?.rights.value;
+      }
+      if (statement?.accessRights) {
+        this.accessRights = statement?.accessRights.value;
+      }
+      if (statement?.owner) {
+        this.owner = statement?.owner.value;
+      }
+      if (statement?._type) {
+        this.dataResourceType = statement?._type.value;
+      } else {
+        this.dataResourceType = type;
+      }
 
+      if (uri || title) {
+        console.warn(
+          `individual parameters such as uri, title, etc. should not be set if the statement parameter is set: ${JSON.stringify(
+            statement,
+            null,
+            2
+          )}`
+        );
+      }
+    } else {
+      if (cached) {
+        return this;
+      }
+      if (uri == undefined) {
+        throw new Error("uri must be provided for a new resource");
+      }
+      if (title == undefined) {
+        throw new Error(
+          `title must be provided for a new resource uri: ${uri}, type: ${type}`
+        );
+      }
 
-export class DCATCatalog extends DCATDataset {
-    className = 'DCATCatalog'
-    constructor(
-        service: CatalogService, 
-        uri?: string, 
-        title?: string, 
-        published?: string, 
-        type: string = "http://www.w3.org/ns/dcat#Catalog", 
-        catalog?:DCATCatalog, 
-        statement?: DcatResourceQuerySolution,
-    ) {
-        super(service, uri, title, published, type, catalog, statement)
-        // NOTE: catalog not called in test...perhaps service invokes with context of nodes?
-        if (catalog) { 
-            // TODO: Move async to loadAsync() fn
-            // WHY: so dev can choose when to start async operations
-            //  const catalog = await DCATCatalog.createAsync(..)
-            //  catalog.loadAsync()
-            const addOwnedCatalogAsync = this.addOwnedCatalog(catalog);
-            if (addOwnedCatalogAsync !== undefined) {
-              this.constructorPromises.push(addOwnedCatalogAsync);
-            }
-        }
-    }
-
-    addOwnedCatalog(catalog:DCATCatalog) {
-        if (catalog) {
-            return this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Catalog`,catalog.uri);
-        }
-    }
-    addOwnedDataset(dataset:DCATDataset) {
-        if (dataset) {
-            return this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#Dataset`,dataset.uri);
-        }
-    }
-    addOwnedService(service:DCATDataService) {
-        if (service) {
-            return this.service.insertTriple(this.uri,`http://www.w3.org/ns/dcat#DataService`,service.uri);
-        }
-    }
-
-    addOwnedResource(resource:DCATResource) {
-      switch(resource.className) {
-        case 'DCATCatalog':
-          return this.addOwnedCatalog(resource as DCATCatalog);
-        case 'DCATDataset':
-          return this.addOwnedDataset(resource as DCATDataset);
-        case 'DCATDataService':
-          return this.addOwnedService(resource as DCATDataService);
-        default:
-          console.warn('addOwnedResource(): no match', resource.className, Object.prototype.toString.call(resource));
-          return this.service.insertTriple(resource.uri,`http://www.w3.org/ns/dcat#Resource`,this.uri);
-        }
-    }
-
-    async getOwnedResources(typeOfResource?:string) {
-        // REQUIREMENT 6.2 Search by dataResourceFilter: selected data-resources
-        // Hm. I don't _think_ I need to differentiate owned resources by type.
-        return this.service.getAllDCATResources(typeOfResource,this.uri)
-    }
-
-    async getOwnedCatalogs() {
-        return await this.getOwnedResources(`${this.service.dcatCatalog}`)
-    }
-    async getOwnedDatasets() {
-        return await this.getOwnedResources(`${this.service.dcatDataset}`)
-    }
-    async getOwnedServices() {
-        return await this.getOwnedResources(`${this.service.dcatDataService}`)
-    }
-
-}
-
-
-export class DCATDataService extends DCATCatalog {
-    className = 'DCATDataService'
-    constructor(
-      service: CatalogService,
-      uri?: string,
-      title?: string,
-      published?: string,
-      type: string = "http://www.w3.org/ns/dcat#DataService",
-      catalog?: DCATCatalog,
-      statement?: DcatResourceQuerySolution
-    ) {
-      super(service, uri, title, published, type, catalog, statement);
-  
+      if (title && title != "") {
+        this.constructorPromises.push(this.setTitle(title));
+      }
       if (catalog) {
         this.constructorPromises.push(
           this.service.insertTriple(
             catalog.uri,
-          //   `http://www.w3.org/ns/dcat#Service`,
-            `http://www.w3.org/ns/dcat#DataService`,
+            `http://www.w3.org/ns/dcat#Resource`,
             this.uri
           )
         );
@@ -245,52 +168,192 @@ export class DCATDataService extends DCATCatalog {
     }
   }
 
-  export class vcardKind extends RDFSResource {
-    service: CatalogService
-    constructor(service: CatalogService, uri?: string, type: string = "http://www.w3.org/2006/vcard/ns#Kind", statement?: DcatResourceQuerySolution) {
-        let cached = false
-        if (uri) {
-            cached = service.inCache(uri)
-        }
-        super(service, uri, type, statement)  
-        this.service = service
-        if (cached) {
-          return this
-        }
-    }
+  toFindString() {
+    return `${this.title} + ${this.description} + ${this.owner} + ${this.creator} + ${this.contactEmail} + ${this.id}`;
+  }
 
-    async setFormattedName(name:string) {
-      const promise = this.addLiteral(`${this.service.vcard}fn`, name);
-      this.constructorPromises.push(promise)
-      return promise
-    }
-    setGivenName(name:string) {
-      const promise = this.addLiteral(`${this.service.vcard}given-name`, name)
-      this.constructorPromises.push(promise)
-      return promise
-        
-    }
-    setFamilyName(name:string) {
-        const promise = this.addLiteral(`${this.service.vcard}family-name`, name)
-        this.constructorPromises.push(promise)
-        return promise
-    }
-    setEmail(emailAddress:string) {
-        
-        const promise = this.service.insertTriple(this.uri,`${this.service.vcard}hasEmail`, `mailto:`+emailAddress)
-      this.constructorPromises.push(promise)
-      return promise
-    }
+  async toUIRepresentation() {
+    const [modified, issued] = await Promise.all([
+      await this.getDcModified(),
+      await this.getDcIssued(),
+    ]);
+    return {
+      id: this.id ?? this.uri,
+      uri: this.uri,
+      title: this.title,
+      description: this.description,
+      modified:
+        Array.isArray(modified) && modified.length > 0 ? modified[0] : "-",
+      publishDate: Array.isArray(issued) && issued.length > 0 ? issued[0] : "-",
+      accessRights: this.accessRights,
+      creator: this.creator,
+      type: this.dataResourceType ?? RESOURCE_URI,
+      contactEmail: this.contactEmail,
+      rights: this.rights,
+      owner: this.owner,
+    };
+  }
 }
 
-export class vcardIndividual extends vcardKind {
+export class DCATDataset extends DCATResource {
+  className = "DCATDataset";
+  constructor(
+    service: CatalogService,
+    uri?: string,
+    title?: string,
+    type: string = "http://www.w3.org/ns/dcat#Dataset",
+    catalog?: DCATCatalog,
+    statement?: DcatResourceQuerySolution
+  ) {
+    super(service, uri, title, type, catalog, statement);
+  }
 }
 
-export class vcardOrganization extends vcardKind {  
+export class DCATCatalog extends DCATDataset {
+  className = "DCATCatalog";
+  constructor(
+    service: CatalogService,
+    uri?: string,
+    title?: string,
+    type: string = "http://www.w3.org/ns/dcat#Catalog",
+    catalog?: DCATCatalog,
+    statement?: DcatResourceQuerySolution
+  ) {
+    super(service, uri, title, type, catalog, statement);
+    // NOTE: catalog not called in test...perhaps service invokes with context of nodes?
+  }
+
+  addOwnedCatalog(catalog: DCATCatalog) {
+    if (catalog) {
+      return this.service.insertTriple(
+        this.uri,
+        `http://www.w3.org/ns/dcat#catalog`,
+        catalog.uri
+      );
+    }
+  }
+  addOwnedDataset(dataset: DCATDataset) {
+    if (dataset) {
+      return this.service.insertTriple(
+        this.uri,
+        `http://www.w3.org/ns/dcat#dataset`,
+        dataset.uri
+      );
+    }
+  }
+  addOwnedService(service: DCATDataService) {
+    if (service) {
+      return this.service.insertTriple(
+        this.uri,
+        `http://www.w3.org/ns/dcat#service`,
+        service.uri
+      );
+    }
+  }
+
+  addOwnedResource(resource: DCATResource) {
+    switch (resource.className) {
+      case "DCATCatalog":
+        return this.addOwnedCatalog(resource as DCATCatalog);
+      case "DCATDataset":
+        return this.addOwnedDataset(resource as DCATDataset);
+      case "DCATDataService":
+        return this.addOwnedService(resource as DCATDataService);
+      default:
+        console.warn(
+          "addOwnedResource(): no match",
+          resource.className,
+          Object.prototype.toString.call(resource)
+        );
+        return this.service.insertTriple(
+          resource.uri,
+          `http://www.w3.org/ns/dcat#Resource`,
+          this.uri
+        );
+    }
+  }
+
+  async getOwnedResources(typeOfResource?: string) {
+    // REQUIREMENT 6.2 Search by dataResourceFilter: selected data-resources
+    // Hm. I don't _think_ I need to differentiate owned resources by type.
+    return this.service.getAllDCATResources(typeOfResource, this.uri);
+  }
+
+  async getOwnedCatalogs() {
+    return await this.getOwnedResources(`${this.service.dcatCatalog}`);
+  }
+  async getOwnedDatasets() {
+    return await this.getOwnedResources(`${this.service.dcatDataset}`);
+  }
+  async getOwnedServices() {
+    return await this.getOwnedResources(`${this.service.dcatDataService}`);
+  }
 }
 
-export class vcardGroup extends vcardKind {
+export class DCATDataService extends DCATCatalog {
+  className = "DCATDataService";
+  constructor(
+    service: CatalogService,
+    uri?: string,
+    title?: string,
+    type: string = "http://www.w3.org/ns/dcat#DataService",
+    catalog?: DCATCatalog,
+    statement?: DcatResourceQuerySolution
+  ) {
+    super(service, uri, title, type, catalog, statement);
+  }
 }
+
+export class vcardKind extends RDFSResource {
+  service: CatalogService;
+  constructor(
+    service: CatalogService,
+    uri?: string,
+    type: string = "http://www.w3.org/2006/vcard/ns#Kind",
+    statement?: DcatResourceQuerySolution
+  ) {
+    let cached = false;
+    if (uri) {
+      cached = service.inCache(uri);
+    }
+    super(service, uri, type, statement);
+    this.service = service;
+    if (cached) {
+      return this;
+    }
+  }
+
+  async setFormattedName(name: string) {
+    const promise = this.addLiteral(`${this.service.vcard}fn`, name);
+    this.constructorPromises.push(promise);
+    return promise;
+  }
+  setGivenName(name: string) {
+    const promise = this.addLiteral(`${this.service.vcard}given-name`, name);
+    this.constructorPromises.push(promise);
+    return promise;
+  }
+  setFamilyName(name: string) {
+    const promise = this.addLiteral(`${this.service.vcard}family-name`, name);
+    this.constructorPromises.push(promise);
+    return promise;
+  }
+  setEmail(emailAddress: string) {
+    const promise = this.service.insertTriple(
+      this.uri,
+      `${this.service.vcard}hasEmail`,
+      `mailto:` + emailAddress
+    );
+    this.constructorPromises.push(promise);
+    return promise;
+  }
+}
+
+export class vcardIndividual extends vcardKind {}
+
+export class vcardOrganization extends vcardKind {}
+
+export class vcardGroup extends vcardKind {}
 
 export class CatalogService extends RdfService {
   static DEFAULT_CONSTRUCTOR_ARGS = {
@@ -310,8 +373,10 @@ export class CatalogService extends RdfService {
   dcat_dataset: string;
   dcatDataService: string;
   dcat_service: string;
+  dcat_catalog: string;
   vcard: string;
-  interpretation: IDCAT3Interpretation;
+  loaded: boolean = false;
+  dataResources: DCATResource[] = [];
 
   /**
    * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
@@ -323,7 +388,6 @@ export class CatalogService extends RdfService {
    */
   constructor(options: {
     writeEnabled: boolean;
-    interpretation?: IDCAT3Interpretation;
     triplestoreUri?: string;
     dataset?: string;
     defaultNamespace?: string;
@@ -332,7 +396,6 @@ export class CatalogService extends RdfService {
   }) {
     const {
       writeEnabled,
-      interpretation,
       triplestoreUri,
       dataset,
       defaultNamespace,
@@ -359,6 +422,7 @@ export class CatalogService extends RdfService {
     this.dcat_dataset = `${this.dcat}dataset`; // TODO WARNING NOT Dataset
     this.dcatDataService = `${this.dcat}DataService`;
     this.dcat_service = `${this.dcat}service`;
+    this.dcat_catalog = `${this.dcat}catalog`;
 
     this.classLookup[this.dcatResource] = DCATResource;
     this.classLookup[this.dcatDataset] = DCATDataset;
@@ -366,8 +430,6 @@ export class CatalogService extends RdfService {
     this.classLookup[this.dcatCatalog] = DCATCatalog;
     this.addPrefix("dcat:", this.dcat);
     this.addPrefix("vcard:", this.vcard);
-
-    this.interpretation = interpretation || new DCAT3InterpretationByCola(this);
   }
 
   async rankedWrapForDCAT(
@@ -388,7 +450,6 @@ export class CatalogService extends RdfService {
             // !CRITICAL Defensive coding; Increase stability
             // HOW
             //  - fix types
-            //  - Consider replacing with tryInstantiate()
             // WHY
             //  - Had bug where `cls` was not being re-assigned,
             //    thus creating instances of wrong class
@@ -402,14 +463,13 @@ export class CatalogService extends RdfService {
             //  - A.S.A.P
             // MERGE QUESTION
             // const types = binding._type.value.split(" ");
-            const classKey = binding._type.value
-            Class = this.classLookup[classKey] as RDFSResourceDescendant
-             || RDFSResource;
+            const classKey = binding._type.value;
+            Class =
+              (this.classLookup[classKey] as RDFSResourceDescendant) ||
+              RDFSResource;
           }
           const instance = await Class.createAsync(
             this,
-            undefined,
-            undefined,
             undefined,
             undefined,
             undefined,
@@ -444,13 +504,11 @@ export class CatalogService extends RdfService {
     catalog?: string,
     catalogRelation?: string
   ): Promise<DCATResource[]> {
-    const resources: DCATResource[] = [];
     let catalogSelect = "";
     let relFilter = "";
     if (!catalogRelation) {
       catalogRelation = "?catRel";
-      relFilter =
-        "FILTER (?catRel in (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, rdf:type))";
+      relFilter = `FILTER (?catRel in (<${this.dcat_dataset}>, <${this.dcat_service}>, <${this.dcat_catalog}>, <${this.dcatResource}>))`;
     } else {
       catalogRelation = `<${catalogRelation}>`;
     }
@@ -472,38 +530,63 @@ export class CatalogService extends RdfService {
             PREFIX dct: <http://purl.org/dc/terms/>
             PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
             
-            SELECT DISTINCT ?uri ?_type ?title ?published ?description ?creator ?rights
+            SELECT DISTINCT
+              ?id
+              ?uri
+              ?title
+              ?contactEmail
+              ?description
+              ?creator
+              ?rights
+              ?accessRights
+              ?owner
+              ?_type
             WHERE {
                 ${catalogSelect}
                 ${typeSelect}
-                ${relFilter}
-                ?uri a ?_type.
-                OPTIONAL {?uri dct:title ?title} 
-                OPTIONAL {?uri dct:published ?published} 
-                OPTIONAL {?uri dct:description ?description} 
-                OPTIONAL {?uri dct:creator ?creator} 
-                OPTIONAL {?uri dct:rights ?rights} 
+                ?uri a ?_type .
+                OPTIONAL { ?uri dct:title ?title } .
+                OPTIONAL { ?uri dct:identifier ?id } .
+                OPTIONAL { 
+                  ?uri dct:publisher ?publisher .
+                  ?publisher <https://schema.org/email> ?contactEmail 
+                } .
+                OPTIONAL { 
+                  ?uri dct:publisher ?publisher .
+                  ?publisher <https://schema.org/name> ?creator 
+                } .
+                OPTIONAL { ?uri dct:description ?description } .
+                OPTIONAL { 
+                  ?uri dct:rights ?dstRights .
+                  ?dstRights dct:description ?rights
+                } .
+                OPTIONAL { ?uri dct:accessRights ?accessRights } .
+                OPTIONAL { 
+                  ?owner ?catRel ?uri .
+                  ${relFilter}
+                } .
             }`;
     const results = await this.runQuery<DcatResourceQuerySolution>(query);
-    results.results.bindings.forEach((statement: DcatResourceQuerySolution) => {
-      let Class = DCATResource;
-      if (statement._type) {
-         Class = this.lookupClass(
-          statement._type.value,
-          DCATResource
-        ) as unknown as typeof DCATResource;
+    const resources: DCATResource[] = results.results.bindings.map(
+      (statement: DcatResourceQuerySolution) => {
+        let Class = DCATResource;
+        if (statement._type) {
+          Class = this.lookupClass(
+            statement._type.value,
+            DCATResource
+          ) as unknown as typeof DCATResource;
+        }
+        const dcatResource = new Class(
+          this,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          statement
+        );
+        return dcatResource;
       }
-      const dcatResource = new Class(
-        this,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        statement
-      );
-      resources.push(dcatResource);
-    });
+    );
     // REQUIREMENT 6.4 Search by dataResourceFilter: selected data-resources
     // I don't see any sort clause, but I assume the returned sort order will be sensible; Or can be made sensible.
     return resources;
@@ -583,7 +666,6 @@ export class CatalogService extends RdfService {
     return this.rankedWrap(results, matchingText);
   }
 
-  
   /**
    * Finds DCAT resources based on provided parameters.
    *
@@ -614,8 +696,8 @@ export class CatalogService extends RdfService {
           ?description
           ?creator
           ?rights
-          # ?modified #  If Unset, groups by every instance, creating dupes
           ?accessRights
+          ?issued
           ?_type 
                (GROUP_CONCAT(DISTINCT ?literal; SEPARATOR=", ") AS ?concatLit)
         WHERE {
@@ -656,8 +738,8 @@ export class CatalogService extends RdfService {
               .map((type) => `<${type}>`)
               .join(", ")})) .
             OPTIONAL { ?uri dct:title ?title } .
+            OPTIONAL { ?uri dct:issued ?issued } .
             OPTIONAL { ?uri dct:published ?published } .
-            # OPTIONAL { ?uri dct:modified ?modified } .
             OPTIONAL { ?uri dct:description ?description } .
             OPTIONAL { ?uri dct:creator ?creator } .
             OPTIONAL { ?uri dct:rights ?rights } .
@@ -667,7 +749,6 @@ export class CatalogService extends RdfService {
           ?uri
           ?title
           ?published
-          # ?modified
           ?description 
           ?creator
           ?accessRights
@@ -683,7 +764,10 @@ export class CatalogService extends RdfService {
       const response = await this.runQuery<DcatResourceFindSolution>(query);
       DEBUG && console.log("respones", response.results.bindings);
       // Wrap and return the results using the rankedWrap method
-      return this.rankedWrapForDCAT(response, searchText || "") as unknown as DCATRankWrapper[];
+      return this.rankedWrapForDCAT(
+        response,
+        searchText || ""
+      ) as unknown as DCATRankWrapper[];
     } catch (error) {
       DEBUG && console.error("Error executing SPARQL query:", error);
       throw error;
