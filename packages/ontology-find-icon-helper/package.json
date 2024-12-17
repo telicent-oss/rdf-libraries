@@ -33,10 +33,6 @@
     "type": "git",
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org/",
-    "access": "public"
-  },
   "dependencies": {
     "@telicent-oss/ontologyservice": "0.31.3-TELFE654.0",
     "lodash.startcase": "^4.4.0",
