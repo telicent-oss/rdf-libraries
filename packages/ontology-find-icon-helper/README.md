@@ -13,22 +13,23 @@ yarn install @telicent-oss/ontology-find-icon-helper
 ### Usage
 
 ```ts
-import { OntologyFindIconHelper } from "@company-oss/ontology-find-icon-helper";
+import * as ontologyFindIconHelper from '@telicent-oss/ontology-find-icon-helper';
 
-// Initialize the CatalogService
-const catalogService = await CatalogService.createAsync({
-  writeEnabled: true,
-  triplestoreUri: "http://localhost:3030",
-  dataset: "dataset",
-});
+export function useOntologyStyle(classUri) {
+  const [style, setStyle] = useState(null);
 
-// Create Catalog
-const catalog1 = await DCATCatalog.createAsync(
-  catalogService,
-  "http://mysche.ma/data/catalog1",
-  "Catalog",
-  "2023-01-01"
-);
+  useEffect(() => {
+    // Wait for the stylesPromise to complete...
+    ontologyFindIconHelper.moduleStylesPromise.then(() => {
+      // Once complete, you can use its helper functions like findByClassUri()
+      const foundStyle = ontologyFindIconHelper.findByClassUri(classUri);
+      setStyle(foundStyle);
+    });
+    // Run effect on mount only
+  }, []);
+
+  return style; // Return found style
+}
 ```
 
 ## Development
