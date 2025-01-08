@@ -39,9 +39,6 @@
     "type": "git",
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
-  "publishConfig": {
-    "registry": "https://www.npmjs.com/"
-  },
   "dependencies": {
     "@telicent-oss/rdfservice": "0.0.6-TELFE654.0",
     "@types/cors": "2.8.17",

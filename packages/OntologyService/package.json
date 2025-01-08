@@ -21,7 +21,6 @@
     "open-docs": "open ./dist/docs/index.html",
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
-    "publish": "npm publish --access public --provenance",
     "publish:dry-run": "npm publish --access public --provenance --dry-run",
     "lint": "eslint **/*.ts"
   },
@@ -30,9 +29,6 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
-  },
-  "publishConfig": {
-    "registry": "https://www.npmjs.com/"
   },
   "dependencies": {
     "@telicent-oss/rdfservice": "0.0.6-TELFE654.0",

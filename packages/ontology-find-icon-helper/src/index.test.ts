@@ -44,7 +44,7 @@ describe("OntologyService Module", () => {
     expect(() => findByClassUri("http://domain.com#test"))
       .toThrowErrorMatchingInlineSnapshot(`
       "
-            Expected moduleStyles to be type FlattenedStyleType, 
+            Expected moduleStyles to be of type FlattenedStyleType, 
             instead got "undefined" (undefined)"
     `);
   });
