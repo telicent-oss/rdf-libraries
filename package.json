@@ -8,7 +8,11 @@
     "build": "./scripts/run-packages.sh build",
     "generate-docs": "./scripts/run-packages.sh generate-docs",
     "open-docs": "./scripts/run-packages.sh open-docs",
-    "lint": "./scripts/run-packages.sh lint"
+    "lint": "./scripts/run-packages.sh lint",
+    "create-links-to-local-packages": "./scripts/run-packages.sh link",
+    "create-links": "yarn create-links-to-local-packages",
+    "use-links-to-local-packages": "./scripts/run-packages.sh use-links-to-local-packages",
+    "use-links": "yarn use-links-to-local-packages"
   },
   "private": true,
   "repository": {

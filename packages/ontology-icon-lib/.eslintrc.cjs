@@ -1,3 +1,5 @@
+const exclude = require('../../tsconfig.bash.json').exclude;
+
 module.exports =  {
   plugins: [
     "@typescript-eslint/eslint-plugin",
@@ -6,7 +8,7 @@ module.exports =  {
   extends:  [
     'plugin:@typescript-eslint/recommended'
   ],
-  ignorePatterns: ["dist/"],
+  ignorePatterns: exclude,
   parser:  '@typescript-eslint/parser',
   parserOptions: {
     project: "./tsconfig.json",

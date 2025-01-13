@@ -28,6 +28,8 @@
     "test": "jest --runInBand ",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
+    "link": "yarn link",
+    "use-links-to-local-packages": "./scripts/use-links-to-local-packages.sh",
     "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
     "start:store": "yarn start:triple-store-for-local-dev-and-tests"
   },

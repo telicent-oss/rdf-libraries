@@ -1,5 +1,5 @@
 {
-  "name": "@telicent-oss/ontology-find-icon-helper",
+  "name": "@telicent-oss/ontology-icon-react-lib",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "targets": {
     "test": {
@@ -10,15 +10,8 @@
             "command": "yarn test"
           }
         ],
-        "cwd": "packages/ontology-find-icon-helper",
+        "cwd": "packages/ontology-icon-react-lib",
         "parallel": false
-      }
-    },
-    "printhello": {
-      "executor": "nx:run-commands",
-      "outputs": [],
-      "options": {
-        "command": "echo hello"
       }
     }
   }

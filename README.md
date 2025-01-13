@@ -85,6 +85,34 @@ Developer notes:
 
 </details>
 
+## Package naming
+
+### Aims:
+
+- packages cluster by domain when sorted alphabetically
+- package contents are obvious from name
+
+### Naming scheme:
+
+Package names use kebab-case with 2 sections: 
+1. List of non-technical domains/sub-domains, ordered by broadest first
+2. Human readable phrase that describes what the package provides
+
+<sup>Note: for now we assume all code is designed to be run on clients (or client and server) and so make to distinction in naming. That may need to change in the future.</sup>
+
+Examples of descriptive phrases:
+- `service`: wrapper for server services
+- `lib`: general code
+- `react-lib`: react code
+
+
+For instance:
+> a library of react components/hooks for rendering ontology icons
+is:
+> `ontology-icon-react-lib`
+
+
+
 ## API
 
 - [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)

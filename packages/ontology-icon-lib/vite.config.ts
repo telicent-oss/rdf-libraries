@@ -8,7 +8,7 @@ export default defineConfig({
     minify: false,
     lib: {
       entry: resolve(__dirname, './src/index.ts'),
-      name: '@telicent-oss/ontology-find-icon-helper',
+      name: '@telicent-oss/ontology-icon-lib',
     }
   },
   plugins: [dtsPlugin]

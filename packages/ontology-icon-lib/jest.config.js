@@ -1,8 +1,8 @@
 /* eslint-disable */
 export default {
-  displayName: "@telicent-oss/ontology-find-icon-helper",
+  displayName: "@telicent-oss/ontology-icon-lib",
   preset: "../../jest.preset.js",
-  coverageDirectory: "../../coverage/packages/ontology-find-icon-helper",
+  coverageDirectory: "../../coverage/packages/ontology-icon-lib",
   automock: false,
   setupFiles: ["./setupTests.ts"],
   globals: {

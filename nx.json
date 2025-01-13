@@ -7,9 +7,11 @@
     "projects": [
       "@telicent-oss/rdfservice",
       "@telicent-oss/ontologyservice",
-      "@telicent-oss/ies-service",
       "@telicent-oss/catalogservice",
-      "@telicent-oss/ontology-find-icon-helper"
+      "@telicent-oss/ies-service",
+      "@telicent-oss/react-lib",
+      "@telicent-oss/ontology-icon-lib",
+      "@telicent-oss/ontology-icon-react-lib"
     ],
     "version": {
       "conventionalCommits": true

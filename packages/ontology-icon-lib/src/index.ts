@@ -6,17 +6,24 @@ import {
 import { URISegmentOrHashSchema } from "@telicent-oss/rdfservice";
 import { findIcon, flattenStyles } from "./context-utils";
 export * from './context-utils';
+export { version, name } from '../package.json';
 
 // TODO Update ./findIcon with new behavior
 // @see {@link https://telicent.atlassian.net/browse/TELFE-839}
 
-type IconStyleType = FlattenedStyleTypeForFindIcon | FlattenedStyleType;
+export type IconType = FlattenedStyleTypeForFindIcon | FlattenedStyleType;
 
 // **module** scoped variables
 
-export let moduleStyles: IconStyleType[];
+export let moduleStyles: IconType[];
 let moduleOntologyService: OntologyService;
-export let moduleStylesPromise:Promise<IconStyleType[]>;
+
+export let moduleStylesPromiseCallbackFulfill:(value: IconType[] | PromiseLike<IconType[]>) => void;
+export let moduleStylesPromiseCallbackReject:(reason?: unknown) => void;
+export  const moduleStylesPromise:Promise<IconType[]> = new Promise((fulfill, reject) => {
+  moduleStylesPromiseCallbackFulfill = fulfill;
+  moduleStylesPromiseCallbackReject = reject;
+});
 
 const assertModulesStyles= () => {
   if (typeof moduleStyles !== "object") {
@@ -44,7 +51,11 @@ export const init = async (
 ):Promise<void> => {
   moduleOntologyService = await ontologyServicePromise;
   assertModuleOntologyService()
-  moduleStylesPromise = moduleOntologyService.getStyles([]).then(flattenStyles);
+  moduleOntologyService.getStyles([])
+    .then(flattenStyles)
+    .then(res => moduleStylesPromiseCallbackFulfill(res))
+    .catch(err => moduleStylesPromiseCallbackReject(err));
+
   moduleStyles = await moduleStylesPromise;
 };
 
