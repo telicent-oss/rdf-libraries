@@ -14,7 +14,9 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.14
-      - run: yarn global add nx
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org/'
+          scope: 'telicent-oss'
+          token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
       - run: yarn test --exclude="@telicent-oss/catalogservice" --exclude="@telicent-oss/ontology-icon-react-lib" --skip-nx-cache # TODO TELFE-873
