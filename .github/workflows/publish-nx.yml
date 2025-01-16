@@ -49,7 +49,7 @@ jobs:
           NPM_CONFIG_PROVENANCE: true
       - name: publish specific packages
         if: ${{ inputs.SINGLE_PACKAGE != '' }}
-        run: npx nx run ${{ inputs.SINGLE_PACKAGE}}:release
+        run: npx nx run ${{ inputs.SINGLE_PACKAGE}}:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
