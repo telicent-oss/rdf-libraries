@@ -42,7 +42,7 @@
     "react-error-boundary": "^4.0.12",
     "@telicent-oss/rdfservice": "0.0.6-TELFE654.0",
     "@telicent-oss/react-lib": "*",
-    "@telicent-oss/ontology-icon-lib": "^0.0.3",
+    "@telicent-oss/ontology-icon-lib": "^0.1.0",
     "@telicent-oss/ds": "0.13.0",
     "zod": "^3.22.4"
   },
@@ -52,7 +52,7 @@
     "react-error-boundary": "^4.0.12",
     "@telicent-oss/rdfservice": "0.0.6-TELFE654.0",
     "@telicent-oss/react-lib": "*",
-    "@telicent-oss/ontology-icon-lib": "^0.0.3",
+    "@telicent-oss/ontology-icon-lib": "^0.1.0",
     "@telicent-oss/ds": "0.13.0",
     "zod": "^3.22.4"
   },

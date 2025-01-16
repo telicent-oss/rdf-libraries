@@ -12,19 +12,15 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # Cache node_modules
       - uses: actions/setup-node@v4
         with:
           node-version: 20.14
-
-      # Install dependencies using pnpm
       - run: yarn install --frozen-lockfile
-
-      # Ensure Nx is available
       - run: yarn global add nx
-      # switch from projects to --all when ready
-      - uses: nrwl/nx-set-shas@v4
-      - run: yarn test --exclude="@telicent-oss/catalogservice" # TODO TELFE-873
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
+      - run: ls node_modules
+      - run: ls node_modules/@telicent-oss
+      - run: cd ./packages/ontology-icon-lib
+      - run: ls node_modules
+      - run: ls node_modules/@telicent-oss
+      - run: cd ../..
+      - run: yarn test --exclude="@telicent-oss/catalogservice" --skip-nx-cache # TODO TELFE-873
