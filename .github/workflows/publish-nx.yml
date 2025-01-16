@@ -1,6 +1,19 @@
 name: publish-nx.yml
 on:
+  workflow_call:
   workflow_dispatch:
+    inputs:
+      SINGLE_PACKAGE:
+        type: choice
+        description: Which package to build
+        options: 
+          - "@telicent-oss/rdfservice"
+          - "@telicent-oss/ontologyservice"
+          - "@telicent-oss/catalogservice"
+          - "@telicent-oss/ies-service"
+          - "@telicent-oss/react-lib"
+          - "@telicent-oss/ontology-icon-lib"
+          - "@telicent-oss/ontology-icon-react-lib"
   push:
     tags:
       - v*.*.*
@@ -28,9 +41,15 @@ jobs:
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
-      - name: publish packages
+      - name: publish all packages
+        if: ${{ inputs.SINGLE_PACKAGE == '' }}
         run: npx nx release publish
-        shell: bash
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          NPM_CONFIG_PROVENANCE: true
+      - name: publish specific packages
+        if: ${{ inputs.SINGLE_PACKAGE != '' }}
+        run: npx nx run ${{ inputs.SINGLE_PACKAGE}}:release
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
