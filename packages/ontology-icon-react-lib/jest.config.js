@@ -10,7 +10,7 @@ export default {
   moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
   // for tsx
   transform: {
-    "^.+\\.tsx?$": [
+    "tsx?$": [
       "ts-jest",
       {
         tsconfig: "./tsconfig.spec.json",
