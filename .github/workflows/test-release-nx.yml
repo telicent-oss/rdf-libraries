@@ -17,10 +17,4 @@ jobs:
           node-version: 20.14
       - run: yarn global add nx
       - run: yarn install --frozen-lockfile
-      - run: ls node_modules
-      - run: ls node_modules/@telicent-oss
-      - run: cd ./packages/ontology-icon-lib
-      - run: ls node_modules
-      - run: ls node_modules/@telicent-oss
-      - run: cd ../..
       - run: yarn test --exclude="@telicent-oss/catalogservice" --exclude="@telicent-oss/ontology-icon-react-lib" --skip-nx-cache # TODO TELFE-873

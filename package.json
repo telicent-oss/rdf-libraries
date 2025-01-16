@@ -62,9 +62,8 @@
   },
   "workspaces": {
     "packages": [
-    "packages/*"
-  ],
-  "nohoist": ["**/*"]
+      "packages/*"
+    ]
   },
   "resolutions": {
     "braces": "^3.0.3"
