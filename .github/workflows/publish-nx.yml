@@ -51,6 +51,7 @@ jobs:
       - run: yarn install --frozen-lockfile
       - run: git config --global user.email "${{ github.actor }}@users.noreply.github.com"
       - run: git config --global user.name "${{ github.actor }}"
+      - run: npx nx build
       - name: publish all packages
         if: ${{ inputs.SINGLE_PACKAGE == '' }}
         run: npx nx release publish ${{ inputs.NX_RELEASE_FLAGS }} --yes
