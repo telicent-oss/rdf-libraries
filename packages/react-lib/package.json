@@ -38,9 +38,7 @@
   },
   "dependencies": {
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "@telicent-oss/rdfservice": "0.0.6-TELFE654.0",
-    "zod": "^3.22.4"
+    "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
@@ -57,18 +55,11 @@
   },
   "peerDependencies": {
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "react-error-boundary": "^4.0.12",
-    "@telicent-oss/rdfservice": "0.0.6-TELFE654.0",
-    "@telicent-oss/react-lib": "*",
-    "@telicent-oss/ontology-icon-lib": "*",
-    "@telicent-oss/ds": "0.12.4-rc3",
-    "zod": "^3.22.4"
+    "react-dom": "18.2.0"
   },
   "externalDependencies": [
     "react",
-    "react-dom",
-    "@telicent-oss/ontology-icon-lib"
+    "react-dom"
   ],
   "engines": {
     "node": ">=20.14.0"
