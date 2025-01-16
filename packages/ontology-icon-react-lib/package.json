@@ -42,6 +42,7 @@
     "react-error-boundary": "^4.0.12",
     "@telicent-oss/rdfservice": "0.0.6-TELFE654.0",
     "@telicent-oss/react-lib": "*",
+    "@telicent-oss/ontology-icon-lib": "*",
     "@telicent-oss/ds": "0.12.4-rc3",
     "zod": "^3.22.4"
   },
