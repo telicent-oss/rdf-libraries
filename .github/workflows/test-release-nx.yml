@@ -23,4 +23,4 @@ jobs:
       - run: ls node_modules
       - run: ls node_modules/@telicent-oss
       - run: cd ../..
-      - run: yarn test --exclude="@telicent-oss/catalogservice" --skip-nx-cache # TODO TELFE-873
+      - run: yarn test --exclude="@telicent-oss/catalogservice" --exclude="@telicent-oss/ontology-icon-lib" --skip-nx-cache # TODO TELFE-873

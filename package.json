@@ -60,9 +60,12 @@
       }
     }
   },
-  "workspaces": [
+  "workspaces": {
+    "packages": [
     "packages/*"
   ],
+  "nohoist": ["**/*"]
+  },
   "resolutions": {
     "braces": "^3.0.3"
   }
