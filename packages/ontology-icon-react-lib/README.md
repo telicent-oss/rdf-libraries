@@ -2,22 +2,42 @@
 
 *Monorepo Location: `./packages/ontology-icon-react-lib`*
 
-React code for rendering icons from [@telicent-oss/ontologyservice]([./packages/ontologyservice](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/ontologyservice)) in your web ui.
+A React library for accessing and rending ontology icon data loaded from [@telicent-oss/ontologyservice](./packages/ontologyservice).
 
-## Background
+This package requires [@telicent-oss/ontology-icon-lib](./packages/ontology-icon-lib) to be initialised.
 
-`@telicent-oss/ontologyservice` provides access to entity icons (along with icon styles)
 
-### Install
+## Install
 
-```bash
+```sh
 yarn install @telicent-oss/ontology-icon-react-lib
 ```
 
-E
-### Usage
+
+## Usage
+
+### Initialisation
+
+Before the following components can access icon data,  [@telicent-oss/ontology-icon-lib](../ontology-icon-lib/README.md#usage)'s `init()` must be called, and its returned promise must be resolved.
+
+<details>
+<summary>See pre-requisite code</summary>
 
 ```ts
+import { OntologyService } from '@telicent-oss/ontologyservice';
+import * as ontologyIconLib from '@telicent-oss/ontology-icon-lib';
+
+const ontologyServicePromise = OntologyService.createAsync("http://store", "ontology");
+await ontologyIconLib.init(ontologyServicePromise);
+// Your code here
+```
+
+</details>
+
+### After initialisation
+
+#### `OntologyIcon` component:
+```tsx
 import { OntologyIcon } from "@telicent-oss/ontology-icon-react-lib";
 
 const DocumentIcon: FC<{type:string
@@ -26,15 +46,29 @@ const DocumentIcon: FC<{type:string
 }> = ({
   type,
 }) => {
-  return <OntologyIcon type={type} size="sm" />
+  return <OntologyIcon type={type} />
 
+```
+
+#### `useOntologyStyles` hook:
+```tsx
+const IconInfo = () => {
+  const ontologyStyles = useOntologyStyles();
+  const workOfDocumentationIcon = ontologyStyles.findIcon("http://ies.data.gov.uk/ontology/ies4#WorkOfDocumentation");
+  return ontologyStyles.isLoading 
+    ? <span>Loading</span>
+    : <div>
+      {`styles: ${ontologyStyles.styles.length}`}
+      {`#WorkOfDocumentation icon: ${JSON.stringify(workOfDocumentationIcon)}`}
+    </div>;
+};
 ```
 
 ## Development
 
 ### Build
 
-```bash
+```sh
 git clone https://github.com/Telicent-oss/rdf-libraries
 cd rdf-libraries
 yarn install
@@ -45,6 +79,6 @@ npx nx affected:build
 
 ## Related Links
 
-* [@telicent-oss/ontologyservice](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/OntologyService) (`./packages/OntologyService)`) - consumes to get ontology styles (and icons)
-* [@telicent-oss/ontology-icon-lib](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/ontology-icon-lib) (`./packages/ontology-icon-lib)`) - utilities that use [@telicent-oss/ontologyservice](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/ontology-icon-lib)
-* [@telicent-oss/react-lib](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/react-lib) (`./packages/react-lib)`) - utilities for React
+* [@telicent-oss/ontologyservice](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/OntologyService) (`./packages/OntologyService`) - used to access ontology data
+* [@telicent-oss/ontology-icon-lib](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/ontology-icon-lib) (`./packages/ontology-icon-lib`) - used to get icon data using [@telicent-oss/ontologyservice](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/ontology-icon-lib)
+* [@telicent-oss/react-lib](https://github.com/telicent-oss/rdf-libraries/tree/main/packages/react-lib) (`./packages/react-lib`) - utilities for React

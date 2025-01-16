@@ -2,5 +2,5 @@
 import packageJSON from '../package.json';
 export const version = packageJSON?.version;
 export * from "./components/OntologyIcon/OntologyIcon";
-export * from "./hooks/OntologyIcon/OntologyIcon";
+export * from "./hooks/useOntologyStyles/useOntologyStyles";
 

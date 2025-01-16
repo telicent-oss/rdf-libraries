@@ -2,7 +2,7 @@
 
 *Monorepo Location: `./packages/react-lib`*
 
-Useful React code
+Useful React utilities
 
 ### Install
 
@@ -12,14 +12,15 @@ yarn install @telicent-oss/react-lib
 
 ### Usage
 
+`use` hook polyfill (can be removed when we move to React 19)
 ```js
 import React, { Suspense } from "react";
 import { use } from "@telicent-oss/react-lib";
 
-const wait3Seconds = new Promise((fulfill) => setTimeout(fulfill, 3000));
+const wait3SecondsFromLoad = new Promise((fulfill) => setTimeout(fulfill, 3000));
 
 export const Wait3Seconds = () => {
-  use(wait3Seconds);
+  use(wait3SecondsFromLoad);
   return (
     <Suspense fallback="Waiting...">...Complete!</Suspense>
   );

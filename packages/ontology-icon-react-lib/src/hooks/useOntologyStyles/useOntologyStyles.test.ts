@@ -1,18 +1,36 @@
-import * as ontologyIconLib from '@telicent-oss/ontology-icon-lib';
-import { type IconType } from '@telicent-oss/ontology-icon-lib';
-import { useEffect, useState } from 'react';
+import { renderHook, waitFor } from "@testing-library/react";
+import { useOntologyStyles } from "./useOntologyStyles";
+import * as ontologyIconLib from "@telicent-oss/ontology-icon-lib";
 
-export function useOntologyStyles() {
-  const [styles, setStyles] = useState<IconType[] | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const findIcon = ontologyIconLib.findByClassUri;
+jest.mock("@telicent-oss/ontology-icon-lib", () => ({
+  moduleStylesPromise: Promise.resolve([
+    { id: "icon1", style: "style1" },
+    { id: "icon2", style: "style2" },
+  ]),
+  findByClassUri: jest.fn(),
+}));
 
-  useEffect(() => {
-    ontologyIconLib.moduleStylesPromise.then((loadedStyles) => {
-      setStyles(loadedStyles);
-      setIsLoading(false);
+describe("useOntologyStyles", () => {
+  it("initially sets isLoading to true and styles to null", async () => {
+    const { result } = renderHook(() => useOntologyStyles());
+    expect(result.current.isLoading).toBe(true);
+    expect(result.current.styles).toBeNull();
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
     });
-  }, []);
-
-  return { isLoading, styles, findIcon };
-}
+    expect(result.current.styles).toMatchInlineSnapshot(`
+      [
+        {
+          "id": "icon1",
+          "style": "style1",
+        },
+        {
+          "id": "icon2",
+          "style": "style2",
+        },
+      ]
+    `);
+    expect(ontologyIconLib.findByClassUri).not.toHaveBeenCalled();
+  });
+});
