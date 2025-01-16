@@ -19,4 +19,5 @@ jobs:
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
-      - run: yarn test --exclude="@telicent-oss/catalogservice" --exclude="@telicent-oss/ontology-icon-react-lib" --skip-nx-cache # TODO TELFE-873
+      - run: ls ./packages/ontology-icon-react-lib/node_modules/@telicent-oss
+      - run: yarn test --exclude="@telicent-oss/catalogservice" --skip-nx-cache # TODO TELFE-873
