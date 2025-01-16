@@ -1,6 +1,5 @@
 {
   "namedInputs": {
-    "noMarkdown": ["!{projectRoot}/**/*.md"],
     "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
   },
   "release": {
@@ -29,11 +28,11 @@
     "build": {
       "cache": true,
       "dependsOn": ["^build"],
-      "inputs": ["noMarkdown", "^noMarkdown"]
+      "inputs": []
     },
     "test": {
       "cache": true,
-      "inputs": ["noMarkdown", "^noMarkdown"]
+      "inputs": []
     },
     "generate-docs": {
       "cache": true

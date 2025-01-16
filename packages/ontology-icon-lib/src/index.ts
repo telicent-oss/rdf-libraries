@@ -9,6 +9,7 @@ export * from './context-utils';
 export { version, name } from '../package.json';
 
 // TODO Update ./findIcon with new behavior
+// WHEN TELFE-839
 // @see {@link https://telicent.atlassian.net/browse/TELFE-839}
 
 export type IconType = FlattenedStyleTypeForFindIcon | FlattenedStyleType;
@@ -28,7 +29,7 @@ export  const moduleStylesPromise:Promise<IconType[]> = new Promise((fulfill, re
 const assertModulesStyles= () => {
   if (typeof moduleStyles !== "object") {
     throw new Error(`
-      Expected moduleStyles to be type FlattenedStyleType, 
+      Expected moduleStyles to be of type FlattenedStyleType, 
       instead got "${moduleStyles}" (${typeof moduleStyles})`
     );
   }
