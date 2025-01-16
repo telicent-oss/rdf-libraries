@@ -2300,15 +2300,6 @@
     react-rnd "^10.4.13"
     zod "^3.21.4"
 
-"@telicent-oss/ontology-icon-lib@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@telicent-oss/ontology-icon-lib/-/ontology-icon-lib-0.1.0.tgz#433a676602c88fa51ced3baec545113a0be1e6d7"
-  integrity sha512-YatMQO9Mm4Wgc0LVO8AFcI4pwM77lQ/wnqp/Kv0qqIJR/X1LJb9rNbzGqCtkQ4vXC9MUXXO6B2Ehb0efGRkIwQ==
-  dependencies:
-    "@telicent-oss/ontologyservice" "0.31.3-TELFE654.0"
-    lodash.startcase "^4.4.0"
-    zod "^3.22.4"
-
 "@testing-library/dom@^9.0.0":
   version "9.3.4"
   resolved "https://registry.yarnpkg.com/@testing-library/dom/-/dom-9.3.4.tgz#50696ec28376926fec0a1bf87d9dbac5e27f60ce"
