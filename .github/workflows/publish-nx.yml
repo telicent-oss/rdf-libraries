@@ -49,6 +49,8 @@ jobs:
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
+      - run: git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+      - run: git config --global user.name "${{ github.actor }}"
       - name: publish all packages
         if: ${{ inputs.SINGLE_PACKAGE == '' }}
         run: npx nx release publish ${{ inputs.NX_RELEASE_FLAGS }}
