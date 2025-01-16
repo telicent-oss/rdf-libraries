@@ -4,14 +4,9 @@
     "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"]
   },
   "release": {
+    "projectsRelationship": "independent",
     "projects": [
-      "@telicent-oss/rdfservice",
-      "@telicent-oss/ontologyservice",
-      "@telicent-oss/catalogservice",
-      "@telicent-oss/ies-service",
-      "@telicent-oss/react-lib",
-      "@telicent-oss/ontology-icon-lib",
-      "@telicent-oss/ontology-icon-react-lib"
+      "*"
     ],
     "version": {
       "conventionalCommits": true
