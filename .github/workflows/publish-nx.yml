@@ -12,7 +12,7 @@ on:
           - "@telicent-oss/catalogservice"
           - "@telicent-oss/ies-service"
           - "@telicent-oss/react-lib"
-          - "@telicent-oss/ontology-find-icon-helper"
+          - "@telicent-oss/ontology-icon-lib"
           - "@telicent-oss/ontology-icon-react-lib"
   push:
     tags:
