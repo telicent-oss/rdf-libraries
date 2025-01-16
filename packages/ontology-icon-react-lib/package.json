@@ -24,7 +24,7 @@
   "types": "./dist/types.d.ts",
   "scripts": {
     "start": "vite",
-    "test": "jest --runInBand ",
+    "test": "jest --runInBand --verbose",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
     "link": "yarn link",
