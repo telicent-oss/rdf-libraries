@@ -53,13 +53,13 @@ jobs:
       - run: git config --global user.name "${{ github.actor }}"
       - name: publish all packages
         if: ${{ inputs.SINGLE_PACKAGE == '' }}
-        run: npx nx release publish ${{ inputs.NX_RELEASE_FLAGS }} --yes --access public
+        run: npx nx release publish ${{ inputs.NX_RELEASE_FLAGS }} --yes
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
       - name: publish specific packages
         if: ${{ inputs.SINGLE_PACKAGE != '' }}
-        run: npx nx release ${{ inputs.NX_RELEASE_FLAGS }} --projects="${{ inputs.SINGLE_PACKAGE}}" --yes --access public
+        run: npx nx release ${{ inputs.NX_RELEASE_FLAGS }} --projects="${{ inputs.SINGLE_PACKAGE}}" --yes
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
