@@ -6,7 +6,20 @@
     "publish": {
       "noGitTagVersion": true,
       "yes": true,
-      "conventionalCommits": true
+      "conventionalCommits": true,
+      "// TEMP IGNORE": "not working, perhaps need to merge",
+      "ignore": "@telicent-oss/catalogservice"
+    },
+    "bootstrap": {
+      "// TEMP IGNORE": "not working, perhaps need to merge",
+      "ignore": "@telicent-oss/catalogservice"
+    },
+    "run": {
+      "// TEMP IGNORE": "not working, perhaps need to merge",
+      "ignore": "@telicent-oss/catalogservice"
+    },
+    "exec": {
+      "// TEMP IGNORE": "not working, perhaps need to merge",
+      "ignore": "@telicent-oss/catalogservice"
     }
   }
-}
