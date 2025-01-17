@@ -1,6 +1,7 @@
 {
   "name": "@telicent-oss/catalogservice",
   "version": "0.0.2",
+  "// TEMP private": "needs merge to main",
   "private": true,
   "description": "Simple client-side library for working with DCAT data.",
   "main": "./dist/catalogservice.js",
