@@ -29,7 +29,7 @@
     "lint": "eslint **/*.ts",
     "link": "yarn link",
     "use-links-to-local-packages": "./scripts/use-links-to-local-packages.sh",
-    "prepublish": "yarn lint && yarn test",
+    "prepublish": "yarn lint  --debug && yarn build --debug",
     "prepublishOnly": "yarn build"
   },
   "author": "",

@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
-yarn cache clean
-mvtmp ./node_modules
-mvtmp ./packages/CatalogService/node_modules
-mvtmp ./packages/OntologyService/node_modules
-mvtmp ./packages/RdfService/node_modules
-mvtmp ./packages/ies-service/node_modules
-mvtmp ./packages/ontology-icon-lib/node_modules
-mvtmp ./packages/ontology-icon-react-lib/node_modules
-mvtmp ./packages/react-lib/node_modules
+yarn cache clean;
+mvtmp ./node_modules;
+cd ./packages/CatalogService/; mvtmp ./node_modules; cd -;
+cd ./packages/OntologyService/; mvtmp ./node_modules; cd -;
+cd ./packages/RdfService/; mvtmp ./node_modules; cd -;
+cd ./packages/ies-service/; mvtmp ./node_modules; cd -;
+cd ./packages/ontology-icon-lib/; mvtmp ./node_modules; cd -;
+cd ./packages/ontology-icon-react-lib/; mvtmp ./node_modules; cd -;
+cd ./packages/react-lib/; mvtmp ./node_modules; cd -;
