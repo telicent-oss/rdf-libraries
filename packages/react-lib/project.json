@@ -1,0 +1,13 @@
+{
+  "name": "@telicent-oss/react-lib",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "targets": {
+    "test": {
+      "executor": "@nx/jest:jest",
+      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "options": {
+        "jestConfig": "packages/react-lib/jest.config.js"
+      }
+    }
+  }
+}
