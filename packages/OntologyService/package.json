@@ -59,5 +59,8 @@
   },
   "resolutions": {
     "rollup": "3.29.5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
