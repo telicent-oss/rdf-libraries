@@ -3,25 +3,20 @@
   "version": "0.2.0",
   "private": false,
   "description": "Simple client-side library retrieving and accessing ontology style/icon objects.",
-  "main": "./dist/ontology-icon-lib.js",
-  "module": "./dist/ontology-icon-lib.js",
+  "main": "./dist/ontology-icon-lib.cjs.js",
   "files": [
-    "dist"
+    "dist/*"
   ],
   "type": "module",
+  "module": "./dist/ontology-icon-lib.es.js",
+  "types": "./dist/ontology-icon-lib.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/ontology-icon-lib.js",
-      "require": "./dist/ontology-icon-lib.umd.cjs",
-      "types": "./dist/types.d.ts"
-    },
-    "./index": {
-      "import": "./dist/ontology-icon-lib.js",
-      "require": "./dist/ontology-icon-lib.umd.cjs",
-      "types": "./dist/types.d.ts"
+      "import": "./dist/ontology-icon-lib.es.js",
+      "require": "./dist/ontology-icon-lib.cjs.js",
+      "types": "./dist/ontology-icon-lib.d.ts"
     }
   },
-  "types": "./dist/types.d.ts",
   "scripts": {
     "test": "jest --runInBand ",
     "build": "rm -rf ./dist && vite build",

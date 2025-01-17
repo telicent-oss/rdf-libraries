@@ -3,11 +3,11 @@
   "version": "0.3.0",
   "private": false,
   "description": "React functionality",
+  "main": "./dist/react-lib.cjs.js",
   "files": [
     "dist/*"
   ],
   "type": "module",
-  "main": "./dist/react-lib.cjs.js",
   "module": "./dist/react-lib.es.js",
   "types": "./dist/react-lib.d.ts",
   "exports": {
