@@ -1,26 +1,5 @@
 {
   "$schema": "node_modules/lerna/schemas/lerna-schema.json",
   "version": "independent",
-  "npmClient": "yarn",
-  "command": {
-    "publish": {
-      "noGitTagVersion": true,
-      "yes": true,
-      "conventionalCommits": true,
-      "// TEMP IGNORE": "not working, perhaps need to merge",
-      "ignore": "*CatalogService"
-    },
-    "bootstrap": {
-      "// TEMP IGNORE": "not working, perhaps need to merge",
-      "ignore": "*CatalogService"
-    },
-    "run": {
-      "// TEMP IGNORE": "not working, perhaps need to merge",
-      "ignore": "*CatalogService"
-    },
-    "exec": {
-      "// TEMP IGNORE": "not working, perhaps need to merge",
-      "ignore": "*CatalogService"
-    }
-  }
+  "npmClient": "yarn"
 }
