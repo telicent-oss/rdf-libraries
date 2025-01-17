@@ -22,7 +22,7 @@ describe("use function", () => {
     thenable.status = "pending";
     try {
       use(thenable);
-      fail('Expected to throw thenable, but did not');
+      fail("Expected to throw thenable, but did not");
     } catch (error) {
       expect(error).toBe(thenable);
     }
@@ -34,10 +34,55 @@ describe("use function", () => {
     expect(use(thenable)).toMatchInlineSnapshot(`10`);
   });
 
-  it("throws the reason when status is rejected", () => {
+  it("returns the value when status is rejected", async () => {
     thenable.status = "rejected";
-    thenable.reason = new Error("Failed");
-    expect(() => use(thenable)).toThrowErrorMatchingInlineSnapshot('"Failed"');
+    thenable.reason = "not valid!";
+    expect(() => use(thenable)).toThrowErrorMatchingInlineSnapshot(`undefined`);
   });
 
+  it("resolves when no status", async () => {
+    const resolved = Promise.resolve({ type: "resolved..." });
+    expect(() => use(resolved)).toThrowErrorMatchingInlineSnapshot(`undefined`);
+    expect(resolved).toMatchInlineSnapshot(`
+      Promise {
+        "status": "pending",
+      }
+    `);
+    await expect(resolved).resolves.toMatchInlineSnapshot(`
+      {
+        "type": "resolved...",
+      }
+    `);
+    expect(resolved).toMatchInlineSnapshot(`
+      Promise {
+        "status": "fulfilled",
+        "value": {
+          "type": "resolved...",
+        },
+      }
+    `);
+  });
+  it("rejects when no status", async () => {
+    const rejected = Promise.reject({ type: "rejected!" });
+    expect(() => use(rejected)).toThrowErrorMatchingInlineSnapshot(`undefined`);
+    expect(rejected).toMatchInlineSnapshot(`
+      Promise {
+        "status": "pending",
+      }
+    `);
+
+    await expect(async () => rejected).rejects.toMatchInlineSnapshot(`
+      {
+        "type": "rejected!",
+      }
+    `);
+    expect(rejected).toMatchInlineSnapshot(`
+      Promise {
+        "reason": {
+          "type": "rejected!",
+        },
+        "status": "rejected",
+      }
+    `);
+  });
 });

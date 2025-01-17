@@ -1,6 +1,13 @@
 import { OntologyService } from "@telicent-oss/ontologyservice";
-import { findByClassUri, init } from "./index";
-
+import { findByClassUri, init, name, version } from "./index";
+test("name, version", () => {
+  expect({ name, version }).toMatchInlineSnapshot(`
+    {
+      "name": "@telicent-oss/ontology-icon-lib",
+      "version": "0.2.0",
+    }
+  `);
+});
 jest.mock("@telicent-oss/ontologyservice", () => {
   const actual = jest.requireActual("@telicent-oss/ontologyservice");
 
