@@ -6,6 +6,7 @@ export default {
   coverageDirectory: "../../coverage/packages/ontology-icon-react-lib",
   automock: false,
   setupFilesAfterEnv: ["<rootDir>/setupTests.js"],
+  // moduleNameMapper
   // for tsx
   moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
   // for tsx

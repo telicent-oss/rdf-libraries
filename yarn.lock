@@ -2822,6 +2822,16 @@
     lodash.startcase "^4.4.0"
     zod "^3.22.4"
 
+"@telicent-oss/ontologyservice@0.31.3-TELFE654.0":
+  version "0.31.3-TELFE654.0"
+  resolved "https://registry.yarnpkg.com/@telicent-oss/ontologyservice/-/ontologyservice-0.31.3-TELFE654.0.tgz#00b8a92523f2e89a7cc9fdc1b9b2da2a96a42809"
+  integrity sha512-2Y9j71VhX+aSRPZzBQrhDA2e5q24ML3iz1e9e9EiMRKVYNvaaQhEk0NTTlv3T9et81mYlVAxRcNQLyA9NqCWGA==
+  dependencies:
+    "@telicent-oss/rdfservice" "0.0.6-TELFE654.0"
+    "@types/lodash" "^4.17.13"
+    lodash "^4.17.21"
+    zod "^3.23.8"
+
 "@telicent-oss/rdfservice@0.0.6-TELFE654.0":
   version "0.0.6-TELFE654.0"
   resolved "https://registry.yarnpkg.com/@telicent-oss/rdfservice/-/rdfservice-0.0.6-TELFE654.0.tgz#fc3f694cfd784a6c353aee2131e0957bd43b7a9d"
@@ -2830,10 +2840,18 @@
     global "^4.4.0"
     zod "^3.22.4"
 
-"@telicent-oss/react-lib@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@telicent-oss/react-lib/-/react-lib-0.1.0.tgz#f85de1bc62503db431dfa5f91676ef1e522925d7"
-  integrity sha512-OEAQk1Kfphso5HpWWikZ+ksEk8s96ZCxWn/bXdRELfqnVXSAbonIfJoRR5MRwKNdl/vq6kw8ix7fqGaKfjnNEA==
+"@telicent-oss/rdfservice@0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@telicent-oss/rdfservice/-/rdfservice-0.2.0.tgz#ebcee9da977a8dd25336b183e90235232c388aa3"
+  integrity sha512-lx5ADEPW1/B9kw06mBfMDQTEmziD5k5iYS5ZLhbYELEguZFPwFwnUuYUKXBsaNNpGVaVb0BoE31gzG7k+vIjSg==
+  dependencies:
+    global "^4.4.0"
+    zod "^3.22.4"
+
+"@telicent-oss/react-lib@^0.4.0":
+  version "0.4.0"
+  resolved "https://registry.yarnpkg.com/@telicent-oss/react-lib/-/react-lib-0.4.0.tgz#8817e35d26997c92d827073856bbd479465ccf60"
+  integrity sha512-fkZVbfX4DmieFonpS0/vSbJAawhMvn0zhKKQA12gfZk1u56ybh7wxWSf8lk/56WJmiFj3uDPd2vxDik0VHhUSg==
   dependencies:
     react "18.2.0"
     react-dom "18.2.0"
