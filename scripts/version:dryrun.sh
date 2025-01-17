@@ -6,9 +6,9 @@ if ! git diff-index --quiet HEAD --; then
 fi
 
 # Run lerna version
-lerna  --scope=@telicent-oss/react-lib version \
-    --no-private --yes --exact --conventional-commits \
-    --no-git-tag-version --no-push --no-commit-hooks;
+lerna version \
+    --no-private --yes --exact --conventional-commits --no-git-tag-version \
+    --no-push --no-commit-hooks;
 
 # Display the diff to show what would be committed
 git diff
