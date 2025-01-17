@@ -6,7 +6,7 @@
   "files": [
     "dist/*"
   ],
-  "//type": "module",
+  "type": "module",
   "main": "./dist/react-lib.cjs.js",
   "module": "./dist/react-lib.es.js",
   "types": "./dist/react-lib.d.ts",
