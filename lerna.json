@@ -8,19 +8,19 @@
       "yes": true,
       "conventionalCommits": true,
       "// TEMP IGNORE": "not working, perhaps need to merge",
-      "ignore": "@telicent-oss/catalogservice"
+      "ignore": "*CatalogService"
     },
     "bootstrap": {
       "// TEMP IGNORE": "not working, perhaps need to merge",
-      "ignore": "@telicent-oss/catalogservice"
+      "ignore": "*CatalogService"
     },
     "run": {
       "// TEMP IGNORE": "not working, perhaps need to merge",
-      "ignore": "@telicent-oss/catalogservice"
+      "ignore": "*CatalogService"
     },
     "exec": {
       "// TEMP IGNORE": "not working, perhaps need to merge",
-      "ignore": "@telicent-oss/catalogservice"
+      "ignore": "*CatalogService"
     }
   }
 }
