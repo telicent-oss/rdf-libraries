@@ -14,7 +14,7 @@ export default defineConfig({
         // Control the actual file names
         if (format === "es") return "react-lib.es.js";
         if (format === "cjs") return "react-lib.cjs.js"; 
-        // if (format === "umd") return "react-lib.umd.js"; // uncomment if needed
+        return "react-lib.umd.js"; // uncomment if needed
       }
     },
     sourcemap: true,
