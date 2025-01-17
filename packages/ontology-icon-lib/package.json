@@ -37,7 +37,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@telicent-oss/ontologyservice": "0.31.3-TELFE654.0",
+    "@telicent-oss/ontologyservice": "0.32.0",
     "lodash.startcase": "^4.4.0",
     "zod": "^3.22.4"
   },
