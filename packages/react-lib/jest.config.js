@@ -13,7 +13,7 @@ export default {
   },
   globals: {
     "ts-jest": {
-      tsconfig: "./tsconfig.spec.json",
+      tsconfig: "<rootDir>/tsconfig.spec.json",
     },
   },
 };
