@@ -29,4 +29,4 @@ jobs:
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
       - run: yarn install --frozen-lockfile
-      - run: yarn ci:test
+      - run: yarn test:ci

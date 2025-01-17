@@ -7,8 +7,8 @@ fi
 
 # Run lerna version
 lerna version \
-    --no-private --yes --exact --conventional-commits --no-git-tag-version \
-    --no-push --no-commit-hooks --concurrency 1;
+    --no-private --yes --exact --conventional-commits --no-git-tag-version --concurrency 1 \
+    --no-push --no-commit-hooks;
 
 # Display the diff to show what would be committed
 git diff

@@ -34,7 +34,7 @@ jobs:
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
-      - run: yarn ci:publish
+      - run: yarn publish:ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
