@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/react-lib",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": false,
   "description": "React functionality",
   "main": "./dist/react-lib.js",
@@ -28,6 +28,9 @@
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
     "link": "yarn link",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build",
+    "publish": "lerna publish",
     "use-links-to-local-packages": "./scripts/use-links-to-local-packages.sh"
   },
   "author": "",

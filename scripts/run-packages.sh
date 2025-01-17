@@ -19,7 +19,8 @@ if [ -f nx.json ]; then
   # Run Nx command for all packages except the root, passing additional arguments if provided
   # TODO verify --parallel=1 --skipNxCache=true
   # WHY added to try get CI to pass
-  npx nx run-many --target="$TARGET" --verbose --parallel=1 --skipNxCache=true --exclude="$PACKAGE_NAME" "$@";
+  # npx nx run-many --target="$TARGET" --verbose --parallel=1 --skipNxCache=true --exclude="$PACKAGE_NAME" "$@";
+  npx lerna exec --parallel --no-bail --ignore "$PACKAGE_NAME" -- "$@"
 else
   echo "Not an Nx workspace (nx.json not found), skipping script."
   exit 1

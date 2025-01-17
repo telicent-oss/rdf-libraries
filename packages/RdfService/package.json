@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/rdfservice",
-  "version": "0.0.6-TELFE654.0",
+  "version": "0.1.0",
   "private": false,
   "description": "RdfService is a helper library that abstracts away the complexity of interacting with RDF triplestores, providing basic CRUD abilities.",
   "main": "./dist/rdfservice.mjs",
@@ -29,7 +29,9 @@
     "publish:dry-run": "npm publish --access public --provenance --dry-run",
     "lint": "eslint **/*.ts",
     "link": "yarn link",
-    "use-links-to-local-packages": "./scripts/use-links-to-local-packages.sh"
+    "use-links-to-local-packages": "./scripts/use-links-to-local-packages.sh",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build"
   },
   "repository": {
     "type": "git",

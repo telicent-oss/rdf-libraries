@@ -33,7 +33,9 @@
     "link": "yarn link",
     "use-links-to-local-packages": "./scripts/use-links-to-local-packages.sh",
     "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
-    "start:store": "yarn start:triple-store-for-local-dev-and-tests"
+    "start:store": "yarn start:triple-store-for-local-dev-and-tests",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build"
   },
   "author": "",
   "license": "Apache-2.0",
