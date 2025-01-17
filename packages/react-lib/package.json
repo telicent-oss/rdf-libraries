@@ -3,25 +3,20 @@
   "version": "0.3.0",
   "private": false,
   "description": "React functionality",
-  "main": "./dist/react-lib.js",
   "files": [
-    "dist"
+    "dist/*"
   ],
-  "type": "module",
-  "module": "./dist/react-lib.js",
+  "//type": "module",
+  "main": "./dist/react-lib.cjs.js",
+  "module": "./dist/react-lib.es.js",
+  "types": "./dist/react-lib.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/react-lib.js",
-      "require": "./dist/react-lib.umd.cjs",
-      "types": "./dist/types.d.ts"
-    },
-    "./react-lib": {
-      "import": "./dist/react-lib.js",
-      "require": "./dist/react-lib.umd.cjs",
-      "types": "./dist/types.d.ts"
+      "import": "./dist/react-lib.es.js",
+      "require": "./dist/react-lib.cjs.js",
+      "types": "./dist/react-lib.d.ts"
     }
   },
-  "types": "./dist/types.d.ts",
   "scripts": {
     "start": "vite",
     "test": "jest --runInBand ",

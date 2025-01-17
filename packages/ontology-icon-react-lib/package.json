@@ -76,9 +76,9 @@
   },
   "externalDependencies": [
     "react",
-    "react-dom",
-    "@telicent-oss/ontology-icon-lib"
+    "react-dom"
   ],
+  "@telicent-oss/ontology-icon-lib":"",
   "engines": {
     "node": ">=20.14.0"
   },

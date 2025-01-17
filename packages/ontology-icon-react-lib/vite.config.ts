@@ -14,7 +14,7 @@ export default defineConfig({
       fileName: 'index'
     },
     rollupOptions: {
-      external: packageJSON.externalDependencies,
+      external: Object.keys(packageJSON.dependencies || {}),
     },
   },
   plugins: [dtsPlugin],
