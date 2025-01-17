@@ -5,6 +5,9 @@
   "command": {
     "publish": {
       "ignore": "@telicent-oss/catalogservice"
+    },
+    "version": {
+      "ignore": "@telicent-oss/catalogservice"
     }
   }
 }

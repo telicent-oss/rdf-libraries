@@ -8,7 +8,7 @@ fi
 # Run lerna version
 lerna version \
     --no-private --yes --exact --conventional-commits --no-git-tag-version \
-    --no-push --no-commit-hooks --ignore-changes @telicent-oss/catalogservice;
+    --no-push --no-commit-hooks;
 
 # Display the diff to show what would be committed
 git diff
