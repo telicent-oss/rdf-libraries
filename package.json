@@ -7,7 +7,7 @@
     "lint": "lerna run lint",
     "test": "lerna run test --ignore=@telicent-oss/catalogservice $@",
     "build": "lerna run build",
-    "version:dryrun": "./scripts/version:dryrun.sh",
+    "version:dryrun": "./scripts/version:dryrun.sh $@",
     "ci:clean": "yarn clean $@",
     "ci:lint": "yarn lint $@",
     "ci:test": "yarn test --ignore=@telicent-oss/catalogservice $@",
