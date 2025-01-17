@@ -12,7 +12,7 @@
     "ci:lint": "yarn lint $@",
     "ci:test": "yarn test --ignore=@telicent-oss/catalogservice $@",
     "ci:build": "yarn build $@",
-    "ci:publish": "lerna publish --no-private --yes --exact --conventional-commits $@",
+    "ci:publish": "lerna publish --no-private --yes --exact --conventional-commits $(if [ -n \"$SCOPE\" ]; then echo \"--scope=$SCOPE\"; fi)"
     "generate-docs": "lerna run generate-docs",
     "open-docs": "lerna run open-docs",
     "create-links-to-local-packages": "lerna run link",
