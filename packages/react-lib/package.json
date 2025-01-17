@@ -26,7 +26,7 @@
     "start": "vite",
     "test": "jest --runInBand ",
     "build": "rm -rf ./dist && vite build",
-    "lint": "eslint **/*.ts",
+    "lint": "yarn eslint **/*.ts",
     "link": "yarn link",
     "prepublish": "yarn lint && yarn test",
     "prepublishOnly": "yarn build",
@@ -57,7 +57,8 @@
     "typescript": "^5.5.4",
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite-tsconfig-paths": "^4.2.1",
+    "eslint": "^8.56.0"
   },
   "peerDependencies": {
     "react": "18.2.0",

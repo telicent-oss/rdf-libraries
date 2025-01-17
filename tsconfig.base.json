@@ -25,7 +25,7 @@
   "exclude": [
     "node_modules",
     "tmp",
-    "**/dist",
+    "**/dist/8",
     "**/*.config.js"
   ]
 }

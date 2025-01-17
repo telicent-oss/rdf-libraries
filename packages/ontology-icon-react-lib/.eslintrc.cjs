@@ -1,4 +1,4 @@
-const exclude = require('../../tsconfig.bash.json').exclude;
+const exclude = require('../../tsconfig.base.json').exclude;
 
 module.exports =  {
   plugins: [

@@ -1,8 +1,6 @@
 import { GenericContainer, StartedTestContainer, Wait } from "testcontainers";
 import {
   Diagram,
-  DiagramElement,
-  DiagramProperty,
   HierarchyNode,
   OntologyService,
   OWLClass,
@@ -72,13 +70,13 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     await os.runUpdate(updates);
     const g2 = new RDFSClass(os, `${testDefaultNamespace}ONT2`);
     const g21 = new OWLClass(os, `${testDefaultNamespace}ONT21`);
-    g21.addLabel("G21");
+    await g21.addLabel("G21");
     const g211 = new OWLClass(os, `${testDefaultNamespace}ONT211`);
     const p1 = new RDFProperty(os, `${testDefaultNamespace}prop1`);
     const p2 = new OWLObjectProperty(os, `${testDefaultNamespace}prop2`);
     const p3 = new OWLDatatypeProperty(os, `${testDefaultNamespace}prop3`);
     const mystyle = new Style();
-    g2.setStyle(mystyle);
+    await g2.setStyle(mystyle);
 
     await g2.addSubClass(g21);
     await g21.addSubClass(g211);
@@ -87,9 +85,9 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     await p3.addSuperProperty(p2);
   }, 60000);
 
-  afterAll(() => {
+  afterAll(async () => {
     if (!fuseki) return;
-    fuseki.stop();
+    await fuseki.stop();
   });
 
   it("should be running properly and connected to a triplestore - also tests the runQuery method", async () => {
@@ -178,7 +176,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         false,
       );
       os2.setWarnings = false;
-      const prop = new OWLObjectProperty(
+      new OWLObjectProperty(
         os2,
         "http://ies.data.gov.uk/ontology/ies4#isPartOf",
       );
@@ -189,7 +187,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     const g1 = new RDFSClass(os, `${testDefaultNamespace}ONT1`);
     const g11 = new RDFSClass(os, `${testDefaultNamespace}ONT11`);
     const g12 = new RDFSClass(os, `${testDefaultNamespace}ONT12`);
-    const g21 = new OWLClass(os, `${testDefaultNamespace}ONT21`);
+    new OWLClass(os, `${testDefaultNamespace}ONT21`);
     const g121 = new OWLClass(os, `${testDefaultNamespace}ONT121`);
     const g1_subs = await g1.getSubClasses(false);
     const g12_subs = await g12.getSubClasses(false);
@@ -204,7 +202,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
         false,
       );
       os2.setWarnings = false;
-      const entity = new RDFSClass(
+      new RDFSClass(
         os2,
         "http://ies.data.gov.uk/ontology/ies4#Entity",
       );
@@ -212,10 +210,10 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
 
       const diags: Diagram[] = await os2.getAllDiagrams();
       const diag: Diagram = diags[0];
-      const elems = await diag.getDiagramElements();
-      const rels = await diag.getDiagramRelations();
+      await diag.getDiagramElements();
+      await diag.getDiagramRelations();
 
-      const phy = await os2.getClassHierarchy();
+      await os2.getClassHierarchy();
     }
 
     expect(g1_subs.includes(g11)).toBeTruthy();
@@ -310,7 +308,7 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
   });
 
   afterAll(async () => {
-    delay(1000);
+    await delay(1000);
     await fuseki.stop();
   });
 });

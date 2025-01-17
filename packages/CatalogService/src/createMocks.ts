@@ -16,7 +16,7 @@ export const createMocks = async ({
 }) => {
   const createResource = async ({
     mock,
-    published,
+    // published,
     parent,
   }: {
     mock: MockData;
