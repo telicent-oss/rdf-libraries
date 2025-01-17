@@ -6,7 +6,7 @@
     "clean": "yarn test --clearCache; yarn clean cache $@",
     "lint": "lerna run lint",
     "test": "lerna run test --ignore=@telicent-oss/catalogservice $@",
-    "build": "lerna run build",
+    "build": "lerna run build --ignore=@telicent-oss/catalogservice",
     "version:dryrun": "./scripts/version:dryrun.sh $@",
     "ci:clean": "yarn clean $@",
     "ci:lint": "yarn lint $@",

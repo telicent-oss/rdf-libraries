@@ -74,11 +74,6 @@
     "react-error-boundary": "*",
     "zod": "*"
   },
-  "externalDependencies": [
-    "react",
-    "react-dom"
-  ],
-  "@telicent-oss/ontology-icon-lib":"",
   "engines": {
     "node": ">=20.14.0"
   },
