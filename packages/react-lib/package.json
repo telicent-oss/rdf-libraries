@@ -1,0 +1,69 @@
+{
+  "name": "@telicent-oss/react-lib",
+  "version": "0.3.0",
+  "private": false,
+  "description": "React functionality",
+  "main": "./dist/react-lib.cjs.js",
+  "files": [
+    "dist/*"
+  ],
+  "type": "module",
+  "module": "./dist/react-lib.es.js",
+  "types": "./dist/react-lib.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/react-lib.es.js",
+      "require": "./dist/react-lib.cjs.js",
+      "types": "./dist/react-lib.d.ts"
+    }
+  },
+  "scripts": {
+    "start": "vite",
+    "test": "jest --runInBand ",
+    "build": "rm -rf ./dist && vite build",
+    "lint": "yarn eslint **/*.ts",
+    "link": "yarn link",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build",
+    "publish": "lerna publish",
+    "use-local-packages:link": "./scripts/use-local-packages.sh link",
+    "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.4.0",
+    "@types/node": "16.11.7",
+    "@types/react": "^18.0.32",
+    "@types/react-dom": "^18.0.11",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typescript": "^5.5.4",
+    "vite": "^4.5.3",
+    "vite-plugin-dts": "^3.6.3",
+    "vite-tsconfig-paths": "^4.2.1",
+    "eslint": "^8.56.0"
+  },
+  "peerDependencies": {
+    "react": "*",
+    "react-dom": "*"
+  },
+  "engines": {
+    "node": ">=20.14.0"
+  },
+  "resolutions": {
+    "rollup": "3.29.5"
+  }
+}

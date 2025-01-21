@@ -9,19 +9,25 @@ jobs:
   test-libraries:
     runs-on: ubuntu-latest
     steps:
+      - run: git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+      - run: git config --global user.name "${{ github.actor }}"
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # Cache node_modules
+      - uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-yarn-
       - uses: actions/setup-node@v4
         with:
           node-version: 20.14
-          registry-url: 'https://registry.npmjs.org'
-          scope: "telicent-oss"
-      # Install dependencies using pnpm
+          registry-url: 'https://registry.npmjs.org/'
+          scope: 'telicent-oss'
+          token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
-
-      # Ensure Nx is available
       - run: yarn global add nx
       # switch from projects to --all when ready
       - uses: nrwl/nx-set-shas@v4

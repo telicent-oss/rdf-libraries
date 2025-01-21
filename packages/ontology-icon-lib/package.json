@@ -1,0 +1,64 @@
+{
+  "name": "@telicent-oss/ontology-icon-lib",
+  "version": "0.2.0",
+  "private": false,
+  "description": "Simple client-side library retrieving and accessing ontology style/icon objects.",
+  "main": "./dist/ontology-icon-lib.cjs.js",
+  "files": [
+    "dist/*"
+  ],
+  "type": "module",
+  "module": "./dist/ontology-icon-lib.es.js",
+  "types": "./dist/ontology-icon-lib.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/ontology-icon-lib.es.js",
+      "require": "./dist/ontology-icon-lib.cjs.js",
+      "types": "./dist/ontology-icon-lib.d.ts"
+    }
+  },
+  "scripts": {
+    "test": "jest --runInBand ",
+    "build": "rm -rf ./dist && vite build",
+    "lint": "eslint **/*.ts",
+    "link": "yarn link",
+    "use-local-packages:link": "./scripts/use-local-packages.sh link",
+    "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
+  },
+  "publishConfig": {
+    "registry": "https://www.npmjs.com/",
+    "access": "public"
+  },
+  "dependencies": {
+    "@telicent-oss/ontologyservice": "0.32.0",
+    "lodash.startcase": "^4.4.0",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.4.0",
+    "@types/lodash.startcase": "^4.4.9",
+    "@types/node": "16.11.7",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typescript": "^5.5.4",
+    "vite": "^4.5.3",
+    "vite-plugin-dts": "^3.6.3",
+    "vite-tsconfig-paths": "^4.2.1",
+    "eslint": "^8.56.0"
+  },
+  "engines": {
+    "node": ">=20.14.0"
+  },
+  "resolutions": {
+    "rollup": "3.29.5"
+  }
+}

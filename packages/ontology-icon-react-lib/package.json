@@ -1,0 +1,87 @@
+{
+  "name": "@telicent-oss/ontology-icon-react-lib",
+  "version": "0.1.0",
+  "private": false,
+  "description": "React functionality for working with icons from @telicent/ontologyservice",
+  "main": "./dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.umd.js",
+      "types": "./dist/types.d.ts"
+    },
+    "./index": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.umd.cjs",
+      "types": "./dist/types.d.ts"
+    }
+  },
+  "types": "./dist/types.d.ts",
+  "scripts": {
+    "start": "vite",
+    "test": "jest --runInBand --verbose",
+    "build": "rm -rf ./dist && vite build",
+    "lint": "eslint **/*.ts",
+    "link": "yarn link",
+    "use-local-packages:link": "./scripts/use-local-packages.sh link",
+    "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
+  },
+  "dependencies": {
+    "@telicent-oss/ds": "0.13.0",
+    "@telicent-oss/ontology-icon-lib": "^0.3.0",
+    "@telicent-oss/rdfservice": "0.2.0",
+    "@telicent-oss/react-lib": "^0.4.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-error-boundary": "^4.0.12",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/react": "^14.0.0",
+    "@types/jest": "^29.4.0",
+    "@types/node": "16.11.7",
+    "@types/react": "^18.0.32",
+    "@types/react-dom": "^18.0.11",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typescript": "^5.5.4",
+    "vite": "^4.5.3",
+    "vite-plugin-dts": "^3.6.3",
+    "vite-tsconfig-paths": "^4.2.1",
+    "eslint": "^8.56.0"
+  },
+  "peerDependencies": {
+    "@telicent-oss/ds": "*",
+    "@telicent-oss/ontology-icon-lib": "*",
+    "@telicent-oss/rdfservice": "*",
+    "@telicent-oss/react-lib": "*",
+    "react": "*",
+    "react-dom": "*",
+    "react-error-boundary": "*",
+    "zod": "*"
+  },
+  "engines": {
+    "node": ">=20.14.0"
+  },
+  "resolutions": {
+    "rollup": "3.29.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

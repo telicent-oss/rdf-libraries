@@ -18,6 +18,7 @@
       "dom"
     ],
     "esModuleInterop": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "baseUrl": "."
   },

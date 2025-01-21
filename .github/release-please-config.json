@@ -1,4 +1,5 @@
 {
+  "// examples": "https://github.com/googleapis/release-please/tree/main/test/fixtures/manifest/config",
   "bootstrap-sha": "24485f3dd799664850813a7dfcc31d6043d8bf47",
   "packages": {
     "packages/RdfService/": {
@@ -34,6 +35,30 @@
       "release-type": "node"
     },
     "packages/ies-service/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
+    },
+    "packages/ontology-icon-lib/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
+    },
+    "packages/ontology-icon-react-lib/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
+    },
+    "packages/react-lib/": {
       "labels": [
         "autorelease: pending"
       ],

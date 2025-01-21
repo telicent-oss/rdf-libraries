@@ -1,7 +1,8 @@
 {
   "name": "@telicent-oss/catalogservice",
   "version": "0.0.2",
-  "private": false,
+  "// TEMP private": "needs merge to main",
+  "private": true,
   "description": "Simple client-side library for working with DCAT data.",
   "main": "./dist/catalogservice.js",
   "files": [
@@ -25,13 +26,18 @@
   "types": "./dist/types.d.ts",
   "scripts": {
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
-    "test": "jest --runInBand ",
+    "test": "jest --runInBand",
     "test:updateSnapshot": "yarn test -- --updateSnapshot",
     "test:100": "for i in {1..100}; do echo \"Test run: $i\" && yarn jest && sleep .5 || break; done",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
+    "link": "yarn link",
+    "use-local-packages:link": "./scripts/use-local-packages.sh link",
+    "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink",
     "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
-    "start:store": "yarn start:triple-store-for-local-dev-and-tests"
+    "start:store": "yarn start:triple-store-for-local-dev-and-tests",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -40,7 +46,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "0.0.6-TELFE654.0",
+    "@telicent-oss/rdfservice": "0.2.0",
     "@types/cors": "2.8.17",
     "cors": "2.8.5",
     "express": "4.19.2",
@@ -67,12 +73,16 @@
     "typescript": "^5.5.4",
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite-tsconfig-paths": "^4.2.1",
+    "eslint": "^8.56.0"
   },
   "engines": {
     "node": ">=20.14.0"
   },
   "resolutions": {
     "rollup": "3.29.5"
+  },
+  "publishConfig": {
+    "// TEMP DISABLED access": "public"
   }
 }

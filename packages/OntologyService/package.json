@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontologyservice",
-  "version": "0.31.3-TELFE654.0",
+  "version": "0.32.0",
   "private": false,
   "description": "Simple client-side library for working with RDF ontologies. Includes basic CRUD abilities and functions to help you navigate an ontology hierarchy.",
   "main": "./dist/ontologyservice.mjs",
@@ -22,7 +22,12 @@
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
     "publish:dry-run": "npm publish --access public --provenance --dry-run",
-    "lint": "eslint **/*.ts"
+    "lint": "eslint **/*.ts",
+    "link": "yarn link",
+    "use-local-packages:link": "./scripts/use-local-packages.sh link",
+    "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -31,7 +36,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "0.0.6-TELFE654.0",
+    "@telicent-oss/rdfservice": "0.2.0",
     "@types/lodash": "^4.17.13",
     "lodash": "^4.17.21",
     "zod": "^3.23.8"
@@ -43,16 +48,20 @@
     "eslint-plugin-tsdoc": "^0.2.17",
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",
-    "typescript": "^5.5.4",
     "testcontainers": "^10.14.0",
     "ts-jest": "^29.1.1",
     "tsc": "^2.0.4",
     "typedoc": "^0.25.3",
+    "typescript": "^5.5.4",
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite-tsconfig-paths": "^4.2.1",
+    "eslint": "^8.56.0"
   },
   "resolutions": {
     "rollup": "3.29.5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

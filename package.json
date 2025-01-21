@@ -8,7 +8,13 @@
     "build": "./scripts/run-packages.sh build",
     "generate-docs": "./scripts/run-packages.sh generate-docs",
     "open-docs": "./scripts/run-packages.sh open-docs",
-    "lint": "./scripts/run-packages.sh lint"
+    "lint": "./scripts/run-packages.sh lint",
+    "create-links-to-local-packages": "nx run-many --target=link --all",
+    "create-links": "yarn create-links-to-local-packages",
+    "use-local-packages:link": "nx run-many --target=use-local-packages:link --all",
+    "local:link": "yarn use-local-packages:link",
+    "use-local-packages:unlink": "nx run-many --target=use-local-packages:unlink --all",
+    "local:unlink": "yarn use-local-packages:unlink"
   },
   "private": true,
   "repository": {

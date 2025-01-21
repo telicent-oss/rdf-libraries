@@ -1,5 +1,5 @@
 import "jest-fetch-mock";
-import { RDFServiceConfig } from "@telicent-oss/RdfService";
+import { RDFServiceConfig } from "@telicent-oss/rdfservice";
 import {
   CatalogService,
 } from "../../../index";

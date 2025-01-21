@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/rdfservice",
-  "version": "0.0.6-TELFE654.0",
+  "version": "0.1.0",
   "private": false,
   "description": "RdfService is a helper library that abstracts away the complexity of interacting with RDF triplestores, providing basic CRUD abilities.",
   "main": "./dist/rdfservice.mjs",
@@ -27,7 +27,12 @@
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
     "publish:dry-run": "npm publish --access public --provenance --dry-run",
-    "lint": "eslint **/*.ts"
+    "lint": "eslint **/*.ts",
+    "link": "yarn link",
+    "use-local-packages:link": "./scripts/use-local-packages.sh link",
+    "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build"
   },
   "repository": {
     "type": "git",
@@ -49,7 +54,8 @@
     "typescript": "^5.5.4",
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite-tsconfig-paths": "^4.2.1",
+    "eslint": "^8.56.0"
   },
   "dependencies": {
     "global": "^4.4.0",
@@ -57,5 +63,8 @@
   },
   "resolutions": {
     "rollup": "3.29.5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
