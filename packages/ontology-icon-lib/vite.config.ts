@@ -9,12 +9,11 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "ontologyIconLib", // name used for UMD/IIFE scripts
-      formats: ["es", "cjs"], // or ["es", "cjs", "umd"] if you truly want UMD
+      formats: ["es", "cjs"], // or ["es", "cjs", "umd"] for UMD
       fileName: (format) => {
-        // Control the actual file names
         if (format === "es") return "ontology-icon-lib.es.js";
         if (format === "cjs") return "ontology-icon-lib.cjs.js"; 
-        return "ontology-icon-lib.umd.js"; // uncomment if needed
+        return "ontology-icon-lib.umd.js";
       }
     },
     sourcemap: true,
@@ -25,7 +24,6 @@ export default defineConfig({
     minify: false
   },
   plugins: [
-    // Generate types
     dts({ insertTypesEntry: true }) as PluginOption
   ]
 });
