@@ -28,10 +28,5 @@ jobs:
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
-      - run: yarn global add nx
-      # switch from projects to --all when ready
-      - uses: nrwl/nx-set-shas@v4
-      - run: yarn test --exclude="@telicent-oss/catalogservice" # TODO TELFE-873
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
+      - run: yarn install --frozen-lockfile
+      - run: yarn test:ci
