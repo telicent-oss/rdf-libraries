@@ -7,4 +7,4 @@ fi
 
 # Run lerna publish
 lerna publish \
-    --no-private --yes --exact --conventional-commits --no-git-tag-version --concurrency 1;
+    --no-private --yes --exact --conventional-commits --no-git-tag-version --concurrency 1 --verbose;
