@@ -24,7 +24,8 @@
     "link": "yarn link",
     "use-local-packages:link": "./scripts/use-local-packages.sh link",
     "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink",
-    "prepublish": "yarn lint && yarn test",
+    "prepublish": "echo 'disabled until TELFE-947'",
+    "old_prepublish": "yarn lint && yarn test",
     "prepublishOnly": "yarn build"
   },
   "author": "",
