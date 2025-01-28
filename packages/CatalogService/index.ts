@@ -83,7 +83,8 @@ export const getHashOrLastUrlSegment = (str?: string): string | undefined => {
   if (match && match[1]) {
       return match[1];
   } else {
-      throw new Error(`Input string "${str}" is not in the expected uri "Hash" or "Slash" format`);
+      console.warn(`Input string "${str}" is not in the expected uri "Hash" or "Slash" format`);
+      return str;
   }
 };
 
