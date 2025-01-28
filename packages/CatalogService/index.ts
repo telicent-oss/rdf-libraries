@@ -700,6 +700,7 @@ export class CatalogService extends RdfService {
     ],
     owner: DCATCatalog | DCATDataService | DCATDataset
   ): Promise<RankWrapper[]> {
+    // hm, no prefixes
     const query = `
             ${COMMON_PREFIXES}
 
