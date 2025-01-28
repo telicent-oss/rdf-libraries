@@ -24,7 +24,7 @@ export const createACLEDMock = async (options: {
       dcterms:title "ACLED Terms of Use & Attribution Policy - 17 October 2023" ] ;
       dcterms:title "acled"@en ;
       dcat:distribution tcat:acled_data_set_distribution ;
-      prov:qualifiedAttribution 
+      prov:attribution 
         [ 
           a prov:Attribution ;
           dcat:hadRole <http://standards.iso.org/iso/19115/resources/Codelist/cat/codelists.xml#CI_RoleCode/owner> ;

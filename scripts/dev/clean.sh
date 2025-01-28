@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 yarn cache clean;
-yarn test --clearCache;
 mvtmp ./node_modules;
 cd ./packages/CatalogService/; mvtmp ./node_modules; cd -;
 cd ./packages/OntologyService/; mvtmp ./node_modules; cd -;

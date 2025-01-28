@@ -4,7 +4,6 @@ import { Api } from "../apiFactory/apiFactory";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { setupContainer } from "./utils/setupContainer";
 import { SEC } from "../utils/constants";
-import { shorten } from "../utils/shorten/index";
 
 // !TODO Fix test
 // HOW
@@ -50,7 +49,7 @@ describe("apiFactory", () => {
       const res = await api.search({
         dataResourceFilters: ["all"],
         searchText: "data",
-      });
+      }, {});
       expect(res).toMatchInlineSnapshot(`
         [
           {
