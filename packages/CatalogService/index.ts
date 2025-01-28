@@ -78,7 +78,7 @@ export const getHashOrLastUrlSegment = (str?: string): string | undefined => {
   const regex = /(?:#|\/)([^#\/]*)$/;
 
   // Test the string against the regex pattern
-  const match = regex.exec(str);
+  const match = regex.exec(str); 
 
   if (match && match[1]) {
       return match[1];

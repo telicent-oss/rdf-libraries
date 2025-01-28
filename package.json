@@ -18,7 +18,8 @@
     "local:link": "yarn use-local-packages:link",
     "use-local-packages:unlink": "lerna run use-local-packages:unlink",
     "local:unlink": "yarn use-local-packages:unlink",
-    "use-links": "yarn use-links-to-local-packages"
+    "use-links": "yarn use-links-to-local-packages",
+    "version": "lerna version"
   },
   "private": true,
   "repository": {
