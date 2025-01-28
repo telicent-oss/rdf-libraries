@@ -6,5 +6,4 @@ if ! git diff-index --quiet HEAD --; then
 fi
 
 # Run lerna publish
-lerna publish \
-    --no-private --yes --exact --conventional-commits --no-git-tag-version --concurrency 1 --verbose;
+lerna publish from-package --no-private --yes --no-private  --concurrency 1;
