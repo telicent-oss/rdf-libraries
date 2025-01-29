@@ -49,7 +49,7 @@ const assertModuleOntologyService = () => {
 
 export const init = async (
   ontologyServicePromise: Promise<OntologyService>
-):Promise<void> => {
+):Promise<IconType[]> => {
   moduleOntologyService = await ontologyServicePromise;
   assertModuleOntologyService()
   moduleOntologyService.getStyles([])
@@ -58,6 +58,7 @@ export const init = async (
     .catch(err => moduleStylesPromiseCallbackReject(err));
 
   moduleStyles = await moduleStylesPromise;
+  return moduleStyles;
 };
 
 export const findByClassUri = (maybeClassUri: string) => {

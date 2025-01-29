@@ -85,6 +85,22 @@ Developer notes:
 
 </details>
 
+
+Build develop linked packages with separate (app) repo:
+```sh
+cd ~/projects/app
+yarn install
+
+cd ./node_modules/react && yarn link && cd -
+cd ./node_modules/react-dom && yarn link && cd -
+
+cd ~/projects/rdf-libraries
+yarn install
+yarn create-links # create symlinks
+yarn use:links # use symlinks e.g. to react
+
+```
+
 ## Package naming
 
 ### Aims:
