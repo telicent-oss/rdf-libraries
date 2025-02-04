@@ -5,9 +5,13 @@ if ! git diff-index --quiet HEAD --; then
     exit 1
 fi
 
+# Run lerna version
+lerna version \
+    --no-private \
+    --conventional-commits \
+    --no-git-tag-version \
+    --concurrency 1 \
+    --no-commit-hooks \
+    $@;
 
-
-
-
-# Run lerna publish
-lerna publish from-package --no-private --yes --no-private  --concurrency 1
+./scripts/lerna/check-versions.sh

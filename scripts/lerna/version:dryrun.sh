@@ -7,11 +7,16 @@ fi
 
 # Run lerna version
 lerna version \
-    --no-private --yes --exact --conventional-commits --no-git-tag-version --concurrency 1 \
-    --no-push --no-commit-hooks;
+    --no-private \
+    --conventional-commits \
+    --no-git-tag-version \
+    --concurrency 1 \
+    --yes \
+    --no-push \
+    --no-commit-hooks;
 
 # Display the diff to show what would be committed
-git diff
+git diff && git ls-files --others --exclude-standard | xargs -I {} git diff -- /dev/null {}
 
 # Revert changes
 git stash push --include-untracked -- \
