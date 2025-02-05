@@ -33,6 +33,18 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
+      - name: Check NPM Token Permissions
+        run: |
+          echo "Checking npm token permissions..."
+          TOKEN_PERMISSIONS=$(npm token list --json | jq -r '.[] | select(.token | endswith("${{ secrets.NPM_REGISTRY_TOKEN[-4:] }}")) | .read, .write')
+          if [[ "$TOKEN_PERMISSIONS" != "true true" ]]; then
+            echo "Token does not have required read and write permissions."
+            exit 1
+          else
+            echo "Token permissions are adequate."
+          fi
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
       - run: yarn publish:ci
         env:
