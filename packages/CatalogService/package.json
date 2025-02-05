@@ -83,6 +83,6 @@
     "rollup": "3.29.5"
   },
   "publishConfig": {
-    "// TEMP DISABLED access": "public"
+    "access": "public"
   }
 }
