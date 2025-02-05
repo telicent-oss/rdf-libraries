@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+
+# Check if NODE_AUTH_TOKEN is set
+if [ -z "$NODE_AUTH_TOKEN" ]; then
+    echo "Error: NODE_AUTH_TOKEN is not set. Exiting."
+    exit 1
+fi
+
 yarn build
 
 # Check for uncommitted changes in the git working directory
@@ -8,4 +15,4 @@ if ! git diff-index --quiet HEAD --; then
 fi
 
 # Run lerna publish
-lerna publish from-package --no-private --yes --no-private  --concurrency 1
+lerna publish from-package --no-private --yes --concurrency 1
