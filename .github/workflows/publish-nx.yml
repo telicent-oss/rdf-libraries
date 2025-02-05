@@ -34,7 +34,9 @@ jobs:
         with:
           node-version: 20.14
           # Note: The "registry-url" here doesn't affect Yarn
-      
+      - run: |
+          FIRST4="$(echo "${{ secrets.NPM_REGISTRY_TOKEN }}" | cut -c1-4)"
+          echo "NPM_REGISTRY_TOKEN=${FIRST4}..."
       - run: yarn --version  # verify version instgalled by setup-node
       - run: yarn install --frozen-lockfile
       - name: Validate NPM Token for Publishing
