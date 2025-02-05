@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+yarn build
+
 # Check for uncommitted changes in the git working directory
 if ! git diff-index --quiet HEAD --; then
     echo "Error: Uncommitted changes detected. Please commit or stash them."
