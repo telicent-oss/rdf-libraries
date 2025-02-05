@@ -15,4 +15,4 @@ if ! git diff-index --quiet HEAD --; then
 fi
 
 # Run lerna publish
-lerna publish from-package --no-private --yes --concurrency 1 --verbose
+lerna publish from-package --no-private --yes --concurrency 1 --loglevel verbose
