@@ -33,13 +33,22 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - name: Check NPM Token Permissions
+      - name: Validate NPM Token for Publishing
         run: |
-          if [ -z "${{ secrets.NPM_REGISTRY_TOKEN }}" ]; then
-            echo "ERROR: NPM_REGISTRY_TOKEN is not set."
-            exit 1
+          npm config set //registry.npmjs.org/:_authToken "$NPM_REGISTRY_TOKEN"
+
+          TMP_DIR=$(mktemp -d)
+          cd "$TMP_DIR"
+
+          NAME="@temp/dummy-publish-test-$(date +%s%N)"
+          echo "{\"name\": \"$NAME\", \"version\": \"1.0.0\"}" > package.json
+
+          # Attempt a dry-run publish; no package is actually published.
+          if npm publish --dry-run > /dev/null 2>&1; then
+            echo "Token is valid for publishing."
           else
-            echo "NPM_REGISTRY_TOKEN is set."
+            echo "Token does not have publishing permissions or is expired." >&2
+            exit 1
           fi
       - run: yarn install --frozen-lockfile
       - run: yarn publish:ci
