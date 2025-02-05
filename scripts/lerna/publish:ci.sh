@@ -14,11 +14,7 @@ echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
 # Add the token to .npmrc (read by Yarn and underlying npm calls)
 echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
 
-#######################################
-# 3. Build (optional) - If your repo needs a build step here, do it
-#######################################
-echo "Building packages..."
-yarn build  # remove or adjust if not needed
+yarn build
 
 # 4. Check for uncommitted changes
 if ! git diff-index --quiet HEAD --; then
