@@ -11,7 +11,7 @@ fi
 
 # Configure npm to use the token
 npm config set //registry.npmjs.org/:_authToken "$NODE_AUTH_TOKEN"
-
+npm config get registry
 # Verify authentication
 echo "Checking npm authentication..."
 if ! npm whoami &> /dev/null; then
