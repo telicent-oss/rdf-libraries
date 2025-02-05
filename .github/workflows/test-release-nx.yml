@@ -28,5 +28,5 @@ jobs:
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: yarn install --frozen-lockfile
-      - run: yarn install --frozen-lockfile
+      - run: yarn build
       - run: yarn test:ci
