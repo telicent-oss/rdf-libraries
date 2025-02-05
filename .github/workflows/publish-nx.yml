@@ -33,30 +33,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.14
-          # Note: The "registry-url" here doesn't affect Yarn,
-          # which we will install and configure separately below.
+          # Note: The "registry-url" here doesn't affect Yarn
       
-      - name: Install Yarn 1.22.22
-        run: |
-          npm install -g yarn@1.22.22
-          yarn --version  # verify the pinned version
-
-      - name: Install Dependencies
-        run: yarn install --frozen-lockfile
-
+      - run: yarn --version  # verify version instgalled by setup-node
+      - run: yarn install --frozen-lockfile
       - name: Validate NPM Token for Publishing
         env:
           YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
         run: |
-          # A quick check to ensure your token can do a dry-run publish
-          # using Yarn's default publish logic
+          # A quick check to ensure token dry-run publish
           mkdir dummy && cd dummy
           yarn init -y
           yarn config set registry "https://registry.npmjs.org/"
           echo "//registry.npmjs.org/:_authToken=$YARN_AUTH_TOKEN" >> ~/.npmrc
-
-          # Attempt a yarn publish --dry-run
-          # Yarn v1 doesn't have a built-in --dry-run, so we do an npm publish fallback:
           if npm publish --dry-run > /dev/null 2>&1; then
             echo "Token is valid for publishing (dry-run succeeded)."
           else
@@ -65,15 +54,10 @@ jobs:
           fi
 
       - name: Check read permissions for all packages
-        run: |
-          # Use lerna exec, but rely on Yarn to do the internal npm registry ops:
+        run: 
           npx lerna exec -- sh -c 'PACKAGE=$(node -p "require(\"./package.json\").name"); echo "Checking read access for $PACKAGE"; yarn info "$PACKAGE" version'
 
-      - name: Publish
-        run: |
-          # Run our publish script below
-          chmod +x ./scripts/publish-yarn-from-package.sh
-          ./scripts/publish-yarn-from-package.sh
+      - run: ./scripts/lerna/publish:ci.sh
         env:
           YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
