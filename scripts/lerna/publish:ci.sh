@@ -1,53 +1,67 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
-# Check if NODE_AUTH_TOKEN is set
-if [ -z "$NODE_AUTH_TOKEN" ]; then
-    echo "Error: NODE_AUTH_TOKEN is not set. Exiting."
-    exit 1
+##
+# 1. Ensure npm token is set
+##
+if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+  echo "Error: NODE_AUTH_TOKEN environment variable is not set. Exiting."
+  exit 1
 fi
 
-# Setup npm with the token to verify authentication
+# Configure npm to use the token
 npm config set //registry.npmjs.org/:_authToken "$NODE_AUTH_TOKEN"
 
-# Verify npm token by performing a lightweight registry operation
-echo "Checking npm authentication status..."
-if npm whoami --registry $(npm config get registry); then
-    echo "Authentication successful."
-else
-    echo "Authentication failed. Please check the NODE_AUTH_TOKEN."
-    exit 1
+# Verify authentication
+echo "Checking npm authentication..."
+if ! npm whoami &> /dev/null; then
+  echo "Error: npm whoami failed. Token may be invalid or missing required permissions."
+  exit 1
 fi
+echo "Authenticated as $(npm whoami)."
 
+##
+# 2. Optional build step before publishing
+##
+echo "Building packages..."
 yarn build
 
-# Check for uncommitted changes in the git working directory
+##
+# 3. Check for uncommitted changes
+##
 if ! git diff-index --quiet HEAD --; then
-    echo "Error: Uncommitted changes detected. Please commit or stash them."
-    exit 1
+  echo "Error: Uncommitted changes detected. Please commit or stash them before publishing."
+  exit 1
 fi
 
-# Detect the registry from npm config
-REGISTRY=$(npm config get registry || echo "https://registry.npmjs.org/")
-echo "Using registry: $REGISTRY"
-echo "Checking local versions against the registry..."
+##
+# 4. Compare local versions against the registry
+##
+REGISTRY_URL=$(npm config get registry || echo "https://registry.npmjs.org/")
+echo "Using registry: $REGISTRY_URL"
+echo "Comparing local versions to what's published..."
 
-# Loop over all Lerna packages, extracting name and version from package.json
-npx lerna list --json | jq -c '.[]' | while read -r pkg; do
+PACKAGES_JSON=$(npx lerna list --json)
+echo "$PACKAGES_JSON" | jq -c '.[]' | while read -r pkg; do
   NAME=$(echo "$pkg" | jq -r '.name')
   VERSION=$(echo "$pkg" | jq -r '.version')
 
   echo "==> Checking $NAME@$VERSION..."
+  VERSIONS_JSON=$(npm view "$NAME" versions --json 2>/dev/null || echo "[]")
 
-  # Attempt to fetch all versions of this package from the registry
-  REGISTRY_VERSIONS="$(npm view "$NAME" versions --json 2>/dev/null || echo "[]")"
-
-  # Check if the local version is in the JSON array of published versions
-  if echo "$REGISTRY_VERSIONS" | grep -q "\"$VERSION\""; then
-    echo "    Already published in registry."
+  if echo "$VERSIONS_JSON" | grep -q "\"$VERSION\""; then
+    echo "    Already published on $REGISTRY_URL."
   else
-    echo "    NOT published in registry (Lerna from-package would publish this version)."
+    echo "    NOT published on $REGISTRY_URL (Lerna from-package will publish this version)."
   fi
 done
 
-# Run lerna publish
-lerna publish from-package --no-private --yes --concurrency=1 --loglevel=silly
+##
+# 5. Publish using Lerna from-package
+##
+echo "Running lerna publish..."
+lerna publish from-package \
+  --no-private \
+  --yes \
+  --concurrency 1 \
+  --loglevel silly
