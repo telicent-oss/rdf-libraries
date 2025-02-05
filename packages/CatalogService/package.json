@@ -83,6 +83,7 @@
     "rollup": "3.29.5"
   },
   "publishConfig": {
+    "registry": "https://www.npmjs.com/",
     "access": "public"
   }
 }
