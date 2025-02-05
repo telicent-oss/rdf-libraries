@@ -50,6 +50,10 @@ jobs:
             echo "Token does not have publishing permissions or is expired." >&2
             exit 1
           fi
+      - name: Check read permissions for all packages
+        run: |
+          npm config set //registry.npmjs.org/:_authToken "${{ secrets.NPM_REGISTRY_TOKEN }}"
+          npx lerna exec -- sh -c 'PACKAGE=$(node -p "require(\"./package.json\").name"); echo "Checking read access for $PACKAGE"; npm view "$PACKAGE" version'
       - run: yarn install --frozen-lockfile
       - run: yarn publish:ci
         env:
