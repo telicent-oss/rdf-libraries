@@ -21,7 +21,6 @@ fi
 
 # 5. Run Lerna from-package with Yarn
 yarn lerna publish from-package \
-  --npm-client yarn \
   --registry "https://registry.npmjs.org/" \
   --no-private \
   --yes \
