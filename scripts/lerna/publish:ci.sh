@@ -62,6 +62,7 @@ done
 ##
 echo "Running lerna publish..."
 lerna publish from-package \
+  --registry "https://registry.npmjs.org/" \
   --no-private \
   --yes \
   --concurrency 1 \

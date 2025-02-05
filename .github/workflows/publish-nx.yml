@@ -30,6 +30,8 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
+      - run: yarn --version
+      - run: yarn config list
       - name: Validate NPM Token for Publishing
         run: |
           TMP_DIR=$(mktemp -d)
