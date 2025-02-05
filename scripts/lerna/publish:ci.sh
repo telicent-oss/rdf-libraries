@@ -41,5 +41,4 @@ done
 
 
 # Run lerna publish
-lerna publish \
-    --no-private --yes --exact --conventional-commits --no-git-tag-version --concurrency 1;
+lerna publish from-package --no-private --yes --concurrency=1 --loglevel=silly
