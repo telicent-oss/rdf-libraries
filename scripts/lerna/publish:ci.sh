@@ -6,6 +6,18 @@ if [ -z "$NODE_AUTH_TOKEN" ]; then
     exit 1
 fi
 
+# Setup npm with the token to verify authentication
+npm config set //registry.npmjs.org/:_authToken "$NODE_AUTH_TOKEN"
+
+# Verify npm token by performing a lightweight registry operation
+echo "Checking npm authentication status..."
+if npm whoami --registry $(npm config get registry); then
+    echo "Authentication successful."
+else
+    echo "Authentication failed. Please check the NODE_AUTH_TOKEN."
+    exit 1
+fi
+
 yarn build
 
 # Check for uncommitted changes in the git working directory
@@ -14,10 +26,8 @@ if ! git diff-index --quiet HEAD --; then
     exit 1
 fi
 
-
-# Detect the registry from npm config.
+# Detect the registry from npm config
 REGISTRY=$(npm config get registry || echo "https://registry.npmjs.org/")
-
 echo "Using registry: $REGISTRY"
 echo "Checking local versions against the registry..."
 
@@ -38,7 +48,6 @@ npx lerna list --json | jq -c '.[]' | while read -r pkg; do
     echo "    NOT published in registry (Lerna from-package would publish this version)."
   fi
 done
-
 
 # Run lerna publish
 lerna publish from-package --no-private --yes --concurrency=1 --loglevel=silly
