@@ -1,4 +1,4 @@
-name: Publish NX (via Yarn v1.22.22)
+name: publish-nx.yml
 
 on:
   workflow_dispatch:
@@ -33,10 +33,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20.14
-          # Note: The "registry-url" here doesn't affect Yarn
+          # Note: The "registry-url" here doesn't populate .yarnrc :|
       - run: |
-          FIRST4="$(echo "${{ secrets.NPM_REGISTRY_TOKEN }}" | cut -c1-4)"
-          echo "NPM_REGISTRY_TOKEN=${FIRST4}..."
+          echo "NPM_REGISTRY_TOKEN: $(echo -n "${{ secrets.NPM_REGISTRY_TOKEN }}" | tail -c 4)"
       - run: yarn --version  # verify version instgalled by setup-node
       - run: yarn install --frozen-lockfile
       - name: Validate NPM Token for Publishing
