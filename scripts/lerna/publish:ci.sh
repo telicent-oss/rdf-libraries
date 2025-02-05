@@ -41,4 +41,4 @@ done
 
 
 # Run lerna publish
-lerna publish --no-private --yes --concurrency 1 --loglevel verbose
+lerna publish from-package --no-private --yes --concurrency 1 --loglevel verbose
