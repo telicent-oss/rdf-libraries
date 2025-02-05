@@ -11,6 +11,10 @@ fi
 yarn config set registry "https://registry.npmjs.org/"
 echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
 
+##
+# 2. Optional build step before publishing
+##
+echo "Building packages..."
 yarn build
 
 # 4. Check for uncommitted changes
