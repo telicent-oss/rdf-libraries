@@ -1,56 +1,79 @@
-name: publish-nx.yml
+name: Publish NX (via Yarn v1.22.22)
+
 on:
-  workflow_call:
   workflow_dispatch:
   push:
+
 permissions:
   actions: read
   contents: read
-  id-token: write # needed for provenance data generation
+  id-token: write  # needed for provenance data generation
 
 jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - run: git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-      - run: git config --global user.name "${{ github.actor }}"
+      - name: Set Git Config
+        run: |
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{ github.actor }}"
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # - uses: actions/cache@v4
-      #   with:
-      #     path: |
-      #       node_modules
-      #       packages/*/node_modules
-      #     key: ${{ runner.os }}-yarn-${{ hashFiles('./yarn.lock') }}
-      #     restore-keys: ${{ runner.os }}-yarn-
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            node_modules
+            packages/*/node_modules
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: ${{ runner.os }}-yarn-
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20.14
-          registry-url: 'https://registry.npmjs.org/'
-          scope: 'telicent-oss'
-          token: ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: yarn --version
-      - run: yarn config list
-      - name: Validate NPM Token for Publishing
+          # Note: The "registry-url" here doesn't affect Yarn,
+          # which we will install and configure separately below.
+      
+      - name: Install Yarn 1.22.22
         run: |
-          TMP_DIR=$(mktemp -d)
-          cd "$TMP_DIR"
+          npm install -g yarn@1.22.22
+          yarn --version  # verify the pinned version
 
-          NAME="@temp/dummy-publish-test-$(date +%s%N)"
-          echo "{\"name\": \"$NAME\", \"version\": \"1.0.0\"}" > package.json
+      - name: Install Dependencies
+        run: yarn install --frozen-lockfile
 
-          # Attempt a dry-run publish; no package is actually published.
+      - name: Validate NPM Token for Publishing
+        env:
+          YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+        run: |
+          # A quick check to ensure your token can do a dry-run publish
+          # using Yarn's default publish logic
+          mkdir dummy && cd dummy
+          yarn init -y
+          yarn config set registry "https://registry.npmjs.org/"
+          echo "//registry.npmjs.org/:_authToken=$YARN_AUTH_TOKEN" >> ~/.npmrc
+
+          # Attempt a yarn publish --dry-run
+          # Yarn v1 doesn't have a built-in --dry-run, so we do an npm publish fallback:
           if npm publish --dry-run > /dev/null 2>&1; then
-            echo "Token is valid for publishing."
+            echo "Token is valid for publishing (dry-run succeeded)."
           else
-            echo "Token does not have publishing permissions or is expired." >&2
+            echo "Token does not have publishing permissions or is invalid."
             exit 1
           fi
+
       - name: Check read permissions for all packages
         run: |
-          npx lerna exec -- sh -c 'PACKAGE=$(node -p "require(\"./package.json\").name"); echo "Checking read access for $PACKAGE"; npm view "$PACKAGE" version'
-      - run: yarn install --frozen-lockfile
-      - run: yarn publish:ci
+          # Use lerna exec, but rely on Yarn to do the internal npm registry ops:
+          npx lerna exec -- sh -c 'PACKAGE=$(node -p "require(\"./package.json\").name"); echo "Checking read access for $PACKAGE"; yarn info "$PACKAGE" version'
+
+      - name: Publish
+        run: |
+          # Run our publish script below
+          chmod +x ./scripts/publish-yarn-from-package.sh
+          ./scripts/publish-yarn-from-package.sh
         env:
+          YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

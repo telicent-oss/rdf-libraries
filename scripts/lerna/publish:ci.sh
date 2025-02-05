@@ -1,67 +1,44 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-##
-# 1. Ensure npm token is set
-##
-if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-  echo "Error: NODE_AUTH_TOKEN environment variable is not set. Exiting."
+#######################################
+# 1. Ensure the Yarn/NPM auth token is set
+#######################################
+if [ -z "${YARN_AUTH_TOKEN:-}" ]; then
+  echo "Error: YARN_AUTH_TOKEN environment variable is not set. Exiting."
   exit 1
 fi
 
-# Configure npm to use the token
-npm config set //registry.npmjs.org/:_authToken "$NODE_AUTH_TOKEN"
-npm config set registry "https://registry.npmjs.org/"
-npm config get registry
-# Verify authentication
-echo "Checking npm authentication..."
-if ! npm whoami &> /dev/null; then
-  echo "Error: npm whoami failed. Token may be invalid or missing required permissions."
-  exit 1
-fi
-echo "Authenticated as $(npm whoami)."
+#######################################
+# 2. Configure Yarn registry and token
+#######################################
+# Yarn v1 uses registry.yarnpkg.com by default, so override it:
+yarn config set registry "https://registry.npmjs.org/"
 
-##
-# 2. Optional build step before publishing
-##
+# Add the token to .npmrc (read by Yarn and underlying npm calls)
+echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
+
+#######################################
+# 3. Build (optional) - If your repo needs a build step here, do it
+#######################################
 echo "Building packages..."
-yarn build
+yarn build  # remove or adjust if not needed
 
-##
-# 3. Check for uncommitted changes
-##
+#######################################
+# 4. Check for uncommitted changes (optional but recommended)
+#######################################
 if ! git diff-index --quiet HEAD --; then
-  echo "Error: Uncommitted changes detected. Please commit or stash them before publishing."
+  echo "Error: Uncommitted changes detected. Commit or stash them before publishing."
   exit 1
 fi
 
-##
-# 4. Compare local versions against the registry
-##
-REGISTRY_URL=$(npm config get registry || echo "https://registry.npmjs.org/")
-echo "Using registry: $REGISTRY_URL"
-echo "Comparing local versions to what's published..."
-
-PACKAGES_JSON=$(npx lerna list --json)
-echo "$PACKAGES_JSON" | jq -c '.[]' | while read -r pkg; do
-  NAME=$(echo "$pkg" | jq -r '.name')
-  VERSION=$(echo "$pkg" | jq -r '.version')
-
-  echo "==> Checking $NAME@$VERSION..."
-  VERSIONS_JSON=$(npm view "$NAME" versions --json 2>/dev/null || echo "[]")
-
-  if echo "$VERSIONS_JSON" | grep -q "\"$VERSION\""; then
-    echo "    Already published on $REGISTRY_URL."
-  else
-    echo "    NOT published on $REGISTRY_URL (Lerna from-package will publish this version)."
-  fi
-done
-
-##
-# 5. Publish using Lerna from-package
-##
-echo "Running lerna publish..."
-lerna publish from-package \
+#######################################
+# 5. Run Lerna from-package with Yarn
+#######################################
+echo "Running Lerna publish in from-package mode (Yarn 1.22.x) ..."
+# --npm-client yarn ensures it uses Yarn for underlying dependency or lifecycle script calls
+yarn lerna publish from-package \
+  --npm-client yarn \
   --registry "https://registry.npmjs.org/" \
   --no-private \
   --yes \
