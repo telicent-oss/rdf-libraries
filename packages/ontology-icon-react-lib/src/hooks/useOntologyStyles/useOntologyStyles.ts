@@ -4,12 +4,16 @@ import { useEffect, useState } from 'react';
 
 
 export function useOntologyStyles() {
-  const [styles, setStyles] = useState<IconType[] | null>(ontologyIconLib.moduleStyles || null);
+  const [styles, setStyles] = useState<IconType[]>(ontologyIconLib.moduleStyles || []);
   const [isLoading, setIsLoading] = useState(true);
   const findIcon = ontologyIconLib.findByClassUri;
 
   useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
     ontologyIconLib.moduleStylesPromise.then((loadedStyles) => {
+      if (!Array.isArray(loadedStyles)) {
+        throw new Error(`useOntologyStyles interally expected moduleStylesPromise to load array of ontology styles, instead got ${loadedStyles}`);
+      }
       setStyles(loadedStyles);
       setIsLoading(false);
     });
