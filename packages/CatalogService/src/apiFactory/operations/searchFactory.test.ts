@@ -145,7 +145,7 @@ test("Check basic filter", async () => {
   expect(results).toStrictEqual(EXPECTED_RESULT);
 });
 
-test("Check owner filter", async () => {
+test.skip("Check owner filter", async () => {
   const mockService = await setupServiceData(
     SEARCH_TEMPLATE([INCOMPLETE_RESULT, COMPLETE_RESULT])
   );

@@ -13,14 +13,7 @@ lerna version \
     --conventional-commits \
     --no-git-tag-version \
     --concurrency 1 \
-    --yes \
-    --no-push \
-    --no-commit-hooks;
+    --no-commit-hooks \
+    $@;
 
-# Display the diff to show what would be committed
-git diff && git ls-files --others --exclude-standard | xargs -I {} git diff -- /dev/null {}
-
-# Revert changes
-git stash push --include-untracked -- \
-    ./packages/*/package.json \
-    ./packages/*/CHANGELOG.md
+./scripts/lerna/check-versions.sh

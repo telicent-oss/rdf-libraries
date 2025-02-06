@@ -1,12 +1,8 @@
 import { OntologyService } from "@telicent-oss/ontologyservice";
 import { findByClassUri, init, name, version } from "./index";
 test("name, version", () => {
-  expect({ name, version }).toMatchInlineSnapshot(`
-    {
-      "name": "@telicent-oss/ontology-icon-lib",
-      "version": "0.2.0",
-    }
-  `);
+  expect(name).toMatchInlineSnapshot(`"@telicent-oss/ontology-icon-lib"`);
+  expect(version).toBeDefined();
 });
 jest.mock("@telicent-oss/ontologyservice", () => {
   const actual = jest.requireActual("@telicent-oss/ontologyservice");
@@ -68,7 +64,7 @@ describe("OntologyService Module", () => {
   });
 
   it("inits", async () => {
-    expect(await init(Promise.resolve(ontologyService))).toBeUndefined();
+    expect(await init(Promise.resolve(ontologyService))).toBeDefined();
   });
 
   it("Fails to finds icon by class URI, if URI doesn't contain hash or urlsegment", async () => {

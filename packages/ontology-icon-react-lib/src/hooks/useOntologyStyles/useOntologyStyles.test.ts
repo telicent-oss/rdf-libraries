@@ -14,7 +14,7 @@ describe("useOntologyStyles", () => {
   it("initially sets isLoading to true and styles to null", async () => {
     const { result } = renderHook(() => useOntologyStyles());
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.styles).toBeNull();
+    expect(result.current.styles).toEqual([]);
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);

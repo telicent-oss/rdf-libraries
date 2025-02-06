@@ -8,7 +8,6 @@
     "test": "lerna run test",
     "test:ci": "yarn test --ignore @telicent-oss/catalogservice",
     "build": "lerna run build",
-    "version:dryrun": "./scripts/lerna/version:dryrun.sh",
     "publish:ci": "./scripts/lerna/publish:ci.sh",
     "generate-docs": "lerna run generate-docs",
     "open-docs": "lerna run open-docs",
@@ -18,7 +17,13 @@
     "local:link": "yarn use-local-packages:link",
     "use-local-packages:unlink": "lerna run use-local-packages:unlink",
     "local:unlink": "yarn use-local-packages:unlink",
-    "use-links": "yarn use-links-to-local-packages"
+    "use-links": "yarn use-links-to-local-packages",
+    "build:changed": "lerna run build --since HEAD~1 --include-dependents",
+    "test:changed": "lerna run test --since HEAD~1 --include-dependents",
+    "changed": "lerna changed --loglevel=silent",
+    "version:dryrun": "./scripts/lerna/version:dryrun.sh",
+    "version:auto": "./scripts/lerna/version.sh --yes",
+    "version:manual": "./scripts/lerna/version.sh"
   },
   "private": true,
   "repository": {

@@ -68,6 +68,9 @@ export const COMPLETE_RESULT_EXPECTED_RETURN = {
   modified: "-",
   publishDate: "-",
   accessRights: "-",
+  attributionAgentStr: "-",
+
+  attributionRole: "-",
   owner: "http://telicent.io/catalog#test_data_dataset",
   creator: "Tom @ Telicent",
   type: "http://www.w3.org/ns/dcat#Dataset",
@@ -94,6 +97,9 @@ export const INCOMPLETE_RESULT_EXPECTED_RETURN = {
   modified: "-",
   publishDate: "-",
   accessRights: "-",
+  attributionAgentStr: "-",
+
+  attributionRole: "-",
   owner: "-",
   creator: "-",
   type: "http://www.w3.org/ns/dcat#Catalog",
@@ -145,6 +151,9 @@ export const ADDITIONAL_RESULT_EXPECTED_RETURN = {
   modified: "-",
   publishDate: "-",
   accessRights: "-",
+  attributionAgentStr: "-",
+
+  attributionRole: "-",
   owner: "-",
   creator: "Tom @ Telicent",
   type: "http://www.w3.org/ns/dcat#Dataset",
