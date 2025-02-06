@@ -25,4 +25,5 @@ yarn lerna publish from-package \
   --no-private \
   --yes \
   --concurrency 1 \
-  --loglevel silly
+  --loglevel silly \
+  --dryrun

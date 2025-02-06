@@ -34,30 +34,7 @@ jobs:
         with:
           node-version: 20.14
           # Note: The "registry-url" here doesn't populate .yarnrc :|
-      - run: |
-          echo "NPM_REGISTRY_TOKEN: $(echo -n "${{ secrets.NPM_REGISTRY_TOKEN }}" | tail -c 4)"
-      - run: yarn --version  # verify version instgalled by setup-node
       - run: yarn install --frozen-lockfile
-      - name: Validate NPM Token for Publishing
-        env:
-          YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-        run: |
-          # A quick check to ensure token dry-run publish
-          mkdir dummy && cd dummy
-          yarn init -y
-          yarn config set registry "https://registry.npmjs.org/"
-          echo "//registry.npmjs.org/:_authToken=$YARN_AUTH_TOKEN" >> ~/.npmrc
-          if npm publish --dry-run > /dev/null 2>&1; then
-            echo "Token is valid for publishing (dry-run succeeded)."
-          else
-            echo "Token does not have publishing permissions or is invalid."
-            exit 1
-          fi
-
-      - name: Check read permissions for all packages
-        run: 
-          npx lerna exec -- sh -c 'PACKAGE=$(node -p "require(\"./package.json\").name"); echo "Checking read access for $PACKAGE"; yarn info "$PACKAGE" version'
-
       - run: ./scripts/lerna/publish:ci.sh
         env:
           YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
