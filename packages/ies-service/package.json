@@ -50,7 +50,7 @@
     "@microsoft/tsdoc": "^0.14.2",
     "@types/diff": "^5.2.2",
     "@types/jest": "^29.4.0",
-    "@types/node": "16.11.7",
+    "@types/node": "22.13.1",
     "@types/tcp-port-used": "^1.0.4",
     "diff": "^7.0.0",
     "eslint-plugin-tsdoc": "^0.2.17",
