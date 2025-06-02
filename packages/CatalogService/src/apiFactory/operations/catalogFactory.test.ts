@@ -29,6 +29,13 @@ import {
   QUERY_STRING,
   TEMPLATE_RESULT,
 } from "./mock_catalog_query_data";
+
+const spies = {
+  console: {
+    warn: jest.spyOn(console, "warn").mockImplementation(() => undefined),
+  },
+};
+
 class MockCatalogService {
   runQuery(query: string) {
     return {};
@@ -38,6 +45,10 @@ const runQuerySpy = jest.spyOn(MockCatalogService.prototype, "runQuery");
 
 beforeEach(() => {
   runQuerySpy.mockClear();
+});
+
+afterAll(() => {
+  expect(spies.console.warn.mock.calls).toMatchInlineSnapshot(`[]`);
 });
 
 const setupServiceData = async (
