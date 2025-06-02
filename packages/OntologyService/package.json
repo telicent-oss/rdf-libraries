@@ -24,6 +24,7 @@
     "publish:dry-run": "npm publish --access public --provenance --dry-run",
     "lint": "eslint **/*.ts",
     "link": "yarn link",
+    "local-publish": "git add --all && yarn build && npm publish  --registry http://localhost:4873 --prepatch",
     "use-local-packages:link": "./scripts/use-local-packages.sh link",
     "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink",
     "prepublish": "yarn lint && yarn test",

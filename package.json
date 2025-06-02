@@ -12,11 +12,13 @@
     "publish:ci": "./scripts/lerna/publish:ci.sh",
     "generate-docs": "lerna run generate-docs",
     "open-docs": "lerna run open-docs",
+    "preinstall": "cp ./LICENSE",
     "create-links-to-local-packages": "lerna run link",
     "create-links": "yarn create-links-to-local-packages",
     "use-local-packages:link": "lerna run use-local-packages:link",
     "local:link": "yarn use-local-packages:link",
     "use-local-packages:unlink": "lerna run use-local-packages:unlink",
+    "local-publish": "./scripts/local-publish.sh",
     "local:unlink": "yarn use-local-packages:unlink",
     "use-links": "yarn use-links-to-local-packages"
   },
