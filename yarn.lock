@@ -2822,15 +2822,6 @@
     lodash.startcase "^4.4.0"
     zod "^3.22.4"
 
-"@telicent-oss/ontology-icon-lib@^0.3.0":
-  version "0.3.0"
-  resolved "https://registry.yarnpkg.com/@telicent-oss/ontology-icon-lib/-/ontology-icon-lib-0.3.0.tgz#599ce4a5b82afac743c40172b4f4a0a2a9667267"
-  integrity sha512-dqxDBE4U4jrVs0b8xue705EChryWMSC8GyNy1ZB4LrYcSHwPGm3+KhMGTU4gZKonAZk944u63vXbgIFAQiMjiw==
-  dependencies:
-    "@telicent-oss/ontologyservice" "0.31.3-TELFE654.0"
-    lodash.startcase "^4.4.0"
-    zod "^3.22.4"
-
 "@telicent-oss/ontologyservice@0.31.3-TELFE654.0":
   version "0.31.3-TELFE654.0"
   resolved "https://registry.yarnpkg.com/@telicent-oss/ontologyservice/-/ontologyservice-0.31.3-TELFE654.0.tgz#00b8a92523f2e89a7cc9fdc1b9b2da2a96a42809"
