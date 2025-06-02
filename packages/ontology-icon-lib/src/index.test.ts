@@ -85,14 +85,11 @@ describe("OntologyService Module", () => {
     const result = findByClassUri("http://example.com#term");
     expect(result).toMatchInlineSnapshot(`
       {
-        "alt": "term",
-        "backgroundColor": "<backgroundColor>",
-        "classUri": "http://example.com#term",
-        "color": "<color>",
-        "faIcon": "<faIcon>",
-        "faUnicode": "<faUnicode>",
-        "iconFallbackText": "T",
-        "shape": undefined,
+        "alt": "Unknown",
+        "backgroundColor": "#121212",
+        "classUri": "Unknown",
+        "color": "#DDDDDD",
+        "iconFallbackText": "?",
       }
     `);
   });
@@ -102,11 +99,11 @@ describe("OntologyService Module", () => {
     const result = findByClassUri("http://example.com#does-not-exist");
     expect(result).toMatchInlineSnapshot(`
       {
-        "alt": "does-not-exist",
+        "alt": "Unknown",
         "backgroundColor": "#121212",
-        "classUri": "http://example.com#does-not-exist",
+        "classUri": "Unknown",
         "color": "#DDDDDD",
-        "iconFallbackText": "DNE",
+        "iconFallbackText": "?",
       }
     `);
   });
