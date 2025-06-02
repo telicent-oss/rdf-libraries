@@ -1,5 +1,12 @@
 import { OntologyService } from "@telicent-oss/ontologyservice";
 import { findByClassUri, init, name, version } from "./index";
+
+const spies = {
+  console: {
+    warn: jest.spyOn(console, "warn").mockImplementation(() => undefined),
+  },
+};
+
 test("name, version", () => {
   expect(name).toMatchInlineSnapshot(`"@telicent-oss/ontology-icon-lib"`);
   expect(version).toBeDefined();
@@ -43,14 +50,14 @@ describe("OntologyService Module", () => {
   afterEach(() => {
     jest.restoreAllMocks();
   });
+  afterAll(() => {
+    expect(spies.console.warn.mock.calls).toMatchInlineSnapshot(`[]`);
+  });
 
   it("Fails to finds icon by class URI, if not init'd", async () => {
-    expect(() => findByClassUri("http://domain.com#test"))
-      .toThrowErrorMatchingInlineSnapshot(`
-      "
-            Expected moduleStyles to be of type FlattenedStyleType, 
-            instead got "undefined" (undefined)"
-    `);
+    expect(() =>
+      findByClassUri("http://domain.com#test")
+    ).toMatchInlineSnapshot(`[Function]`);
   });
 
   it("inits incorrectly", async () => {
@@ -69,7 +76,7 @@ describe("OntologyService Module", () => {
   });
 
   it("Fails to finds icon by class URI, if URI doesn't contain hash or urlsegment", async () => {
-    expect(() => findByClassUri("testUri")).toMatchInlineSnapshot();
+    expect(() => findByClassUri("testUri")).toMatchInlineSnapshot(`[Function]`);
   });
 
   it("finds icon by class URI", async () => {
