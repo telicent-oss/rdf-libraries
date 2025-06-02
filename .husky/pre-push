@@ -1,4 +1,5 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+./scripts/cp-LICENSE-root-to-packages.sh
 ./scripts/check-release-please-config/index.js

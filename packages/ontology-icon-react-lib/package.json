@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontology-icon-react-lib",
-  "version": "0.1.0",
+  "version": "0.1.0-TELFE-1175.1",
   "private": false,
   "description": "React functionality for working with icons from @telicent/ontologyservice",
   "main": "./dist/index.js",
@@ -28,6 +28,7 @@
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
     "link": "yarn link",
+    "local-publish": "git add --all && yarn build && npm publish  --registry http://localhost:4873 --prepatch",
     "use-local-packages:link": "./scripts/use-local-packages.sh link",
     "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink",
     "prepublish": "yarn lint && yarn test",
