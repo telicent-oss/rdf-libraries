@@ -67,6 +67,15 @@ export const findByClassUri = (
   maybeClassUri: string
 ) => {
   let classUri: string | undefined = undefined;
+  if (typeof classUri !== 'string') {
+    return  {
+        classUri: "Unknown",
+        color: "#DDDDDD",
+        backgroundColor: "#121212",
+        iconFallbackText: "?",
+        alt: "Unknown"
+      };
+  }
   try {
     classUri = URISegmentOrHashSchema.parse(maybeClassUri);
     assertModulesStyles();
@@ -74,5 +83,5 @@ export const findByClassUri = (
     console.warn(`Problem getting classUri`, error);
   }
 
-  return typeof classUri === "string" ? findIcon(moduleStyles, classUri) : undefined;
+  return findIcon(moduleStyles, classUri);
 };

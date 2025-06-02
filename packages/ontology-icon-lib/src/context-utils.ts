@@ -84,21 +84,21 @@ export const flattenStyles = (data: StyleResponseType): IconStyleType[] => {
 /**
  * @deprecated copied over from \@telicent-oss/ds
  */
-export const findIcon = (styles: IconStyleType[], classUri: string) => {
-  const foundIcon = styles?.find((style) => style?.classUri === classUri);
+export const findIcon = (
+  styles: IconStyleType[],
+  classUri: string
+): IconStyleType => {
 
-  if (classUri && foundIcon) {
-    return foundIcon;
-  }
-
-  const alt = getOntologyClass(classUri);
-  const iconFallbackText = getTypeInitials(classUri);
-
+    const match = styles.find(({ classUri: uri }) => uri === classUri);
+    if (match) {
+      return match;
+    }
+  
   return {
     classUri,
     color: "#DDDDDD",
     backgroundColor: "#121212",
-    iconFallbackText,
-    alt,
+    iconFallbackText: getTypeInitials(classUri),
+    alt: getOntologyClass(classUri)
   };
 };
