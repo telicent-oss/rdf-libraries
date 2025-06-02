@@ -66,7 +66,7 @@ export const init = async (
 export const findByClassUri = (
   maybeClassUri: string
 ) => {
-  let classUriRes = URISegmentOrHashSchema.safeParse(maybeClassUri);
+  const classUriRes = URISegmentOrHashSchema.safeParse(maybeClassUri);
   if (!classUriRes.success) {
     return  {
         classUri: "Unknown",
