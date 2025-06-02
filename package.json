@@ -16,6 +16,7 @@
     "use-local-packages:link": "lerna run use-local-packages:link",
     "local:link": "yarn use-local-packages:link",
     "use-local-packages:unlink": "lerna run use-local-packages:unlink",
+    "local-publish": "./scripts/local-publish.sh",
     "local:unlink": "yarn use-local-packages:unlink",
     "use-links": "yarn use-links-to-local-packages",
     "build:changed": "lerna run build --since HEAD~1 --include-dependents",
