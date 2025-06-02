@@ -64,41 +64,15 @@ export const init = async (
 };
 
 export const findByClassUri = (
-  maybeClassUri: string,
-  { noDefault = false } = {}
+  maybeClassUri: string
 ) => {
   let classUri: string | undefined = undefined;
-  let icon:
-    | {
-        backgroundColor: string;
-        color: string;
-        classUri: string;
-        iconFallbackText: string;
-        alt: string;
-        faIcon?: string | undefined;
-        faUnicode?: string | undefined;
-        shape?: string | undefined;
-      }
-    | undefined = undefined;
-
   try {
     classUri = URISegmentOrHashSchema.parse(maybeClassUri);
     assertModulesStyles();
-    icon = typeof classUri === "string" ? findIcon(moduleStyles, classUri) : undefined;
   } catch (error) {
     console.warn(`Problem getting classUri`, error);
   }
-  
-  return icon || noDefault
-    ? null
-    : {
-        backgroundColor: "#0D0D0D",
-        classUri,
-        color: "#DDD",
-        iconFallbackText: "?",
-        alt: "unknown",
-        shape: "round-rectangle",
-        faUnicode: "",
-        faIcon: "fa-solid fa-question",
-      };
+
+  return typeof classUri === "string" ? findIcon(moduleStyles, classUri) : undefined;
 };

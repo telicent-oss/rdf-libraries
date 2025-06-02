@@ -85,9 +85,11 @@ export const flattenStyles = (data: StyleResponseType): IconStyleType[] => {
  * @deprecated copied over from \@telicent-oss/ds
  */
 export const findIcon = (styles: IconStyleType[], classUri: string) => {
-  const foundIcon = styles.find((style) => style.classUri === classUri);
+  const foundIcon = styles?.find((style) => style?.classUri === classUri);
 
-  if (foundIcon) return foundIcon;
+  if (classUri && foundIcon) {
+    return foundIcon;
+  }
 
   const alt = getOntologyClass(classUri);
   const iconFallbackText = getTypeInitials(classUri);
