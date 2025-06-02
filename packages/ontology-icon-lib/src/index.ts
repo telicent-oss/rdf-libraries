@@ -66,8 +66,8 @@ export const init = async (
 export const findByClassUri = (
   maybeClassUri: string
 ) => {
-  let classUri: string | undefined = undefined;
-  if (typeof classUri !== 'string') {
+  let classUriRes = URISegmentOrHashSchema.safeParse(maybeClassUri);
+  if (!classUriRes.success) {
     return  {
         classUri: "Unknown",
         color: "#DDDDDD",
@@ -75,13 +75,12 @@ export const findByClassUri = (
         iconFallbackText: "?",
         alt: "Unknown"
       };
-  }
+  } 
   try {
-    classUri = URISegmentOrHashSchema.parse(maybeClassUri);
     assertModulesStyles();
   } catch (error) {
-    console.warn(`Problem getting classUri`, error);
+    console.warn(`Problem with module styles`, error);
   }
 
-  return findIcon(moduleStyles, classUri);
+  return findIcon(moduleStyles, classUriRes.data);
 };
