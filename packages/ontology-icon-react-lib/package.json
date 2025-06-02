@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontology-icon-react-lib",
-  "version": "0.3.0-TELFE-1175.2",
+  "version": "0.3.0-TELFE-1175.3",
   "private": false,
   "description": "React functionality for working with icons from @telicent/ontologyservice",
   "main": "./dist/index.js",
