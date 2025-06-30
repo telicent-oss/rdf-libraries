@@ -9,7 +9,7 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "ontologyIconLib", // name used for UMD/IIFE scripts
-      formats: ["es", "cjs"], // or ["es", "cjs", "umd"] for UMD
+      formats: ["es", "cjs", "umd"], // or ["es", "cjs", "umd"] for UMD
       fileName: (format) => {
         if (format === "es") return "ontology-icon-lib.es.js";
         if (format === "cjs") return "ontology-icon-lib.cjs.js"; 

@@ -23,6 +23,7 @@
     "build": "rm -rf ./dist && vite build",
     "lint": "yarn eslint **/*.ts",
     "link": "yarn link",
+    "local-publish": "git add --all && yarn build && npm publish  --registry http://localhost:4873 --prepatch",
     "prepublish": "yarn lint && yarn test",
     "prepublishOnly": "yarn build",
     "publish": "lerna publish",

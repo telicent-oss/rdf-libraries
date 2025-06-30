@@ -1439,7 +1439,7 @@ export class RdfService extends AbstractConstructorPromises {
     });
 
     if (!response.ok) {
-      throw response.statusText;
+      throw response;
     }
     const results: QueryResponse<T> = await response.json();
     return results;
@@ -1502,7 +1502,7 @@ export class RdfService extends AbstractConstructorPromises {
 
       const response = await fetch(this.updateEndpoint, postObject);
       if (!response.ok) {
-        throw response.statusText;
+        throw response;
       }
       return await response.text();
     } else {
