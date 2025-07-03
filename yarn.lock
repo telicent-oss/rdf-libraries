@@ -2840,14 +2840,6 @@
     global "^4.4.0"
     zod "^3.22.4"
 
-"@telicent-oss/rdfservice@0.2.0":
-  version "0.2.0"
-  resolved "https://registry.yarnpkg.com/@telicent-oss/rdfservice/-/rdfservice-0.2.0.tgz#ebcee9da977a8dd25336b183e90235232c388aa3"
-  integrity sha512-lx5ADEPW1/B9kw06mBfMDQTEmziD5k5iYS5ZLhbYELEguZFPwFwnUuYUKXBsaNNpGVaVb0BoE31gzG7k+vIjSg==
-  dependencies:
-    global "^4.4.0"
-    zod "^3.22.4"
-
 "@testing-library/dom@^9.0.0":
   version "9.3.4"
   resolved "https://registry.yarnpkg.com/@testing-library/dom/-/dom-9.3.4.tgz#50696ec28376926fec0a1bf87d9dbac5e27f60ce"

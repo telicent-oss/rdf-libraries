@@ -43,7 +43,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "0.2.0",
+    "@telicent-oss/rdfservice": "1.0.0",
     "snapshot-diff": "0.10.0",
     "zod": "^3.22.4"
   },

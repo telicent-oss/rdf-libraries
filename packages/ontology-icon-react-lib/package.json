@@ -43,7 +43,7 @@
   "dependencies": {
     "@telicent-oss/ds": "0.13.0",
     "@telicent-oss/ontology-icon-lib": "^0.5.0-TELFE-1175.3",
-    "@telicent-oss/rdfservice": "0.2.0",
+    "@telicent-oss/rdfservice": "1.0.0",
     "@telicent-oss/react-lib": "^0.5.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
