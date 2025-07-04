@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ies-service",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": false,
   "description": "Simple client-side library for working with IES data.",
   "main": "./dist/ies-service.js",
