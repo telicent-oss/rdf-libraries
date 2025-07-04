@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ies-service",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": false,
   "description": "Simple client-side library for working with IES data.",
   "main": "./dist/ies-service.js",
@@ -43,7 +43,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "0.2.0",
+    "@telicent-oss/rdfservice": "1.0.0",
     "snapshot-diff": "0.10.0",
     "zod": "^3.22.4"
   },
