@@ -30,7 +30,6 @@ export {
   type TypedNodeQuerySolution,
 } from "@telicent-oss/rdfservice";
 
-
 export const OntologyStyle = z.object({
   defaultIcons: z.object({
     riIcon: z.string(),
@@ -57,7 +56,6 @@ export const OntologyStyle = z.object({
 export const StyleResponse = z.record(z.string(), OntologyStyle);
 export type StyleResponseType = z.infer<typeof StyleResponse>;
 // export type StyleResponse = Record<string, typeof OntologyStyle>;
-
 
 export type OntologyStyle = {
   defaultIcons: {
@@ -99,7 +97,10 @@ export const FlattenedStyle = z.object({
 
 export type FlattenedStyleType = z.infer<typeof FlattenedStyle>;
 
-export type FlattenedStyleTypeForFindIcon = Omit<FlattenedStyleType, "shape" | "faUnicode" | "faIcon">;
+export type FlattenedStyleTypeForFindIcon = Omit<
+  FlattenedStyleType,
+  "shape" | "faUnicode" | "faIcon"
+>;
 export const IconStyle = z.object({
   classUri: z.string(),
   backgroundColor: z.string(),
@@ -229,7 +230,7 @@ export class Style {
     width?: number,
     x?: number,
     y?: number,
-    shape?: string,
+    shape?: string
   ) {
     this.bgColour = bgColour || "#888";
     this.colour = colour || "#000";
@@ -260,7 +261,7 @@ export class Diagram extends RDFSResource {
     uri?: string,
     uuid?: string,
     title?: string,
-    statement?: DiagramQuerySolution,
+    statement?: DiagramQuerySolution
   ) {
     super(service, uri, service.telDiagram, statement);
     this.service = service;
@@ -282,7 +283,7 @@ export class Diagram extends RDFSResource {
         uri = this.service.mintUri();
       }
       if (title) {
-        this.constructorPromises.push(this.setTitle(title))
+        this.constructorPromises.push(this.setTitle(title));
       }
     }
   }
@@ -293,7 +294,7 @@ export class Diagram extends RDFSResource {
       uuid,
       securityLabel,
       "xsd:string",
-      true,
+      true
     );
   }
 
@@ -308,55 +309,73 @@ export class Diagram extends RDFSResource {
         OPTIONAL {?uri <${this.service.telElementStyle}> ?style }
       }`;
     const spOut = await this.service.runQuery<DiagramElementQuerySolution>(
-      query,
+      query
     );
 
     const elems: DiagramElement[] = [];
-    spOut.results.bindings.forEach(async (statement: DiagramElementQuerySolution) => {
-      let deClsUri = this.service.telDiagramElement;
-      if (statement._type) {
-        deClsUri = statement._type.value;
-      }
+    spOut.results.bindings.forEach(
+      async (statement: DiagramElementQuerySolution) => {
+        let deClsUri = this.service.telDiagramElement;
+        if (statement._type) {
+          deClsUri = statement._type.value;
+        }
 
-      const DiagramElementClass = this.service.classLookup[deClsUri] || this.service.classLookup[this.service.telDiagramElement]
-      /**
-       * !!CRITICAL This lookup seems unnecessary based on assumptions about the instance below
-       * 
-       * ALso we should generally, map specific uris to specific classes in code
-       * The classLookup broadly maps LongURI's to classes. 
-       * But the code could declare specific strings to specific classes
-       * This way TS inference could infer the class of an instantiated type 
-       * (which would turn the elem.baseType assumption, into an static-type-inferred fact)
-       * OR, there should be runtime checking
-       * (which would turn the elem.baseType assumption into a runtime-validated fact)
-       * 
-       * I'm pretty certain there is only a minor downside - relating to wanting urls and classes to be fully controlled
-       * at runtime. But that would demand some very hardcore inversion of control - and I'm pretty certain
-       * the original author really just wanted a set of semantic classes that map to data spec concepts.
-       */
-      // 
-      const elem = await DiagramElementClass.createAsync(this.service, undefined, undefined, statement)
-      if (elem instanceof DiagramElement === false) {
-        throw new Error(`Expected ${deClsUri} to create DiagramElement`)
-      }
+        const DiagramElementClass =
+          this.service.classLookup[deClsUri] ||
+          this.service.classLookup[this.service.telDiagramElement];
+        /**
+         * !!CRITICAL This lookup seems unnecessary based on assumptions about the instance below
+         *
+         * ALso we should generally, map specific uris to specific classes in code
+         * The classLookup broadly maps LongURI's to classes.
+         * But the code could declare specific strings to specific classes
+         * This way TS inference could infer the class of an instantiated type
+         * (which would turn the elem.baseType assumption, into an static-type-inferred fact)
+         * OR, there should be runtime checking
+         * (which would turn the elem.baseType assumption into a runtime-validated fact)
+         *
+         * I'm pretty certain there is only a minor downside - relating to wanting urls and classes to be fully controlled
+         * at runtime. But that would demand some very hardcore inversion of control - and I'm pretty certain
+         * the original author really just wanted a set of semantic classes that map to data spec concepts.
+         */
+        //
+        const elem = await DiagramElementClass.createAsync(
+          this.service,
+          undefined,
+          undefined,
+          statement
+        );
+        if (elem instanceof DiagramElement === false) {
+          throw new Error(`Expected ${deClsUri} to create DiagramElement`);
+        }
 
-      if (statement.baseType) {
-        elem.baseType = statement.baseType.value;
-      } else {
-        elem.baseType = this.service.rdfsResource;
+        if (statement.baseType) {
+          elem.baseType = statement.baseType.value;
+        } else {
+          elem.baseType = this.service.rdfsResource;
+        }
+        const ElemBaseClass =
+          this.service.classLookup[elem.baseType] || this.service.rdfsResource;
+        if (statement.element.value in this.service.nodes) {
+          elem.element = this.service.nodes[statement.element.value];
+        } else {
+          const typedStatement = this.service.makeTypedStatement(
+            statement.element.value,
+            elem.baseType
+          );
+          elem.element = await ElemBaseClass.createAsync(
+            this.service,
+            undefined,
+            undefined,
+            typedStatement
+          );
+        }
+        if (statement.style) {
+          elem.style = JSON.parse(decodeURIComponent(statement.style.value));
+        }
+        elems.push(elem);
       }
-      const ElemBaseClass = this.service.classLookup[elem.baseType] || this.service.rdfsResource
-      if (statement.element.value in this.service.nodes) {
-        elem.element = this.service.nodes[statement.element.value];
-      } else {
-        const typedStatement = this.service.makeTypedStatement(statement.element.value, elem.baseType);
-        elem.element = await ElemBaseClass.createAsync(this.service, undefined, undefined, typedStatement)
-      }
-      if (statement.style) {
-        elem.style = JSON.parse(decodeURIComponent(statement.style.value));
-      }
-      elems.push(elem);
-    });
+    );
     return elems;
   }
 
@@ -373,15 +392,16 @@ export class Diagram extends RDFSResource {
       }`;
 
     const spOut = await this.service.runQuery<DiagramRelationshipQuerySolution>(
-      query,
+      query
     );
     const rels: DiagramRelationship[] = [];
     spOut.results.bindings.forEach(
       (statement: DiagramRelationshipQuerySolution) => {
         const rel: DiagramRelationship = { uri: statement.uri.value };
         if (statement.source.value in this.service.nodes) {
-          rel.source = this.service
-            .nodes[statement.source.value] as DiagramElement;
+          rel.source = this.service.nodes[
+            statement.source.value
+          ] as DiagramElement;
         } else {
           rel.source = new DiagramElement(
             this.service,
@@ -389,13 +409,14 @@ export class Diagram extends RDFSResource {
             undefined,
             this.service.makeTypedStatement(
               statement.source.value,
-              this.service.telDiagramElement,
-            ),
+              this.service.telDiagramElement
+            )
           );
         }
         if (statement.target.value in this.service.nodes) {
-          rel.target = this.service
-            .nodes[statement.target.value] as DiagramElement;
+          rel.target = this.service.nodes[
+            statement.target.value
+          ] as DiagramElement;
         } else {
           rel.target = new DiagramElement(
             this.service,
@@ -403,8 +424,8 @@ export class Diagram extends RDFSResource {
             undefined,
             this.service.makeTypedStatement(
               statement.target.value,
-              this.service.telDiagramElement,
-            ),
+              this.service.telDiagramElement
+            )
           );
         }
         rel.relationship = statement.rel.value;
@@ -413,7 +434,7 @@ export class Diagram extends RDFSResource {
           rel.style = JSON.parse(decodeURIComponent(statement.style.value));
         }
         rels.push(rel);
-      },
+      }
     );
     return rels;
   }
@@ -434,7 +455,7 @@ abstract class OntologyItem extends RDFSResource {
     service: OntologyService,
     uri?: LongURI,
     type: LongURI = "http://www.w3.org/2000/01/rdf-schema#Resource",
-    statement?: TypedNodeQuerySolution,
+    statement?: TypedNodeQuerySolution
   ) {
     super(service, uri, type, statement);
     this.service = service;
@@ -447,8 +468,16 @@ abstract class OntologyItem extends RDFSResource {
    * @param styleObj - A style object for the class - call makeStyleObject to get
    */
   setStyle(styleObj: Style) {
-    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
-    return this.service.insertTriple(this.uri, this.service.telicentStyle, styleStr, "LITERAL", undefined, undefined, true)
+    const styleStr = encodeURIComponent(JSON.stringify(styleObj));
+    return this.service.insertTriple(
+      this.uri,
+      this.service.telicentStyle,
+      styleStr,
+      "LITERAL",
+      undefined,
+      undefined,
+      true
+    );
   }
 
   //dummy function to be overriden by subclasses
@@ -464,8 +493,7 @@ abstract class OntologyItem extends RDFSResource {
    */
   async getDiagrams(): Promise<Diagram[]> {
     const out: Diagram[] = [];
-    const query: string =
-      `SELECT ?uri (group_concat(DISTINCT ?uuids) as ?uuid) (group_concat(DISTINCT ?titles) as ?title)  (group_concat(DISTINCT ?type) as ?_type)
+    const query: string = `SELECT ?uri (group_concat(DISTINCT ?uuids) as ?uuid) (group_concat(DISTINCT ?titles) as ?title)  (group_concat(DISTINCT ?type) as ?_type)
       WHERE {
         BIND (<${this.service.telDiagram}> as ?type) .
         ?diagramObject <${this.service.telRepresents}> <${this.uri}> .
@@ -477,7 +505,7 @@ abstract class OntologyItem extends RDFSResource {
     const spOut = await this.service.runQuery<DiagramQuerySolution>(query);
     spOut.results.bindings.forEach((statement: DiagramQuerySolution) => {
       out.push(
-        new Diagram(this.service, undefined, undefined, undefined, statement),
+        new Diagram(this.service, undefined, undefined, undefined, statement)
       );
     });
     return out;
@@ -493,7 +521,7 @@ export class DiagramElement extends OntologyItem {
     service: OntologyService,
     uri?: LongURI,
     type: LongURI = service.telDiagramElement,
-    statement?: TypedNodeQuerySolution,
+    statement?: TypedNodeQuerySolution
   ) {
     super(service, uri, type, statement);
     this.service = service;
@@ -507,7 +535,7 @@ export class DiagramProperty extends DiagramElement {
     service: OntologyService,
     uri?: LongURI,
     type: LongURI = service.telDiagramPropertyDefinition,
-    statement?: TypedNodeQuerySolution,
+    statement?: TypedNodeQuerySolution
   ) {
     super(service, uri, type, statement);
     this.service = service;
@@ -537,7 +565,7 @@ export class RDFProperty extends OntologyItem {
     service: OntologyService,
     uri?: LongURI,
     type: LongURI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#Property",
-    statement?: TypedNodeQuerySolution,
+    statement?: TypedNodeQuerySolution
   ) {
     super(service, uri, type, statement);
     this.service = service;
@@ -545,7 +573,7 @@ export class RDFProperty extends OntologyItem {
 
   async getNodes(
     nodeURIs: string[],
-    optionalPredicates: string[] = [],
+    optionalPredicates: string[] = []
   ): Promise<RDFSResource[]> {
     const out: RDFSResource[] = [];
 
@@ -554,7 +582,7 @@ export class RDFProperty extends OntologyItem {
 
   async describe(): Promise<PropertyDescription> {
     const rawDesc: ResourceDescription = await this.describeNode(
-      "http://telicent.io/ontology/inDiagram",
+      "http://telicent.io/ontology/inDiagram"
     );
     const out: PropertyDescription = {
       style: undefined,
@@ -589,45 +617,77 @@ export class RDFProperty extends OntologyItem {
         }
       }
     });
-    await Promise.all(Object.keys(rawDesc.outLinks).map((predicate: LongURI) => {
-      const outLink = rawDesc.outLinks[predicate]
-      switch (predicate) {
-        case this.service.rdfsSubPropertyOf: {
-          return this.service.processObjectLink(outLink, predicate, out.superProperties)
+    await Promise.all(
+      Object.keys(rawDesc.outLinks).map((predicate: LongURI) => {
+        const outLink = rawDesc.outLinks[predicate];
+        switch (predicate) {
+          case this.service.rdfsSubPropertyOf: {
+            return this.service.processObjectLink(
+              outLink,
+              predicate,
+              out.superProperties
+            );
+          }
+          case this.service.rdfsRange: {
+            return this.service.processObjectLink(
+              outLink,
+              predicate,
+              out.ranges
+            );
+          }
+          case this.service.rdfsDomain: {
+            return this.service.processObjectLink(
+              outLink,
+              predicate,
+              out.domains
+            );
+          }
+          default: {
+            out.outLinks[predicate] = [];
+            return this.service.processObjectLink(
+              outLink,
+              predicate,
+              out.outLinks[predicate]
+            );
+          }
         }
-        case this.service.rdfsRange: {
-          return this.service.processObjectLink(outLink, predicate, out.ranges)
+      })
+    );
+    await Promise.all(
+      Object.keys(rawDesc.inLinks).map((predicate: LongURI) => {
+        const inLink = rawDesc.inLinks[predicate];
+        switch (predicate) {
+          case this.service.rdfsSubPropertyOf: {
+            return this.service.processObjectLink(
+              inLink,
+              predicate,
+              out.subProperties
+            );
+          }
+          case this.service.telRepresents: {
+            return this.service.processObjectLink(
+              inLink,
+              predicate,
+              out.diagramElements
+            );
+          }
+          default: {
+            out.inLinks[predicate] = [];
+            return this.service.processObjectLink(
+              inLink,
+              predicate,
+              out.inLinks[predicate]
+            );
+          }
         }
-        case this.service.rdfsDomain: {
-          return this.service.processObjectLink(outLink, predicate, out.domains)
-        }
-        default: {
-          out.outLinks[predicate] = []
-          return this.service.processObjectLink(outLink, predicate, out.outLinks[predicate])
-        }
-      }
-    }));
-    await Promise.all(Object.keys(rawDesc.inLinks).map((predicate: LongURI) => {
-      const inLink = rawDesc.inLinks[predicate]
-      switch (predicate) {
-        case this.service.rdfsSubPropertyOf: {
-          return this.service.processObjectLink(inLink, predicate, out.subProperties)
-        }
-        case this.service.telRepresents: {
-          return this.service.processObjectLink(inLink, predicate, out.diagramElements)
-        }
-        default: {
-          out.inLinks[predicate] = []
-          return this.service.processObjectLink(inLink, predicate, out.inLinks[predicate])
-        }
-      }
-    }));
-    return out
+      })
+    );
+    return out;
   }
 
   async setDomain(
     domain: RDFSClass,
-    deletePrevious: boolean = true,
+    deletePrevious: boolean = true
   ): Promise<string> {
     if (deletePrevious) {
       await this.service.deleteRelationships(this.uri, this.service.rdfsDomain);
@@ -635,13 +695,13 @@ export class RDFProperty extends OntologyItem {
     return await this.service.insertTriple(
       this.uri,
       this.service.rdfsDomain,
-      domain.uri,
+      domain.uri
     );
   }
 
   async setRange(
     range: RDFSClass | XsdDataType,
-    deletePrevious: boolean = true,
+    deletePrevious: boolean = true
   ): Promise<string> {
     let uri: LongURI = "";
     if (deletePrevious) {
@@ -655,7 +715,7 @@ export class RDFProperty extends OntologyItem {
     return await this.service.insertTriple(
       this.uri,
       this.service.rdfsRange,
-      uri,
+      uri
     );
   }
 
@@ -667,18 +727,34 @@ export class RDFProperty extends OntologyItem {
    * @returns the subproperty as an RDFProperty
    */
   async addSubProperty(
-    subProperty: RDFProperty | LongURI,
+    subProperty: RDFProperty | LongURI
   ): Promise<RDFProperty> {
     let uri: LongURI = "";
     if (typeof subProperty === "string") {
-      uri = subProperty
-      await this.service.insertTriple(uri, this.service.rdfsSubPropertyOf, this.uri)
-      const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
-      return await RDFProperty.createAsync(this.service,undefined,undefined,statement);
+      uri = subProperty;
+      await this.service.insertTriple(
+        uri,
+        this.service.rdfsSubPropertyOf,
+        this.uri
+      );
+      const statement: TypedNodeQuerySolution = {
+        uri: { value: uri, type: "" },
+        _type: { value: "", type: "" },
+      };
+      return await RDFProperty.createAsync(
+        this.service,
+        undefined,
+        undefined,
+        statement
+      );
     } else {
-      uri = subProperty.uri
-      await this.service.insertTriple(uri, this.service.rdfsSubPropertyOf, this.uri)
-      return subProperty
+      uri = subProperty.uri;
+      await this.service.insertTriple(
+        uri,
+        this.service.rdfsSubPropertyOf,
+        this.uri
+      );
+      return subProperty;
     }
   }
 
@@ -690,18 +766,34 @@ export class RDFProperty extends OntologyItem {
    * @returns the superproperty as an RDFProperty
    */
   async addSuperProperty(
-    superProperty: RDFProperty | LongURI,
+    superProperty: RDFProperty | LongURI
   ): Promise<RDFProperty> {
     let uri: LongURI = "";
     if (typeof superProperty === "string") {
-      uri = superProperty
-      await this.service.insertTriple(this.uri, this.service.rdfsSubPropertyOf,uri)
-      const statement:TypedNodeQuerySolution = {uri:{value:uri,type:""},_type:{value:"",type:""}}
-      return await RDFProperty.createAsync(this.service, undefined, undefined, statement);
+      uri = superProperty;
+      await this.service.insertTriple(
+        this.uri,
+        this.service.rdfsSubPropertyOf,
+        uri
+      );
+      const statement: TypedNodeQuerySolution = {
+        uri: { value: uri, type: "" },
+        _type: { value: "", type: "" },
+      };
+      return await RDFProperty.createAsync(
+        this.service,
+        undefined,
+        undefined,
+        statement
+      );
     } else {
-      uri = superProperty.uri
-      await this.service.insertTriple(this.uri, this.service.rdfsSubPropertyOf, uri)
-      return superProperty
+      uri = superProperty.uri;
+      await this.service.insertTriple(
+        this.uri,
+        this.service.rdfsSubPropertyOf,
+        uri
+      );
+      return superProperty;
     }
   }
 
@@ -716,17 +808,20 @@ export class RDFProperty extends OntologyItem {
     if (recurse) {
       path = "*";
     }
-    const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {?uri rdfs:subPropertyOf${path} <${this.uri}> . ?uri a ?type} GROUP BY ?uri`
-    const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query)
-    const props: RDFProperty[] = []
+    const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {?uri rdfs:subPropertyOf${path} <${this.uri}> . ?uri a ?type} GROUP BY ?uri`;
+    const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query);
+    const props: RDFProperty[] = [];
     for (const statement of spOut.results.bindings) {
       // TODO fix types to avoid `as unknown as`
-      let cls:typeof RDFProperty = RDFProperty;
+      let cls: typeof RDFProperty = RDFProperty;
       if (statement._type) {
-        cls = this.service.lookupClass(statement._type.value,RDFProperty) as unknown as typeof RDFProperty
+        cls = this.service.lookupClass(
+          statement._type.value,
+          RDFProperty
+        ) as unknown as typeof RDFProperty;
       }
       if (!cls) {
-        throw new TypeError(`cls needs to be defined: ${cls}`)
+        throw new TypeError(`cls needs to be defined: ${cls}`);
       }
       const prop = new cls(this.service, undefined, undefined, statement);
       props.push(prop);
@@ -749,7 +844,7 @@ export class OWLObjectProperty extends RDFProperty {
     service: OntologyService,
     uri?: LongURI,
     type: LongURI = "http://www.w3.org/2002/07/owl#ObjectProperty",
-    statement?: TypedNodeQuerySolution,
+    statement?: TypedNodeQuerySolution
   ) {
     super(service, uri, type, statement);
     this.service = service;
@@ -757,7 +852,7 @@ export class OWLObjectProperty extends RDFProperty {
 
   async setRange(
     range: RDFSClass,
-    deletePrevious: boolean = true,
+    deletePrevious: boolean = true
   ): Promise<string> {
     return super.setRange(range, deletePrevious);
   }
@@ -777,7 +872,7 @@ export class OWLDatatypeProperty extends RDFProperty {
     service: OntologyService,
     uri?: LongURI,
     type: LongURI = "http://www.w3.org/2002/07/owl#DatatypeProperty",
-    statement?: TypedNodeQuerySolution,
+    statement?: TypedNodeQuerySolution
   ) {
     super(service, uri, type, statement);
     this.service = service;
@@ -785,15 +880,14 @@ export class OWLDatatypeProperty extends RDFProperty {
 
   async setRange(
     range: XsdDataType,
-    deletePrevious: boolean = true,
+    deletePrevious: boolean = true
   ): Promise<string> {
     return super.setRange(range, deletePrevious);
   }
 }
 
-//A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)  
+//A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
 export class RDFSClass extends OntologyItem {
-
   /**
    * @method constructor
    * @remarks
@@ -810,29 +904,32 @@ export class RDFSClass extends OntologyItem {
     uri?: LongURI,
     type: LongURI = service.rdfsClass,
     statement?: TypedNodeQuerySolution,
-    superClass?: RDFSClass,
+    superClass?: RDFSClass
   ) {
     super(service, uri, type, statement);
     this.service = service;
     if (statement) {
       if (superClass) {
         this.service.warn(
-          "Do not set superClass parameter if creating class from a query",
+          "Do not set superClass parameter if creating class from a query"
         );
       }
     } else {
       if (superClass) {
         this.constructorPromises.push(
-          this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, superClass.uri)
+          this.service.insertTriple(
+            this.uri,
+            this.service.rdfsSubClassOf,
+            superClass.uri
+          )
         );
       }
     }
   }
 
-
   async describe(): Promise<ClassDescription> {
     const rawDesc: ResourceDescription = await this.describeNode(
-      "http://telicent.io/ontology/inDiagram",
+      "http://telicent.io/ontology/inDiagram"
     );
     const out: ClassDescription = {
       style: undefined,
@@ -867,40 +964,72 @@ export class RDFSClass extends OntologyItem {
         }
       }
     });
-    await Promise.all(Object.keys(rawDesc.outLinks).map((predicate: LongURI) => {
-      const outLink = rawDesc.outLinks[predicate]
-      switch (predicate) {
-        case this.service.rdfsSubClassOf: {
-          return this.service.processObjectLink(outLink, predicate, out.superClasses)
+    await Promise.all(
+      Object.keys(rawDesc.outLinks).map((predicate: LongURI) => {
+        const outLink = rawDesc.outLinks[predicate];
+        switch (predicate) {
+          case this.service.rdfsSubClassOf: {
+            return this.service.processObjectLink(
+              outLink,
+              predicate,
+              out.superClasses
+            );
+          }
+          default: {
+            out.outLinks[predicate] = [];
+            return this.service.processObjectLink(
+              outLink,
+              predicate,
+              out.outLinks[predicate]
+            );
+          }
         }
-        default: {
-          out.outLinks[predicate] = []
-          return this.service.processObjectLink(outLink, predicate, out.outLinks[predicate])
+      })
+    );
+    await Promise.all(
+      Object.keys(rawDesc.inLinks).map((predicate: LongURI) => {
+        const inLink = rawDesc.inLinks[predicate];
+        switch (predicate) {
+          case this.service.rdfsSubClassOf: {
+            return this.service.processObjectLink(
+              inLink,
+              predicate,
+              out.subClasses
+            );
+          }
+          case this.service.rdfsRange: {
+            return this.service.processObjectLink(
+              inLink,
+              predicate,
+              out.isRangeFor
+            );
+          }
+          case this.service.rdfsDomain: {
+            return this.service.processObjectLink(
+              inLink,
+              predicate,
+              out.isDomainFor
+            );
+          }
+          case this.service.telRepresents: {
+            return this.service.processObjectLink(
+              inLink,
+              predicate,
+              out.diagramElements
+            );
+          }
+          default: {
+            out.inLinks[predicate] = [];
+            return this.service.processObjectLink(
+              inLink,
+              predicate,
+              out.inLinks[predicate]
+            );
+          }
         }
-      }
-    }));
-    await Promise.all(Object.keys(rawDesc.inLinks).map((predicate: LongURI) => {
-      const inLink = rawDesc.inLinks[predicate]
-      switch (predicate) {
-        case this.service.rdfsSubClassOf: {
-          return this.service.processObjectLink(inLink, predicate, out.subClasses)
-        }
-        case this.service.rdfsRange: {
-          return this.service.processObjectLink(inLink, predicate, out.isRangeFor)
-        }
-        case this.service.rdfsDomain: {
-          return this.service.processObjectLink(inLink, predicate, out.isDomainFor)
-        }
-        case this.service.telRepresents: {
-          return this.service.processObjectLink(inLink, predicate, out.diagramElements)
-        }
-        default: {
-          out.inLinks[predicate] = []
-          return this.service.processObjectLink(inLink, predicate, out.inLinks[predicate])
-        }
-      }
-    }));
-    return out
+      })
+    );
+    return out;
   }
 
   /**
@@ -914,8 +1043,7 @@ export class RDFSClass extends OntologyItem {
     if (recurse) {
       path = "*";
     }
-    const query =
-      `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {?uri rdfs:subClassOf${path} <${this.uri}> . ?uri a ?type} GROUP BY ?uri`;
+    const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {?uri rdfs:subClassOf${path} <${this.uri}> . ?uri a ?type} GROUP BY ?uri`;
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query);
     return this.service.wrapClasses(spOut, this.uri);
   }
@@ -933,8 +1061,7 @@ export class RDFSClass extends OntologyItem {
   async getSuperClasses(getInherited = false) {
     const pathOp = getInherited ? "*" : "";
 
-    const query =
-      `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {<${this.uri}> <${this.service.rdfsSubClassOf}>${pathOp} ?uri . ?uri a type .} GROUP BY ?uri`;
+    const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) WHERE {<${this.uri}> <${this.service.rdfsSubClassOf}>${pathOp} ?uri . ?uri a type .} GROUP BY ?uri`;
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query);
     return this.service.wrapClasses(spOut, this.uri);
   }
@@ -946,13 +1073,11 @@ export class RDFSClass extends OntologyItem {
    * @param getInherited - set to true to get all the inherited property references
    */
   async getOwnedProperties(
-    getInherited: boolean = false,
+    getInherited: boolean = false
   ): Promise<RDFProperty[]> {
-    let query =
-      `SELECT ?uri ?_type WHERE {?uri rdfs:domain <${this.uri}> . ?uri a ?_type }`;
+    let query = `SELECT ?uri ?_type WHERE {?uri rdfs:domain <${this.uri}> . ?uri a ?_type }`;
     if (getInherited) {
-      query =
-        `SELECT ?uri ?_type WHERE {?uri rdfs:domain ?super . <${this.uri}> rdfs:subClassOf* ?super . ?uri a ?_type }`;
+      query = `SELECT ?uri ?_type WHERE {?uri rdfs:domain ?super . <${this.uri}> rdfs:subClassOf* ?super . ?uri a ?_type }`;
     }
 
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query);
@@ -961,7 +1086,10 @@ export class RDFSClass extends OntologyItem {
     for (const statement of spOut.results.bindings) {
       if (statement._type) {
         // TODO fix types to avoid `as unknown as`
-        cls = this.service.lookupClass(statement._type.value, RDFProperty) as unknown as typeof RDFProperty
+        cls = this.service.lookupClass(
+          statement._type.value,
+          RDFProperty
+        ) as unknown as typeof RDFProperty;
       }
       const prop = new cls(this.service, undefined, undefined, statement);
       props.push(prop);
@@ -976,13 +1104,11 @@ export class RDFSClass extends OntologyItem {
    * @param getInherited - set to true to get all the inherited property references
    */
   async getReferringProperties(
-    getInherited: boolean = false,
+    getInherited: boolean = false
   ): Promise<RDFProperty[]> {
-    let query =
-      `SELECT ?uri ?_type WHERE {?uri rdfs:range <${this.uri}> . ?uri a ?_type }`;
+    let query = `SELECT ?uri ?_type WHERE {?uri rdfs:range <${this.uri}> . ?uri a ?_type }`;
     if (getInherited) {
-      query =
-        `SELECT ?uri ?_type WHERE {?uri rdfs:range ?super . <${this.uri}> rdfs:subClassOf* ?super . ?uri a ?_type }`;
+      query = `SELECT ?uri ?_type WHERE {?uri rdfs:range ?super . <${this.uri}> rdfs:subClassOf* ?super . ?uri a ?_type }`;
     }
 
     const spOut = await this.service.runQuery<TypedNodeQuerySolution>(query);
@@ -991,7 +1117,10 @@ export class RDFSClass extends OntologyItem {
     for (const statement of spOut.results.bindings) {
       if (statement._type) {
         // TODO fix types to avoid `as unknown as`
-        cls = this.service.lookupClass(statement._type.value, RDFProperty) as unknown as typeof RDFProperty
+        cls = this.service.lookupClass(
+          statement._type.value,
+          RDFProperty
+        ) as unknown as typeof RDFProperty;
       }
       const prop = new cls(this.service, undefined, undefined, statement);
       props.push(prop);
@@ -1009,14 +1138,25 @@ export class RDFSClass extends OntologyItem {
   async addSubClass(subClass: RDFSClass | LongURI): Promise<RDFSClass> {
     let uri: LongURI = "";
     if (typeof subClass === "string") {
-      uri = subClass
-      await this.service.insertTriple(uri, this.service.rdfsSubClassOf, this.uri)
-      const statement: TypedNodeQuerySolution = { uri: { value: uri, type: "" }, _type: { value: "", type: "" } }
-      return new RDFSClass(this.service, undefined, undefined, statement)
+      uri = subClass;
+      await this.service.insertTriple(
+        uri,
+        this.service.rdfsSubClassOf,
+        this.uri
+      );
+      const statement: TypedNodeQuerySolution = {
+        uri: { value: uri, type: "" },
+        _type: { value: "", type: "" },
+      };
+      return new RDFSClass(this.service, undefined, undefined, statement);
     } else {
-      uri = subClass.uri
-      await this.service.insertTriple(uri, this.service.rdfsSubClassOf, this.uri)
-      return subClass
+      uri = subClass.uri;
+      await this.service.insertTriple(
+        uri,
+        this.service.rdfsSubClassOf,
+        this.uri
+      );
+      return subClass;
     }
   }
 
@@ -1030,14 +1170,25 @@ export class RDFSClass extends OntologyItem {
   async addSuperClass(superClass: RDFSClass | LongURI): Promise<RDFSClass> {
     let uri: LongURI = "";
     if (typeof superClass === "string") {
-      uri = superClass
-      await this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, uri)
-      const statement: TypedNodeQuerySolution = { uri: { value: uri, type: "" }, _type: { value: "", type: "" } }
-      return new RDFSClass(this.service, undefined, undefined, statement)
+      uri = superClass;
+      await this.service.insertTriple(
+        this.uri,
+        this.service.rdfsSubClassOf,
+        uri
+      );
+      const statement: TypedNodeQuerySolution = {
+        uri: { value: uri, type: "" },
+        _type: { value: "", type: "" },
+      };
+      return new RDFSClass(this.service, undefined, undefined, statement);
     } else {
-      uri = superClass.uri
-      await this.service.insertTriple(this.uri, this.service.rdfsSubClassOf, uri)
-      return superClass
+      uri = superClass.uri;
+      await this.service.insertTriple(
+        this.uri,
+        this.service.rdfsSubClassOf,
+        uri
+      );
+      return superClass;
     }
   }
 }
@@ -1048,7 +1199,7 @@ export class RDFSDatatype extends RDFSClass {
     uri?: LongURI,
     type: LongURI = service.rdfsDatatype,
     statement?: TypedNodeQuerySolution,
-    superClass?: RDFSClass,
+    superClass?: RDFSClass
   ) {
     super(service, uri, type, statement, superClass);
   }
@@ -1069,7 +1220,7 @@ export class OWLClass extends RDFSClass {
     uri?: LongURI,
     type: LongURI = service.owlClass,
     statement?: TypedNodeQuerySolution,
-    superClass?: RDFSClass,
+    superClass?: RDFSClass
   ) {
     super(service, uri, type, statement, superClass);
   }
@@ -1117,7 +1268,7 @@ export class OntologyService extends RdfService {
     dataset = "ontology",
     defaultUriStub = "http://telicent.io/ontology/",
     defaultSecurityLabel = "",
-    write: boolean = false,
+    write: boolean = false
   ) {
     super(triplestoreUri, dataset, defaultUriStub, defaultSecurityLabel, write);
     this.telDiagram = this.telicent + "Diagram";
@@ -1129,8 +1280,8 @@ export class OntologyService extends RdfService {
     this.telBaseType = this.telicent + "baseType";
     this.telDiagramElement = this.telicent + "DiagramElement";
     this.telDiagramRelationship = this.telicent + "DiagramRelationship";
-    this.telDiagramPropertyDefinition = this.telicent +
-      "DiagramPropertyDefinition";
+    this.telDiagramPropertyDefinition =
+      this.telicent + "DiagramPropertyDefinition";
     this.telRouting = this.telicent + "routing";
     this.telDisplayAs = this.telicent + "displayAs";
     this.telSourceElem = this.telicent + "sourceElem";
@@ -1158,38 +1309,65 @@ export class OntologyService extends RdfService {
     this.addPrefix("owl:", this.owl);
   }
 
-
-  async processObjectLink(input: StringsDict, predicate: LongURI, output: RDFSResource[], defaultCls = RDFSResource) {
-    return Promise.all(Object.keys(input).map(async (obj: LongURI) => {
-      const statement: TypedNodeQuerySolution = { uri: { value: obj, type: "uri" }, _type: { value: input[obj].join(" "), type: "uri" } }
-      const Class = this.lookupClass(input[obj][0], defaultCls)
-      const newItem = await Class.createAsync(this, undefined, undefined, statement)
-      output.push(newItem)
-    }));
+  async processObjectLink(
+    input: StringsDict,
+    predicate: LongURI,
+    output: RDFSResource[],
+    defaultCls = RDFSResource
+  ) {
+    return Promise.all(
+      Object.keys(input).map(async (obj: LongURI) => {
+        const statement: TypedNodeQuerySolution = {
+          uri: { value: obj, type: "uri" },
+          _type: { value: input[obj].join(" "), type: "uri" },
+        };
+        const Class = this.lookupClass(input[obj][0], defaultCls);
+        const newItem = await Class.createAsync(
+          this,
+          undefined,
+          undefined,
+          statement
+        );
+        output.push(newItem);
+      })
+    );
   }
 
-  async wrapClasses(results: QueryResponse<TypedNodeQuerySolution>, exclude?: LongURI) {
-    const ClassArray: RDFSClass[] = []
-    let Class = RDFSClass
-    await Promise.all(results.results.bindings.map(async (statement: TypedNodeQuerySolution) => {
-
-      if (statement.uri.value != exclude) {
-        if (statement.uri.value in this.nodes) {
-          ClassArray.push(this.nodes[statement.uri.value] as RDFSClass)
-        }
-        else {
-          if (statement._type) {
-            const types = statement._type.value.split(" ")
-            Class = this.lookupClass(types[0], RDFSClass) as unknown as typeof RDFSClass
+  async wrapClasses(
+    results: QueryResponse<TypedNodeQuerySolution>,
+    exclude?: LongURI
+  ) {
+    const ClassArray: RDFSClass[] = [];
+    let Class = RDFSClass;
+    await Promise.all(
+      results.results.bindings.map(
+        async (statement: TypedNodeQuerySolution) => {
+          if (statement.uri.value != exclude) {
+            if (statement.uri.value in this.nodes) {
+              ClassArray.push(this.nodes[statement.uri.value] as RDFSClass);
+            } else {
+              if (statement._type) {
+                const types = statement._type.value.split(" ");
+                Class = this.lookupClass(
+                  types[0],
+                  RDFSClass
+                ) as unknown as typeof RDFSClass;
+              }
+              const rc = await Class.createAsync(
+                this,
+                undefined,
+                undefined,
+                statement
+              );
+              ClassArray.push(rc);
+            }
           }
-          const rc = await Class.createAsync(this, undefined, undefined, statement)
-          ClassArray.push(rc)
         }
-      }
-    }))
+      )
+    );
     // MERGE DISCUSSION: Previously this returned ClassArray without it having fully resolved its promises
     // Perhaps caused bugs?
-    return ClassArray
+    return ClassArray;
   }
 
   /**
@@ -1202,7 +1380,7 @@ export class OntologyService extends RdfService {
    */
   async getAllRdfProperties(
     includeOwlProperties: boolean = true,
-    getOnlyTopProperties: boolean = false,
+    getOnlyTopProperties: boolean = false
   ): Promise<RDFProperty[]> {
     let filter = "";
     if (getOnlyTopProperties) {
@@ -1211,23 +1389,29 @@ export class OntologyService extends RdfService {
       }`;
     }
 
-    let whereClause =
-      `WHERE {BIND (rdf:Property as ?_type . ?uri a ?_type ) . ${filter}}`;
+    let whereClause = `WHERE {BIND (rdf:Property as ?_type . ?uri a ?_type ) . ${filter}}`;
     if (includeOwlProperties) {
-      whereClause =
-        `WHERE {?uri a ?_type . FILTER (?_type IN (owl:ObjectProperty, owl:DatatypeProperty, rdf:Property)) . ${filter}}`;
+      whereClause = `WHERE {?uri a ?_type . FILTER (?_type IN (owl:ObjectProperty, owl:DatatypeProperty, rdf:Property)) . ${filter}}`;
     }
 
-    const query = `SELECT ?uri ?_type ${whereClause}`
-    const spOut = await this.runQuery<TypedNodeQuerySolution>(query)
-    const props: RDFProperty[] = []
-    let Class = RDFProperty
+    const query = `SELECT ?uri ?_type ${whereClause}`;
+    const spOut = await this.runQuery<TypedNodeQuerySolution>(query);
+    const props: RDFProperty[] = [];
+    let Class = RDFProperty;
     for (const statement of spOut.results.bindings) {
       if (statement._type) {
-        Class = this.lookupClass(statement._type.value, RDFProperty) as unknown as typeof RDFProperty
+        Class = this.lookupClass(
+          statement._type.value,
+          RDFProperty
+        ) as unknown as typeof RDFProperty;
       }
-      const prop = await Class.createAsync(this, undefined, undefined, statement)
-      props.push(prop)
+      const prop = await Class.createAsync(
+        this,
+        undefined,
+        undefined,
+        statement
+      );
+      props.push(prop);
     }
     return props;
   }
@@ -1240,7 +1424,7 @@ export class OntologyService extends RdfService {
    * @returns an array of properties
    */
   async getTopProperties(
-    includeOwlProperties: boolean = true,
+    includeOwlProperties: boolean = true
   ): Promise<RDFProperty[]> {
     return await this.getAllRdfProperties(includeOwlProperties, true);
   }
@@ -1248,9 +1432,9 @@ export class OntologyService extends RdfService {
   /**
    * @method getAllObjectProperties
    * @remarks
-  * get all object properties (relationships)
-  */
-  async getAllObjectProperties():Promise<RDFProperty[]> {
+   * get all object properties (relationships)
+   */
+  async getAllObjectProperties(): Promise<RDFProperty[]> {
     const query = `
       SELECT
         ?uri ?_type
@@ -1280,7 +1464,7 @@ export class OntologyService extends RdfService {
    */
   async getAllClasses(
     includeOwlClasses: boolean = true,
-    getOnlyTopClasses: boolean = false,
+    getOnlyTopClasses: boolean = false
   ): Promise<RDFSClass[]> {
     let filter = "";
     if (getOnlyTopClasses) {
@@ -1289,15 +1473,12 @@ export class OntologyService extends RdfService {
         }`;
     }
 
-    let whereClause =
-      `WHERE {BIND (rdfs:Class as ?type . ?uri a ?type ) . ${filter}}`;
+    let whereClause = `WHERE {BIND (rdfs:Class as ?type . ?uri a ?type ) . ${filter}}`;
     if (includeOwlClasses) {
-      whereClause =
-        `WHERE {?uri a ?type . FILTER (?type IN (owl:Class, rdfs:Class)) . ${filter}}`;
+      whereClause = `WHERE {?uri a ?type . FILTER (?type IN (owl:Class, rdfs:Class)) . ${filter}}`;
     }
 
-    const query =
-      `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ${whereClause} GROUP BY ?uri`;
+    const query = `SELECT ?uri (group_concat(DISTINCT ?type) as ?_type) ${whereClause} GROUP BY ?uri`;
     const spOut = await this.runQuery<TypedNodeQuerySolution>(query);
     return this.wrapClasses(spOut);
   }
@@ -1327,8 +1508,7 @@ export class OntologyService extends RdfService {
     if (classes.length > 0) {
       filter = 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )';
     }
-    const query =
-      `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`;
+    const query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`;
     const spOut = await this.runQuery(query);
 
     // This is not a proper response. Need to find out how
@@ -1336,7 +1516,7 @@ export class OntologyService extends RdfService {
 
     if (!result.success) {
       console.warn(
-        `Applied Style response had the following error: ${result.error}`,
+        `Applied Style response had the following error: ${result.error}`
       );
     }
 
@@ -1350,7 +1530,7 @@ export class OntologyService extends RdfService {
     const styles: AppliedStyle[] = statements.map((statement) => {
       return new AppliedStyle(
         statement.cls.value,
-        JSON.parse(decodeURIComponent(statement.style.value)),
+        JSON.parse(decodeURIComponent(statement.style.value))
       );
     });
 
@@ -1368,12 +1548,12 @@ export class OntologyService extends RdfService {
    */
   async getStyles(classes: LongURI[]): Promise<StyleResponseType> {
     const queryResponseSchema = createQueryResponseSchema(StylesQuerySolution);
-    const filter = classes.length > 0
-      ? 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )'
-      : "";
+    const filter =
+      classes.length > 0
+        ? 'FILTER (str(?cls) IN ("' + classes.join('", "') + '") )'
+        : "";
 
-    const query =
-      `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`;
+    const query = `SELECT ?cls ?style WHERE {?cls <${this.telicentStyle}> ?style . ${filter} }`;
     const spOut = await this.runQuery(query); // StylesQuerySolution
     const result = queryResponseSchema.safeParse(spOut);
 
@@ -1390,7 +1570,7 @@ export class OntologyService extends RdfService {
     const styles = statements.reduce((acc, statement) => {
       try {
         const styleValue = OntologyStyle.safeParse(
-          JSON.parse(decodeURIComponent(statement.style.value)),
+          JSON.parse(decodeURIComponent(statement.style.value))
         );
         if (styleValue.success) {
           acc[statement.cls.value] = styleValue.data;
@@ -1408,7 +1588,7 @@ export class OntologyService extends RdfService {
   async PROPOSED_getFlattenedStyles(classes: LongURI[]) {
     const styles = await this.getStyles(classes);
     return Object.entries(styles).map(([classUri, style]) => {
-      return ({
+      return {
         classUri,
         backgroundColor: style.defaultStyles.dark.backgroundColor,
         color: style.defaultStyles.dark.color,
@@ -1417,7 +1597,7 @@ export class OntologyService extends RdfService {
         shape: style.defaultStyles.shape,
         faUnicode: style.defaultIcons.faUnicode,
         faIcon: style.defaultIcons.faIcon,
-      }) as FlattenedStyleType;
+      } as FlattenedStyleType;
     });
   }
 
@@ -1444,11 +1624,11 @@ export class OntologyService extends RdfService {
    * sets the default style for a class. Deletes any previous styles
    * @param uri - The URI of the class that have the style assigned
    * @param styleObj - A style object for the class - call makeStyleObject to get one
-  */
+   */
   async setStyle(uri: LongURI, styleObj: Style) {
-    const styleStr = encodeURIComponent(JSON.stringify(styleObj))
-    await this.deleteRelationships(uri, this.telicentStyle)
-    await this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL")
+    const styleStr = encodeURIComponent(JSON.stringify(styleObj));
+    await this.deleteRelationships(uri, this.telicentStyle);
+    await this.insertTriple(uri, this.telicentStyle, styleStr, "LITERAL");
   }
 
   /**
@@ -1463,9 +1643,9 @@ export class OntologyService extends RdfService {
             ?uri a <${this.telDiagram}> . 
             OPTIONAL {?uri <${this.telUUID}> ?uuid} 
             ?uri <${this.dcTitle}> ?title .
-        }`
-    const spOut = await this.runQuery<DiagramQuerySolution>(query)
-    const statements = spOut.results.bindings
+        }`;
+    const spOut = await this.runQuery<DiagramQuerySolution>(query);
+    const statements = spOut.results.bindings;
     const diagrams = statements.map((statement: DiagramQuerySolution) =>
       Diagram.createAsync(this, undefined, undefined, undefined, statement)
     );
@@ -1495,17 +1675,21 @@ export class OntologyService extends RdfService {
 
     if (statements.length > 1) {
       this.warn(
-        `More than one diagram found from getDiagram query with provided URI: ${uri}`,
+        `More than one diagram found from getDiagram query with provided URI: ${uri}`
       );
       return undefined;
     } else {
       if (statements.length < 1) {
-        this.warn(`No diagram with URI ${uri} found from getDiagram query`)
-        return undefined
-      }
-      else
-      {
-        return await Diagram.createAsync(this, undefined, undefined, undefined, statements[0]);
+        this.warn(`No diagram with URI ${uri} found from getDiagram query`);
+        return undefined;
+      } else {
+        return await Diagram.createAsync(
+          this,
+          undefined,
+          undefined,
+          undefined,
+          statements[0]
+        );
       }
     }
   }
@@ -1521,7 +1705,7 @@ export class OntologyService extends RdfService {
    */
   protected async getHierarchy(
     filterString = "rdfs:Class, owl:Class",
-    subRel = "rdfs:subClassOf",
+    subRel = "rdfs:subClassOf"
   ): Promise<HierarchyNode[]> {
     const query: string = `SELECT 
     ?uri 
@@ -1538,9 +1722,8 @@ export class OntologyService extends RdfService {
       OPTIONAL { ?uri rdfs:label ?label }
       OPTIONAL { ?uri telicent:style ?style }
     } GROUP BY ?uri`;
-    const spOut: QueryResponse<HierarchyQuerySolution> = await this.runQuery<
-      HierarchyQuerySolution
-    >(query);
+    const spOut: QueryResponse<HierarchyQuerySolution> =
+      await this.runQuery<HierarchyQuerySolution>(query);
     const dict: HierarchyNodes = {};
     const output: HierarchyNode[] = [];
 
@@ -1555,8 +1738,8 @@ export class OntologyService extends RdfService {
       spOut.results.bindings.forEach((statement: HierarchyQuerySolution) => {
         let cls = defaultCls;
         if (statement._type) {
-          const types = statement._type.value.split(" ")
-          cls = this.lookupClass(types[0], defaultCls) as any
+          const types = statement._type.value.split(" ");
+          cls = this.lookupClass(types[0], defaultCls) as any;
         }
         const item = new cls(this, undefined, undefined, statement);
         const node: HierarchyNode = {
@@ -1580,7 +1763,7 @@ export class OntologyService extends RdfService {
             this.warn(`Unable to decode style for URI ${statement.uri.value}`);
           }
         }
-        if (!(statement.supers)) {
+        if (!statement.supers) {
           //we've found an item at the top of its hierarchy, so add it to the output array
           output.push(node);
         }
@@ -1622,7 +1805,7 @@ export class OntologyService extends RdfService {
   async getClassHierarchy(): Promise<HierarchyNode[]> {
     return await this.getHierarchy(
       "rdfs:Class, owl:Class, rdfs:Datatype",
-      "rdfs:subClassOf",
+      "rdfs:subClassOf"
     );
   }
 
@@ -1635,7 +1818,7 @@ export class OntologyService extends RdfService {
   async getPropertyHierarchy(): Promise<HierarchyNode[]> {
     return await this.getHierarchy(
       "rdf:Property, owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:AsymmetricProperty, owl:DeprecatedProperty, owl:FunctionalProperty, owl:OntologyProperty, owl:InverseFunctionalProperty, owl:IrreflexiveProperty, owl:ReflexiveProperty,owl:SymmetricProperty, owl:TransitiveProperty",
-      "rdfs:subPropertyOf",
+      "rdfs:subPropertyOf"
     );
   }
 }
