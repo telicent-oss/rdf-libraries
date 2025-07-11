@@ -27,7 +27,7 @@ test("fromFusekiAfterKafka2: output", () => {
     http://telicent.io/catalog#acled_data_dataset      | http://purl.org/dc/terms/title                  | acled
     http://telicent.io/catalog#acled_data_dataset      | http://purl.org/dc/terms/rights                 | b0
     http://telicent.io/catalog#acled_data_dataset      | http://www.w3.org/ns/dcat#distribution          | http://telicent.io/catalog#acled_data_distribution
-    http://telicent.io/catalog#acled_data_dataset      | http://www.w3.org/ns/prov#qualifiedAttribution  | b1
+    http://telicent.io/catalog#acled_data_dataset      | http://www.w3.org/ns/prov#Attribution           | b1
     http://telicent.io/catalog#acled                   | https://schema.org/email                        | kafka://catalog/admin@acleddata.com
     http://telicent.io/catalog#acled                   | https://schema.org/name                         | Armed Conflict Location & Event Data Project (ACLED)
     http://telicent.io/catalog#acled_data_distribution | http://www.w3.org/1999/02/22-rdf-syntax-ns#type | http://www.w3.org/ns/dcat#Distribution

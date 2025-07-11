@@ -29,6 +29,12 @@ export const version = packageJSON?.version;
 
 const DEBUG = true;
 
+const COMMON_PREFIXES = `
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+`;
 export type DCATRankWrapper = {
   score?: number;
   item: DCATResource;
@@ -43,11 +49,45 @@ export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
   accessRights?: SPARQLResultBinding;
   contactEmail?: SPARQLResultBinding;
   owner?: SPARQLResultBinding;
+  attributionAgentStr?: SPARQLResultBinding;
+  attributionRole?: SPARQLResultBinding;
 }
 
 export interface DcatResourceFindSolution extends DcatResourceQuerySolution {
   concatLit: SPARQLResultBinding;
 }
+
+/**
+ * Given: undefined
+ * return undefined
+ * 
+ * Given uri : 
+ * - http://telicent.io/catalog#data.owner@domain.com
+ * - http://telicent.io/catalog/data.owner@domain.com
+ * It will return: data.owner@acled.com
+ * else throw error
+ * 
+ * Note: Could perhaps do in Sparql but I like being able to throw exceptions
+ */
+export const getHashOrLastUrlSegment = (str?: string): string | undefined => {
+  if (str === undefined) {
+      return undefined;
+  }
+
+  // Regular expression to match the desired parts of the URI
+  const regex = /(?:#|\/)([^#\/]*)$/;
+
+  // Test the string against the regex pattern
+  const match = regex.exec(str); 
+
+  if (match && match[1]) {
+      return match[1];
+  } else {
+      console.warn(`Input string "${str}" is not in the expected uri "Hash" or "Slash" format`);
+      return str;
+  }
+};
+
 
 // RULE RATIONALE:
 //  Don't know/care what instantiation params of ancestors are;
@@ -76,6 +116,8 @@ export class DCATResource extends RDFSResource {
   creator: string = "-";
   rights: string = "-";
   owner: string = "-";
+  attributionAgentStr: string = "-";
+  attributionRole: string = "-";
   accessRights: string = "-";
   // Promises created in service constructor
   // TODO Great candidate for well-typed params object
@@ -110,7 +152,7 @@ export class DCATResource extends RDFSResource {
         this.description = statement?.description.value;
       }
       if (statement?.contactEmail) {
-        let email = statement?.contactEmail.value;
+        const email = statement?.contactEmail.value;
         this.contactEmail = email.substring(email.lastIndexOf("/") + 1);
       }
       if (statement?.creator) {
@@ -124,6 +166,21 @@ export class DCATResource extends RDFSResource {
       }
       if (statement?.owner) {
         this.owner = statement?.owner.value;
+      }
+      if (statement?.attributionAgentStr) {
+        let formatted = getHashOrLastUrlSegment(statement?.attributionAgentStr.value)
+        if (formatted) {
+          /**
+           * This uri value is intentionally combining multiple values.
+           * "_Publisher" is not relevant so we can remove it
+           * @see "src/main/java/io/telicent/datacatalog/dcat3/Provenance.java"
+           */
+          formatted = formatted.replace(/_Publisher$/, '')
+        }
+        this.attributionAgentStr = formatted || this.attributionAgentStr;
+      }
+      if (statement?.attributionRole) {
+        this.attributionAgentStr = statement?.attributionRole.value;
       }
       if (statement?._type) {
         this.dataResourceType = statement?._type.value;
@@ -191,6 +248,8 @@ export class DCATResource extends RDFSResource {
       contactEmail: this.contactEmail,
       rights: this.rights,
       owner: this.owner,
+      attributionAgentStr: this.attributionAgentStr,
+      attributionRole: this.attributionRole,
     };
   }
 }
@@ -526,9 +585,7 @@ export class CatalogService extends RdfService {
     }
     // !CRITICAL PREFIX below is hacked in.
     const query = `
-            PREFIX dcat: <http://www.w3.org/ns/dcat#>
-            PREFIX dct: <http://purl.org/dc/terms/>
-            PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+            ${COMMON_PREFIXES}
             
             SELECT DISTINCT
               ?id
@@ -541,6 +598,9 @@ export class CatalogService extends RdfService {
               ?accessRights
               ?owner
               ?_type
+              ?attributionAgentStr
+              ?attributionRole
+              ?attribution
             WHERE {
                 ${catalogSelect}
                 ${typeSelect}
@@ -564,6 +624,11 @@ export class CatalogService extends RdfService {
                 OPTIONAL { 
                   ?owner ?catRel ?uri .
                   ${relFilter}
+                } .
+                OPTIONAL {
+                  ?uri prov:QualifiedAttribution ?attribution .
+                  ?attribution prov:agent ?attributionAgentStr .
+                  OPTIONAL { ?attribution prov:hadRole ?attributionRole } .
                 } .
             }`;
     const results = await this.runQuery<DcatResourceQuerySolution>(query);
@@ -636,7 +701,21 @@ export class CatalogService extends RdfService {
     owner: DCATCatalog | DCATDataService | DCATDataset
   ): Promise<RankWrapper[]> {
     const query = `
-            SELECT DISTINCT ?uri ?title ?published ?description ?creator ?rights ?modified ?accessRights ?_type (group_concat(DISTINCT ?literal) as ?concatLit)
+            ${COMMON_PREFIXES}
+
+            SELECT DISTINCT 
+              ?uri 
+              ?title 
+              ?published 
+              ?description 
+              ?creator 
+              ?rights 
+              ?modified 
+              ?accessRights 
+              ?_type 
+              (group_concat(DISTINCT ?literal) as ?concatLit)
+              (group_concat(DISTINCT ?attributionAgentStr) as ?attributionAgents)
+              (group_concat(DISTINCT ?attributionRole) as ?attributionRoles)
               WHERE {
                   {
                       # Include the parent
@@ -659,8 +738,22 @@ export class CatalogService extends RdfService {
                   OPTIONAL {?uri dct:description ?description} 
                   OPTIONAL {?uri dct:creator ?creator} 
                   OPTIONAL {?uri dct:rights ?rights} 
-                  OPTIONAL {?uri dct:accessRights ?accessRights} 
-            } GROUP BY ?uri ?title ?published ?modified ?description ?creator ?accessRights ?rights ?_type
+                  OPTIONAL {?uri dct:accessRights ?accessRights}
+                  OPTIONAL {
+                    ?uri prov:QualifiedAttribution ?attribution .
+                    ?attribution prov:agent ?attributionAgentStr .
+                    OPTIONAL { ?attribution prov:hadRole ?attributionRole } .
+                  }
+            } GROUP BY 
+              ?uri 
+              ?title 
+              ?published 
+              ?modified 
+              ?description 
+              ?creator 
+              ?accessRights 
+              ?rights 
+              ?_type
             `;
     const results = await this.runQuery<ResourceFindSolution>(query);
     return this.rankedWrap(results, matchingText);
@@ -689,6 +782,8 @@ export class CatalogService extends RdfService {
   }): Promise<DCATRankWrapper[]> {
     // Construct the SPARQL query with inline conditions
     const query = `
+        ${COMMON_PREFIXES}
+
         SELECT DISTINCT 
           ?uri
           ?title
@@ -699,7 +794,9 @@ export class CatalogService extends RdfService {
           ?accessRights
           ?issued
           ?_type 
-               (GROUP_CONCAT(DISTINCT ?literal; SEPARATOR=", ") AS ?concatLit)
+          (GROUP_CONCAT(DISTINCT ?literal; SEPARATOR=", ") AS ?concatLit)
+          (GROUP_CONCAT(DISTINCT ?attributionAgentStr; SEPARATOR=", ") AS ?attributionAgents)
+          (GROUP_CONCAT(DISTINCT ?attributionRole; SEPARATOR=", ") AS ?attributionRoles)
         WHERE {
             ${
               owner
@@ -744,6 +841,11 @@ export class CatalogService extends RdfService {
             OPTIONAL { ?uri dct:creator ?creator } .
             OPTIONAL { ?uri dct:rights ?rights } .
             OPTIONAL { ?uri dct:accessRights ?accessRights } .
+            OPTIONAL {
+              ?uri prov:QualifiedAttribution ?attribution .
+              ?attribution prov:agent ?attributionAgentStr .
+              OPTIONAL { ?attribution prov:hadRole ?attributionRole } .
+            }
         }
         GROUP BY
           ?uri

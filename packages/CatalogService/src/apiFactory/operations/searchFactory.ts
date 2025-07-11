@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CatalogService, DCATResource } from "../../../index";
 
-import { UIDataResourceSchema, UISearchParamsType } from "./utils/common";
+import { UIDataResourceSchema, UISearchContextType, UISearchParamsType } from "./utils/common";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
 
 export const searchFactory = (service: CatalogService) => {
@@ -18,9 +18,10 @@ export const searchFactory = (service: CatalogService) => {
 export const searchFactoryFn =
   (getResourcesFn: () => Promise<DCATResource[]>) =>
   async (
-    params: UISearchParamsType
+    params: UISearchParamsType,
+    context: { ownerEmail?: string} = {} as UISearchContextType
   ): Promise<Array<z.infer<typeof UIDataResourceSchema>>> => {
-    const { hasAccess, dataResourceFilter } = transformDataResourceFilters(
+    const { hasOwnerFilter, dataResourceFilter } = transformDataResourceFilters(
       params.dataResourceFilters
     );
     // Simplify to get all Data Resources, need to keep an eye on this to check it doesnt
@@ -29,6 +30,7 @@ export const searchFactoryFn =
     const re = params.searchText
       ? new RegExp(params.searchText.toLowerCase(), "gi")
       : undefined;
+    let isWarnOwnerEmailExpected = false
     const found = await Promise.all(
       resources
         .filter((resource) => {
@@ -36,9 +38,17 @@ export const searchFactoryFn =
             return true;
           }
           return (
-            resource.uri === dataResourceFilter ||
-            resource.owner === dataResourceFilter
+            resource.uri === dataResourceFilter
           );
+        })
+        .filter((resource) => {
+          if (!hasOwnerFilter) {
+            return true
+          }
+          if (context?.ownerEmail === undefined) {
+            isWarnOwnerEmailExpected = true
+          }
+          return resource.attributionAgentStr === context.ownerEmail
         })
         .map((resource) => ({
           item: resource,
@@ -54,19 +64,11 @@ export const searchFactoryFn =
           }
           return true;
         })
-        .sort((a, b) => {
-          if (!a.score || !b.score) {
-            return 0;
-          }
-          if (a.score < b.score) {
-            return 1;
-          }
-          if (a.score > b.score) {
-            return -1;
-          }
-          return 0;
-        })
+        .sort((a, b) => (b.score || 0) - (a.score || 0))
         .map(async (resource) => await resource.item.toUIRepresentation())
     );
+    if (isWarnOwnerEmailExpected) {
+      console.error('Expected ownerEmail to be set to search for owned resources')
+    }
     return found;
   };

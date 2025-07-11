@@ -85,6 +85,28 @@ Developer notes:
 
 </details>
 
+
+Build develop linked packages with separate (app) repo:
+
+First install and _create_ symlinks to packages:
+```sh
+cd ~/projects/app
+yarn install
+cd ~/projects/rdf-libraries
+cd ./node_modules/react && yarn link && cd -
+cd ./node_modules/react-dom && yarn link && cd -
+```
+
+Second, use symlinks as dependencies:
+```sh
+cd ~/projects/app
+yarn link @telicent-oss/ontology-icon-lib
+yarn link @telicent-oss/ontology-react-lib
+yarn link @telicent-oss/ontology-icon-react-lib
+cd ~/projects/rdf-libraries
+yarn use:links
+```
+
 ## Package naming
 
 ### Aims:

@@ -1,52 +1,41 @@
 name: publish-nx.yml
+
 on:
-  workflow_call:
   workflow_dispatch:
-    inputs:
-      SINGLE_PACKAGE:
-        type: choice
-        description: Which package to build
-        options: 
-          - "@telicent-oss/rdfservice"
-          - "@telicent-oss/ontologyservice"
-          - "@telicent-oss/catalogservice"
-          - "@telicent-oss/ies-service"
-          - "@telicent-oss/react-lib"
-          - "@telicent-oss/ontology-icon-lib"
-          - "@telicent-oss/ontology-icon-react-lib"
   push:
-    tags:
-      - v*.*.*
-      - v*.*.*-*
+
 permissions:
   actions: read
   contents: read
-  id-token: write # needed for provenance data generation
+  id-token: write  # needed for provenance data generation
 
 jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - run: git config --global user.email "${{ github.actor }}@users.noreply.github.com"
-      - run: git config --global user.name "${{ github.actor }}"
+      - name: Set Git Config
+        run: |
+          git config --global user.email "${{ github.actor }}@users.noreply.github.com"
+          git config --global user.name "${{ github.actor }}"
+
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
       - uses: actions/cache@v4
         with:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('./yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-yarn-
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20.14
-          registry-url: 'https://registry.npmjs.org/'
-          scope: 'telicent-oss'
-          token: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          # Note: The "registry-url" here doesn't populate .yarnrc :|
       - run: yarn install --frozen-lockfile
-      - run: npx nx run ${{ inputs.SINGLE_PACKAGE}}:publish
+      - run: ./scripts/lerna/publish:ci.sh
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+          YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true

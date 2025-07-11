@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/react-lib",
-  "version": "0.3.0",
+  "version": "0.5.0",
   "private": false,
   "description": "React functionality",
   "main": "./dist/react-lib.cjs.js",
@@ -23,6 +23,7 @@
     "build": "rm -rf ./dist && vite build",
     "lint": "yarn eslint **/*.ts",
     "link": "yarn link",
+    "local-publish": "git add --all && yarn build && npm publish  --registry http://localhost:4873 --prepatch",
     "prepublish": "yarn lint && yarn test",
     "prepublishOnly": "yarn build",
     "publish": "lerna publish",
@@ -47,14 +48,14 @@
     "@types/node": "16.11.7",
     "@types/react": "^18.0.32",
     "@types/react-dom": "^18.0.11",
+    "eslint": "^8.56.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
     "tsc": "^2.0.4",
     "typescript": "^5.5.4",
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
-    "vite-tsconfig-paths": "^4.2.1",
-    "eslint": "^8.56.0"
+    "vite-tsconfig-paths": "^4.2.1"
   },
   "peerDependencies": {
     "react": "*",

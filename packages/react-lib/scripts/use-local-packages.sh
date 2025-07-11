@@ -12,5 +12,5 @@ if [ "$action" != "link" ] && [ "$action" != "unlink" ]; then
     exit 1
 fi
 
-echo "no packages linked: Modify ./scripts/link-to-local-packages.sh if needed";
-# yarn $action react
+yarn $action react
+yarn $action react-dom

@@ -15,7 +15,7 @@ export const catalogFactory = (service: CatalogService) => {
     params: UISearchParamsType
   ): Promise<UITreeViewBaseItemType[]> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { hasAccess } = transformDataResourceFilters(
+    const { hasOwnerFilter } = transformDataResourceFilters(
       params.dataResourceFilters
     );
     const rdfResources = await getAllResourcesWithDetails({

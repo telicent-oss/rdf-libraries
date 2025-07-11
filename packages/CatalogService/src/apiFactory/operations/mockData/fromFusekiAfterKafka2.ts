@@ -129,7 +129,7 @@ export const result = {
               },
               "p": {
                   "type": "uri",
-                  "value": "http://www.w3.org/ns/prov#qualifiedAttribution"
+                  "value": "http://www.w3.org/ns/prov#Attribution"
               },
               "o": {
                   "type": "bnode",

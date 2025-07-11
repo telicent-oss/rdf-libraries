@@ -31,6 +31,7 @@ export const UIDataResourceSchema = z.object({
   accessRights: z.string(),
   rights: z.string(),
   contactEmail: z.string(),
+  attributionAgentStr: z.string(),
   type: z.enum([SERVICE_URI, DATASET_URI, CATALOG_URI, RESOURCE_URI]),
 });
 export type UIDataResourceType = z.infer<typeof UIDataResourceSchema>;
@@ -43,6 +44,10 @@ export const UISearchParamsSchema = z.object({
   searchText: z.string(),
 });
 export type UISearchParamsType = z.infer<typeof UISearchParamsSchema>;
+export const UISearchContextSchema = z.object({
+  ownerEmail: z.string().optional(),
+});
+export type UISearchContextType = z.infer<typeof UISearchContextSchema>;
 
 const UITreeViewBaseItemSchema: z.ZodSchema<{
   id: string;
