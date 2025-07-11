@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontology-icon-react-lib",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": false,
   "description": "React functionality for working with icons from @telicent/ontologyservice",
   "main": "./dist/index.js",
@@ -41,7 +41,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/ds": "0.13.0",
+    "@telicent-oss/ds": "^0.28.2",
     "@telicent-oss/ontology-icon-lib": "^1.0.1",
     "@telicent-oss/rdfservice": "1.0.0",
     "@telicent-oss/react-lib": "^0.5.0",
