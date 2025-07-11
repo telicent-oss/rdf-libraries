@@ -57,6 +57,13 @@ export const StyleResponse = z.record(z.string(), OntologyStyle);
 export type StyleResponseType = z.infer<typeof StyleResponse>;
 // export type StyleResponse = Record<string, typeof OntologyStyle>;
 
+export const PreferredLabelSolution = z.object({
+  label: SparQLResultBinding.optional(),
+  name: SparQLResultBinding,
+});
+
+export type PreferredLabelResultType = z.infer<typeof PreferredLabelSolution>;
+
 export type OntologyStyle = {
   defaultIcons: {
     riIcon: string;
@@ -1820,5 +1827,34 @@ export class OntologyService extends RdfService {
       "rdf:Property, owl:ObjectProperty, owl:DatatypeProperty, owl:AnnotationProperty, owl:AsymmetricProperty, owl:DeprecatedProperty, owl:FunctionalProperty, owl:OntologyProperty, owl:InverseFunctionalProperty, owl:IrreflexiveProperty, owl:ReflexiveProperty,owl:SymmetricProperty, owl:TransitiveProperty",
       "rdfs:subPropertyOf"
     );
+  }
+
+  async getAllPreferredLabels(): Promise<PreferredLabelResultType[]> {
+    const queryResponseSchema = createQueryResponseSchema(
+      PreferredLabelSolution
+    );
+
+    const query = `
+                  SELECT DISTINCT ?name ?label WHERE {
+                    ?name a ?type .
+                    FILTER(?type IN (owl:ObjectProperty, owl:DatatypeProperty, rdf:Property, rdfs:Class, owl:Class))
+                   
+                    OPTIONAL { ?name rdfs:label ?rdfsLabel }
+                    OPTIONAL { ?name skos:prefLabel ?skosLabel }
+                   
+                    BIND(COALESCE(?rdfsLabel, ?skosLabel) AS ?label)
+                  }`;
+
+    const spOut = await this.runQuery(query);
+    const result = queryResponseSchema.safeParse(spOut);
+
+    if (!result.success) throw new Error(result.error);
+
+    if (!result.data) {
+      console.warn("Empty preferred label response");
+      return [];
+    }
+
+    return result.data.results.bindings;
   }
 }
