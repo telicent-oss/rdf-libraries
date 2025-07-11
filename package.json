@@ -65,6 +65,8 @@
     "packages/*"
   ],
   "resolutions": {
-    "braces": "^3.0.3"
+    "braces": "^3.0.3",
+    "@nrwl/tao": "^19.8.14",
+    "@nrwl/devkit": "^19.8.14"
   }
 }
