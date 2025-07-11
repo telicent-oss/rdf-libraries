@@ -57,12 +57,14 @@ export const StyleResponse = z.record(z.string(), OntologyStyle);
 export type StyleResponseType = z.infer<typeof StyleResponse>;
 // export type StyleResponse = Record<string, typeof OntologyStyle>;
 
-export const PreferredLabelSolution = z.object({
+export const PreferredLabelSolutionSchema = z.object({
   label: SparQLResultBinding.optional(),
   name: SparQLResultBinding,
 });
 
-export type PreferredLabelResultType = z.infer<typeof PreferredLabelSolution>;
+export type PreferredLabelResultType = z.infer<
+  typeof PreferredLabelSolutionSchema
+>;
 
 export type OntologyStyle = {
   defaultIcons: {
@@ -1831,7 +1833,7 @@ export class OntologyService extends RdfService {
 
   async getAllPreferredLabels(): Promise<PreferredLabelResultType[]> {
     const queryResponseSchema = createQueryResponseSchema(
-      PreferredLabelSolution
+      PreferredLabelSolutionSchema
     );
 
     const query = `
@@ -1846,20 +1848,20 @@ export class OntologyService extends RdfService {
                   }`;
 
     const spOut = await this.runQuery(query);
-    const result = queryResponseSchema.safeParse(spOut);
+    const parseResult = queryResponseSchema.safeParse(spOut);
 
-    if (!result.success) {
+    if (!parseResult.success) {
       console.warn(
         "Preferred label reponse does not match expected schema. Reason: ",
-        result.error
+        parseResult.error
       );
     }
 
-    if (!result.data) {
+    if (!parseResult.data) {
       console.warn("Empty preferred label response");
       return [];
     }
 
-    return result.data.results.bindings;
+    return parseResult.data.results.bindings;
   }
 }
