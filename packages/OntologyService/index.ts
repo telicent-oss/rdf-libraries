@@ -1848,7 +1848,12 @@ export class OntologyService extends RdfService {
     const spOut = await this.runQuery(query);
     const result = queryResponseSchema.safeParse(spOut);
 
-    if (!result.success) throw new Error(result.error);
+    if (!result.success) {
+      console.warn(
+        "Preferred label reponse does not match expected schema. Reason: ",
+        result.error
+      );
+    }
 
     if (!result.data) {
       console.warn("Empty preferred label response");
