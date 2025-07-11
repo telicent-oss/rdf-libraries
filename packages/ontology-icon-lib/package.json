@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontology-icon-lib",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": false,
   "description": "Simple client-side library retrieving and accessing ontology style/icon objects.",
   "main": "./dist/ontology-icon-lib.cjs.js",
@@ -38,7 +38,7 @@
     "access": "public"
   },
   "dependencies": {
-    "@telicent-oss/ontologyservice": "^1.0.0",
+    "@telicent-oss/ontologyservice": "^1.0.2",
     "lodash.startcase": "^4.4.0",
     "zod": "^3.22.4"
   },
