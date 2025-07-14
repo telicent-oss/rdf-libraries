@@ -109,30 +109,37 @@ yarn use:links
 
 ## Package naming
 
-### Aims:
+### Format
 
-- packages cluster by domain when sorted alphabetically
-- package contents are obvious from name
+Use kebab-case with two sections: `<domain>-<technology>`
 
-### Naming scheme:
+1. **Domain**  
+   Non-technical area or sub-area, ordered broadest → narrowest  
+2. **Technology**  
+   Short, human-readable phrase that describes what the package does
 
-Package names use kebab-case with 2 sections: 
-1. List of non-technical domains/sub-domains, ordered by broadest first
-2. Human readable phrase that describes what the package provides
+#### Common technology descriptors
 
-<sup>Note: for now we assume all code is designed to be run on clients (or client and server) and so make to distinction in naming. That may need to change in the future.</sup>
+- `service` — wrapper for server services  
+- `lib` — general-purpose code  
+- `react-lib` — React components/hooks  
 
-Examples of descriptive phrases:
-- `service`: wrapper for server services
-- `lib`: general code
-- `react-lib`: react code
+### Example
+
+To render ontology icons in React, you’d name the package:
+
+```bash
+ontology-icon-react-lib
+```
 
 
-For instance:
-> a library of react components/hooks for rendering ontology icons
-is:
-> `ontology-icon-react-lib`
+> Note: For now, all code runs on the client (or both client and server), so names don’t need to distinguish runtime environment.
+<!-- If in the future we support server-only code - then we could add a "server" phrase -->
 
+### Rationale
+
+- Cluster packages by domain when sorted alphabetically  
+- Make package purpose clear from its name
 
 
 ## API
