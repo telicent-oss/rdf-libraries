@@ -11,16 +11,18 @@ type OntologyIconProps = { type: URISegmentOrHashType } & Omit<
   "icon"
 >;
 
-const ClassIcon = ({ type, ...propsExceptIcon }: OntologyIconProps) => (
-  <TeliTypeIcon
-    icon={ontologyFindIconHelper.findByClassUri(type)}
-    // Maintainability: Have no _nice_ way to FORCE explicity prop setting based on type error
-    {...propsExceptIcon}
-  />
-);
+const ClassIcon = ({ type, ...propsExceptIcon }: OntologyIconProps) => {
+  use(ontologyFindIconHelper.moduleStylesPromise);
+  return (
+    <TeliTypeIcon
+      icon={ontologyFindIconHelper.findByClassUri(type)}
+      // Maintainability: Have no _nice_ way to FORCE explicity prop setting based on type error
+      {...propsExceptIcon}
+    />
+  );
+}
 
 export const OntologyIcon = (props: OntologyIconProps) => {
-  use(ontologyFindIconHelper.moduleStylesPromise);
   return (
     <Suspense fallback="">
       <ErrorBoundary fallback={"⚠️"}>
