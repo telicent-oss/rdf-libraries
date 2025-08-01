@@ -25,9 +25,7 @@
     "link": "yarn link",
     "local-publish": "npm publish --registry http://localhost:4873 --prepatch",
     "prepublish": "yarn lint && yarn test",
-    "prepublishOnly": "yarn build",
-    "use-local-packages:link": "./scripts/use-local-packages.sh link",
-    "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink"
+    "prepublishOnly": "yarn build"
   },
   "author": "",
   "license": "Apache-2.0",

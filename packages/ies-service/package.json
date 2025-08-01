@@ -28,8 +28,6 @@
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
     "link": "yarn link",
-    "use-local-packages:link": "./scripts/use-local-packages.sh link",
-    "use-local-packages:unlink": "./scripts/use-local-packages.sh unlink",
     "local-publish": "npm publish --registry http://localhost:4873 --prepatch",
     "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
     "start:store": "yarn start:triple-store-for-local-dev-and-tests",
