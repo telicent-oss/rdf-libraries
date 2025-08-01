@@ -1,0 +1,1 @@
+npx tsuml2 --glob "./packages/(RDFService|CatalogService)/src/**/*.ts"

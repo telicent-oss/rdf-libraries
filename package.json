@@ -16,7 +16,7 @@
     "use-local-packages:link": "lerna run use-local-packages:link",
     "local:link": "yarn use-local-packages:link",
     "use-local-packages:unlink": "lerna run use-local-packages:unlink",
-    "local-publish": "./scripts/local-publish.sh",
+    "local-publish": "./scripts/local-publish.mjs",
     "local:unlink": "yarn use-local-packages:unlink",
     "use-links": "yarn use-links-to-local-packages",
     "build:changed": "lerna run build --since HEAD~1 --include-dependents",
@@ -52,14 +52,17 @@
     "@typescript-eslint/parser": "6.20.0",
     "babel-jest": "^29.7.0",
     "eslint": "8.56.0",
+    "execa": "^9.6.0",
+    "glob": "^11.0.3",
     "husky": "^8.0.3",
+    "inquirer": "^12.9.0",
     "jest": "^29.7.0",
     "jest-environment-jsdom": "^29.7.0",
+    "lerna": "8.1.8",
     "prettier": "^2.8.8",
     "ts-jest": "^29.2.3",
     "ts-node": "^10.9.2",
-    "typescript": "^5.5.4",
-    "lerna": "8.1.8"
+    "typescript": "^5.5.4"
   },
   "workspaces": [
     "packages/*"
