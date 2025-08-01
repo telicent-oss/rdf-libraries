@@ -11,7 +11,7 @@ import {
   DCATDataset,
   DCATResource,
   DcatResourceQuerySolution,
-} from "../../../index";
+} from "../../index";
 
 import { catalogFactory } from "./catalogFactory";
 import {

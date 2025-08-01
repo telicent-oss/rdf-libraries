@@ -3,8 +3,8 @@ import {
   RDFTripleSchema,
   RDFTripleType,
   TripleObjectSchema,
-} from "@telicent-oss/rdfservice/index";
-import { CatalogService, DCATResource } from "../../../../index";
+} from "@telicent-oss/rdfservice";
+import { CatalogService, DCATResource } from "../../../index";
 
 // predicate
 export const RDF_TYPE_URI = "http://www.w3.org/1999/02/22-rdf-syntax-ns#type";

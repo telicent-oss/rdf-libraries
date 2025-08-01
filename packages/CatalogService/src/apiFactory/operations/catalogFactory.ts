@@ -1,4 +1,4 @@
-import { CatalogService } from "../../../index";
+import { CatalogService } from "../../index";
 import { transformRdfToTree } from "./utils/transformRdfToTree";
 import {
   UITreeViewBaseItemType,

@@ -12,7 +12,7 @@ import {
   RDFSResource,
   SPOQuerySolution,
   Style,
-} from "../index";
+} from "../src/index";
 
 let os: OntologyService;
 const testFullOntology = false;

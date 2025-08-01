@@ -7,7 +7,7 @@ module.exports = defineConfig({
   build: {
     minify: false,
     lib: {
-      entry: resolve(__dirname, 'index.ts'),
+      entry: resolve(__dirname, './src/index.ts'),
       name: '@telicent-oss/rdfservice',
     }
   },
