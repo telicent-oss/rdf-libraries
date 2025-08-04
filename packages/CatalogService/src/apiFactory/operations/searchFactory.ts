@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { CatalogService, DCATResource } from "../../../index";
+import { CatalogService, DCATResource } from "../../index";
 
 import { UIDataResourceSchema, UISearchContextType, UISearchParamsType } from "./utils/common";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";

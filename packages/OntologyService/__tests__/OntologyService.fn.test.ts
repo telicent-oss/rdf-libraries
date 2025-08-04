@@ -2,7 +2,7 @@ import {
   OntologyService,
   QueryResponse,
   TypedNodeQuerySolution,
-} from "../index";
+} from "../src/index";
 
 describe("testing functions within the ontology service", () => {
   const uri1: string = "http://telicent.io/fake_data#uri1";

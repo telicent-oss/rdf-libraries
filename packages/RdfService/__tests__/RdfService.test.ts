@@ -4,7 +4,7 @@ import {
   RDFSResource,
   RelatedLiterals,
   RelatedResources,
-} from "../index";
+} from "../src/index";
 let rs: RdfService;
 
 const rdfsResource = "http://www.w3.org/2000/01/rdf-schema#Resource";

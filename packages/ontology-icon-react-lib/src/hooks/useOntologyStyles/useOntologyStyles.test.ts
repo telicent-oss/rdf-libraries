@@ -12,7 +12,9 @@ jest.mock("@telicent-oss/ontology-icon-lib", () => ({
 
 describe("useOntologyStyles", () => {
   it("initially sets isLoading to true and styles to null", async () => {
-    const { result } = renderHook(() => useOntologyStyles());
+    const { result } = renderHook(() => {
+      return useOntologyStyles();
+    });
     expect(result.current.isLoading).toBe(true);
     expect(result.current.styles).toEqual([]);
 

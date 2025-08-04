@@ -4,7 +4,7 @@ import {
   DCATCatalog,
   DCATDataset,
   DCATDataService,
-} from "../index";
+} from "./index";
 import { MOCK, MockData, MockSet } from "./setup/constants";
 
 export const createMocks = async ({

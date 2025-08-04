@@ -10,7 +10,7 @@ import {
   DCATDataset,
   DCATResource,
   DcatResourceQuerySolution,
-} from "../../../index";
+} from "../../index";
 import {
   ADDITIONAL_RESULT,
   ADDITIONAL_RESULT_EXPECTED_RETURN,

@@ -2,7 +2,7 @@ import "jest-fetch-mock";
 import { RDFServiceConfig } from "@telicent-oss/rdfservice";
 import {
   CatalogService,
-} from "../../../index";
+} from "../../index";
 import {
   DockerComposeEnvironment,
   Wait,

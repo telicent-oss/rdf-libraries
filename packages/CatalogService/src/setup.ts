@@ -3,7 +3,7 @@ import { createACLEDMock } from "./createACLEDMock";
 import { makeStatic } from "./__tests__/utils/makeStatic";
 import { apiFactory } from "./apiFactory/apiFactory";
 export { apiFactory, type Api } from "./apiFactory/apiFactory";
-import { CatalogService } from "../index";
+import { CatalogService } from "./index";
 import { DEBUG, MOCK, MockSet } from "./setup/constants";
 import { createMocks } from "./createMocks";
 import { formatDataAsArray } from "./__tests__/utils/formatDataAsArray";

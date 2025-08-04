@@ -17,14 +17,14 @@ import {
   RDFSResourceDescendant,
   RankWrapper,
 } from "@telicent-oss/rdfservice";
-import packageJSON from "./package.json";
-export { formatDataAsArray } from "./src/__tests__/utils/formatDataAsArray";
-import { RESOURCE_URI } from "./src/apiFactory/operations/utils/common";
+import packageJSON from "../package.json";
+export { formatDataAsArray } from "./__tests__/utils/formatDataAsArray";
+import { RESOURCE_URI } from "./apiFactory/operations/utils/common";
 
 export { RDFSResource } from "@telicent-oss/rdfservice";
-export * from "./src/setup";
-export * from "./src/setup/constants";
-export * from "./src/apiFactory/operations/utils/common";
+export * from "./setup";
+export * from "./setup/constants";
+export * from "./apiFactory/operations/utils/common";
 export const version = packageJSON?.version;
 
 const DEBUG = true;

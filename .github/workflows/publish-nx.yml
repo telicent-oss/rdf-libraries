@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: 20.14
           # Note: The "registry-url" here doesn't populate .yarnrc :|
-      - run: yarn install --frozen-lockfile
+      - run: LOCAL_MACHINE=false yarn install --frozen-lockfile
       - run: ./scripts/lerna/publish:ci.sh
         env:
           YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}

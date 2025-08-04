@@ -28,7 +28,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: yarn install --frozen-lockfile
+      - run: LOCAL_MACHINE=false yarn install --frozen-lockfile
       - run: yarn publish:prerelease:ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}

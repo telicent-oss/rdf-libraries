@@ -6,7 +6,7 @@ import {
   DCATDataService,
   setup,
   MockSet,
-} from "../../index";
+} from "../index";
 import { makeStatic } from "./utils/makeStatic";
 import { StartedDockerComposeEnvironment } from "testcontainers";
 import { setupContainer } from "./utils/setupContainer";

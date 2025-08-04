@@ -5,7 +5,7 @@ import {
   DCATDataset,
   DCATResource,
   DCATDataService,
-} from "../index";
+} from "../src/index";
 import { setupContainer } from "../src/__tests__/utils/setupContainer";
 
 const testDefaultNamespace = "http://telicent.io/data/";
