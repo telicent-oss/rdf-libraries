@@ -3151,10 +3151,10 @@
     react-router-dom "^6.23.1"
     zod "^3.21.4"
 
-"@telicent-oss/telicent-frontend-cli@^1.2.1", "@telicent-oss/telicent-frontend-cli@^1.4.0":
-  version "1.4.0"
-  resolved "https://registry.yarnpkg.com/@telicent-oss/telicent-frontend-cli/-/telicent-frontend-cli-1.4.0.tgz#3afa5f0ddcf0257f96b40aba306ce0cc68943e0b"
-  integrity sha512-a64Pu3/bNYJnZFGEoLGlW6bW6TamID4/Y37nvb06mmhMVITWAZW4i3TABtapnur/gfXyVA3tXFXzwVTPFF8m1A==
+"@telicent-oss/telicent-frontend-cli@^1.2.1", "@telicent-oss/telicent-frontend-cli@^1.5.0":
+  version "1.5.0"
+  resolved "https://registry.yarnpkg.com/@telicent-oss/telicent-frontend-cli/-/telicent-frontend-cli-1.5.0.tgz#afb2a6938af7e5a02aac151b82a30751b0135b37"
+  integrity sha512-THzuMm7QWzqdneejsCUnkNlNkX/59NS+qn5LOZWUIbwHuASoYbJU5Nioef+m71MZsTf6SNWTqfjq7O7aUAgifQ==
   dependencies:
     "@commander-js/extra-typings" "12.0.1"
     "@types/update-notifier" "^6.0.8"

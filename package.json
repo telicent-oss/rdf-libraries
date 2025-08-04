@@ -42,7 +42,7 @@
     "@nx/jest": "19.5.4",
     "@swc-node/register": "1.9.2",
     "@swc/core": "1.5.7",
-    "@telicent-oss/telicent-frontend-cli": "^1.4.0",
+    "@telicent-oss/telicent-frontend-cli": "^1.5.0",
     "@types/jest": "^29.5.12",
     "@types/node": "18.19.9",
     "@typescript-eslint/eslint-plugin": "6.20.0",
@@ -65,6 +65,7 @@
     "packages/*"
   ],
   "resolutions": {
+    "@telicent-oss/telicent-frontend-cli": "^1.5.0",
     "braces": "^3.0.3",
     "@nrwl/tao": "^19.8.14",
     "@nrwl/devkit": "^19.8.14"
