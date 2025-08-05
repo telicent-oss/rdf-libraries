@@ -1,17 +1,4 @@
-import {
-  QueryResponse,
-  RDFSResource,
-  RDFSResourceDescendant,
-} from "@telicent-oss/rdfservice";
-import { Console } from "console";
-import {
-  CatalogService,
-  DCATCatalog,
-  DCATDataService,
-  DCATDataset,
-  DCATResource,
-  DcatResourceQuerySolution,
-} from "../../index";
+import { QueryResponse } from "@telicent-oss/rdfservice";
 
 import { catalogFactory } from "./catalogFactory";
 import {
@@ -29,6 +16,7 @@ import {
   QUERY_STRING,
   TEMPLATE_RESULT,
 } from "./mock_catalog_query_data";
+import { CatalogService } from "../../classes/RdfService.CatalogService";
 
 const spies = {
   console: {
