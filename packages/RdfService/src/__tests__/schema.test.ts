@@ -1,4 +1,4 @@
-import { URISegmentOrHashSchema } from "./schema";
+import { URISegmentOrHashSchema } from "../schema";
 
 test("Fail when input is not a uri", () => {
   expect(() => URISegmentOrHashSchema.parse("abd"))
