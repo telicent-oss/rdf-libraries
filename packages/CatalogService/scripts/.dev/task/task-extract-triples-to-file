@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "✖ Error on line $LINENO"; exit 1' ERR
+
+DEF_FILE_CATALOG_NT="data/catalog.gitignored.nt";
+DEF_FILE_CATALOG_RAW_NT="${DEF_FILE_CATALOG_NT%.gitignored.nt}-raw.gitignored.nt"
+#####################################
+# Helpers
+#####################################
+error() { echo "✖ $*" >&2; exit 1; }
+info()  { echo "→ $*";      }
+
+#####################################
+# Usage
+#####################################
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") -r REMOTE_SPARQL [-o OUTPUT_FILE]
+  -r REMOTE_SPARQL     SPARQL endpoint URL (required)
+  -o OUTPUT_FILE       Cleaned NT file (default: $DEF_FILE_CATALOG_NT)
+This also writes raw triples to $DEF_FILE_CATALOG_RAW_NT
+EOF
+  exit 1
+}
+
+#####################################
+# Parse arguments
+#####################################
+REMOTE="" OUTPUT="$DEF_FILE_CATALOG_NT"
+while getopts "r:o:h" opt; do
+  case "$opt" in
+    r) REMOTE=$OPTARG ;;
+    o) OUTPUT=$OPTARG ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+[[ -n $REMOTE ]] || usage
+
+#####################################
+# Require tools
+#####################################
+command -v curl >/dev/null || error "curl not installed"
+command -v grep >/dev/null || error "grep not installed"
+
+#####################################
+# Filenames
+#####################################
+RAW="${OUTPUT%.gitignored.nt}-raw.gitignored.nt"
+
+#####################################
+# 1) Fetch raw triples
+#####################################
+info "Fetching all DCAT triples from $REMOTE"
+if ! HTTP=$(curl -sS \
+      -H "Accept: application/n-triples" \
+      --data-urlencode 'query=PREFIX dct:<http://purl.org/dc/terms/> PREFIX dcat:<http://www.w3.org/ns/dcat#> CONSTRUCT { ?s ?p ?o } WHERE { { SELECT DISTINCT ?s WHERE { ?s a ?t FILTER(?t IN (dcat:Resource,dcat:Dataset,dcat:DataService,dcat:Catalog,dcat:DatasetSeries)) } } ?s ?p ?o }' \
+      -w "%{http_code}" \
+      -o "$RAW" \
+      "$REMOTE"); then
+  error "Network error fetching triples"
+fi
+[[ $HTTP -ge 200 && $HTTP -lt 300 ]] || { BODY=$(<"$RAW"); rm -f "$RAW"; error "Fetch failed HTTP $HTTP: $BODY"; }
+[[ -s $RAW ]] || error "Raw file is empty"
+COUNT_RAW=$(grep -c '^<' "$RAW" || echo 0)
+info "Saved $COUNT_RAW raw triples to $RAW"
+
+#####################################
+# 2) Produce cleaned file minus date logs
+#####################################
+info "Generating cleaned triples in $OUTPUT"
+# remove all modified/issued literals
+grep -v -E '<[^>]+> <http://purl.org/dc/terms/(modified|issued)>' "$RAW" > "$OUTPUT"
+
+# aggregated modified (max) per subject
+info "Adding latest dct:modified literals"
+curl -sS \
+  -H "Accept: application/n-triples" \
+  --data-urlencode 'query=PREFIX dct:<http://purl.org/dc/terms/> CONSTRUCT { ?s dct:modified ?max } WHERE { SELECT ?s (MAX(?m) AS ?max) WHERE { ?s dct:modified ?m FILTER(isLiteral(?m)) } GROUP BY ?s }' \
+  "$REMOTE" >> "$OUTPUT"
+
+# aggregated issued (min) per subject
+info "Adding earliest dct:issued literals"
+curl -sS \
+  -H "Accept: application/n-triples" \
+  --data-urlencode 'query=PREFIX dct:<http://purl.org/dc/terms/> CONSTRUCT { ?s dct:issued ?min } WHERE { SELECT ?s (MIN(?i) AS ?min) WHERE { ?s dct:issued ?i FILTER(isLiteral(?i)) } GROUP BY ?s }' \
+  "$REMOTE" >> "$OUTPUT"
+
+[[ -s $OUTPUT ]] || error "Cleaned file is empty"
+COUNT_CLEAN=$(grep -c '^<' "$OUTPUT" || echo 0)
+info "Saved $COUNT_CLEAN cleaned triples to $OUTPUT"

@@ -1,0 +1,86 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "✖ Error on line $LINENO"; exit 1' ERR
+
+DEF_FILE_CATALOG_NT="data/catalog.gitignored.nt";
+DEF_FILE_CATALOG_RAW_NT="${DEF_FILE_CATALOG_NT%.gitignored.nt}-raw.gitignored.nt"
+
+#####################################
+# Helpers
+#####################################
+error() {
+  echo "✖ $*" >&2
+  exit 1
+}
+info() {
+  echo "→ $*"
+}
+
+#####################################
+# Usage
+#####################################
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") -l LOCAL_ENDPOINT [-i INPUT_FILE]
+  -l LOCAL_ENDPOINT    Jena SPARQL/query endpoint URL (required)
+  -i INPUT_FILE         File to load triples (default: $DEF_FILE_CATALOG_NT)
+EOF
+  exit 1
+}
+
+#####################################
+# Parse arguments
+#####################################
+LOCAL="" INPUT="$DEF_FILE_CATALOG_NT"
+while getopts "r:l:o:h" opt; do
+  case "$opt" in
+    l) LOCAL=$OPTARG ;;
+    i) INPUT=$OPTARG ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+[[ -n $LOCAL ]] || usage
+
+#####################################
+# Require tools
+#####################################
+command -v curl >/dev/null || error "curl not installed"
+
+#####################################
+# Derive SPARQL‐UPDATE endpoint
+#####################################
+if [[ "${LOCAL##*/}" == "query" ]]; then
+  UPDATE_URL="${LOCAL%/query}/update"
+  info "Using SPARQL UPDATE endpoint → $UPDATE_URL"
+else
+  UPDATE_URL="$LOCAL"
+  info "Using provided endpoint for UPDATE → $UPDATE_URL"
+fi
+
+#####################################
+# 1) Build and run SPARQL UPDATE
+#####################################
+info "Inserting triples into $UPDATE_URL"
+UPDATE_F=$(mktemp)
+{
+  echo "INSERT DATA {"
+  grep '^<' "$INPUT"
+  echo "}"
+} >"$UPDATE_F"
+
+if ! HTTP2=$(curl -sS -X POST \
+      --data-urlencode "update@$UPDATE_F" \
+      -w "%{http_code}" \
+      -o /dev/null \
+      "$UPDATE_URL"); then
+  rm -f "$UPDATE_F"
+  error "Network error during SPARQL UPDATE"
+fi
+rm -f "$UPDATE_F"
+
+if [[ $HTTP2 -lt 200 || $HTTP2 -ge 300 ]]; then
+  error "SPARQL UPDATE failed (HTTP $HTTP2)"
+fi
+
+info "SPARQL UPDATE succeeded (HTTP $HTTP2)"
