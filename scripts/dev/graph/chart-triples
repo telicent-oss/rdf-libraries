@@ -1,0 +1,136 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'error "Unexpected error on line $LINENO"' ERR
+
+#####################################
+# Globals & Defaults
+#####################################
+FORMAT="svg"
+OUTPUT="graph.svg"
+INPUT=""
+
+#####################################
+# Helpers
+#####################################
+error() {
+  echo "✖ Error: $*" >&2
+  exit 1
+}
+
+info() {
+  echo "→ $*" >&2
+}
+
+usage() {
+  cat <<EOF >&2
+Usage: $(basename "$0") -i INPUT_NT [-o OUTPUT] [-f FORMAT]
+
+  -i INPUT_NT   Path to N-Triples file (required)
+  -o OUTPUT     Output image file (default: $OUTPUT)
+  -f FORMAT     svg or png (default: $FORMAT)
+
+Converts an N-Triples file into a resource-graph image via Graphviz.
+Renders IRI→IRI edges normally; literal values as orange boxes & edges.
+EOF
+  exit 1
+}
+
+#####################################
+# Parse arguments
+#####################################
+while getopts "i:o:f:h" opt; do
+  case "$opt" in
+    i) INPUT=$OPTARG ;;
+    o) OUTPUT=$OPTARG ;;
+    f) FORMAT=$OPTARG ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+[[ -n $INPUT ]] || usage
+
+#####################################
+# Environment Checks
+#####################################
+if [[ ! -f $INPUT ]]; then
+  error "Input file '$INPUT' does not exist."
+fi
+
+case "$FORMAT" in
+  svg|png) ;;
+  *) error "Invalid format '$FORMAT'; supported: svg, png." ;;
+esac
+
+command -v dot >/dev/null 2>&1 || error "Graphviz 'dot' is not installed."
+command -v awk >/dev/null 2>&1 || error "'awk' is required but not found."
+
+#####################################
+# Create temporary DOT file
+#####################################
+# Portable on macOS and Ubuntu
+TMP_BASE=$(mktemp -t chart_triples) \
+  || error "Failed to create temp file."
+DOTFILE="${TMP_BASE}.dot"
+mv "$TMP_BASE" "$DOTFILE"
+
+#####################################
+# Build DOT content
+#####################################
+info "Converting N-Triples to DOT..."
+{
+  echo 'digraph G {'
+  echo '  graph [rankdir=LR];'
+  echo '  node [shape=ellipse];'
+
+  awk '
+    # strip trailing " ."
+    { sub(/ \.$/,"") }
+
+    # IRI -> IRI
+    $1 ~ /^</ && $3 ~ /^</ {
+      subj = substr($1,2,length($1)-2)
+      obj  = substr($3,2,length($3)-2)
+      pred = $2
+      gsub(/"/, "\\\"", pred)
+      printf "  \"%s\" -> \"%s\" [label=\"%s\"];\n", subj, obj, pred
+    }
+
+   # IRI -> literal (capture full quoted text)
+   $1 ~ /^</ && $3 ~ /^"/ {
+     # subject and predicate as before
+     subj = substr($1,2,length($1)-2)
+     pred = $2
+
+     # take the whole line, strip prefix up to first quote
+     line = $0
+     sub(/^[^"]*"/, "", line)
+     # strip closing quote and optional datatype
+     sub(/"(\^\^<[^>]+>)?$/, "", line)
+     lit = line
+
+     # escape any quotes in lit/pred
+     gsub(/"/, "\\\"", lit)
+     gsub(/"/, "\\\"", pred)
+
+     # render literal node + edge in grey/orange
+     printf "  \"%s\" [shape=box, color=orange, fontcolor=orange];\n", lit
+     printf "  \"%s\" -> \"%s\" [label=\"%s\", color=orange, fontcolor=orange];\n",
+            subj, lit, pred
+    }
+  ' "$INPUT"
+
+  echo '}'
+} > "$DOTFILE"
+
+#####################################
+# Render Image
+#####################################
+info "Rendering $FORMAT → $OUTPUT..."
+dot -T"$FORMAT" "$DOTFILE" -o "$OUTPUT" \
+  || error "Graphviz failed to render the image."
+
+#####################################
+# Cleanup & Finish
+#####################################
+rm -f "$DOTFILE"
+info "Done. Output file: $OUTPUT"
