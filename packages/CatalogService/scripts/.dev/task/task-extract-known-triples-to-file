@@ -53,6 +53,7 @@ RAW="${OUTPUT%.gitignored.nt}-raw.gitignored.nt"
 #####################################
 info "Fetching all DCAT triples from $REMOTE"
 
+# Old
 query='query=
 PREFIX dct:  <http://purl.org/dc/terms/>
 PREFIX dcat: <http://www.w3.org/ns/dcat#>
