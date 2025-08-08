@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ENDPOINT="http://localhost:5173/api/sparql/catalog/query"
+TMPQ=$(mktemp)
+cat >"$TMPQ" <<'EOF'
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX ex:   <http://example.com/vocab#>    # adjust if you exclude other predicates
+
+SELECT DISTINCT ?start ?u ?p ?v WHERE {
+  VALUES ?type { 
+    dcat:Resource dcat:Dataset dcat:DataService 
+    dcat:Catalog dcat:DatasetSeries 
+  }
+  ?start a ?type .
+
+  # only non-trivial hops
+  ?start (<>)+ ?u .
+  FILTER(?u != ?start)
+
+  ?u ?p ?v .
+  FILTER(isIRI(?v))
+
+  # ensure v is reachable by ≥1 hop
+  FILTER NOT EXISTS { ?start (<>)+ ?v }
+}
+EOF
+
+
+resp=$(curl -sS -H "Accept: application/sparql-results+json" \
+  --data-urlencode "query@${TMPQ}" \
+  "$ENDPOINT")
+rm "$TMPQ"
+
+
+count=$(printf '%s' "$resp" | jq '.results.bindings | length')
+
+if (( count > 0 )); then
+  echo "✖ Discrete‐check FAILED: found $count external edge(s)"
+  printf '%s\n' "$resp" \
+    | jq -r '.results.bindings[] 
+        | "Entity \(.start.value) reached \(.u.value) via \(.p.value) → external node \(.v.value)"'
+  exit 1
+else
+  echo "✅ All catalog entities are discrete"
+fi

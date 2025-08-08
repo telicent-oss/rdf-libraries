@@ -1,4 +1,4 @@
-import { CatalogService } from "./index";
+import { CatalogService } from "../index";
   
 export const createACLEDMock = async (options: {
   catalogService: CatalogService;

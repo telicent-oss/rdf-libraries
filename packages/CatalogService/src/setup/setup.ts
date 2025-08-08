@@ -1,12 +1,12 @@
 import { RDFServiceConfig } from "@telicent-oss/rdfservice";
 import { createACLEDMock } from "./createACLEDMock";
-import { makeStatic } from "./__tests__/utils/makeStatic";
-import { apiFactory } from "./apiFactory/apiFactory";
-export { apiFactory, type Api } from "./apiFactory/apiFactory";
-import { CatalogService } from "./index";
-import { DEBUG, MOCK, MockSet } from "./setup/constants";
+import { makeStatic } from "../__tests__/utils/makeStatic";
+import { apiFactory } from "../apiFactory/apiFactory";
+export { apiFactory, type Api } from "../apiFactory/apiFactory";
+import { CatalogService } from "../index";
+import { DEBUG, MOCK, MockSet } from "./constants";
 import { createMocks } from "./createMocks";
-import { formatDataAsArray } from "./__tests__/utils/formatDataAsArray";
+import { formatDataAsArray } from "../__tests__/utils/formatDataAsArray";
 
 export const setup = async (options: {
   config: RDFServiceConfig;

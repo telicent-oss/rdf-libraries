@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'error "Unexpected error on line $LINENO"' ERR
+
+#####################################
+# Globals & Defaults
+#####################################
+FORMAT="svg"
+
+#####################################
+# Helpers
+#####################################
+error() { echo "✖ $*" >&2; exit 1; }
+info()  { echo "→ $*";      }
+
+#####################################
+# Usage
+#####################################
+usage() {
+  cat <<EOF >&2
+Usage: $(basename "$0") -d INPUT_DIR
+  -d INPUT_DIR   Directory containing N-Triples files (required)
+  -f FORMAT     svg or png (default: $FORMAT)
+
+For each file in INPUT_DIR this will run:
+  ./scripts/dev/graph/chart-triples -i <file> -o <file.svg> [-f <format>]
+EOF
+  exit 1
+}
+
+#####################################
+# Parse args
+#####################################
+INPUT_DIR=""
+while getopts "f:d:h" opt; do
+  case "$opt" in
+    d) INPUT_DIR=$OPTARG ;;
+    f) FORMAT=$OPTARG ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+[[ -n $INPUT_DIR ]] || usage
+
+#####################################
+# Sanity checks
+#####################################
+[[ -d $INPUT_DIR ]] || error "Input directory '$INPUT_DIR' not found"
+CHART_CMD="../../scripts/dev/graph/chart-triples"
+[[ -x $CHART_CMD ]] || error "Chart command '$CHART_CMD' not found or not executable"
+
+#####################################
+# Iterate and chart
+#####################################
+for file in "$INPUT_DIR"/*; do
+  [[ -f $file ]] || continue
+  base=$(basename "$file")
+  name="${base%.*}"
+  out="${INPUT_DIR}/${name}.${FORMAT}"
+
+  info "Charting '$base' → '$(basename "$out")'"
+  "$CHART_CMD" -i "$file" -o "$out" -f "$FORMAT" || error "Failed to chart '$base'"
+done
+
+info "All done. Charts saved alongside input files."

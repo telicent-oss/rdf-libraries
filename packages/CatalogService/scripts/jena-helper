@@ -1,0 +1,172 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Configuration
+FUSEKI_URL="${FUSEKI_URL:-http://localhost:3030}"
+JENA_ADMIN_USER="${JENA_ADMIN_USER:-admin}"
+JENA_ADMIN_PASSWORD="${JENA_ADMIN_PASSWORD:-}"
+
+# HTTP helper: Basic auth if password provided
+do_curl() {
+  if [[ -n "$JENA_ADMIN_PASSWORD" ]]; then
+    curl -u "${JENA_ADMIN_USER}:${JENA_ADMIN_PASSWORD}" "$@"
+  else
+    curl "$@"
+  fi
+}
+
+# Directories
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ROOT_DIR="$(cd "${SCRIPT_DIR}/.." && pwd)"
+CONFIG_TTL="$ROOT_DIR/volume/config.ttl"
+DATA_DIR="$ROOT_DIR/data"
+COMPOSE_FILE="$ROOT_DIR/docker-compose.yml"
+SERVICE_NAME="telicent-jena-smart-cache"
+
+# Colours
+RED="\033[1;31m"
+YELLOW="\033[1;33m"
+GREEN="\033[1;32m"
+RESET="\033[0m"
+
+
+# Ensure commands exist
+require_cmd() {
+  command -v "$1" >/dev/null 2>&1 || { echo "Error: '$1' not found" >&2; exit 1; }
+}
+require_utils() {
+  require_cmd grep
+  require_cmd sed
+  require_cmd curl
+}
+
+# Confirmation prompt
+yes_or_abort() {
+  printf "Confirm %s [y/N]: " "$1"
+  read -r ans
+  [[ "$ans" =~ ^[Yy]$ ]] || { echo "Aborted." >&2; exit 1; }
+}
+
+# Help message
+print_help() {
+  cat <<EOF
+Usage: $(basename "$0") <command> [args]
+
+Commands:
+  help                  Show help
+  q <SPARQL>            Run SPARQL on exactly one dataset
+  q-all                 Dump all triples from every dataset
+  q-dataSetList         List dataset names (parsed from config.ttl)
+  q-dataSetAll <name>   Dump all triples in <name>
+  wipeAll               CLEAR ALL triples in every dataset
+  wipeDataSet <name>    CLEAR ALL triples in <name> dataset
+  reset                 Restart Fuseki to reload config TTL
+EOF
+}
+
+
+# List datasets metadata by parsing config.ttl
+datasets_list_meta() {
+  require_utils
+  if [[ ! -r "$CONFIG_TTL" ]]; then
+    echo "Error: Cannot read config TTL at $CONFIG_TTL" >&2
+    exit 1
+  fi
+  grep 'fuseki:name' "$CONFIG_TTL" \
+    | sed -E 's/.*fuseki:name *"\/([^" ]+)".*/\1/'
+}
+
+
+# List datasets by parsing config.ttl (only lines with leading slash)
+datasets_list() {
+  require_utils
+  [[ -r "$CONFIG_TTL" ]] || { echo "Error: Cannot read $CONFIG_TTL" >&2; exit 1; }
+  grep -E 'fuseki:name *"/' "$CONFIG_TTL" \
+    | sed -E 's/.*fuseki:name *"\/([^" ]+)".*/\1/'
+}
+
+# Execute SPARQL query against a dataset with HTML detection
+data_query() {
+  local ds="$1" sparql="$2" url output first_char
+  url="${FUSEKI_URL}/${ds}/query"
+  output=$(do_curl -s -G "$url" \
+    --data-urlencode "query=$sparql" \
+    -H "Accept: text/tab-separated-values") || {
+    echo "Error: SPARQL query failed for $ds" >&2; exit 1; }
+  first_char="${output:0:1}"
+  [[ "$first_char" != '<' ]] || { echo "Error: Received HTML response from $url" >&2; exit 1; }
+  printf "%s\n" "$output"
+}
+
+# Main dispatch
+decision="${1:-help}"; shift || true
+case "$decision" in
+  help|-h)
+    print_help
+    ;;
+
+  q)
+    [[ $# -gt 0 ]] || { echo "Error: Missing SPARQL query" >&2; exit 1; }
+    mapfile -t ds <<< "$(datasets_list)"
+    [[ ${#ds[@]} -eq 1 ]] || { echo "Error: Found ${#ds[@]} datasets; expected 1" >&2; exit 1; }
+    data_query "${ds[0]}" "$*"
+    ;;
+
+  q-all)
+    for svc in $(datasets_list); do
+      printf "\n=== %s ===\n" "$svc"
+      data_query "$svc" 'SELECT * WHERE { ?s ?p ?o }'
+    done
+    ;;
+
+  q-dataSetList)
+    datasets_list
+    ;;
+
+  q-dataSetAll)
+    [[ $# -eq 1 ]] || { echo "Error: Provide exactly one dataset name" >&2; exit 1; }
+    data_query "$1" 'SELECT * WHERE { ?s ?p ?o }'
+    ;;
+
+  wipeAll)
+    echo -e "${RED}DANGER:${RESET} You are about to ${YELLOW}CLEAR ALL triples in ALL datasets${RESET}!"
+    echo -e "${RED}USER ATTENTION REQUIRED:${RESET} This is irreversible."
+    yes_or_abort "CLEAR ALL triples in all datasets"
+    for svc in $(datasets_list); do
+      echo "Clearing $svc" >&2
+      do_curl -s -X POST "${FUSEKI_URL}/${svc}/update" --data-urlencode 'update=CLEAR ALL'
+    done
+    echo "Done." >&2
+    ;;
+
+  wipeDataSet)
+    [[ $# -eq 1 ]] || { echo "Error: Provide exactly one dataset name" >&2; exit 1; }
+    DS="$1"
+    # warning banner
+    echo -e "${YELLOW}WARNING:${RESET} You are about to ${YELLOW}CLEAR ALL triples in dataset '${DS}'${RESET}!"
+    echo -e "${RED}USER ATTENTION REQUIRED:${RESET} This is irreversible."
+    yes_or_abort "CLEAR ALL triples in dataset ${DS}"
+    # perform wipe
+    echo -e "${YELLOW}Clearing dataset:${RESET} ${DS}" >&2
+    do_curl -s -X POST "${FUSEKI_URL}/${DS}/update" \
+      --data-urlencode 'update=CLEAR ALL'
+    # confirmation
+    echo -e "${GREEN}Done.${RESET} Dataset '${DS}' has been wiped." >&2
+    ;;
+
+  reset)
+  
+    yes_or_abort "restart Fuseki to reload config TTL"
+    if command -v docker-compose &>/dev/null; then
+      docker-compose -f "$COMPOSE_FILE" restart "$SERVICE_NAME"
+    else
+      docker compose -f "$COMPOSE_FILE" restart "$SERVICE_NAME"
+    fi
+    ;;
+
+  *)
+    echo "Error: Unknown command '$decision'" >&2
+    print_help
+    exit 1
+    ;;
+esac

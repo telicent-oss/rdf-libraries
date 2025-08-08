@@ -77,7 +77,7 @@ const choices = pkgs.map((dir) => ({
     stdio: "inherit",
     shell: true,
   });
-  execaCommandSync(`git add --all`, { stdio: "inherit", shell: true });
+  // execaCommandSync(`git add --all`, { stdio: "inherit", shell: true });
 
   const versions = selected
     .map((dir) => {
@@ -87,10 +87,10 @@ const choices = pkgs.map((dir) => ({
     })
     .join("\n");
 
-  execaCommandSync(`git commit -m "chore(prerelease):\n${versions}"`, {
-    stdio: "inherit",
-    shell: true,
-  });
+  // execaCommandSync(`git commit -m "chore(prerelease):\n${versions}"`, {
+  //   stdio: "inherit",
+  //   shell: true,
+  // });
 
   execaCommandSync(`lerna exec ${scopes} --concurrency 1 -- yarn local-publish`, {
     stdio: "inherit",

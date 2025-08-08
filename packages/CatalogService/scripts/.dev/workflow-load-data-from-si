@@ -1,0 +1,75 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "✖ Unexpected error on line $LINENO"; exit 1' ERR
+
+#####################################
+# Pre checks - never tested this sec
+#####################################
+
+# Color constants
+RED="\033[1;31m"
+CYAN="\033[1;36m"
+RESET="\033[0m"
+
+MS=$(date +%s%N | cut -b1-13)
+
+# Helpers
+error() {
+  echo -e "$*" >&2
+  exit 1
+}
+info() {
+  echo -e "→ $*"
+}
+
+# Usage
+usage() {
+  cat <<EOF
+Usage: $(basename "$0")
+Checks that a Fuseki catalog dataset is up at http://localhost:3030/catalog.
+EOF
+  exit 1
+}
+[[ "${1:-}" != "-h" ]] || usage
+
+# Prerequisite
+if ! command -v curl >/dev/null; then
+  error "${RED}USER ACTION REQUIRED:${RESET} Install curl (e.g. brew install curl or apt-get install curl)."
+fi
+
+# Verify catalog endpoint
+ENDPOINT="http://localhost:3030/catalog/query"
+info "Verifying Fuseki catalog at $ENDPOINT"
+
+HTTP_CODE=$(curl -sS -G \
+  --data-urlencode 'query=ASK WHERE { }' \
+  -o /dev/null -w "%{http_code}" \
+  "$ENDPOINT" || echo "000")
+
+if [[ "$HTTP_CODE" != "200" ]]; then
+  echo -e "${RED}USER ACTION REQUIRED:${RESET} Open a new terminal and run ${CYAN}yarn start:store${RESET} to start Jena"
+  echo -e "Then try again."
+  exit 1
+fi
+
+info "Fuseki catalog is running (HTTP $HTTP_CODE)."
+
+
+#####################################
+# Actual script
+#####################################
+
+./scripts/jena-helper wipeDataSet catalog
+
+printf "Re-download fresh data from remote to local file [y/N]?: "
+read -r ans
+
+if [[ "$ans" =~ ^[Yy]$ ]]; then
+  ./scripts/.dev/task/task-extract-all-triples-to-file -r http://localhost:5173/api/sparql/catalog/query -o ./data/catalog-select-all.gitignored.nt
+else
+  echo "Using existing local data"
+fi
+
+./scripts/.dev/task/task-import-triples-from-file -l http://localhost:3030/catalog/query -i ./data/catalog-select-all.gitignored.nt
+
+./scripts/jena-helper q-dataSetAll catalog

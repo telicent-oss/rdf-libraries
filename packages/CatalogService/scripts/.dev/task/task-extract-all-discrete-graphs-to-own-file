@@ -1,0 +1,147 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "✖ Error on line $LINENO"; exit 1' ERR
+
+#####################################
+# Helpers
+#####################################
+error() { echo >&2 "✖ $*"; exit 1; }
+info()  { echo >&2 "→ $*";      }
+
+#####################################
+# Usage
+#####################################
+usage() {
+  cat <<EOF >&2
+Usage: $(basename "$0") -r REMOTE_SPARQL [-o OUTDIR]
+  -r REMOTE_SPARQL   SPARQL endpoint URL (required)
+  -o OUTDIR          Output directory (default: data/catalog-graphs)
+
+For each DCAT entity, fetch its full discrete subgraph
+(with aggregated modified/issued) into OUTDIR/<entity>.gitignored.nt
+EOF
+  exit 1
+}
+
+#####################################
+# Parse args
+#####################################
+REMOTE=""
+OUTDIR="data/catalog-graphs"
+while getopts "r:o:h" opt; do
+  case "$opt" in
+    r) REMOTE=$OPTARG ;;
+    o) OUTDIR=$OPTARG ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+[[ -n $REMOTE ]] || usage
+
+#####################################
+# Require tools
+#####################################
+command -v curl >/dev/null 2>&1 || error "curl not installed"
+command -v jq   >/dev/null 2>&1 || error "jq not installed"
+command -v sed  >/dev/null 2>&1 || error "sed not installed"
+mkdir -p "$OUTDIR" || error "Cannot create output directory '$OUTDIR'"
+
+#####################################
+# 1) Fetch list of DCAT entities
+#####################################
+info "Fetching DCAT entity list from $REMOTE"
+LIST_Q=$(mktemp)
+cat >"$LIST_Q" <<'EOF'
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+SELECT DISTINCT ?s WHERE {
+  VALUES ?t {
+    dcat:Resource
+    dcat:Dataset
+    dcat:DataService
+    dcat:Catalog
+    dcat:DatasetSeries
+  }
+  ?s a ?t .
+}
+EOF
+
+# run query
+RESP=$(mktemp)
+HTTP=$(curl -sS -w '%{http_code}' \
+  -H "Accept: application/sparql-results+json" \
+  --data-urlencode "query@$LIST_Q" \
+  -o "$RESP" \
+  "$REMOTE")
+rm -f "$LIST_Q"
+[[ $HTTP =~ ^2 ]] || { body=$(<"$RESP"); rm -f "$RESP"; error "Failed to list entities (HTTP $HTTP): $body"; }
+
+URIS=$(jq -r '.results.bindings[].s.value' "$RESP")
+rm -f "$RESP"
+[[ -n $URIS ]] || error "No DCAT entities found at $REMOTE"
+
+#####################################
+# 2) Fetch each discrete subgraph
+#####################################
+for URI in $URIS; do
+  # sanitize filename
+  NAME=$(echo "$URI" | sed -E 's#^.+[#/]##; s/[^A-Za-z0-9]/_/g')
+  OUT_FILE="$OUTDIR/${NAME}.gitignored.nt"
+  info "Extracting subgraph for $URI → $OUT_FILE"
+
+  # prepare CONSTRUCT query file
+  CQ=$(mktemp)
+  cat >"$CQ" <<EOF
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+
+CONSTRUCT {
+  ?u ?p ?o .
+  ?s dct:modified ?maxMod .
+  ?s dct:issued   ?minIss .
+}
+WHERE {
+  BIND(<$URI> AS ?s)
+
+  # closure over all predicates except date logs
+  ?s (!(dct:modified|dct:issued))* ?u .
+
+  # all outgoing triples, minus raw date logs
+  ?u ?p ?o .
+  FILTER(?p NOT IN (dct:modified, dct:issued))
+
+  # aggregated modified
+  OPTIONAL {
+    SELECT ?s (MAX(?m) AS ?maxMod) WHERE {
+      ?s dct:modified ?m .
+      FILTER(isLiteral(?m))
+    } GROUP BY ?s
+  }
+  # aggregated issued
+  OPTIONAL {
+    SELECT ?s (MIN(?i) AS ?minIss) WHERE {
+      ?s dct:issued ?i .
+      FILTER(isLiteral(?i))
+    } GROUP BY ?s
+  }
+}
+EOF
+
+  # execute
+  RESP2=$(mktemp)
+  HTTP2=$(curl -sS -w '%{http_code}' \
+    -H "Accept: application/n-triples" \
+    --data-urlencode "query@$CQ" \
+    -o "$RESP2" \
+    "$REMOTE")
+  rm -f "$CQ"
+  if [[ ! $HTTP2 =~ ^2 ]]; then
+    body=$(<"$RESP2")
+    rm -f "$RESP2"
+    error "Failed fetching subgraph for $URI (HTTP $HTTP2): $body"
+  fi
+
+  mv "$RESP2" "$OUT_FILE"
+  [[ -s $OUT_FILE ]] || { rm -f "$OUT_FILE"; error "Empty subgraph for $URI"; }
+done
+
+info "Done: discrete graphs in $OUTDIR"

@@ -1,11 +1,11 @@
-export { apiFactory, type Api } from "./apiFactory/apiFactory";
+export { apiFactory, type Api } from "../apiFactory/apiFactory";
 import {
   CatalogService,
   DCATCatalog,
   DCATDataset,
   DCATDataService,
-} from "./index";
-import { MOCK, MockData, MockSet } from "./setup/constants";
+} from "../index";
+import { MOCK, MockData, MockSet } from "./constants";
 
 export const createMocks = async ({
   catalogService,

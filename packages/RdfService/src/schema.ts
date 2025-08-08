@@ -1,5 +1,5 @@
 import z from "zod";
-import { isValidURI, permissiveUriRegex } from "./isValidURI";
+import { isValidURI, permissiveUriRegex } from "./utils/isValidURI";
 
 /**
  * RE: Name "URISegmentOrHashSchema"
