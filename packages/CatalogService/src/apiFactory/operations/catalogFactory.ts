@@ -8,10 +8,15 @@ import {
   ResourceQueryType,
 } from "./utils/common";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
+// import { ApiFactoryConfigType } from "./type";
 
-export const catalogFactory = (service: CatalogService) => {
+export const catalogFactory = (
+  service: CatalogService,
+  // config: ApiFactoryConfigType
+) => {
   return async function catalog(
-    params: UISearchParamsType
+    params: UISearchParamsType,
+    // config: ApiFactoryConfigType
   ): Promise<UITreeViewBaseItemType[]> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { hasOwnerFilter } = transformDataResourceFilters(

@@ -7,6 +7,7 @@ import {
   UISearchParamsType,
   UITreeViewBaseItemType,
 } from "./operations/utils/common";
+import { ApiFactoryConfigType } from "./operations/type";
 
 export interface Api {
   search: (params: UISearchParamsType, context: UISearchContextType) => Promise<Array<UIDataResourceType>>;
@@ -17,9 +18,10 @@ export interface Api {
 
 export const apiFactory = (
   service: CatalogService,
+  config: ApiFactoryConfigType = {},
   testData?: typeof MOCK
 ): Api => ({
-  search: searchFactory(service),
+  search: searchFactory(service, config),
   catalog: catalogFactory(service),
   _service: service,
   _testData: testData,

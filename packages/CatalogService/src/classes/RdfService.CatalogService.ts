@@ -207,6 +207,13 @@ export class CatalogService extends RdfService {
               ?attributionAgentStr
               ?attributionRole
               ?attribution
+              # Phase 2
+              ## distribution
+              ?distributionUri
+              ?distributionTitle
+              ?distributionDownloadURL
+              ?distributionMediaType
+              ?distributionIdentifier
             WHERE {
                 ${catalogSelect}
                 ${typeSelect}
@@ -235,6 +242,14 @@ export class CatalogService extends RdfService {
                   ?uri prov:QualifiedAttribution ?attribution .
                   ?attribution prov:agent ?attributionAgentStr .
                   OPTIONAL { ?attribution prov:hadRole ?attributionRole } .
+                } .
+                # Phase 2
+                OPTIONAL { 
+                  ?uri dcat:distribution ?distributionUri .
+                  ?distributionUri dct:title ?distributionTitle .
+                  ?distributionUri dcat:downloadURL ?distributionDownloadURL .
+                  ?distributionUri dcat:mediaType ?distributionMediaType .
+                  ?distributionUri dct:identifier ?distributionIdentifier .
                 } .
             }`;
     const results = await this.runQuery<DcatResourceQuerySolution>(query);

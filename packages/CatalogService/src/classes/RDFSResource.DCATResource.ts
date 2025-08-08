@@ -19,6 +19,26 @@ export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
   owner?: SPARQLResultBinding;
   attributionAgentStr?: SPARQLResultBinding;
   attributionRole?: SPARQLResultBinding;
+  // DCAT Phase 2
+  distributionUri?: SPARQLResultBinding;
+  distributionTitle?: SPARQLResultBinding;
+  distributionDownloadURL?: SPARQLResultBinding;
+  distributionMediaType?: SPARQLResultBinding;
+  distributionIdentifier?: SPARQLResultBinding;
+}
+
+type DCATStringProps =
+  | "distributionUri"
+  | "distributionTitle"
+  | "distributionDownloadURL"
+  | "distributionMediaType"
+  | "distributionIdentifier"
+  | "attributionAgentStr";
+
+interface Mapping {
+  binding: keyof DcatResourceQuerySolution;
+  property: DCATStringProps;
+  transform?: (value: string) => string;
 }
 
 export class DCATResource extends RDFSResource {
@@ -45,6 +65,12 @@ export class DCATResource extends RDFSResource {
   attributionAgentStr: string = "-";
   attributionRole: string = "-";
   accessRights: string = "-";
+  // Phase 2
+  distributionUri: string = "-";
+  distributionTitle: string = "-";
+  distributionDownloadURL: string = "-";
+  distributionMediaType: string = "-";
+  distributionIdentifier: string = "-";
   // Promises created in service constructor
   // TODO Great candidate for well-typed params object
   constructor(
@@ -125,6 +151,32 @@ export class DCATResource extends RDFSResource {
           )}`
         );
       }
+      // Phase 2
+      const mappings: Mapping[] = [
+        { binding: "distributionUri", property: "distributionUri" },
+        { binding: "distributionTitle", property: "distributionTitle" },
+        {
+          binding: "distributionDownloadURL",
+          property: "distributionDownloadURL",
+        },
+        { binding: "distributionMediaType", property: "distributionMediaType" },
+        {
+          binding: "distributionIdentifier",
+          property: "distributionIdentifier",
+        },
+
+      for (const m of mappings) {
+        const binding = m.binding;
+        const prop = m.property;
+        const b = statement[binding];
+        if (!b) continue;
+
+        const raw = b.value;
+        const out = m.transform ? m.transform(raw) : raw;
+        if (out) {
+          this[prop] = out;
+        }
+      }
     } else {
       if (cached) {
         return this;
@@ -178,6 +230,12 @@ export class DCATResource extends RDFSResource {
       owner: this.owner,
       attributionAgentStr: this.attributionAgentStr,
       attributionRole: this.attributionRole,
-    };
+      // Phase 2
+      distributionUri: this.distributionUri,
+      distributionTitle: this.distributionTitle,
+      distributionDownloadURL: this.distributionDownloadURL,
+      distributionMediaType: this.distributionMediaType,
+      distributionIdentifier: this.distributionIdentifier,
+    }
   }
 }

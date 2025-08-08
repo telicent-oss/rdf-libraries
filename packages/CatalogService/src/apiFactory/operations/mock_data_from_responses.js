@@ -75,6 +75,7 @@ export const COMPLETE_RESULT_EXPECTED_RETURN = {
   creator: "Tom @ Telicent",
   type: "http://www.w3.org/ns/dcat#Dataset",
   rights: "For testing as part of development",
+  distributionId: "-",
 };
 
 export const INCOMPLETE_RESULT = {
@@ -104,6 +105,8 @@ export const INCOMPLETE_RESULT_EXPECTED_RETURN = {
   creator: "-",
   type: "http://www.w3.org/ns/dcat#Catalog",
   rights: "-",
+
+  distributionId: "-",
 };
 
 export const ADDITIONAL_RESULT = {
@@ -158,4 +161,6 @@ export const ADDITIONAL_RESULT_EXPECTED_RETURN = {
   creator: "Tom @ Telicent",
   type: "http://www.w3.org/ns/dcat#Dataset",
   rights: "Testing dataset rights",
+
+  distributionId: '-'
 };

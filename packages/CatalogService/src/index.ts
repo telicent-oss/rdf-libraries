@@ -41,6 +41,12 @@ export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
   owner?: SPARQLResultBinding;
   attributionAgentStr?: SPARQLResultBinding;
   attributionRole?: SPARQLResultBinding;
+  // Phase 2
+  distributionUri?: SPARQLResultBinding;
+  distributionTitle?: SPARQLResultBinding;
+  distributionDownloadURL?: SPARQLResultBinding;
+  distributionMediaType?: SPARQLResultBinding;
+  distributionIdentifier?: SPARQLResultBinding;
 }
 
 export interface DcatResourceFindSolution extends DcatResourceQuerySolution {

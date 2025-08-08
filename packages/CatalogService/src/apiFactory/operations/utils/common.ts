@@ -33,6 +33,12 @@ export const UIDataResourceSchema = z.object({
   contactEmail: z.string(),
   attributionAgentStr: z.string(),
   type: z.enum([SERVICE_URI, DATASET_URI, CATALOG_URI, RESOURCE_URI]),
+  // Phase 2
+  distributionUri: z.string(),
+  distributionTitle: z.string(),
+  distributionDownloadURL: z.string(),
+  distributionMediaType: z.string(),
+  distributionIdentifier: z.string(),
 });
 export type UIDataResourceType = z.infer<typeof UIDataResourceSchema>;
 
