@@ -1,0 +1,56 @@
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://purl.org/dc/terms/identifier> "43eaf65b-fc1e-476a-b35b-ccb0778a161e" .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://purl.org/dc/terms/title> "BBC Monitoring, RSS distribution" .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://www.w3.org/ns/dcat#mediaType> <https://www.iana.org/assignments/media-types/text/xml> .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://www.w3.org/ns/dcat#downloadURL> <https://monitoring.bbc.co.uk> .
+<http://telicent.io/catalog#05396b62-3984-490c-be34-46ce9169cf2e_Provenance> <http://purl.org/dc/terms/identifier> "05396b62-3984-490c-be34-46ce9169cf2e" .
+<http://telicent.io/catalog#05396b62-3984-490c-be34-46ce9169cf2e_Provenance> <http://www.w3.org/ns/prov#agent> <http://telicent.io/catalog#data.owner@bbc.com_Publisher> .
+<http://telicent.io/catalog#05396b62-3984-490c-be34-46ce9169cf2e_Provenance> <http://www.w3.org/ns/dcat#hadRole> <http://standards.iso.org/iso/19115/resources/Codelist/cat/codelists.xml#CI_RoleCode/owner> .
+<http://telicent.io/catalog#05396b62-3984-490c-be34-46ce9169cf2e_Provenance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#Attribution> .
+<http://telicent.io/catalog#5e7ac981-8871-4f27-a2bd-a24a001bd3fb_Publisher> <http://purl.org/dc/terms/identifier> "5e7ac981-8871-4f27-a2bd-a24a001bd3fb" .
+<http://telicent.io/catalog#5e7ac981-8871-4f27-a2bd-a24a001bd3fb_Publisher> <https://schema.org/email> "monitoring@bbc.co.uk" .
+<http://telicent.io/catalog#5e7ac981-8871-4f27-a2bd-a24a001bd3fb_Publisher> <https://schema.org/name> "BBC Monitoring" .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/identifier> "95fd46da-7a61-4707-898f-49d4e2d73d4f" .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/publisher> <http://telicent.io/catalog#5e7ac981-8871-4f27-a2bd-a24a001bd3fb_Publisher> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://www.w3.org/ns/prov#QualifiedAttribution> <http://telicent.io/catalog#05396b62-3984-490c-be34-46ce9169cf2e_Provenance> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/issued> "2025-07-31T15:02:03.263095884"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/modified> "2025-07-31T15:10:35.885613392"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/rights> <http://telicent.io/catalog#f9c48006-e9df-4a59-84f8-245718163970_Rights> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/title> "BBC Monitoring" .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://www.w3.org/ns/dcat#distribution> <http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/description> "BBC Monitoring tracks, translates, analyses and summarises global media to help you make sense of world events." .
+<http://telicent.io/catalog#acled> <https://schema.org/email> <file:///fuseki/admin@acleddata.com> .
+<http://telicent.io/catalog#acled> <https://schema.org/name> "Armed Conflict Location & Event Data Project (ACLED)"@en .
+<http://telicent.io/catalog#acled_data_dataset> <http://purl.org/dc/terms/identifier> "acled_data" .
+<http://telicent.io/catalog#acled_data_dataset> <http://purl.org/dc/terms/publisher> <http://telicent.io/catalog#acled> .
+<http://telicent.io/catalog#acled_data_dataset> <http://purl.org/dc/terms/issued> "2024-09-13T07:00:00+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<http://telicent.io/catalog#acled_data_dataset> <http://www.w3.org/ns/prov#qualifiedAttribution> _:B5bf7e86bX2D025dX2D4dabX2D9106X2D7c9363cee2f3 .
+<http://telicent.io/catalog#acled_data_dataset> <http://purl.org/dc/terms/modified> "2025-07-31T15:02:50.603483+00:00"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<http://telicent.io/catalog#acled_data_dataset> <http://purl.org/dc/terms/rights> _:B89752b3cX2D8e87X2D4167X2Dbf89X2D17ba4a788d36 .
+<http://telicent.io/catalog#acled_data_dataset> <http://purl.org/dc/terms/title> "acled"@en .
+<http://telicent.io/catalog#acled_data_dataset> <http://www.w3.org/ns/dcat#distribution> <http://telicent.io/catalog#acled_data_distribution> .
+<http://telicent.io/catalog#acled_data_dataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<http://telicent.io/catalog#acled_data_dataset> <http://purl.org/dc/terms/description> "Political violence events, demonstration events,and strategic developments recorded around the world from the beginning of ACLED coverage to the present." .
+<http://telicent.io/catalog#03c60193-9470-4ca5-8621-c8a9072638ea_Distribution> <http://purl.org/dc/terms/identifier> "03c60193-9470-4ca5-8621-c8a9072638ea" .
+<http://telicent.io/catalog#03c60193-9470-4ca5-8621-c8a9072638ea_Distribution> <http://purl.org/dc/terms/title> "ACLED (The armed conflict location & event data project)" .
+<http://telicent.io/catalog#03c60193-9470-4ca5-8621-c8a9072638ea_Distribution> <http://www.w3.org/ns/dcat#mediaType> <https://www.iana.org/assignments/media-types/text/csv> .
+<http://telicent.io/catalog#03c60193-9470-4ca5-8621-c8a9072638ea_Distribution> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
+<http://telicent.io/catalog#03c60193-9470-4ca5-8621-c8a9072638ea_Distribution> <http://www.w3.org/ns/dcat#downloadURL> <https://acleddata.com/data-export-tool/> .
+<http://telicent.io/catalog#8955b2e5-ecbc-446d-b61b-5616886d7005_Provenance> <http://purl.org/dc/terms/identifier> "8955b2e5-ecbc-446d-b61b-5616886d7005" .
+<http://telicent.io/catalog#8955b2e5-ecbc-446d-b61b-5616886d7005_Provenance> <http://www.w3.org/ns/prov#agent> <http://telicent.io/catalog#data.owner@acled.com_Publisher> .
+<http://telicent.io/catalog#8955b2e5-ecbc-446d-b61b-5616886d7005_Provenance> <http://www.w3.org/ns/dcat#hadRole> <http://standards.iso.org/iso/19115/resources/Codelist/cat/codelists.xml#CI_RoleCode/owner> .
+<http://telicent.io/catalog#8955b2e5-ecbc-446d-b61b-5616886d7005_Provenance> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#Attribution> .
+<http://telicent.io/catalog#75632d84-a541-401a-8570-d9798700c35a_Publisher> <http://purl.org/dc/terms/identifier> "75632d84-a541-401a-8570-d9798700c35a" .
+<http://telicent.io/catalog#75632d84-a541-401a-8570-d9798700c35a_Publisher> <https://schema.org/email> "admin@acleddata.com" .
+<http://telicent.io/catalog#75632d84-a541-401a-8570-d9798700c35a_Publisher> <https://schema.org/name> "Armed Conflict Location & Event Data Project" .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://purl.org/dc/terms/identifier> "0832caa5-ca00-4226-956b-acaff58cee0e" .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://purl.org/dc/terms/publisher> <http://telicent.io/catalog#75632d84-a541-401a-8570-d9798700c35a_Publisher> .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://www.w3.org/ns/prov#QualifiedAttribution> <http://telicent.io/catalog#8955b2e5-ecbc-446d-b61b-5616886d7005_Provenance> .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://purl.org/dc/terms/issued> "2025-07-31T15:10:37.886151894"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://purl.org/dc/terms/modified> "2025-07-31T15:21:11.280537066"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://purl.org/dc/terms/rights> <http://telicent.io/catalog#c72eada3-2b88-4054-81ca-73d70fdcceca_Rights> .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://purl.org/dc/terms/title> "ACLED" .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://www.w3.org/ns/dcat#distribution> <http://telicent.io/catalog#03c60193-9470-4ca5-8621-c8a9072638ea_Distribution> .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<http://telicent.io/catalog#0832caa5-ca00-4226-956b-acaff58cee0e_Dataset> <http://purl.org/dc/terms/description> "An independent, impartial, international non-profit organization collecting data on violent conflict and protest in all countries and territories in the world." .

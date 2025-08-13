@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@telicent-oss/rdfservice": "1.0.0",
+    "@telicent-oss/sparql-lib": "^0.0.1",
     "zod": "^3.22.4"
   },
   "devDependencies": {

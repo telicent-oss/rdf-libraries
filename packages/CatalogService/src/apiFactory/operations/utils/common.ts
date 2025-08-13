@@ -21,25 +21,38 @@ export const SERVICE_PROP_URI = "http://www.w3.org/ns/dcat#service";
 export const CATALOG_PROP_URI = "http://www.w3.org/ns/dcat#catalog";
 export const SERVES_PROP_URI = "http://www.w3.org/ns/dcat#servesDataset";
 
+// PRODUCT produces requirements in the form of
+// from: binding to: UI visual elements
+// _not_ 
+// from: binding to: uiDataResourceDataType
+// Thus we'll transform
+// prettier-ignore
 export const UIDataResourceSchema = z.object({
-  title: z.string(),
-  id: z.string(),
-  description: z.string(),
-  creator: z.string(),
-  publishDate: z.string(),
-  modified: z.string(),
-  accessRights: z.string(),
-  rights: z.string(),
-  contactEmail: z.string(),
-  attributionAgentStr: z.string(),
-  type: z.enum([SERVICE_URI, DATASET_URI, CATALOG_URI, RESOURCE_URI]),
+  identifier: z.string(),             // w
+  uri: z.string(),                    // w
+  title: z.string(),                  // r
+  description: z.string(),            //
+  contactEmail: z.string(),           //
+  creator: z.string(),                //
+  publishDate: z.string(),            //
+  modified: z.string(),               //
+  accessRights: z.string(),           //
+  rights: z.string(),                 //
+  attributionAgentStr: z.string(),    //
+  type: z.enum([                      //
+    SERVICE_URI,
+    DATASET_URI,
+    CATALOG_URI,
+    RESOURCE_URI
+  ]),
   // Phase 2
-  distributionUri: z.string(),
-  distributionTitle: z.string(),
-  distributionDownloadURL: z.string(),
-  distributionMediaType: z.string(),
-  distributionIdentifier: z.string(),
+  distributionUri: z.string(),        //
+  distributionTitle: z.string(),      //
+  distributionDownloadURL: z.string(),//
+  distributionMediaType: z.string(),  //
+  distributionIdentifier: z.string(), //
 });
+
 export type UIDataResourceType = z.infer<typeof UIDataResourceSchema>;
 
 export const UIDataResourceArraySchema = z.array(UIDataResourceSchema);

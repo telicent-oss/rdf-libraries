@@ -4,36 +4,38 @@ import {
   RDFSResource,
   LongURI,
 } from "@telicent-oss/rdfservice";
-import { RESOURCE_URI } from "../apiFactory/operations/utils/common";
+import { RESOURCE_URI, UIDataResourceType } from "../apiFactory/operations/utils/common";
 import { getHashOrLastUrlSegment } from "../utils/getHashOrLastUrlSegment/getHashOrLastUrlSegment";
 import { CatalogService, DCATCatalog } from "../index";
 
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
-  id: SPARQLResultBinding;
+  identifier: SPARQLResultBinding;
   title: SPARQLResultBinding;
+  // title
+
   description?: SPARQLResultBinding;
-  creator?: SPARQLResultBinding;
-  rights?: SPARQLResultBinding;
+  publisher__name?: SPARQLResultBinding;
+  publisher__email?: SPARQLResultBinding;
+  rights__description?: SPARQLResultBinding;
   accessRights?: SPARQLResultBinding;
-  contactEmail?: SPARQLResultBinding;
   owner?: SPARQLResultBinding;
-  attributionAgentStr?: SPARQLResultBinding;
-  attributionRole?: SPARQLResultBinding;
+  qualifiedAttribution__agent?: SPARQLResultBinding;
+  qualifiedAttribution__hadRole?: SPARQLResultBinding;
   // DCAT Phase 2
-  distributionUri?: SPARQLResultBinding;
-  distributionTitle?: SPARQLResultBinding;
-  distributionDownloadURL?: SPARQLResultBinding;
-  distributionMediaType?: SPARQLResultBinding;
-  distributionIdentifier?: SPARQLResultBinding;
+  distribution?: SPARQLResultBinding;
+  distribution__title?: SPARQLResultBinding;
+  distribution__downloadURL?: SPARQLResultBinding;
+  distribution__mediaType?: SPARQLResultBinding;
+  distribution__identifier?: SPARQLResultBinding;
 }
 
 type DCATStringProps =
-  | "distributionUri"
-  | "distributionTitle"
-  | "distributionDownloadURL"
-  | "distributionMediaType"
-  | "distributionIdentifier"
-  | "attributionAgentStr";
+  | "distribution"
+  | "distribution__title"
+  | "distribution__downloadURL"
+  | "distribution__mediaType"
+  | "distribution__identifier"
+  | "qualifiedAttribution__agent";
 
 interface Mapping {
   binding: keyof DcatResourceQuerySolution;
@@ -53,24 +55,32 @@ export class DCATResource extends RDFSResource {
    * @param {string} type - the type (class URI) of the object to create - NOT TO BE USED IN CONJUNCTION WITH binding parameter
    * @param {DCATCatalog} catalog - optional catalog this resource belongs to
    */
-  service: CatalogService;
-  title: string = "-";
-  id?: string;
   dataResourceType?: LongURI;
-  contactEmail: string = "-";
+  service: CatalogService;
+  
+  // GUIDANCE
+  // Don't alias properties if you can help it
+  // Extra transformation makes it it harder for the human
+  //  to map triples to UI
+  identifier?: string;
+  // uri
+  title: string = "-";
   description: string = "-";
-  creator: string = "-";
-  rights: string = "-";
+  publisher__email: string = "-";
+  publisher__name: string = "-";
+  rights__description: string = "-";
   owner: string = "-";
-  attributionAgentStr: string = "-";
-  attributionRole: string = "-";
+  // _type
+  qualifiedAttribution: string = "-";
+  qualifiedAttribution__agent: string = "-";
+  qualifiedAttribution__hadRole: string = "-";
   accessRights: string = "-";
   // Phase 2
-  distributionUri: string = "-";
-  distributionTitle: string = "-";
-  distributionDownloadURL: string = "-";
-  distributionMediaType: string = "-";
-  distributionIdentifier: string = "-";
+  distribution: string = "-";
+  distribution__title: string = "-";
+  distribution__downloadURL: string = "-";
+  distribution__mediaType: string = "-";
+  distribution__identifier: string = "-";
   // Promises created in service constructor
   // TODO Great candidate for well-typed params object
   constructor(
@@ -95,23 +105,23 @@ export class DCATResource extends RDFSResource {
       if (statement?.title) {
         this.title = statement?.title.value;
       }
-      if (statement?.id) {
-        this.id = statement?.id.value;
+      if (statement?.identifier) {
+        this.identifier = statement?.identifier.value;
       } else {
-        this.id = this.uri;
+        this.identifier = this.uri;
       }
       if (statement?.description) {
         this.description = statement?.description.value;
       }
-      if (statement?.contactEmail) {
-        const email = statement?.contactEmail.value;
-        this.contactEmail = email.substring(email.lastIndexOf("/") + 1);
+      if (statement?.publisher__email) {
+        const email = statement?.publisher__email.value;
+        this.publisher__email = email.substring(email.lastIndexOf("/") + 1);
       }
-      if (statement?.creator) {
-        this.creator = statement?.creator.value;
+      if (statement?.publisher__name) {
+        this.publisher__name = statement?.publisher__name.value;
       }
-      if (statement?.rights) {
-        this.rights = statement?.rights.value;
+      if (statement?.rights__description) {
+        this.rights__description = statement?.rights__description.value;
       }
       if (statement?.accessRights) {
         this.accessRights = statement?.accessRights.value;
@@ -119,9 +129,9 @@ export class DCATResource extends RDFSResource {
       if (statement?.owner) {
         this.owner = statement?.owner.value;
       }
-      if (statement?.attributionAgentStr) {
+      if (statement?.qualifiedAttribution__agent) {
         let formatted = getHashOrLastUrlSegment(
-          statement?.attributionAgentStr.value
+          statement?.qualifiedAttribution__agent.value
         );
         if (formatted) {
           /**
@@ -131,10 +141,12 @@ export class DCATResource extends RDFSResource {
            */
           formatted = formatted.replace(/_Publisher$/, "");
         }
-        this.attributionAgentStr = formatted || this.attributionAgentStr;
+        this.qualifiedAttribution__agent =
+          formatted || this.qualifiedAttribution__agent;
       }
-      if (statement?.attributionRole) {
-        this.attributionAgentStr = statement?.attributionRole.value;
+      if (statement?.qualifiedAttribution__hadRole) {
+        this.qualifiedAttribution__agent =
+          statement?.qualifiedAttribution__hadRole.value;
       }
       if (statement?._type) {
         this.dataResourceType = statement?._type.value;
@@ -152,29 +164,39 @@ export class DCATResource extends RDFSResource {
         );
       }
       // Phase 2
+      // prettier-ignore
       const mappings: Mapping[] = [
-        { binding: "distributionUri", property: "distributionUri" },
-        { binding: "distributionTitle", property: "distributionTitle" },
         {
-          binding: "distributionDownloadURL",
-          property: "distributionDownloadURL",
+          binding: "distribution",
+          property: "distribution" 
         },
-        { binding: "distributionMediaType", property: "distributionMediaType" },
         {
-          binding: "distributionIdentifier",
-          property: "distributionIdentifier",
+          binding: "distribution__title",
+          property: "distribution__title" },
+        {
+          binding: "distribution__downloadURL",
+          property: "distribution__downloadURL",
         },
+        {
+          binding: "distribution__mediaType",
+          property: "distribution__mediaType",
+        },
+        {
+          binding: "distribution__identifier",
+          property: "distribution__identifier",
+        },
+      ];
 
       for (const m of mappings) {
         const binding = m.binding;
-        const prop = m.property;
-        const b = statement[binding];
-        if (!b) continue;
+        const property = m.property;
+        const statementValue = statement[binding];
+        if (!statementValue) continue;
 
-        const raw = b.value;
-        const out = m.transform ? m.transform(raw) : raw;
-        if (out) {
-          this[prop] = out;
+        const raw = statementValue.value;
+        const result = m.transform ? m.transform(raw) : raw;
+        if (result) {
+          this[property] = result;
         }
       }
     } else {
@@ -206,36 +228,46 @@ export class DCATResource extends RDFSResource {
   }
 
   toFindString() {
-    return `${this.title} + ${this.description} + ${this.owner} + ${this.creator} + ${this.contactEmail} + ${this.id}`;
+    return `${this.title} + ${this.description} + ${this.owner} + ${this.publisher__name} + ${this.publisher__email} + ${this.identifier}`;
   }
 
+
   async toUIRepresentation() {
+    // TODO remove
+    // HOW use packages/CatalogService/scripts/.dev/task/task-extract-triples-to-file
+    // WHEN Now.
+    // NOTE:
+    //  MIN/MAX might not be needed
+    //  AG suggests duplicates will not exist when data refreshed
     const [modified, issued] = await Promise.all([
       await this.getDcModified(),
       await this.getDcIssued(),
     ]);
     return {
-      id: this.id ?? this.uri,
+      identifier: this.identifier ?? this.uri,
       uri: this.uri,
       title: this.title,
       description: this.description,
+      contactEmail: this.publisher__email,
+      creator: this.publisher__name,
+      publishDate: Array.isArray(issued) && issued.length > 0 ? issued[0] : "-",
       modified:
         Array.isArray(modified) && modified.length > 0 ? modified[0] : "-",
-      publishDate: Array.isArray(issued) && issued.length > 0 ? issued[0] : "-",
       accessRights: this.accessRights,
-      creator: this.creator,
+      rights: this.rights__description,
+      attributionAgentStr: this.qualifiedAttribution__agent,
       type: this.dataResourceType ?? RESOURCE_URI,
-      contactEmail: this.contactEmail,
-      rights: this.rights,
       owner: this.owner,
-      attributionAgentStr: this.attributionAgentStr,
-      attributionRole: this.attributionRole,
+      attributionRole: this.qualifiedAttribution__hadRole,
       // Phase 2
-      distributionUri: this.distributionUri,
-      distributionTitle: this.distributionTitle,
-      distributionDownloadURL: this.distributionDownloadURL,
-      distributionMediaType: this.distributionMediaType,
-      distributionIdentifier: this.distributionIdentifier,
-    }
+        // TODO make nested
+      // WHEN got bandwidth for downstream UI and type changes
+      distributionUri: this.distribution,
+      distributionIdentifier: this.distribution__identifier,
+      distributionTitle: this.distribution__title,
+      distributionDownloadURL: this.distribution__downloadURL,
+      distributionMediaType: this.distribution__mediaType,
+
+    }  as UIDataResourceType;
   }
 }

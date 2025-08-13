@@ -10,4 +10,5 @@ PREFIX dct: <http://purl.org/dc/terms/>
 PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX prov: <http://www.w3.org/ns/prov#>
 PREFIX tcat: <http://telicent.io/catalog#>
+    PREFIX sdo: <https://schema.org/>
 `;

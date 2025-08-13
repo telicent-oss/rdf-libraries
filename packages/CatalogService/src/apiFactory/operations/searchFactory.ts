@@ -55,7 +55,7 @@ export const searchFactoryFn =
           if (context?.ownerEmail === undefined) {
             isWarnOwnerEmailExpected = true
           }
-          return resource.attributionAgentStr === context.ownerEmail
+          return resource.qualifiedAttribution__agent === context.ownerEmail;
         })
         .map((resource) => ({
           item: resource,

@@ -5,7 +5,7 @@ import {
   DCATDataset,
   DCATResource,
   DCATDataService,
-} from "../index";
+} from "../";
 
 import { setupContainer } from "./utils/setupContainer";
 

@@ -8,11 +8,12 @@ import {
   LongURI,
   RDFSResource,
 } from "@telicent-oss/rdfservice";
+
+import { builder } from "@telicent-oss/sparql-lib";
 import {
   DcatResourceQuerySolution,
   DCATRankWrapper,
   DcatResourceFindSolution,
-  COMMON_PREFIXES,
   DCATCatalog,
   DCATDataService,
   DCATDataset,
@@ -169,90 +170,14 @@ export class CatalogService extends RdfService {
     catalog?: string,
     catalogRelation?: string
   ): Promise<DCATResource[]> {
-    let catalogSelect = "";
-    let relFilter = "";
-    if (!catalogRelation) {
-      catalogRelation = "?catRel";
-      relFilter = `FILTER (?catRel in (<${this.dcat_dataset}>, <${this.dcat_service}>, <${this.dcat_catalog}>, <${this.dcatResource}>))`;
-    } else {
-      catalogRelation = `<${catalogRelation}>`;
-    }
-    if (catalog) {
-      catalogSelect = `<${catalog}> ${catalogRelation} ?uri .`;
-    }
-    let typeSelect = "";
-    if (cls) {
-      // REQUIREMENT 6.3 Search by dataResourceFilter: selected data-resources
-      // Perfect. cls is optional.
-      typeSelect = `BIND (<${cls}> as ?_type)`;
-    } else {
-      typeSelect =
-        "FILTER (?_type IN (dcat:Resource, dcat:Dataset, dcat:DataService, dcat:Catalog, dcat:DatasetSeries))";
-    }
-    // !CRITICAL PREFIX below is hacked in.
-    const query = `
-            ${COMMON_PREFIXES}
-            
-            SELECT DISTINCT
-              ?id
-              ?uri
-              ?title
-              ?contactEmail
-              ?description
-              ?creator
-              ?rights
-              ?accessRights
-              ?owner
-              ?_type
-              ?attributionAgentStr
-              ?attributionRole
-              ?attribution
-              # Phase 2
-              ## distribution
-              ?distributionUri
-              ?distributionTitle
-              ?distributionDownloadURL
-              ?distributionMediaType
-              ?distributionIdentifier
-            WHERE {
-                ${catalogSelect}
-                ${typeSelect}
-                ?uri a ?_type .
-                OPTIONAL { ?uri dct:title ?title } .
-                OPTIONAL { ?uri dct:identifier ?id } .
-                OPTIONAL { 
-                  ?uri dct:publisher ?publisher .
-                  ?publisher <https://schema.org/email> ?contactEmail 
-                } .
-                OPTIONAL { 
-                  ?uri dct:publisher ?publisher .
-                  ?publisher <https://schema.org/name> ?creator 
-                } .
-                OPTIONAL { ?uri dct:description ?description } .
-                OPTIONAL { 
-                  ?uri dct:rights ?dstRights .
-                  ?dstRights dct:description ?rights
-                } .
-                OPTIONAL { ?uri dct:accessRights ?accessRights } .
-                OPTIONAL { 
-                  ?owner ?catRel ?uri .
-                  ${relFilter}
-                } .
-                OPTIONAL {
-                  ?uri prov:QualifiedAttribution ?attribution .
-                  ?attribution prov:agent ?attributionAgentStr .
-                  OPTIONAL { ?attribution prov:hadRole ?attributionRole } .
-                } .
-                # Phase 2
-                OPTIONAL { 
-                  ?uri dcat:distribution ?distributionUri .
-                  ?distributionUri dct:title ?distributionTitle .
-                  ?distributionUri dcat:downloadURL ?distributionDownloadURL .
-                  ?distributionUri dcat:mediaType ?distributionMediaType .
-                  ?distributionUri dct:identifier ?distributionIdentifier .
-                } .
-            }`;
-    const results = await this.runQuery<DcatResourceQuerySolution>(query);
+    const results = await this.runQuery<DcatResourceQuerySolution>(
+      builder.catalog.getAllDCATResources({
+        vocab: { dcat: this },
+        cls,
+        catalog,
+        catalogRelation,
+      })
+    );
     const resources: DCATResource[] = results.results.bindings.map(
       (statement: DcatResourceQuerySolution) => {
         let Class = DCATResource;
@@ -321,62 +246,13 @@ export class CatalogService extends RdfService {
     ],
     owner: DCATCatalog | DCATDataService | DCATDataset
   ): Promise<RankWrapper[]> {
-    const query = `
-            ${COMMON_PREFIXES}
-
-            SELECT DISTINCT 
-              ?uri 
-              ?title 
-              ?published 
-              ?description 
-              ?creator 
-              ?rights 
-              ?modified 
-              ?accessRights 
-              ?_type 
-              (group_concat(DISTINCT ?literal) as ?concatLit)
-              (group_concat(DISTINCT ?attributionAgentStr) as ?attributionAgents)
-              (group_concat(DISTINCT ?attributionRole) as ?attributionRoles)
-              WHERE {
-                  {
-                      # Include the parent
-                      ?uri a ?_type .
-                      ?uri ?pred ?literal .
-                      ${owner ? `FILTER(?uri = <${owner.uri}>)` : ``}
-                  }
-                  UNION
-                  {
-                      ?uri a ?_type .
-                      ?uri ?pred ?literal .
-                      ${owner ? `<${owner.uri}> ?catRel ?uri .` : ""}
-                  }
-                  BIND (STR(?_type) AS ?typestr) .
-                  FILTER (?typestr in ("${dcatTypes.join('", "')}") ) .
-                  FILTER CONTAINS(LCASE(?literal), "${matchingText.toLowerCase()}")
-                  OPTIONAL {?uri dct:title ?title} 
-                  OPTIONAL {?uri dct:published ?published} 
-                  OPTIONAL {?uri dct:modified ?modified} 
-                  OPTIONAL {?uri dct:description ?description} 
-                  OPTIONAL {?uri dct:creator ?creator} 
-                  OPTIONAL {?uri dct:rights ?rights} 
-                  OPTIONAL {?uri dct:accessRights ?accessRights}
-                  OPTIONAL {
-                    ?uri prov:QualifiedAttribution ?attribution .
-                    ?attribution prov:agent ?attributionAgentStr .
-                    OPTIONAL { ?attribution prov:hadRole ?attributionRole } .
-                  }
-            } GROUP BY 
-              ?uri 
-              ?title 
-              ?published 
-              ?modified 
-              ?description 
-              ?creator 
-              ?accessRights 
-              ?rights 
-              ?_type
-            `;
-    const results = await this.runQuery<ResourceFindSolution>(query);
+    const results = await this.runQuery<ResourceFindSolution>(
+      builder.catalog.findWithOwner({
+        dcatTypes,
+        matchingText,
+        ownerUri: owner?.uri,
+      })
+    );
     return this.rankedWrap(results, matchingText);
   }
 
@@ -401,84 +277,12 @@ export class CatalogService extends RdfService {
     accessRights?: string;
     dcatTypes?: string[];
   }): Promise<DCATRankWrapper[]> {
-    // Construct the SPARQL query with inline conditions
-    const query = `
-        ${COMMON_PREFIXES}
-
-        SELECT DISTINCT 
-          ?uri
-          ?title
-          ?published
-          ?description
-          ?creator
-          ?rights
-          ?accessRights
-          ?issued
-          ?_type 
-          (GROUP_CONCAT(DISTINCT ?literal; SEPARATOR=", ") AS ?concatLit)
-          (GROUP_CONCAT(DISTINCT ?attributionAgentStr; SEPARATOR=", ") AS ?attributionAgents)
-          (GROUP_CONCAT(DISTINCT ?attributionRole; SEPARATOR=", ") AS ?attributionRoles)
-        WHERE {
-            ${
-              owner
-                ? `
-                {
-                    ${/* Include the parent */ ""}
-                    ?uri a ?_type .
-                    ?uri ?pred ?literal .
-                    FILTER(?uri = <${owner.uri}>) .
-                    ${searchText ? "?uri ?pred ?literal ." : ""}
-                }
-                UNION
-                {
-                    ${/* Include children datasets and services */ ""}
-                    ?uri a ?_type .
-                    ?uri ?pred ?literal .
-                    ${owner ? `<${owner.uri}> ?catRel ?uri .` : ""}
-                    ${searchText ? "?uri ?pred ?literal ." : ""}
-                }
-            `
-                : `
-              ${
-                /* When no owner is specified, include all relevant resources */ ""
-              }
-                ?uri a ?_type .
-                ${searchText ? "?uri ?pred ?literal ." : ""}
-            `
-            }
-            ${accessRights ? `?uri dct:accessRights "${accessRights}" .` : ""}
-            ${
-              searchText
-                ? `FILTER(CONTAINS(LCASE(?literal), "${searchText.toLowerCase()}")) .`
-                : ""
-            }
-            FILTER (?_type IN (${dcatTypes
-              .map((type) => `<${type}>`)
-              .join(", ")})) .
-            OPTIONAL { ?uri dct:title ?title } .
-            OPTIONAL { ?uri dct:issued ?issued } .
-            OPTIONAL { ?uri dct:published ?published } .
-            OPTIONAL { ?uri dct:description ?description } .
-            OPTIONAL { ?uri dct:creator ?creator } .
-            OPTIONAL { ?uri dct:rights ?rights } .
-            OPTIONAL { ?uri dct:accessRights ?accessRights } .
-            OPTIONAL {
-              ?uri prov:QualifiedAttribution ?attribution .
-              ?attribution prov:agent ?attributionAgentStr .
-              OPTIONAL { ?attribution prov:hadRole ?attributionRole } .
-            }
-        }
-        GROUP BY
-          ?uri
-          ?title
-          ?published
-          ?description 
-          ?creator
-          ?accessRights
-          ?rights
-          ?_type
-    `;
-
+    const query = builder.catalog.findWithParams({
+      searchText,
+      accessRights,
+      dcatTypes,
+      ownerUri: owner?.uri,
+    });
     // Optionally, log the query for debugging purposes
     DEBUG && console.log("Constructed SPARQL Query:", query);
 
