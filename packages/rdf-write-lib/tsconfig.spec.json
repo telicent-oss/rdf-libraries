@@ -1,0 +1,20 @@
+{
+  "// WHY does this file exist?": "compilerOptions.module = 'CommonJS'",
+  "// WHY is that important?": "Jest works better with CommonJS",
+  "// WHEN can it be removed?": "When tests works with ESM",
+  "// MORE:": "https://jestjs.io/docs/ecmascript-modules",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "module": "CommonJS",
+    "outDir": "../../dist",
+    "types": ["jest", "node"]
+  },
+  "include": [
+    "jest.config.ts",
+    "src/**/*.test.ts",
+    "src/**/*.test.tsx",
+    "src/**/*.spec.ts",
+    "src/**/*.d.ts"
+  ]
+}

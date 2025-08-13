@@ -45,6 +45,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
+    "@telicent-oss/rdf-write-lib": "^0.0.1",
     "@telicent-oss/rdfservice": "1.0.0",
     "@telicent-oss/sparql-lib": "^0.0.1",
     "zod": "^3.22.4"

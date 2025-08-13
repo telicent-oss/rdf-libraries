@@ -1,0 +1,6 @@
+OPEN_API="./data/open-api/paperback-writer.json"
+SRC="./src/open-api"
+
+npx openapi-fetch       "$OPEN_API" -o "$SRC/paperback-writer.ts"
+npx openapi-typescript  "$OPEN_API" -o "$SRC/paperback-writer.d.ts"
+yarn tsc --noEmit
