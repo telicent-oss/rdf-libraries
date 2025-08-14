@@ -10,9 +10,9 @@ const nodeBuiltins = [
 ];
 
 const externals = [
-  ...Object.keys(pkg.dependencies || {}),
-  ...Object.keys(pkg.peerDependencies || {}),
-  ...Object.keys(pkg.devDependencies || {}),
+  ...Object.keys(pkg?.dependencies || {}),
+  ...Object.keys(pkg?.peerDependencies || {}),
+  ...Object.keys(pkg?.devDependencies || {}),
   ...nodeBuiltins,
   "testcontainers",
 ];

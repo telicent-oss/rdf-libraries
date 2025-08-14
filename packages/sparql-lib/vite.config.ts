@@ -4,8 +4,8 @@ import dts from "vite-plugin-dts";
 import pkg from "./package.json" assert { type: "json" };
 
 const externals = [
-  ...Object.keys(pkg.dependencies || {}),
-  ...Object.keys(pkg.peerDependencies || {})
+  ...Object.keys(pkg?.dependencies || {}),
+  ...Object.keys(pkg?.peerDependencies || {})
 ];
 
 export default defineConfig({
