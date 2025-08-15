@@ -23,34 +23,38 @@ export const SERVES_PROP_URI = "http://www.w3.org/ns/dcat#servesDataset";
 
 // PRODUCT produces requirements in the form of
 // from: binding to: UI visual elements
-// _not_ 
+// _not_
 // from: binding to: uiDataResourceDataType
 // Thus we'll transform
+const typeSchema = z.enum([
+  SERVICE_URI,
+  DATASET_URI,
+  CATALOG_URI,
+  RESOURCE_URI,
+]);
 // prettier-ignore
 export const UIDataResourceSchema = z.object({
-  identifier: z.string(),             // w
-  uri: z.string(),                    // w
-  title: z.string(),                  // r
-  description: z.string(),            //
-  contactEmail: z.string(),           //
-  creator: z.string(),                //
-  publishDate: z.string(),            //
-  modified: z.string(),               //
-  accessRights: z.string(),           //
-  rights: z.string(),                 //
-  attributionAgentStr: z.string(),    //
-  type: z.enum([                      //
-    SERVICE_URI,
-    DATASET_URI,
-    CATALOG_URI,
-    RESOURCE_URI
-  ]),
+  type: typeSchema,                   // _type
+  uri: z.string(),                    // uri
+  identifier: z.string(),             // identifier
+  title: z.string(),                  // title
+  description: z.string(),            // description
+  contact: z.string(),                // contactPoint__fn
+  creator: z.string(),                // publisher__title
+  rights: z.string(),                 // rights__description
+  accessRights: z.string(),           // WRITE-ONLY accessRights
+  qualifiedAttribution: z.string(),   // WRITE-ONLY qualifiedAttribution
+  owner: z.string(),                  // qualifiedAttribution__agent__title
   // Phase 2
-  distributionUri: z.string(),        //
-  distributionTitle: z.string(),      //
-  distributionDownloadURL: z.string(),//
-  distributionMediaType: z.string(),  //
-  distributionIdentifier: z.string(), //
+  distributionUri: z.string(),        // distribution
+  distributionIdentifier: z.string(), // distribution__identifier
+  distributionTitle: z.string(),      // distribution__title
+  distributionURL: z.string(),        // distribution__accessURL
+  distributionMediaType: z.string(),  // distribution__mediaType
+  distributionAvailable: z.string(),  // distribution__available
+  lastModifiedBy: z.string(),         // contributor__title
+  publishDate: z.string(),            // min_issued
+  modified: z.string(),               // max_modified
 });
 
 export type UIDataResourceType = z.infer<typeof UIDataResourceSchema>;

@@ -1,10 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "jest-fetch-mock";
 import { execSync } from "child_process";
-import { setupContainer } from "packages/sparql-lib/src/testUtils/setupContainer";
+import { setupContainer } from "../../..//testUtils/setupContainer";
 import { getAllDCATResources } from "../getAllDCATResources/getAllDCATResources";
 import { VOCAB } from "../constants";
-import { loadData } from "packages/sparql-lib/src/testUtils/loadData";
+import { loadData } from "../../..//testUtils/loadData";
 import fs from "fs";
 import path from "path";
 import { StartedDockerComposeEnvironment } from "testcontainers";

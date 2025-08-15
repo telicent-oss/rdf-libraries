@@ -31,22 +31,29 @@ export type DCATRankWrapper = {
 };
 
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
+  // _type?: SPARQLResultBinding;
+  // uri: SPARQLResultBinding;
   identifier: SPARQLResultBinding;
   title: SPARQLResultBinding;
   description?: SPARQLResultBinding;
-  publisher__name?: SPARQLResultBinding;
-  publisher__email?: SPARQLResultBinding;
+  contactPoint__fn?: SPARQLResultBinding;
+  publisher__title?: SPARQLResultBinding;
   rights__description?: SPARQLResultBinding;
   accessRights?: SPARQLResultBinding;
-  owner?: SPARQLResultBinding;
-  qualifiedAttribution__agent?: SPARQLResultBinding;
-  qualifiedAttribution__hadRole?: SPARQLResultBinding;
+  qualifiedAttribution?: SPARQLResultBinding;
+  qualifiedAttribution__agent__title?: SPARQLResultBinding;
   // Phase 2
+  //   distribution
   distribution?: SPARQLResultBinding;
-  distribution__title?: SPARQLResultBinding;
-  distribution__downloadURL?: SPARQLResultBinding;
-  distribution__mediaType?: SPARQLResultBinding;
   distribution__identifier?: SPARQLResultBinding;
+  distribution__title?: SPARQLResultBinding;
+  distribution__accessURL?: SPARQLResultBinding;
+  distribution__mediaType?: SPARQLResultBinding;
+  distribution__available?: SPARQLResultBinding;
+  //
+  contributor__title?: SPARQLResultBinding;
+  min_issued?: SPARQLResultBinding;
+  max_modified?: SPARQLResultBinding;
 }
 
 export interface DcatResourceFindSolution extends DcatResourceQuerySolution {

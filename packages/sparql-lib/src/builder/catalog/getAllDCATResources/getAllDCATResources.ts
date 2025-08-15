@@ -26,26 +26,31 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
   return `
     ${COMMON_PREFIXES}
     SELECT DISTINCT
-        ?identifier
-        ?uri
-        ?title
-        ?description
-        ?publisher__email               # contactEmail
-        ?publisher__name                # creator
-        ?rights__description             # rights
-        ?accessRights
-        ?owner
-        ?_type
-        ?qualifiedAttribution           # attribution
-        ?qualifiedAttribution__agent    # attributionAgentStr
-        ?qualifiedAttribution__hadRole  # attributionRole
+        ?_type                              # type
+        ?uri                                #
+        ?identifier                         #
+        ?title                              #
+        ?description                        #
+        ?contactPoint                       #   uris.contactPoint
+        ?contactPoint__fn                   # contact
+        ?publisher                          # uris.publisher
+        ?publisher__title                   # creator
+        ?rights                             #   uris.rights
+        ?rights__description                # rights
+        ?accessRights                       # accessRights
+        ?qualifiedAttribution               #   uris.qualifiedAttribution
+        ?qualifiedAttribution__agent__title # owner
         # Phase 2
-        ## distribution
-        ?distribution
-        ?distribution__title
-        ?distribution__downloadURL
-        ?distribution__mediaType
-        ?distribution__identifier
+        ?distribution                       # distributionUri, uris.distributionUri
+        ?distribution__identifier           # distributionIdentifier
+        ?distribution__title                # distributionTitle
+        ?distribution__accessURL            #
+        ?distribution__mediaType            #
+        ?distribution__available            #
+        ?contributor                        #   uris.contributor
+        ?contributor__title                 # lastModifiedBy
+        ?min_issued                         # publishDate
+        ?max_modified                       # modified
     WHERE {
         ${catalog ? `<${catalog}> ${catalogRelationAllOrSpecific} ?uri .` : ""}
         ${
@@ -62,39 +67,57 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
             )`
         }
         ?uri a ?_type .
-        OPTIONAL { ?uri dct:title       ?title } .
-        OPTIONAL { ?uri dct:identifier  ?identifier } .
         OPTIONAL { 
-            ?uri        dct:publisher   ?publisher .
-            ?publisher  sdo:name        ?publisher__name .
-            ?publisher  sdo:email       ?publisher_email
-        } .
+            ?uri            dct:title       ?title } .
+        OPTIONAL {
+            ?uri            dct:identifier  ?identifier } .
         OPTIONAL { 
-            ?uri        dct:description ?description } .
+            ?uri            dct:publisher   ?publisher .
+            ?publisher      dct:title       ?publisher__title } .
         OPTIONAL { 
-            ?uri        dct:rights      ?rights .
-            ?rights     dct:description ?rights__description
-        } .
+            ?uri            dcat:contactPoint   ?contactPoint .
+            ?contactPoint   vcard:fn            ?contactPoint__fn } .
         OPTIONAL { 
-            ?uri        dct:accessRights ?accessRights } .
+            ?uri            dct:description     ?description } .
         OPTIONAL { 
-            ?owner  ${catalogRelationAllOrSpecific} ?uri .
+            ?uri            dct:rights          ?rights .
+            ?rights         dct:description     ?rights__description } .
+        OPTIONAL { 
+            ?uri            dct:accessRights    ?accessRights } .
+        OPTIONAL { 
+            ?parent  ${catalogRelationAllOrSpecific} ?uri .
             ${ifAllRelationsThenFilter}
         } .
         OPTIONAL {
-            ?uri                    prov:QualifiedAttribution ?qualifiedAttribution .
-            ?qualifiedAttribution   prov:agent                ?qualifiedAttribution__agent .
-            OPTIONAL { 
-            ?qualifiedAttribution   prov:hadRole              ?qualifiedAttribution__hadRole 
-            } .
+            ?uri                            prov:qualifiedAttribution   ?qualifiedAttribution .
+            ?qualifiedAttribution           prov:agent                  ?qualifiedAttribution__agent .
+            ?qualifiedAttribution__agent    dct:title                   ?qualifiedAttribution__agent__title .
+            # qualifiedAttribution__agent__title could be encorced by a connection, but after discussions
+            # with AG 250814
+            # ?qualifiedAttribution           dcat:hadRole                ?qualifiedAttribution__hadRole 
         } .
-        # Phase 2
         OPTIONAL { 
             ?uri            dcat:distribution   ?distribution .
-            ?distribution   dct:title           ?distribution__title .
-            ?distribution   dcat:downloadURL    ?distribution__downloadURL .
-            ?distribution   dcat:mediaType      ?distribution__mediaType .
             ?distribution   dct:identifier      ?distribution__identifier .
+            ?distribution   dct:title           ?distribution__title .
+            ?distribution   dcat:accessURL      ?distribution__accessURL .
+            ?distribution   dcat:mediaType      ?distribution__mediaType .
+            ?distribution   dct:available       ?distribution__available .
         } .
+
+        # aggregated modified
+        OPTIONAL {
+            SELECT ?uri (MAX(?modified) AS ?max_modified) WHERE {
+            ?uri dct:modified ?modified .
+            FILTER(isLiteral(?modified))
+            } GROUP BY ?uri
+        }
+        # aggregated issued
+        OPTIONAL {
+            SELECT ?uri (MIN(?issued) AS ?min_issued) WHERE {
+            ?uri dct:issued ?issued .
+            FILTER(isLiteral(?issued))
+            } GROUP BY ?uri
+        }
     }`;
 };

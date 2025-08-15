@@ -8,12 +8,12 @@ import {
   UITreeViewBaseItemType,
 } from "./operations/utils/common";
 import { ApiFactoryConfigType } from "./operations/type";
-import { resourceUpdateFactory, ResourceUpdateItem, ResourceUpdateParamsType } from "./operations/resourceUpdateFactory/resourceUpdateFactory";
+import { resourceUpdateFactory, ResourceUpdateParamsType, ResourceUpdateResults } from "./operations/resourceUpdateFactory/resourceUpdateFactory";
 import { RdfWriteApiClientType } from "@telicent-oss/rdf-write-lib";
 export interface Api {
-  search: (params: UISearchParamsType, context: UISearchContextType) => Promise<Array<UIDataResourceType>>;
+  search: (params: UISearchParamsType, context: UISearchContextType) => Promise<Array<Partial<UIDataResourceType>>>;
   catalog: (params: UISearchParamsType) => Promise<UITreeViewBaseItemType[]>;
-  resourceUpdate: (params: ResourceUpdateParamsType) => Promise<ResourceUpdateItem[]>;
+  resourceUpdate: (params: ResourceUpdateParamsType) => Promise<ResourceUpdateResults>;
   _catalogService: CatalogService;
   _rdfWriteApiClient: RdfWriteApiClientType;
   _testData?: typeof MOCK;

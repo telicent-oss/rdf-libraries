@@ -4,45 +4,90 @@ import {
   RDFSResource,
   LongURI,
 } from "@telicent-oss/rdfservice";
-import { RESOURCE_URI, UIDataResourceType } from "../apiFactory/operations/utils/common";
-import { getHashOrLastUrlSegment } from "../utils/getHashOrLastUrlSegment/getHashOrLastUrlSegment";
+import {
+  RESOURCE_URI,
+  UIDataResourceType,
+} from "../apiFactory/operations/utils/common";
 import { CatalogService, DCATCatalog } from "../index";
-
+import {
+  DispatchResult,
+  RdfWriteApiByPredicateFn,
+  Triple,
+} from "@telicent-oss/rdf-write-lib";
+import { v4 as uuidv4 } from "uuid";
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
+  // inherit uri: SPARQLResultBinding;
+  // inherit _type?: SPARQLResultBinding;
   identifier: SPARQLResultBinding;
   title: SPARQLResultBinding;
-  // title
-
   description?: SPARQLResultBinding;
-  publisher__name?: SPARQLResultBinding;
-  publisher__email?: SPARQLResultBinding;
+  contactPoint?: SPARQLResultBinding;
+  contactPoint__fn?: SPARQLResultBinding;
+  publisher?: SPARQLResultBinding;
+  publisher__title?: SPARQLResultBinding;
+  rights?: SPARQLResultBinding;
   rights__description?: SPARQLResultBinding;
   accessRights?: SPARQLResultBinding;
-  owner?: SPARQLResultBinding;
-  qualifiedAttribution__agent?: SPARQLResultBinding;
-  qualifiedAttribution__hadRole?: SPARQLResultBinding;
+  qualifiedAttribution?: SPARQLResultBinding;
+  qualifiedAttribution__agent__title?: SPARQLResultBinding;
   // DCAT Phase 2
   distribution?: SPARQLResultBinding;
-  distribution__title?: SPARQLResultBinding;
-  distribution__downloadURL?: SPARQLResultBinding;
-  distribution__mediaType?: SPARQLResultBinding;
   distribution__identifier?: SPARQLResultBinding;
+  distribution__title?: SPARQLResultBinding;
+  distribution__accessURL?: SPARQLResultBinding;
+  distribution__mediaType?: SPARQLResultBinding;
+  distribution__available?: SPARQLResultBinding;
+  //
+  contributor?: SPARQLResultBinding;
+  contributor__title?: SPARQLResultBinding;
+  min_issued?: SPARQLResultBinding;
+  max_modified?: SPARQLResultBinding;
 }
 
-type DCATStringProps =
-  | "distribution"
-  | "distribution__title"
-  | "distribution__downloadURL"
-  | "distribution__mediaType"
-  | "distribution__identifier"
-  | "qualifiedAttribution__agent";
+type ConstructorOptions = {
+  service: CatalogService;
+  uri?: string;
+  title?: string;
+  type: LongURI;
+  catalog?: DCATCatalog;
+  statement?: DcatResourceQuerySolution;
+};
 
-interface Mapping {
-  binding: keyof DcatResourceQuerySolution;
-  property: DCATStringProps;
-  transform?: (value: string) => string;
-}
+const warnWhenOptionsAndStatement = (
+  options: ConstructorOptions,
+  instance: DCATResource
+) => {
+  if (!options.title) {
+    console.warn(`No title set for ${instance.uri} in query response`);
+  }
+  if (options.uri || options.title) {
+    const optionsStatementStr = JSON.stringify(options.statement, null, 2);
+    console.warn(
+      `Expect either properties (e.g. uri, title, etc)`,
+      `or statement (${optionsStatementStr.slice(0, 40)}...)`,
+      `But not both`
+    );
+  }
+};
 
+const errorWhenInvalidOptionsAndNotStatement = (
+  options: ConstructorOptions
+) => {
+  if (options.uri == undefined) {
+    throw new Error("uri must be provided for a new resource");
+  }
+  if (options.title == undefined) {
+    throw new Error(
+      `title must be provided for a new resource uri: ${options.uri}, type: ${options.type}`
+    );
+  }
+};
+
+const asErrorValueObject = (error: unknown, meta: unknown) => ({
+  error: `${error} ${JSON.stringify(meta)}`,
+});
+
+export type StoreTriplesResult = Awaited<DispatchResult> | { error: string };
 export class DCATResource extends RDFSResource {
   className = "DCATResource";
   /**
@@ -57,168 +102,92 @@ export class DCATResource extends RDFSResource {
    */
   dataResourceType?: LongURI;
   service: CatalogService;
-  
+
   // GUIDANCE
   // Don't alias properties if you can help it
   // Extra transformation makes it it harder for the human
-  //  to map triples to UI
-  identifier?: string;
+  // to map triples to UI
+
+  // _type
   // uri
+  identifier?: string;
   title: string = "-";
   description: string = "-";
-  publisher__email: string = "-";
-  publisher__name: string = "-";
+  contactPoint__fn: string = "-";
+  publisher__title: string = "-";
   rights__description: string = "-";
-  owner: string = "-";
-  // _type
-  qualifiedAttribution: string = "-";
-  qualifiedAttribution__agent: string = "-";
-  qualifiedAttribution__hadRole: string = "-";
   accessRights: string = "-";
+  qualifiedAttribution: string = "-";
+  qualifiedAttribution__agent__title: string = "-";
+  owner: string = "-";
   // Phase 2
   distribution: string = "-";
-  distribution__title: string = "-";
-  distribution__downloadURL: string = "-";
-  distribution__mediaType: string = "-";
   distribution__identifier: string = "-";
+  distribution__title: string = "-";
+  distribution__accessURL: string = "-";
+  distribution__mediaType: string = "-";
+  distribution__available: string = "-";
+  contributor__title: string = "-";
+  min_issued: string = "-";
+  max_modified: string = "-";
+  uris: {
+    contactPoint?: string;
+    publisher?: string;
+    rights?: string;
+    qualifiedAttribution?: string;
+    distribution?: string;
+    contributor?: string;
+  } = {}; //
+
   // Promises created in service constructor
-  // TODO Great candidate for well-typed params object
   constructor(
-    service: CatalogService,
-    uri?: string,
-    title?: string,
-    type: LongURI = "http://www.w3.org/ns/dcat#Resource",
-    catalog?: DCATCatalog,
-    statement?: DcatResourceQuerySolution
+    // TODO Great candidate for well-typed params object
+    // WHY: An "options" object namespaces/dis-ambiguates
+    // NOTE: As interim create options object; As no-downstream impact
+    optionService: CatalogService,
+    optionUri?: string,
+    optionTitle?: string,
+    optionType: LongURI = "http://www.w3.org/ns/dcat#Resource",
+    optionCatalog?: DCATCatalog,
+    optionStatement?: DcatResourceQuerySolution
   ) {
-    let cached = false;
-    if (uri) {
-      cached = service.inCache(uri);
-    }
-    super(service, uri, type, statement);
-    this.service = service;
-    if (statement != undefined) {
-      this.uri = statement.uri.value;
-      if (!statement.title) {
-        console.warn(`No title set for ${this.uri} in query response`);
-      }
-      if (statement?.title) {
-        this.title = statement?.title.value;
-      }
-      if (statement?.identifier) {
-        this.identifier = statement?.identifier.value;
-      } else {
-        this.identifier = this.uri;
-      }
-      if (statement?.description) {
-        this.description = statement?.description.value;
-      }
-      if (statement?.publisher__email) {
-        const email = statement?.publisher__email.value;
-        this.publisher__email = email.substring(email.lastIndexOf("/") + 1);
-      }
-      if (statement?.publisher__name) {
-        this.publisher__name = statement?.publisher__name.value;
-      }
-      if (statement?.rights__description) {
-        this.rights__description = statement?.rights__description.value;
-      }
-      if (statement?.accessRights) {
-        this.accessRights = statement?.accessRights.value;
-      }
-      if (statement?.owner) {
-        this.owner = statement?.owner.value;
-      }
-      if (statement?.qualifiedAttribution__agent) {
-        let formatted = getHashOrLastUrlSegment(
-          statement?.qualifiedAttribution__agent.value
-        );
-        if (formatted) {
-          /**
-           * This uri value is intentionally combining multiple values.
-           * "_Publisher" is not relevant so we can remove it
-           * @see "src/main/java/io/telicent/datacatalog/dcat3/Provenance.java"
-           */
-          formatted = formatted.replace(/_Publisher$/, "");
-        }
-        this.qualifiedAttribution__agent =
-          formatted || this.qualifiedAttribution__agent;
-      }
-      if (statement?.qualifiedAttribution__hadRole) {
-        this.qualifiedAttribution__agent =
-          statement?.qualifiedAttribution__hadRole.value;
-      }
-      if (statement?._type) {
-        this.dataResourceType = statement?._type.value;
-      } else {
-        this.dataResourceType = type;
-      }
+    const options: ConstructorOptions = {
+      service: optionService,
+      uri: optionUri,
+      title: optionTitle,
+      type: optionType,
+      catalog: optionCatalog,
+      statement: optionStatement,
+    };
+    const cached = options.uri && options.service.inCache(options.uri);
+    super(options.service, options.uri, options.type, options.statement);
+    this.service = options.service;
 
-      if (uri || title) {
-        console.warn(
-          `individual parameters such as uri, title, etc. should not be set if the statement parameter is set: ${JSON.stringify(
-            statement,
-            null,
-            2
-          )}`
-        );
-      }
-      // Phase 2
-      // prettier-ignore
-      const mappings: Mapping[] = [
-        {
-          binding: "distribution",
-          property: "distribution" 
+    if (options.statement != undefined) {
+      warnWhenOptionsAndStatement(options, this);
+      this.update(options.statement, {
+        defaults: {
+          // !WARNING: Slightly different life-cycles
+          // options  - will default to fresh type
+          //          - (super() processes string and pushes split to types )
+          // uri      - will default to pre-existing uri
+          type: options.type,
+          uri: this.uri,
         },
-        {
-          binding: "distribution__title",
-          property: "distribution__title" },
-        {
-          binding: "distribution__downloadURL",
-          property: "distribution__downloadURL",
-        },
-        {
-          binding: "distribution__mediaType",
-          property: "distribution__mediaType",
-        },
-        {
-          binding: "distribution__identifier",
-          property: "distribution__identifier",
-        },
-      ];
-
-      for (const m of mappings) {
-        const binding = m.binding;
-        const property = m.property;
-        const statementValue = statement[binding];
-        if (!statementValue) continue;
-
-        const raw = statementValue.value;
-        const result = m.transform ? m.transform(raw) : raw;
-        if (result) {
-          this[property] = result;
-        }
-      }
+      });
     } else {
       if (cached) {
         return this;
       }
-      if (uri == undefined) {
-        throw new Error("uri must be provided for a new resource");
-      }
-      if (title == undefined) {
-        throw new Error(
-          `title must be provided for a new resource uri: ${uri}, type: ${type}`
-        );
-      }
 
-      if (title && title != "") {
-        this.constructorPromises.push(this.setTitle(title));
+      errorWhenInvalidOptionsAndNotStatement(options);
+      if (options.title && options.title != "") {
+        this.constructorPromises.push(this.setTitle(options.title));
       }
-      if (catalog) {
+      if (options.catalog) {
         this.constructorPromises.push(
           this.service.insertTriple(
-            catalog.uri,
+            options.catalog.uri,
             `http://www.w3.org/ns/dcat#Resource`,
             this.uri
           )
@@ -227,47 +196,187 @@ export class DCATResource extends RDFSResource {
     }
   }
 
+  update(
+    statement: DcatResourceQuerySolution,
+    options: {
+      defaults?: {
+        uri?: string;
+        type?: string;
+      };
+    } = {}
+  ) {
+    const {
+      // _type
+      uri,
+      identifier,
+      title,
+      description,
+      contactPoint__fn,
+      publisher__title,
+      rights__description,
+      accessRights,
+      qualifiedAttribution,
+      qualifiedAttribution__agent__title,
+      distribution,
+      distribution__identifier,
+      distribution__title,
+      distribution__accessURL,
+      distribution__mediaType,
+      distribution__available,
+      contributor__title,
+      min_issued,
+      max_modified,
+      ...urisAndAliasedBindings
+    } = statement;
+
+    Object.assign(this, {
+      // _type
+      uri: uri?.value,
+      identifier: identifier?.value,
+      title: title?.value,
+      description: description?.value,
+      contactPoint__fn: contactPoint__fn?.value,
+      publisher__title: publisher__title?.value,
+      rights__description: rights__description?.value,
+      accessRights: accessRights?.value,
+      qualifiedAttribution: qualifiedAttribution?.value,
+      qualifiedAttribution__agent__title:
+        qualifiedAttribution__agent__title?.value,
+      // Phase 2
+      distribution: distribution?.value,
+      distribution__identifier: distribution__identifier?.value,
+      distribution__title: distribution__title?.value,
+      distribution__accessURL: distribution__accessURL?.value,
+      distribution__mediaType: distribution__mediaType?.value,
+      distribution__available: distribution__available?.value,
+      contributor__title: contributor__title?.value,
+      min_issued: min_issued?.value,
+      max_modified: max_modified?.value,
+    });
+    const { contactPoint, publisher, rights, contributor, ...aliasedBindings } =
+      urisAndAliasedBindings;
+    // used for build triples for writing
+    this.uris = {
+      contactPoint: contactPoint?.value,
+      publisher: publisher?.value,
+      rights: rights?.value,
+      distribution: distribution?.value,
+      contributor: contributor?.value,
+    };
+
+    // !DANGER !DANGER !DANGER
+    // this.identifier = aliasedBindings.identifier
+    //   ? aliasedBindings.identifier.value
+    //   : options.defaults?.uri;
+    // !REMOVED !REMOVED !REMOVED
+    // Unsure why defaulting to different field.
+    // If sparql assumes identifier exists in graph
+    // Then serious bugs could occur.
+
+    // IDEA Aliased as this is singular type for dcat
+    // parent class can have multiple types (see this.types[])
+    // perhaps this can be a getter?
+    // IDEA: Probably type-narrow to 3 types
+    this.dataResourceType = aliasedBindings._type
+      ? aliasedBindings._type.value
+      : options.defaults?.type;
+  }
   toFindString() {
-    return `${this.title} + ${this.description} + ${this.owner} + ${this.publisher__name} + ${this.publisher__email} + ${this.identifier}`;
+    return `${this.title} + ${this.description} + ${this.owner} + ${this.publisher__title} + ${this.contactPoint__fn} + ${this.identifier}`;
   }
 
+  /**
+   * Given:
+   *  1. Ontology A -> B -> C -> <literal>
+   *  2. TS class instance property that represents graph literal:
+   *        a -> b -> c -> <literal>
+   *  3. A new value for <literal>: "blah"
+   *
+   * Then:
+   * 1. Graph operations:
+   *    1. "Gap fill" Create missing triples leading to <literal>
+   *    2. upsert the literal
+   *    ```
+   *    before: a -> b
+   *    after:  a -> b -> c ->  "blah"
+   *    ```
+   * 2. store the new value in the instance's property
+   *
+   */
+  async storeTriples(
+    property: keyof DCATResource,
+    newValue: string,
+    api: {
+      updateByPredicateFns: RdfWriteApiByPredicateFn;
+    }
+  ) {
+    const updates: { triple: Triple; prev?: string }[] = [];
 
+    switch (property) {
+      case "publisher__title":
+        updates.push({
+          triple: {
+            s: this.uri,
+            p: "dct:publisher",
+            o: this.uris.publisher || `${uuidv4()}_Publisher`,
+          },
+          prev: this.uris.publisher,
+        });
+        updates.push({
+          triple: {
+            s: updates.at(-1)!.triple.o,
+            p: "dct:title",
+            o: newValue
+          },
+        });
+        break;
+    }
+    const results: StoreTriplesResult[] = [];
+    for (const update of updates) {
+      const updateError = (error: unknown) => asErrorValueObject(error, update);
+      const updateFn = api.updateByPredicateFns[update.triple.p];
+      try {
+        results.push(
+          !updateFn ? updateError(`No updateFn`) : await updateFn(update)
+        );
+      } catch (error) {
+        results.push(updateError(error));
+      }
+    }
+    return results;
+  }
+
+  // IDEA make nested
+  // PRO UI data-type makes semantic sense
+  // CON Transform mid-callstack, harder to track
+  // WHEN got bandwidth for downstream UI and type changes
+  //
   async toUIRepresentation() {
-    // TODO remove
-    // HOW use packages/CatalogService/scripts/.dev/task/task-extract-triples-to-file
-    // WHEN Now.
-    // NOTE:
-    //  MIN/MAX might not be needed
-    //  AG suggests duplicates will not exist when data refreshed
-    const [modified, issued] = await Promise.all([
-      await this.getDcModified(),
-      await this.getDcIssued(),
-    ]);
+    // const [modified, issued] = await Promise.all([
+    //   await this.getDcModified(),
+    //   await this.getDcIssued(),
+    // ]);
+
     return {
-      identifier: this.identifier ?? this.uri,
+      type: this.dataResourceType ?? RESOURCE_URI,
       uri: this.uri,
+      identifier: this.identifier,
       title: this.title,
       description: this.description,
-      contactEmail: this.publisher__email,
-      creator: this.publisher__name,
-      publishDate: Array.isArray(issued) && issued.length > 0 ? issued[0] : "-",
-      modified:
-        Array.isArray(modified) && modified.length > 0 ? modified[0] : "-",
-      accessRights: this.accessRights,
+      contact: this.contactPoint__fn,
+      creator: this.publisher__title,
       rights: this.rights__description,
-      attributionAgentStr: this.qualifiedAttribution__agent,
-      type: this.dataResourceType ?? RESOURCE_URI,
-      owner: this.owner,
-      attributionRole: this.qualifiedAttribution__hadRole,
+      owner: this.qualifiedAttribution__agent__title,
       // Phase 2
-        // TODO make nested
-      // WHEN got bandwidth for downstream UI and type changes
       distributionUri: this.distribution,
       distributionIdentifier: this.distribution__identifier,
       distributionTitle: this.distribution__title,
-      distributionDownloadURL: this.distribution__downloadURL,
+      distributionURL: this.distribution__accessURL,
       distributionMediaType: this.distribution__mediaType,
-
-    }  as UIDataResourceType;
+      distributionAvailable: this.distribution__available,
+      contributorTitle: this.contributor__title,
+      publishDate: this.min_issued,
+      modified: this.max_modified,
+    } as Partial<UIDataResourceType>;
   }
 }

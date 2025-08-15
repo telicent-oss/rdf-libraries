@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { CatalogService, DCATResource } from "../../index";
 
-import { UIDataResourceSchema, UISearchContextType, UISearchParamsType } from "./utils/common";
+import { UIDataResourceSchema, UIDataResourceType, UISearchParamsType } from "./utils/common";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
 import { ApiFactoryConfigType } from "./type";
 
@@ -26,9 +26,11 @@ export const searchFactoryFn =
   ) =>
   async (
     params: UISearchParamsType,
-    context: { ownerEmail?: string} = {} as UISearchContextType
-  ): Promise<Array<z.infer<typeof UIDataResourceSchema>>> => {
-    const { hasOwnerFilter, dataResourceFilter } = transformDataResourceFilters(
+    // context: { ownerEmail?: string} = {} as UISearchContextType
+  ): Promise<Array<Partial<UIDataResourceType>>> => {
+    const { 
+      // hasOwnerFilter, 
+      dataResourceFilter } = transformDataResourceFilters(
       params.dataResourceFilters
     );
     // Simplify to get all Data Resources, need to keep an eye on this to check it doesnt
@@ -37,7 +39,7 @@ export const searchFactoryFn =
     const re = params.searchText
       ? new RegExp(params.searchText.toLowerCase(), "gi")
       : undefined;
-    let isWarnOwnerEmailExpected = false
+    // let isWarnOwnerEmailExpected = false
     const found = await Promise.all(
       resources
         .filter((resource) => {
@@ -48,15 +50,15 @@ export const searchFactoryFn =
             resource.uri === dataResourceFilter
           );
         })
-        .filter((resource) => {
-          if (!hasOwnerFilter) {
-            return true
-          }
-          if (context?.ownerEmail === undefined) {
-            isWarnOwnerEmailExpected = true
-          }
-          return resource.qualifiedAttribution__agent === context.ownerEmail;
-        })
+        // .filter((resource) => {
+        //   if (!hasOwnerFilter) {
+        //     return true
+        //   }
+        //   if (context?.ownerEmail === undefined) {
+        //     isWarnOwnerEmailExpected = true
+        //   }
+        //   return resource.publisher__title === context.ownerEmail;
+        // })
         .map((resource) => ({
           item: resource,
           score: 0,
@@ -88,8 +90,8 @@ export const searchFactoryFn =
           );
         })
     );
-    if (isWarnOwnerEmailExpected) {
-      console.error('Expected ownerEmail to be set to search for owned resources')
-    }
+    // if (isWarnOwnerEmailExpected) {
+    //   console.error('Expected ownerEmail to be set to search for owned resources')
+    // }
     return found;
   };
