@@ -57,6 +57,22 @@
       "changelog-path": "CHANGELOG.md",
       "bumpPatchForMinorPreMajor": true,
       "release-type": "node"
+    },
+    "packages/rdf-write-lib/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
+    },
+    "packages/sparql-lib/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
     }
   }
 }
