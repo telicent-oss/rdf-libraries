@@ -10,8 +10,11 @@ import {
 import { ApiFactoryConfigType } from "./operations/type";
 import { resourceUpdateFactory, ResourceUpdateParamsType, ResourceUpdateResults } from "./operations/resourceUpdateFactory/resourceUpdateFactory";
 import { RdfWriteApiClientType } from "@telicent-oss/rdf-write-lib";
+import { prepareWritebackFactory, PrepareWritebackParamsType } from "./operations/prepareWritebackFactory/prepareWritebackFactory";
+
 export interface Api {
   search: (params: UISearchParamsType, context: UISearchContextType) => Promise<Array<Partial<UIDataResourceType>>>;
+  prepareWriteback: (params: PrepareWritebackParamsType) => Promise<Array<Partial<UIDataResourceType>>>;
   catalog: (params: UISearchParamsType) => Promise<UITreeViewBaseItemType[]>;
   resourceUpdate: (params: ResourceUpdateParamsType) => Promise<ResourceUpdateResults>;
   _catalogService: CatalogService;
@@ -26,6 +29,7 @@ export const apiFactory = (
   testData?: typeof MOCK
 ): Api => ({
   search: searchFactory(catalogService, config),
+  prepareWriteback: prepareWritebackFactory(catalogService, config),
   catalog: catalogFactory(catalogService),
   resourceUpdate: resourceUpdateFactory({ catalogService,  rdfWriteApiClient }),
   _catalogService: catalogService,

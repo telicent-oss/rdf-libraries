@@ -1,32 +1,22 @@
-import { COMMON_PREFIXES, VOCAB } from "../constants";
+PREFIX : <http://telicent.io/catalog/> 
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> 
+PREFIX dc: <http://purl.org/dc/elements/1.1/> 
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+PREFIX telicent: <http://telicent.io/ontology/> 
+PREFIX foaf: <http://xmlns.com/foaf/0.1/> 
+PREFIX dct: <http://purl.org/dc/terms/> 
+PREFIX dcat: <http://www.w3.org/ns/dcat#> 
+PREFIX vcard: <http://www.w3.org/2006/vcard/ns#> 
+    
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX tcat: <http://telicent.io/catalog#>
+PREFIX sdo: <https://schema.org/>
 
-export const getAllDCATResources = <V extends typeof VOCAB>({
-  vocab,
-  cls,
-  catalog,
-  catalogRelation,
-  resourceUri,
-}: {
-  vocab: V;
-  cls?: string;
-  catalog?: string;
-  catalogRelation?: string;
-  resourceUri?:string;
-}) => {
-  const ifAllRelationsThenFilter = catalogRelation
-    ? ""
-    : `FILTER (?catRel in (
-        <${vocab.dcat.dcat_dataset}>,
-         <${vocab.dcat.dcat_service}>, 
-         <${vocab.dcat.dcat_catalog}>, 
-         <${vocab.dcat.dcatResource}>))`;
-
-  const catalogRelationAllOrSpecific = catalogRelation
-    ? `<${catalogRelation}>`
-    : "?catRel";
-
-  return `
-    ${COMMON_PREFIXES}
     SELECT DISTINCT
         ?_type                              # type
         ?uri                                #
@@ -41,6 +31,8 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
         ?rights__description                # rights
         ?accessRights                       # accessRights
         ?qualifiedAttribution               #   uris.qualifiedAttribution
+        # NOTE 1: Spec doesn't have concept of "owner". 
+        # NOTE 2: Don't currently enforce the 2-hop hadRole condition
         ?qualifiedAttribution__agent__title # owner
         # Phase 2
         ?distribution                       # distributionUri, uris.distributionUri
@@ -54,12 +46,8 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
         ?min_issued                         # publishDate
         ?max_modified                       # modified
     WHERE {
-        ${resourceUri ? `VALUES ?uri { <${resourceUri}> }`: ''}
-        ${catalog ? `<${catalog}> ${catalogRelationAllOrSpecific} ?uri .` : ""}
-        ${
-          cls
-            ? `BIND (<${cls}> as ?_type)`
-            : `FILTER (
+        VALUES ?uri { <http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> } }
+        FILTER (
                 ?_type IN (
                     dcat:Resource,
                     dcat:Dataset,
@@ -67,8 +55,7 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
                     dcat:Catalog,
                     dcat:DatasetSeries
                 )
-            )`
-        }
+            )
         ?uri a ?_type .
         OPTIONAL { 
             ?uri            dct:title       ?title } .
@@ -88,8 +75,18 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
         OPTIONAL { 
             ?uri            dct:accessRights    ?accessRights } .
         OPTIONAL { 
-            ?parent  ${catalogRelationAllOrSpecific} ?uri .
-            ${ifAllRelationsThenFilter}
+            ?uri            dct:contributor     ?contributor .
+            ?contributor    dct:title           ?contributor_title } .
+        OPTIONAL { 
+            ?parent         ?catRel             ?uri .
+            FILTER (
+                            ?catRel in (
+                                <http://www.w3.org/ns/dcat#dataset>,
+                                <http://www.w3.org/ns/dcat#service>, 
+                                <http://www.w3.org/ns/dcat#catalog>, 
+                                <http://www.w3.org/ns/dcat#Resource>
+                            )
+            )
         } .
         OPTIONAL {
             ?uri                            prov:qualifiedAttribution   ?qualifiedAttribution .
@@ -122,5 +119,4 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
             FILTER(isLiteral(?issued))
             } GROUP BY ?uri
         }
-    }`;
-};
+    }

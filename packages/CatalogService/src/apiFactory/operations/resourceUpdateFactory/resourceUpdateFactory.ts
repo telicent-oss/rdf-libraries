@@ -8,7 +8,6 @@ import {
   DCATResource,
   StoreTriplesResult,
 } from "../../../classes/RDFSResource.DCATResource";
-import { RDFSResource } from "@telicent-oss/rdfservice";
 
 export type ResourceUpdateParamsType = {
   type: "dataSet";

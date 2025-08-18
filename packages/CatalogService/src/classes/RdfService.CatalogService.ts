@@ -203,6 +203,49 @@ export class CatalogService extends RdfService {
   }
 
   /**
+   * Returns one specific instances
+   * WARNING: Re-uses getAllDCATResources for now, even if it returns a few 
+   *  fields we don't need. This prioritizes maintainability/safety over the perf
+   *  gained by clipping a few fields on a single entity
+   *      
+   * @param {string} specificUri - prefixed property identifier.
+   * @returns {Array} - An array of one dataset object with URIs, titles, and published dates
+   */
+  async getDCATResource(options:{
+    resourceUri: string,
+  }): Promise<DCATResource[]> {
+    const results = await this.runQuery<DcatResourceQuerySolution>(
+      builder.catalog.getAllDCATResources({
+        vocab: { dcat: this },
+        ...options
+      })
+    );
+    const resources: DCATResource[] = results.results.bindings.map(
+      (statement: DcatResourceQuerySolution) => {
+        let Class = DCATResource;
+        if (statement._type) {
+          Class = this.lookupClass(
+            statement._type.value,
+            DCATResource
+          ) as unknown as typeof DCATResource;
+        }
+        const dcatResource = new Class(
+          this,
+          undefined,
+          undefined,
+          undefined,
+          undefined,
+          statement
+        );
+        return dcatResource;
+      }
+    );
+    // REQUIREMENT 6.4 Search by dataResourceFilter: selected data-resources
+    // I don't see any sort clause, but I assume the returned sort order will be sensible; Or can be made sensible.
+    return resources;
+  }
+
+  /**
    * Returns all instances of dcat:Dataset
    * @returns {Array} - An array of dataset objects with URIs, titles, and published dates
    */
