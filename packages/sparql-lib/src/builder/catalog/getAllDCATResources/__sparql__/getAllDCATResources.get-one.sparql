@@ -1,0 +1,122 @@
+PREFIX : <http://telicent.io/catalog/> 
+PREFIX xsd: <http://www.w3.org/2001/XMLSchema#> 
+PREFIX dc: <http://purl.org/dc/elements/1.1/> 
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
+PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#> 
+PREFIX skos: <http://www.w3.org/2004/02/skos/core#> 
+PREFIX telicent: <http://telicent.io/ontology/> 
+PREFIX foaf: <http://xmlns.com/foaf/0.1/> 
+PREFIX dct: <http://purl.org/dc/terms/> 
+PREFIX dcat: <http://www.w3.org/ns/dcat#> 
+PREFIX vcard: <http://www.w3.org/2006/vcard/ns#> 
+    
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+PREFIX dct: <http://purl.org/dc/terms/>
+PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX prov: <http://www.w3.org/ns/prov#>
+PREFIX tcat: <http://telicent.io/catalog#>
+PREFIX sdo: <https://schema.org/>
+
+    SELECT DISTINCT
+        ?_type                              # type
+        ?uri                                #
+        ?identifier                         #
+        ?title                              #
+        ?description                        #
+        ?contactPoint                       #   uris.contactPoint
+        ?contactPoint__fn                   # contact
+        ?publisher                          # uris.publisher
+        ?publisher__title                   # creator
+        ?rights                             #   uris.rights
+        ?rights__description                # rights
+        ?accessRights                       # accessRights
+        ?qualifiedAttribution               #   uris.qualifiedAttribution
+        # NOTE 1: Spec doesn't have concept of "owner". 
+        # NOTE 2: Don't currently enforce the 2-hop hadRole condition
+        ?qualifiedAttribution__agent__title # owner
+        # Phase 2
+        ?distribution                       # distributionUri, uris.distributionUri
+        ?distribution__identifier           # distributionIdentifier
+        ?distribution__title                # distributionTitle
+        ?distribution__accessURL            #
+        ?distribution__mediaType            #
+        ?distribution__available            #
+        ?contributor                        #   uris.contributor
+        ?contributor__title                 # lastModifiedBy
+        ?min_issued                         # publishDate
+        ?max_modified                       # modified
+    WHERE {
+        VALUES ?uri { <http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> } }
+        FILTER (
+                ?_type IN (
+                    dcat:Resource,
+                    dcat:Dataset,
+                    dcat:DataService,
+                    dcat:Catalog,
+                    dcat:DatasetSeries
+                )
+            )
+        ?uri a ?_type .
+        OPTIONAL { 
+            ?uri            dct:title       ?title } .
+        OPTIONAL {
+            ?uri            dct:identifier  ?identifier } .
+        OPTIONAL { 
+            ?uri            dct:publisher   ?publisher .
+            ?publisher      dct:title       ?publisher__title } .
+        OPTIONAL { 
+            ?uri            dcat:contactPoint   ?contactPoint .
+            ?contactPoint   vcard:fn            ?contactPoint__fn } .
+        OPTIONAL { 
+            ?uri            dct:description     ?description } .
+        OPTIONAL { 
+            ?uri            dct:rights          ?rights .
+            ?rights         dct:description     ?rights__description } .
+        OPTIONAL { 
+            ?uri            dct:accessRights    ?accessRights } .
+        OPTIONAL { 
+            ?uri            dct:contributor     ?contributor .
+            ?contributor    dct:title           ?contributor_title } .
+        OPTIONAL { 
+            ?parent         ?catRel             ?uri .
+            FILTER (
+                            ?catRel in (
+                                <http://www.w3.org/ns/dcat#dataset>,
+                                <http://www.w3.org/ns/dcat#service>, 
+                                <http://www.w3.org/ns/dcat#catalog>, 
+                                <http://www.w3.org/ns/dcat#Resource>
+                            )
+            )
+        } .
+        OPTIONAL {
+            ?uri                            prov:qualifiedAttribution   ?qualifiedAttribution .
+            ?qualifiedAttribution           prov:agent                  ?qualifiedAttribution__agent .
+            ?qualifiedAttribution__agent    dct:title                   ?qualifiedAttribution__agent__title .
+            # qualifiedAttribution__agent__title could be encorced by a connection, but after discussions
+            # with AG 250814
+            # ?qualifiedAttribution           dcat:hadRole                ?qualifiedAttribution__hadRole 
+        } .
+        OPTIONAL { 
+            ?uri            dcat:distribution   ?distribution .
+            ?distribution   dct:identifier      ?distribution__identifier .
+            ?distribution   dct:title           ?distribution__title .
+            ?distribution   dcat:accessURL      ?distribution__accessURL .
+            ?distribution   dcat:mediaType      ?distribution__mediaType .
+            ?distribution   dct:available       ?distribution__available .
+        } .
+
+        # aggregated modified
+        OPTIONAL {
+            SELECT ?uri (MAX(?modified) AS ?max_modified) WHERE {
+            ?uri dct:modified ?modified .
+            FILTER(isLiteral(?modified))
+            } GROUP BY ?uri
+        }
+        # aggregated issued
+        OPTIONAL {
+            SELECT ?uri (MIN(?issued) AS ?min_issued) WHERE {
+            ?uri dct:issued ?issued .
+            FILTER(isLiteral(?issued))
+            } GROUP BY ?uri
+        }
+    }

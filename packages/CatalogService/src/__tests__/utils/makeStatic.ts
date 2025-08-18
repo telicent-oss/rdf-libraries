@@ -1,6 +1,8 @@
 import { RDFTripleSchema } from "@telicent-oss/rdfservice";
 import { shorten } from "../../utils/shorten";
 
+// !CRITICAL actually fix any. Just adding during refactor
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const makeStatic = (obj: any) =>
   JSON.parse(JSON.stringify(obj), function reviver(key, value) {
     const rdfParsed = RDFTripleSchema.safeParse(value);

@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/rdfservice",
-  "version": "1.0.0",
+  "version": "1.0.0-TELFE-805.34",
   "private": false,
   "description": "RdfService is a helper library that abstracts away the complexity of interacting with RDF triplestores, providing basic CRUD abilities.",
   "main": "./dist/rdfservice.mjs",
@@ -57,7 +57,6 @@
     "eslint": "^8.56.0"
   },
   "dependencies": {
-    "global": "^4.4.0",
     "zod": "^3.22.4"
   },
   "resolutions": {

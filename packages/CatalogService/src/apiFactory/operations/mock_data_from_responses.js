@@ -4,7 +4,7 @@ export const SEARCH_TEMPLATE = (bindings) => ({
       "id",
       "uri",
       "title",
-      "contactEmail",
+      "publisher__email",
       "description",
       "creator",
       "rights",
@@ -32,7 +32,7 @@ export const COMPLETE_RESULT = {
     "xml:lang": "en",
     value: "Basic",
   },
-  contactEmail: {
+  publisher__email: {
     type: "uri",
     value: "file:///fuseki/data/basic@test.telicent",
   },
@@ -63,7 +63,7 @@ export const COMPLETE_RESULT_EXPECTED_RETURN = {
   id: "basic_data",
   uri: "http://test.telicent/catalog#basic_data_dataset",
   title: "Basic",
-  contactEmail: "basic@test.telicent",
+  publisher__email: "basic@test.telicent",
   description: "Basic test data, all for test cases",
   modified: "-",
   publishDate: "-",
@@ -75,6 +75,7 @@ export const COMPLETE_RESULT_EXPECTED_RETURN = {
   creator: "Tom @ Telicent",
   type: "http://www.w3.org/ns/dcat#Dataset",
   rights: "For testing as part of development",
+  distributionId: "-",
 };
 
 export const INCOMPLETE_RESULT = {
@@ -92,7 +93,7 @@ export const INCOMPLETE_RESULT_EXPECTED_RETURN = {
   id: "http://telicent.io/catalog#test_data_dataset",
   uri: "http://telicent.io/catalog#test_data_dataset",
   title: "-",
-  contactEmail: "-",
+  publisher__email: "-",
   description: "-",
   modified: "-",
   publishDate: "-",
@@ -104,6 +105,8 @@ export const INCOMPLETE_RESULT_EXPECTED_RETURN = {
   creator: "-",
   type: "http://www.w3.org/ns/dcat#Catalog",
   rights: "-",
+
+  distributionId: "-",
 };
 
 export const ADDITIONAL_RESULT = {
@@ -120,7 +123,7 @@ export const ADDITIONAL_RESULT = {
     type: "literal",
     value: "Testing Result",
   },
-  contactEmail: {
+  publisher__email: {
     type: "literal",
     value: "testing@test.telicent",
   },
@@ -146,7 +149,7 @@ export const ADDITIONAL_RESULT_EXPECTED_RETURN = {
   id: "95fd46da-7a61-4707-898f-AAAAAAAAAAAA",
   uri: "http://test.telicent/catalog#95fd46da-7a61-4707-898f-AAAAAAAAAAAA_Dataset",
   title: "Testing Result",
-  contactEmail: "testing@test.telicent",
+  publisher__email: "testing@test.telicent",
   description: "All Testing dataset for testing all things",
   modified: "-",
   publishDate: "-",
@@ -158,4 +161,6 @@ export const ADDITIONAL_RESULT_EXPECTED_RETURN = {
   creator: "Tom @ Telicent",
   type: "http://www.w3.org/ns/dcat#Dataset",
   rights: "Testing dataset rights",
+
+  distributionId: '-'
 };

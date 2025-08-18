@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/catalogservice",
-  "version": "1.0.0",
+  "version": "1.0.0-TELFE-805.79",
   "// TEMP private": "needs merge to main",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",
@@ -45,11 +45,10 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "1.0.0",
-    "@types/cors": "2.8.17",
-    "cors": "2.8.5",
-    "express": "4.19.2",
-    "snapshot-diff": "0.10.0",
+    "uuid": "11.1.0",
+    "@telicent-oss/rdf-write-lib": "^0.0.1-TELFE-805.6",
+    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.24",
+    "@telicent-oss/sparql-lib": "^0.0.1-TELFE-805.21",
     "zod": "^3.22.4"
   },
   "devDependencies": {
@@ -59,8 +58,12 @@
     "@types/jest": "^29.4.0",
     "@types/node": "16.11.7",
     "@types/tcp-port-used": "^1.0.4",
+    "express": "4.19.2",
+    "snapshot-diff": "0.10.0",
+    "@types/cors": "2.8.17",
     "diff": "^7.0.0",
     "eslint": "^8.56.0",
+    "cors": "2.8.5",
     "eslint-plugin-tsdoc": "^0.2.17",
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",

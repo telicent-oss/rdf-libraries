@@ -1,0 +1,111 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "✖ Error on line $LINENO"; exit 1' ERR
+
+DEF_OUTPUT="data/catalog-select-all.gitignored.nt";
+#####################################
+# Helpers
+#####################################
+error() { echo "✖ $*" >&2; exit 1; }
+info()  { echo "→ $*";      }
+
+#####################################
+# Usage
+#####################################
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") -r REMOTE_SPARQL [-o OUTPUT_FILE]
+  -r REMOTE_SPARQL     SPARQL endpoint URL (required)
+  -o OUTPUT_FILE       (default: $DEF_OUTPUT)
+EOF
+  exit 1
+}
+
+#####################################
+# Parse arguments
+#####################################
+REMOTE="" OUTPUT="$DEF_OUTPUT"
+while getopts "r:o:h" opt; do
+  case "$opt" in
+    r) REMOTE=$OPTARG ;;
+    o) OUTPUT=$OPTARG ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+[[ -n $REMOTE ]] || usage
+
+#####################################
+# Require tools
+#####################################
+command -v curl >/dev/null || error "curl not installed"
+command -v grep >/dev/null || error "grep not installed"
+
+#####################################
+# Filenames
+#####################################
+RAW="${OUTPUT%.gitignored.nt}.gitignored.nt"
+
+#####################################
+# 1) Fetch raw triples
+#####################################
+query='query=
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+
+CONSTRUCT {
+  # every non‐date triple in each entity’s subgraph
+  ?u   ?p    ?o  .
+  # aggregated dates
+  ?s   dct:modified ?maxMod .
+  ?s   dct:issued   ?minIss .
+}
+WHERE {
+  VALUES ?type {
+    dcat:Resource
+    dcat:Dataset
+    dcat:DataService
+    dcat:Catalog
+    dcat:DatasetSeries
+  }
+  # 1) pick each catalog entity
+  ?s a ?type .
+
+  # 2) closure over all predicates except raw dates
+  ?s (!(dct:modified|dct:issued))* ?u .
+
+  # 3) all outgoing triples on those nodes, excluding raw dates
+  ?u ?p ?o .
+  FILTER( ?p NOT IN (dct:modified, dct:issued) )
+
+  # 4) one latest modified per entity
+  OPTIONAL {
+    SELECT ?s (MAX(?m) AS ?maxMod) WHERE {
+      ?s dct:modified ?m .
+      FILTER(isLiteral(?m))
+    }
+    GROUP BY ?s
+  }
+  # 5) one earliest issued per entity
+  OPTIONAL {
+    SELECT ?s (MIN(?i) AS ?minIss) WHERE {
+      ?s dct:issued ?i .
+      FILTER(isLiteral(?i))
+    }
+    GROUP BY ?s
+  }
+}
+'
+info "Fetching all DCAT triples from $REMOTE and placing into $RAW"
+if ! HTTP=$(curl -sS \
+      -H "Accept: application/n-triples" \
+      --data-urlencode "$query" \
+      -w "%{http_code}" \
+      -o "$RAW" \
+      "$REMOTE"); then
+  error "Network error fetching triples"
+fi
+[[ $HTTP -ge 200 && $HTTP -lt 300 ]] || { BODY=$(<"$RAW"); rm -f "$RAW"; error "Fetch failed HTTP $HTTP: $BODY"; }
+[[ -s $RAW ]] || error "Raw file is empty"
+COUNT_RAW=$(grep -c '^<' "$RAW" || echo 0)
+info "Saved $COUNT_RAW raw triples to $RAW"

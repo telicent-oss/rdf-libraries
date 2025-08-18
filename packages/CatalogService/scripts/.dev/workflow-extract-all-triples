@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "✖ Unexpected error on line $LINENO"; exit 1' ERR
+
+#####################################
+# Pre checks - never tested this sec
+#####################################
+
+# Color constants
+RED="\033[1;31m"
+CYAN="\033[1;36m"
+RESET="\033[0m"
+
+# Helpers
+error() {
+  echo -e "$*" >&2
+  exit 1
+}
+info() {
+  echo -e "→ $*"
+}
+
+# Usage
+usage() {
+  cat <<EOF
+Usage: $(basename "$0")
+Checks that a Fuseki catalog dataset is up at http://localhost:3030/catalog.
+EOF
+  exit 1
+}
+[[ "${1:-}" != "-h" ]] || usage
+
+# Prerequisite
+if ! command -v curl >/dev/null; then
+  error "${RED}USER ACTION REQUIRED:${RESET} Install curl (e.g. brew install curl or apt-get install curl)."
+fi
+
+
+#####################################
+# Actual script
+#####################################
+# ./scripts/.dev/task/check-discrete
+
+./scripts/.dev/task/task-extract-all-triples-to-file -r http://localhost:5173/api/sparql/catalog/query
+
+cat ./data/catalog-select-all.gitignored.nt

@@ -1,0 +1,1 @@
+export type ApiFactoryConfigType = { FF_PHASE_2?: boolean };

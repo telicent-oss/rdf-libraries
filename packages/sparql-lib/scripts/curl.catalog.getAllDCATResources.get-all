@@ -1,0 +1,5 @@
+../../scripts/dev/graph/curl-sparql-query \
+    --sparqlFile src/builder/catalog/getAllDCATResources/__sparql__/getAllDCATResources.get-all.sparql \
+    --datasetUri http://localhost:3030/catalog \
+    | jq .results.bindings \
+    | jq 'map(with_entries(.value = .value.value))'

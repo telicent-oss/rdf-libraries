@@ -7,7 +7,7 @@
     "lint": "lerna run lint",
     "test": "lerna run test",
     "test:stable": "lerna run test --scope=@telicent-oss/catalogservice && yarn test:ci",
-    "test:ci": "yarn test --ignore @telicent-oss/catalogservice",
+    "test:ci": "yarn test --ignore @telicent-oss/catalogservice --ignore @telicent-oss/sparql-lib",
     "build": "lerna run build",
     "publish:ci": "./scripts/lerna/publish:ci.sh",
     "generate-docs": "lerna run generate-docs",

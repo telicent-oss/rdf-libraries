@@ -1,9 +1,9 @@
 import "jest-fetch-mock";
-import { CatalogService, setup } from "../index";
-import { Api } from "../apiFactory/apiFactory";
 import { StartedDockerComposeEnvironment } from "testcontainers";
-import { setupContainer } from "./utils/setupContainer";
-import { SEC } from "../utils/constants";
+import { CatalogService } from "../index.js";
+import { Api, setup } from "../setup/setup.js";
+import { setupContainer } from "./utils/setupContainer.js";
+import { SEC } from "../utils/constants.js";
 
 // !TODO Fix test
 // HOW
