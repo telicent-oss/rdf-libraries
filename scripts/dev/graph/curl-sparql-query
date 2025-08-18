@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+# curl-sparql-query — POST/GET a SPARQL query file to an endpoint; prints result to STDOUT.
+# Safe for macOS (bash 3.2) and Ubuntu. Depends on: bash, curl, awk.
+set -euo pipefail
+trap 'echo "ERROR: line $LINENO" >&2' ERR
+
+# --------- usage ---------
+usage() {
+  cat >&2 <<'EOF'
+Usage:
+  curl-sparql-query \
+    --sparqlFile <path/to/query.sparql> \
+    --datasetUri <http://host:3030/dataset> \
+    [--endpoint <http://host:3030/dataset/sparql>] \
+    [--method post|get] \
+    [--accept <mime>] \
+    [--timeout <seconds>] \
+    [--pretty | --no-pretty]
+
+Defaults:
+  --method post
+  --timeout 30
+  If --endpoint not set, uses <datasetUri>/sparql unless datasetUri already ends with /sparql or /query.
+  --pretty is AUTO: enabled when Accept contains "json". Use --no-pretty to disable.
+
+Output:
+  Only the SPARQL response goes to STDOUT. All logs/errors go to STDERR.
+EOF
+  exit 1
+}
+
+# --------- args ---------
+SPARQL_FILE=""
+DATASET_URI=""
+ENDPOINT=""
+METHOD="post"
+ACCEPT_OVERRIDE=""
+TIMEOUT="30"
+PRETTY_MODE="auto"   # auto|on|off
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --sparqlFile) SPARQL_FILE=${2-}; shift 2 ;;
+    --datasetUri) DATASET_URI=${2-}; shift 2 ;;
+    --endpoint)   ENDPOINT=${2-}; shift 2 ;;
+    --method)     METHOD=${2-}; shift 2 ;;
+    --accept)     ACCEPT_OVERRIDE=${2-}; shift 2 ;;
+    --timeout)    TIMEOUT=${2-}; shift 2 ;;
+    --pretty)     PRETTY_MODE="on"; shift ;;
+    --no-pretty)  PRETTY_MODE="off"; shift ;;
+    -h|--help)    usage ;;
+    --) shift; break ;;
+    *) echo "Unknown arg: $1" >&2; usage ;;
+  esac
+done
+
+# --------- checks ---------
+command -v curl >/dev/null 2>&1 || { echo "curl not found; install curl" >&2; exit 1; }
+command -v awk  >/dev/null 2>&1 || { echo "awk not found; install awk" >&2; exit 1; }
+[ -n "${SPARQL_FILE}" ] || { echo "--sparqlFile is required" >&2; usage; }
+[ -n "${DATASET_URI}" ] || { echo "--datasetUri is required" >&2; usage; }
+[ -f "${SPARQL_FILE}" ] || { echo "Query file not found: ${SPARQL_FILE}" >&2; exit 1; }
+case "${METHOD}" in
+  post|POST) METHOD="post" ;;
+  get|GET)   METHOD="get"  ;;
+  *) echo "--method must be 'post' or 'get' (got: ${METHOD})" >&2; exit 1 ;;
+esac
+case "${DATASET_URI}" in
+  http://*|https://*) : ;;
+  *) echo "--datasetUri must be http(s): ${DATASET_URI}" >&2; exit 1 ;;
+esac
+
+# --------- endpoint normalize ---------
+if [ -z "${ENDPOINT}" ]; then
+  case "${DATASET_URI%/}" in
+    */sparql|*/query) ENDPOINT="${DATASET_URI}" ;;
+    *) ENDPOINT="${DATASET_URI%/}/sparql"; echo "Assuming endpoint: ${ENDPOINT}" >&2 ;;
+  esac
+fi
+
+# --------- accept detection ---------
+detect_op() {
+  # Prints one of: SELECT / ASK / CONSTRUCT / DESCRIBE / UNKNOWN
+  awk '
+    BEGIN{ IGNORECASE=1 }
+    { sub(/\r$/,"") }
+    /^[[:space:]]*$/ { next }
+    /^[[:space:]]*#/ { next }
+    /^[[:space:]]*prefix[[:space:]]/ { next }
+    /^[[:space:]]*base[[:space:]]/ { next }
+    {
+      s=$0; sub(/^[[:space:]]+/,"",s)
+      if (s ~ /^select\b/)    { print "SELECT"; exit }
+      if (s ~ /^ask\b/)       { print "ASK"; exit }
+      if (s ~ /^construct\b/) { print "CONSTRUCT"; exit }
+      if (s ~ /^describe\b/)  { print "DESCRIBE"; exit }
+      print "UNKNOWN"; exit
+    }
+  ' "$SPARQL_FILE"
+}
+OP="$(detect_op)"
+
+if [ -n "${ACCEPT_OVERRIDE}" ]; then
+  ACCEPT="${ACCEPT_OVERRIDE}"
+else
+  case "${OP}" in
+    SELECT)                ACCEPT="application/sparql-results+json" ;;
+    ASK)                   ACCEPT="text/boolean" ;;
+    CONSTRUCT|DESCRIBE)    ACCEPT="application/n-triples" ;;
+    *)                     ACCEPT="application/sparql-results+json" ;;
+  esac
+fi
+
+# Pretty-print decision (safe: only for JSON unless forced on)
+IS_JSON_ACCEPT=0
+case "$ACCEPT" in *json*|*JSON*) IS_JSON_ACCEPT=1;; esac
+
+DO_PRETTY="no"
+if [ "$PRETTY_MODE" = "on" ]; then
+  DO_PRETTY="yes"
+elif [ "$PRETTY_MODE" = "auto" ] && [ $IS_JSON_ACCEPT -eq 1 ]; then
+  DO_PRETTY="yes"
+fi
+
+pretty_json() {
+  if command -v jq >/dev/null 2>&1; then
+    jq .
+  elif command -v python3 >/dev/null 2>&1; then
+    python3 -m json.tool
+  else
+    cat   # no pretty tool available
+  fi
+}
+
+# --------- info (stderr) ---------
+printf '%s\n' "Query: ${SPARQL_FILE}" >&2
+printf '%s\n' "Endpoint: ${ENDPOINT}" >&2
+printf '%s\n' "Method: ${METHOD}, Accept: ${ACCEPT}, Timeout: ${TIMEOUT}s, Pretty: ${DO_PRETTY}" >&2
+
+# --------- request ---------
+if [ "${METHOD}" = "post" ]; then
+  if [ "$DO_PRETTY" = "yes" ]; then
+    curl -fsS \
+      --max-time "${TIMEOUT}" \
+      -H "Accept: ${ACCEPT}" \
+      -H "Content-Type: application/sparql-query" \
+      --data-binary @"${SPARQL_FILE}" \
+      "${ENDPOINT}" | pretty_json
+  else
+    curl -fsS \
+      --max-time "${TIMEOUT}" \
+      -H "Accept: ${ACCEPT}" \
+      -H "Content-Type: application/sparql-query" \
+      --data-binary @"${SPARQL_FILE}" \
+      "${ENDPOINT}"
+  fi
+else
+  if [ "$DO_PRETTY" = "yes" ]; then
+    curl -fsS --get \
+      --max-time "${TIMEOUT}" \
+      -H "Accept: ${ACCEPT}" \
+      --data-urlencode "query@${SPARQL_FILE}" \
+      "${ENDPOINT}" | pretty_json
+  else
+    curl -fsS --get \
+      --max-time "${TIMEOUT}" \
+      -H "Accept: ${ACCEPT}" \
+      --data-urlencode "query@${SPARQL_FILE}" \
+      "${ENDPOINT}"
+  fi
+fi

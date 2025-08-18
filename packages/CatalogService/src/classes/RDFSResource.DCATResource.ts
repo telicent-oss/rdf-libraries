@@ -310,7 +310,7 @@ export class DCATResource extends RDFSResource {
       updateByPredicateFns: RdfWriteApiByPredicateFn;
     }
   ) {
-    const updates: { triple: Triple; prev?: string }[] = [];
+    const updates: { triple: Triple; prev: string | null }[] = [];
 
     switch (property) {
       case "publisher__title":
@@ -320,7 +320,7 @@ export class DCATResource extends RDFSResource {
             p: "dct:publisher",
             o: this.uris.publisher || `${uuidv4()}_Publisher`,
           },
-          prev: this.uris.publisher,
+          prev: this.uris.publisher || null,
         });
         updates.push({
           triple: {
@@ -328,6 +328,7 @@ export class DCATResource extends RDFSResource {
             p: "dct:title",
             o: newValue
           },
+          prev: this.title || null
         });
         break;
     }

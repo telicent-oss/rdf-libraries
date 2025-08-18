@@ -43,7 +43,6 @@ export class CatalogService extends RdfService {
   vcard: string;
   loaded: boolean = false;
   dataResources: DCATResource[] = [];
-
   /**
    * An extension of RdfService for managing ontology elements (RDFS and OWL) and diagramatic / style information
    * @param {string="http://localhost:3030/"} triplestoreUri - The host address of the triplestore

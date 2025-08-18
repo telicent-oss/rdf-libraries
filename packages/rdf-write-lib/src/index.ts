@@ -78,7 +78,7 @@ export type Triple = {
 
 export type RdfWriteApiByPredicateFn = Record<
   keyof typeof predicatesToEndpoints,
-  (options: { triple: Triple; prev?: string }) => DispatchResult
+  (options: { triple: Triple; prev: string | null }) => DispatchResult
 >;
 
 export const updateByPredicateFnFactory = ({
