@@ -87,7 +87,10 @@ const asErrorValueObject = (error: unknown, meta: unknown) => ({
   error: `${error} ${JSON.stringify(meta)}`,
 });
 
-export type StoreTriplesResult = Awaited<DispatchResult> | { error: string };
+export type StoreTriplesResult =
+  | Awaited<DispatchResult>
+  | { error: string }
+  | { message: string };
 export class DCATResource extends RDFSResource {
   className = "DCATResource";
   /**
@@ -326,9 +329,9 @@ export class DCATResource extends RDFSResource {
           triple: {
             s: updates.at(-1)!.triple.o,
             p: "dct:title",
-            o: newValue
+            o: newValue,
           },
-          prev: this.title || null
+          prev: this.publisher__title || null,
         });
         break;
     }
@@ -337,8 +340,18 @@ export class DCATResource extends RDFSResource {
       const updateError = (error: unknown) => asErrorValueObject(error, update);
       const updateFn = api.updateByPredicateFns[update.triple.p];
       try {
+        console.log(
+          "update.prev === update.o",
+          update.prev === update.triple.o,
+          update.prev,
+          update.triple.o
+        );
         results.push(
-          !updateFn ? updateError(`No updateFn`) : await updateFn(update)
+          update.prev === update.triple.o
+            ? { message: "No-op, unchanged" }
+            : !updateFn
+            ? updateError(`No updateFn`)
+            : await updateFn(update)
         );
       } catch (error) {
         results.push(updateError(error));
