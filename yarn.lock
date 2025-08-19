@@ -3212,23 +3212,13 @@
     react-router-dom "^6.23.1"
     zod "^3.21.4"
 
-"@telicent-oss/ontologyservice@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@telicent-oss/ontologyservice/-/ontologyservice-1.0.2.tgz#3679f3422e9280d6030890aa2fe82ae3a1ab2004"
-  integrity sha512-2WCQF+bz1S662szuXZT8WU6wWFx0IqyH4n/3ygZ/SHC+eucgh+1tgfo0B6B2BOevgIn/lDEkt8KEdXbbYjeFOA==
+"@telicent-oss/react-lib@^0.5.0":
+  version "0.5.0"
+  resolved "https://registry.yarnpkg.com/@telicent-oss/react-lib/-/react-lib-0.5.0.tgz#76f3e529cd9e990fa6b1185e48c0ac93bce19b88"
+  integrity sha512-JCZeU4amzQ0Xg41+MDmX69SzjH3fu8boyx7AnVnHp3oqIxGB4Yk4Nqjb6G8jV5JrzwXrKe10UdQtg3jhas7dFg==
   dependencies:
-    "@telicent-oss/rdfservice" "1.0.0"
-    "@types/lodash" "^4.17.13"
-    lodash "^4.17.21"
-    zod "^3.23.8"
-
-"@telicent-oss/rdfservice@1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@telicent-oss/rdfservice/-/rdfservice-1.0.0.tgz#7cd19722b4290271fc6b6e31108355c0d0ff58bc"
-  integrity sha512-wabw2Gf/x7qt26Bnh1aPnRfn7i8dbg3mPJl4SbjXakdItjpSkbSvp8rzZDNAbFNDNhp8blz4p6PFHnxsGNQY2w==
-  dependencies:
-    global "^4.4.0"
-    zod "^3.22.4"
+    react "18.2.0"
+    react-dom "18.2.0"
 
 "@telicent-oss/telicent-frontend-cli@^1.2.1", "@telicent-oss/telicent-frontend-cli@^1.5.0":
   version "1.5.0"
@@ -5737,11 +5727,6 @@ dom-helpers@^5.0.1:
     "@babel/runtime" "^7.8.7"
     csstype "^3.0.2"
 
-dom-walk@^0.1.0:
-  version "0.1.2"
-  resolved "https://registry.yarnpkg.com/dom-walk/-/dom-walk-0.1.2.tgz#0c548bef048f4d1f2a97249002236060daa3fd84"
-  integrity sha512-6QvTW9mrGeIegrFXdtQi9pk7O/nSK6lSdXW2eqUspN5LWD7UTji2Fqw5V2YLjBpHEoU9Xl/eUWNpDeZvoyOv2w==
-
 domexception@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/domexception/-/domexception-4.0.0.tgz#4ad1be56ccadc86fc76d033353999a8037d03673"
@@ -5817,9 +5802,9 @@ ejs@^3.1.7:
     jake "^10.8.5"
 
 electron-to-chromium@^1.5.204:
-  version "1.5.206"
-  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.206.tgz#06533a16504ab8155c6df5509d045bfb60b43c14"
-  integrity sha512-/eucXSTaI8L78l42xPurxdBzPTjAkMVCQO7unZCWk9LnZiwKcSvQUhF4c99NWQLwMQXxjlfoQy0+8m9U2yEDQQ==
+  version "1.5.207"
+  resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.5.207.tgz#0fedde3eec615065ee95531c09a10578644c5552"
+  integrity sha512-mryFrrL/GXDTmAtIVMVf+eIXM09BBPlO5IQ7lUyKmK8d+A4VpRGG+M3ofoVef6qyF8s60rJei8ymlJxjUA8Faw==
 
 emittery@^0.13.1:
   version "0.13.1"
@@ -6863,14 +6848,6 @@ global-prefix@^3.0.0:
     ini "^1.3.5"
     kind-of "^6.0.2"
     which "^1.3.1"
-
-global@^4.4.0:
-  version "4.4.0"
-  resolved "https://registry.yarnpkg.com/global/-/global-4.4.0.tgz#3e7b105179006a323ed71aafca3e9c57a5cc6406"
-  integrity sha512-wv/LAoHdRE3BeTGz53FAamhGlPLhlssK45usmGFThIi4XqnBmjKQ16u+RNbP7WvigRZDxUsM0J3gcQ5yicaL0w==
-  dependencies:
-    min-document "^2.19.0"
-    process "^0.11.10"
 
 globals@^13.19.0:
   version "13.24.0"
@@ -8857,13 +8834,6 @@ mimic-response@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/mimic-response/-/mimic-response-4.0.0.tgz#35468b19e7c75d10f5165ea25e75a5ceea7cf70f"
   integrity sha512-e5ISH9xMYU0DzrT+jl8q2ze9D6eWBto+I8CNpe+VI+K2J/F/k3PdkdTdz4wvGVH4NTpo+NRYTVIuMQEMMcsLqg==
-
-min-document@^2.19.0:
-  version "2.19.0"
-  resolved "https://registry.yarnpkg.com/min-document/-/min-document-2.19.0.tgz#7bd282e3f5842ed295bb748cdd9f1ffa2c824685"
-  integrity sha512-9Wy1B3m3f66bPPmU5hdA4DR4PB2OfDU/+GS3yAB7IQozE3tqXaVv2zOjgla7MEGSRv95+ILmOuvhLkOK6wJtCQ==
-  dependencies:
-    dom-walk "^0.1.0"
 
 min-indent@^1.0.0:
   version "1.0.1"
@@ -12499,9 +12469,9 @@ yoctocolors-cjs@^2.1.2:
   integrity sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA==
 
 yoctocolors@^2.1.1:
-  version "2.1.1"
-  resolved "https://registry.yarnpkg.com/yoctocolors/-/yoctocolors-2.1.1.tgz#e0167474e9fbb9e8b3ecca738deaa61dd12e56fc"
-  integrity sha512-GQHQqAopRhwU8Kt1DDM8NjibDXHC8eoh1erhGAJPEyveY9qqVeXvVikNKrDz69sHowPMorbPUrH/mx8c50eiBQ==
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/yoctocolors/-/yoctocolors-2.1.2.tgz#d795f54d173494e7d8db93150cec0ed7f678c83a"
+  integrity sha512-CzhO+pFNo8ajLM2d2IW/R93ipy99LWjtwblvC1RsoSUMZgyLbYFr221TnSNT7GjGdYui6P459mw9JH/g/zW2ug==
 
 z-schema@~5.0.2:
   version "5.0.6"
