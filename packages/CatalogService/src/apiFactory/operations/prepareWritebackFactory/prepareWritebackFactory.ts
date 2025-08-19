@@ -1,4 +1,4 @@
-import { DCATResource } from "packages/CatalogService/src";
+import { DCATResource } from "../../../index";
 import { CatalogService } from "../../../classes/RdfService.CatalogService";
 import { ApiFactoryConfigType } from "../type";
 import { UIDataResourceType } from "../utils/common";
