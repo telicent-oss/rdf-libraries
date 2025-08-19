@@ -1,6 +1,6 @@
 import "jest-fetch-mock";
 import { RDFServiceConfig } from "@telicent-oss/rdfservice";
-import { setupContainer as setupContinerRaw } from "@telicent-oss/sparql-lib/test-utils";
+import { setupContainer as setupContinerRaw } from "@telicent-oss/dev-dependencies-lib";
 import { CatalogService } from "../../index";
 
 export async function setupContainer(options: {

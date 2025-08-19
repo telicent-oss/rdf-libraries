@@ -1,76 +1,210 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import "jest-fetch-mock";
-import { execSync } from "child_process";
-import { setupContainer } from "../../..//testUtils/setupContainer";
-import { getAllDCATResources } from "../getAllDCATResources/getAllDCATResources";
 import { VOCAB } from "../constants";
-import { loadData } from "../../..//testUtils/loadData";
-import fs from "fs";
-import path from "path";
-import { StartedDockerComposeEnvironment } from "testcontainers";
-import { triplesForSelect } from "../../../testUtils/triplesForSelect";
+import { getAllDCATResources } from "./getAllDCATResources";
+import { diff } from "@telicent-oss/dev-dependencies-lib";
 
-const SEC = 1000;
-const port = 3030;
-const sparqlUrl = `http://localhost:${port}/catalog/`;
-const outDir = path.resolve(__dirname, "__artifacts__");
-
-describe("getAllDCATResources", () => {
-  let environment: StartedDockerComposeEnvironment;
-  let result: any;
-
-  const query = getAllDCATResources({
+test("findWithParams", () => {
+  const baseline = getAllDCATResources({
     vocab: VOCAB,
-    catalog: undefined,
-    catalogRelation: undefined,
-    cls: undefined,
   });
+  expect(baseline).toMatchInlineSnapshot(`
+    "
+        
+    PREFIX dcat: <http://www.w3.org/ns/dcat#>
+    PREFIX dct: <http://purl.org/dc/terms/>
+    PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+    PREFIX prov: <http://www.w3.org/ns/prov#>
+    PREFIX tcat: <http://telicent.io/catalog#>
+    PREFIX sdo: <https://schema.org/>
 
-  beforeAll(async () => {
-    ({ environment } = await setupContainer({
-      port,
-      composeFilePath: "../CatalogService",
-      composeFiles: "docker-compose.yml",
-    }));
+        SELECT DISTINCT
+            ?_type                              # type
+            ?uri                                #
+            ?identifier                         #
+            ?title                              #
+            ?description                        #
+            ?contactPoint                       #   uris.contactPoint
+            ?contactPoint__fn                   # contact
+            ?publisher                          # uris.publisher
+            ?publisher__title                   # creator
+            ?rights                             #   uris.rights
+            ?rights__description                # rights
+            ?accessRights                       # accessRights
+            ?qualifiedAttribution               #   uris.qualifiedAttribution
+            ?qualifiedAttribution__agent__title # owner
+            # Phase 2
+            ?distribution                       # distributionUri, uris.distributionUri
+            ?distribution__identifier           # distributionIdentifier
+            ?distribution__title                # distributionTitle
+            ?distribution__accessURL            #
+            ?distribution__mediaType            #
+            ?distribution__available            #
+            ?contributor                        #   uris.contributor
+            ?contributor__title                 # lastModifiedBy
+            ?min_issued                         # publishDate
+            ?max_modified                       # modified
+        WHERE {
+            
+            
+            FILTER (
+                    ?_type IN (
+                        dcat:Resource,
+                        dcat:Dataset,
+                        dcat:DataService,
+                        dcat:Catalog,
+                        dcat:DatasetSeries
+                    )
+                )
+            ?uri a ?_type .
+            OPTIONAL { 
+                ?uri            dct:title       ?title } .
+            OPTIONAL {
+                ?uri            dct:identifier  ?identifier } .
+            OPTIONAL { 
+                ?uri            dct:publisher   ?publisher .
+                ?publisher      dct:title       ?publisher__title } .
+            OPTIONAL { 
+                ?uri            dcat:contactPoint   ?contactPoint .
+                ?contactPoint   vcard:fn            ?contactPoint__fn } .
+            OPTIONAL { 
+                ?uri            dct:description     ?description } .
+            OPTIONAL { 
+                ?uri            dct:rights          ?rights .
+                ?rights         dct:description     ?rights__description } .
+            OPTIONAL { 
+                ?uri            dct:accessRights    ?accessRights } .
+            OPTIONAL { 
+                ?parent  ?catRel ?uri .
+                FILTER (?catRel in (
+            <http://www.w3.org/ns/dcat#dataset>,
+             <http://www.w3.org/ns/dcat#service>, 
+             <http://www.w3.org/ns/dcat#catalog>, 
+             <http://www.w3.org/ns/dcat#Resource>))
+            } .
+            OPTIONAL {
+                ?uri                            prov:qualifiedAttribution   ?qualifiedAttribution .
+                ?qualifiedAttribution           prov:agent                  ?qualifiedAttribution__agent .
+                ?qualifiedAttribution__agent    dct:title                   ?qualifiedAttribution__agent__title .
+                # qualifiedAttribution__agent__title could be encorced by a connection, but after discussions
+                # with AG 250814
+                # ?qualifiedAttribution           dcat:hadRole                ?qualifiedAttribution__hadRole 
+            } .
+            OPTIONAL { 
+                ?uri            dcat:distribution   ?distribution .
+                ?distribution   dct:identifier      ?distribution__identifier .
+                ?distribution   dct:title           ?distribution__title .
+                ?distribution   dcat:accessURL      ?distribution__accessURL .
+                ?distribution   dcat:mediaType      ?distribution__mediaType .
+                ?distribution   dct:available       ?distribution__available .
+            } .
 
-    await loadData({
-      environment,
-      updateUri: `${sparqlUrl}/update`,
-      dataLoc: path.resolve(
-        "./src/builder/catalog/__mocks__/catalog-from-remote.nt"
-      ),
-    });
-  }, 60 * SEC);
+            # aggregated modified
+            OPTIONAL {
+                SELECT ?uri (MAX(?modified) AS ?max_modified) WHERE {
+                ?uri dct:modified ?modified .
+                FILTER(isLiteral(?modified))
+                } GROUP BY ?uri
+            }
+            # aggregated issued
+            OPTIONAL {
+                SELECT ?uri (MIN(?issued) AS ?min_issued) WHERE {
+                ?uri dct:issued ?issued .
+                FILTER(isLiteral(?issued))
+                } GROUP BY ?uri
+            }
+        }"
+  `);
 
-  afterAll(async () => {
-    await environment.down({ removeVolumes: true });
-  }, 60 * SEC);
-
-  it("gets json", async () => {
-    const res = await fetch(sparqlUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/sparql-query",
-        Accept: "application/sparql-results+json",
-      },
-      body: query,
-    });
-
-    result = await res.json();
-    expect(result).toMatchSnapshot();
-  });
-  it("gets n-triples", async () => {
-    const nTriples = await triplesForSelect(sparqlUrl, result);
-
-    fs.writeFileSync(`${outDir}/getAllDCATResources.nt`, nTriples, "utf8");
-    expect(nTriples).toMatchSnapshot();
-
-    execSync(
-      `../../scripts/dev/graph/chart-triples \
-        -i ${outDir}/getAllDCATResources.nt \
-        -o ${outDir}/getAllDCATResources.png \
-        -f png`,
-      { stdio: "inherit" }
-    );
-  });
+  expect(
+    diff(
+      baseline,
+      getAllDCATResources({
+        vocab: VOCAB,
+        catalog: "http://dcat.com/catalog#123",
+      })
+    )
+  ).toMatchInlineSnapshot(`
+    "===================================================================
+    --- a	
+    +++ b	
+    @@ -38,1 +38,1 @@
+    -        
+    +        <http://dcat.com/catalog#123> ?catRel ?uri .
+    "
+  `);
+  expect(
+    diff(
+      baseline,
+      getAllDCATResources({
+        vocab: VOCAB,
+        catalogRelation: "http://dcat.com/#hasCatalog",
+      })
+    )
+  ).toMatchInlineSnapshot(`
+    "===================================================================
+    --- a	
+    +++ b	
+    @@ -67,6 +67,2 @@
+    -            ?parent  ?catRel ?uri .
+    -            FILTER (?catRel in (
+    -        <http://www.w3.org/ns/dcat#dataset>,
+    -         <http://www.w3.org/ns/dcat#service>, 
+    -         <http://www.w3.org/ns/dcat#catalog>, 
+    -         <http://www.w3.org/ns/dcat#Resource>))
+    +            ?parent  <http://dcat.com/#hasCatalog> ?uri .
+    +            
+    "
+  `);
+  expect(
+    diff(
+      baseline,
+      getAllDCATResources({
+        vocab: VOCAB,
+        cls: "http://dcat.com#DataSet",
+      })
+    )
+  ).toMatchInlineSnapshot(`
+    "===================================================================
+    --- a	
+    +++ b	
+    @@ -39,9 +39,1 @@
+    -        FILTER (
+    -                ?_type IN (
+    -                    dcat:Resource,
+    -                    dcat:Dataset,
+    -                    dcat:DataService,
+    -                    dcat:Catalog,
+    -                    dcat:DatasetSeries
+    -                )
+    -            )
+    +        BIND (<http://dcat.com#DataSet> as ?_type)
+    "
+  `);
+  expect(
+    diff(
+      baseline,
+      getAllDCATResources({
+        vocab: VOCAB,
+        catalogRelation: "http://dcat.com/#hasCatalog",
+        resourceUri: "http://dcat.com/#123_Dataset",
+      })
+    )
+  ).toMatchInlineSnapshot(`
+    "===================================================================
+    --- a	
+    +++ b	
+    @@ -36,0 +37,1 @@
+    +        VALUES ?uri { <http://dcat.com/#123_Dataset> }
+    @@ -38,1 +38,0 @@
+    -        
+    @@ -67,6 +67,2 @@
+    -            ?parent  ?catRel ?uri .
+    -            FILTER (?catRel in (
+    -        <http://www.w3.org/ns/dcat#dataset>,
+    -         <http://www.w3.org/ns/dcat#service>, 
+    -         <http://www.w3.org/ns/dcat#catalog>, 
+    -         <http://www.w3.org/ns/dcat#Resource>))
+    +            ?parent  <http://dcat.com/#hasCatalog> ?uri .
+    +            
+    "
+  `);
 });

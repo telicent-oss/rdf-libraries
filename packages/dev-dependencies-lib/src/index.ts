@@ -3,5 +3,5 @@ import packageJSON from "../package.json";
 export const version = packageJSON?.version;
 export const name = packageJSON?.name;
 
-export * from './rdfWriteApiClientFactory';
-export * from './updateByPredicateFnFactory';
+export * from './diff/diff';
+export * from './testUtils/index';

@@ -938,7 +938,7 @@ export class RDFSResource extends AbstractConstructorPromises {
   /**
    * @method getDcModified
    * @remarks
-   * Get dublin core "modified"
+   * Get dublin core "max_modified"
    * https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#modified
    * @returns - Date literal
    */
@@ -959,7 +959,7 @@ export class RDFSResource extends AbstractConstructorPromises {
   /**
    * @method getDcIssued
    * @remarks
-   * Get dublin core "issued"
+   * Get dublin core "min_issued"
    * https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#issued
    * @returns - Date literal
    */
@@ -980,7 +980,7 @@ export class RDFSResource extends AbstractConstructorPromises {
   /**
    * @method getDcAccessRights
    * @remarks
-   * Get dublin core "modified"
+   * Get dublin core "max_modified"
    * https://www.dublincore.org/specifications/dublin-core/dcmi-terms/#modified
    * @returns - Date literal
    */

@@ -29,7 +29,7 @@ export default defineConfig({
       // ensures dist/types/index.d.ts exists
       entryRoot: "src",
       insertTypesEntry: true,
-      exclude: ["**/*.test.*", "**/__tests__/**"],
+      exclude: ["**/*.test.*", "**/__tests__/**", "./src/open-api/**"],
     }) as PluginOption,
   ],
 });

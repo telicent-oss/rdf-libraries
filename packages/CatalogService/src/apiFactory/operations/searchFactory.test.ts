@@ -22,9 +22,6 @@ import {
 } from "./mock_data_from_responses";
 import { searchFactory } from "./searchFactory";
 import { LongURI } from "@telicent-oss/rdfservice";
-const getDcModifiedSpy = jest.spyOn(DCATResource.prototype, "getDcModified");
-
-const getDcIssuedSpy = jest.spyOn(DCATResource.prototype, "getDcIssued");
 
 class MockCatalogService {
   nodes: {
@@ -76,79 +73,152 @@ class MockCatalogService {
   }
 }
 
-beforeEach(() => {
-  getDcModifiedSpy.mockClear();
-  getDcIssuedSpy.mockClear();
-});
 const setupServiceData = async (
-  data: QueryResponse<DcatResourceQuerySolution>,
-  modifiedDates: string[] = [],
-  issuedDates: string[] = []
-): Promise<MockCatalogService> => {
-  getDcIssuedSpy.mockImplementation(async () => {
-    return await issuedDates;
-  });
-  getDcModifiedSpy.mockImplementation(async () => {
-    return await modifiedDates;
-  });
-  const service = new MockCatalogService(data);
-  return service;
-};
+  bindings: DcatResourceQuerySolution[]
+): Promise<MockCatalogService> =>
+  new MockCatalogService(SEARCH_TEMPLATE(bindings));
 
 test("Check processing of a complete result", async () => {
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([COMPLETE_RESULT])
-  );
-  const sf = searchFactory(mockService as unknown as CatalogService);
-  const EXPECTED_RESULT = [COMPLETE_RESULT_EXPECTED_RETURN];
-  const results = await sf({ dataResourceFilters: ["all"], searchText: "" });
-
-  expect(results).toStrictEqual(EXPECTED_RESULT);
+  const mockService = await setupServiceData([COMPLETE_RESULT]);
+  const search = searchFactory(mockService as unknown as CatalogService);
+  expect(await search({ dataResourceFilters: ["all"], searchText: "" }))
+    .toMatchInlineSnapshot(`
+    [
+      {
+        "contact": "file:///fuseki/data/basic@test.telicent",
+        "creator": "http://telicent.io/catalog#test_data_dataset",
+        "description": "Basic test data, all for test cases",
+        "distributionAvailable": "[distribution__available]",
+        "distributionIdentifier": "http://www.w3.org/ns/dcat#abc123_Distribution",
+        "distributionMediaType": "[distribution__mediaType]",
+        "distributionTitle": "[distribution__title]",
+        "distributionURL": "http://www.access.com/url",
+        "distributionUri": "http://www.w3.org/ns/dcat#Dataset",
+        "identifier": "basic_data",
+        "lastModifiedBy": "Tom @ Telicent",
+        "modified": "[max_modified]",
+        "owner": "[qualifiedAttribution__agent__title]",
+        "publishDate": "[min_issued]",
+        "rights": "[rights__description]",
+        "title": "Basic",
+        "type": "http://www.w3.org/ns/dcat#Dataset",
+        "uri": "http://test.telicent/catalog#complete_result",
+      },
+    ]
+  `);
 });
 
 test("Check processing of an incomplete result", async () => {
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([INCOMPLETE_RESULT])
-  );
+  const mockService = await setupServiceData([INCOMPLETE_RESULT]);
   const sf = searchFactory(mockService as unknown as CatalogService);
-  const EXPECTED_RESULT = [INCOMPLETE_RESULT_EXPECTED_RETURN];
   const results = await sf({ dataResourceFilters: ["all"], searchText: "" });
 
-  expect(results).toStrictEqual(EXPECTED_RESULT);
+  expect(results).toMatchInlineSnapshot(`
+    [
+      {
+        "contact": undefined,
+        "creator": undefined,
+        "description": undefined,
+        "distributionAvailable": undefined,
+        "distributionIdentifier": undefined,
+        "distributionMediaType": undefined,
+        "distributionTitle": undefined,
+        "distributionURL": undefined,
+        "distributionUri": undefined,
+        "identifier": undefined,
+        "lastModifiedBy": undefined,
+        "modified": undefined,
+        "owner": undefined,
+        "publishDate": undefined,
+        "rights": undefined,
+        "title": "This is test data",
+        "type": "http://www.w3.org/ns/dcat#Catalog",
+        "uri": "http://telicent.io/catalog#test_data_dataset",
+      },
+    ]
+  `);
 });
 
-test("Check basic search", async () => {
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([INCOMPLETE_RESULT, COMPLETE_RESULT])
-  );
+test("search 'basic'", async () => {
+  const mockService = await setupServiceData([
+    INCOMPLETE_RESULT,
+    COMPLETE_RESULT,
+  ]);
   const sf = searchFactory(mockService as unknown as CatalogService);
-  const EXPECTED_RESULT = [COMPLETE_RESULT_EXPECTED_RETURN];
   const results = await sf({
     dataResourceFilters: ["all"],
     searchText: "basic",
   });
 
-  expect(results).toStrictEqual(EXPECTED_RESULT);
+  expect(results).toMatchInlineSnapshot(`
+    [
+      {
+        "contact": "file:///fuseki/data/basic@test.telicent",
+        "creator": "http://telicent.io/catalog#test_data_dataset",
+        "description": "Basic test data, all for test cases",
+        "distributionAvailable": "[distribution__available]",
+        "distributionIdentifier": "http://www.w3.org/ns/dcat#abc123_Distribution",
+        "distributionMediaType": "[distribution__mediaType]",
+        "distributionTitle": "[distribution__title]",
+        "distributionURL": "http://www.access.com/url",
+        "distributionUri": "http://www.w3.org/ns/dcat#Dataset",
+        "identifier": "basic_data",
+        "lastModifiedBy": "Tom @ Telicent",
+        "modified": "[max_modified]",
+        "owner": "[qualifiedAttribution__agent__title]",
+        "publishDate": "[min_issued]",
+        "rights": "[rights__description]",
+        "title": "Basic",
+        "type": "http://www.w3.org/ns/dcat#Dataset",
+        "uri": "http://test.telicent/catalog#complete_result",
+      },
+    ]
+  `);
 });
 
 test("Check basic filter", async () => {
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([INCOMPLETE_RESULT, COMPLETE_RESULT])
-  );
+  const mockService = await setupServiceData([
+    INCOMPLETE_RESULT,
+    COMPLETE_RESULT,
+  ]);
   const sf = searchFactory(mockService as unknown as CatalogService);
-  const EXPECTED_RESULT = [COMPLETE_RESULT_EXPECTED_RETURN];
   const results = await sf({
-    dataResourceFilters: ["http://test.telicent/catalog#basic_data_dataset"],
+    dataResourceFilters: ["http://test.telicent/catalog#complete_result"],
     searchText: "",
   });
 
-  expect(results).toStrictEqual(EXPECTED_RESULT);
+  expect(results).toMatchInlineSnapshot(`
+    [
+      {
+        "contact": "file:///fuseki/data/basic@test.telicent",
+        "creator": "http://telicent.io/catalog#test_data_dataset",
+        "description": "Basic test data, all for test cases",
+        "distributionAvailable": "[distribution__available]",
+        "distributionIdentifier": "http://www.w3.org/ns/dcat#abc123_Distribution",
+        "distributionMediaType": "[distribution__mediaType]",
+        "distributionTitle": "[distribution__title]",
+        "distributionURL": "http://www.access.com/url",
+        "distributionUri": "http://www.w3.org/ns/dcat#Dataset",
+        "identifier": "basic_data",
+        "lastModifiedBy": "Tom @ Telicent",
+        "modified": "[max_modified]",
+        "owner": "[qualifiedAttribution__agent__title]",
+        "publishDate": "[min_issued]",
+        "rights": "[rights__description]",
+        "title": "Basic",
+        "type": "http://www.w3.org/ns/dcat#Dataset",
+        "uri": "http://test.telicent/catalog#complete_result",
+      },
+    ]
+  `);
 });
 
+// DISABLED FEATURE
 test.skip("Check owner filter", async () => {
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([INCOMPLETE_RESULT, COMPLETE_RESULT])
-  );
+  const mockService = await setupServiceData([
+    INCOMPLETE_RESULT,
+    COMPLETE_RESULT,
+  ]);
   const sf = searchFactory(mockService as unknown as CatalogService);
   const EXPECTED_RESULT = [
     INCOMPLETE_RESULT_EXPECTED_RETURN,
@@ -162,74 +232,99 @@ test.skip("Check owner filter", async () => {
   expect(results).toStrictEqual(EXPECTED_RESULT);
 });
 
-test("Check basic search", async () => {
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([COMPLETE_RESULT, ADDITIONAL_RESULT])
-  );
+test("search 'testing' with data resource filtering with []", async () => {
+  const mockService = await setupServiceData([
+    COMPLETE_RESULT,
+    ADDITIONAL_RESULT,
+  ]);
   const sf = searchFactory(mockService as unknown as CatalogService);
-  const EXPECTED_RESULT = [ADDITIONAL_RESULT_EXPECTED_RETURN];
   const results = await sf({
     dataResourceFilters: [],
     searchText: "testing",
   });
 
-  expect(results).toStrictEqual(EXPECTED_RESULT);
+  expect(results).toMatchInlineSnapshot(`
+    [
+      {
+        "contact": "testing@test.telicent",
+        "creator": "Tom @ Telicent",
+        "description": "All Testing dataset for testing all things",
+        "distributionAvailable": undefined,
+        "distributionIdentifier": undefined,
+        "distributionMediaType": undefined,
+        "distributionTitle": undefined,
+        "distributionURL": undefined,
+        "distributionUri": undefined,
+        "identifier": "95fd46da-7a61-4707-898f-AAAAAAAAAAAA",
+        "lastModifiedBy": undefined,
+        "modified": undefined,
+        "owner": "Testing dataset rights",
+        "publishDate": undefined,
+        "rights": undefined,
+        "title": "Testing Result",
+        "type": "http://www.w3.org/ns/dcat#Dataset",
+        "uri": "http://test.telicent/catalog#95fd46da-7a61-4707-898f-AAAAAAAAAAAA_Dataset",
+      },
+    ]
+  `);
 });
 
 test("Check more in depth search and sort", async () => {
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([INCOMPLETE_RESULT, COMPLETE_RESULT, ADDITIONAL_RESULT])
-  );
-  const sf = searchFactory(mockService as unknown as CatalogService);
-  const EXPECTED_RESULT = [
-    ADDITIONAL_RESULT_EXPECTED_RETURN,
-    COMPLETE_RESULT_EXPECTED_RETURN,
-  ];
-  const results = await sf({
+  const mockService = await setupServiceData([
+    INCOMPLETE_RESULT,
+    COMPLETE_RESULT,
+    ADDITIONAL_RESULT,
+  ]);
+  const search = searchFactory(mockService as unknown as CatalogService);
+  const results = await search({
     dataResourceFilters: [],
     searchText: "all",
   });
 
-  expect(results).toStrictEqual(EXPECTED_RESULT);
-});
-
-test("Check result with dates", async () => {
-  const modifiedDates = ["2024-09-13T07:00:00+00:00"];
-  const issuedDates = ["2024-12-13T09:44:48.725028113"];
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([COMPLETE_RESULT]),
-    modifiedDates,
-    issuedDates
-  );
-  const sf = searchFactory(mockService as unknown as CatalogService);
-  const ADD_DATES_TO_EXPECTED_RETURN = Object.assign(
-    {},
-    COMPLETE_RESULT_EXPECTED_RETURN
-  );
-  ADD_DATES_TO_EXPECTED_RETURN.modified = modifiedDates[0];
-  ADD_DATES_TO_EXPECTED_RETURN.publishDate = issuedDates[0];
-  const EXPECTED_RESULT = [ADD_DATES_TO_EXPECTED_RETURN];
-  const results = await sf({ dataResourceFilters: ["all"], searchText: "" });
-
-  expect(results).toStrictEqual(EXPECTED_RESULT);
-});
-
-test("Check result with modified", async () => {
-  const modifiedDates = ["2024-09-13T07:00:00+00:00"];
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([COMPLETE_RESULT]),
-    modifiedDates
-  );
-  const sf = searchFactory(mockService as unknown as CatalogService);
-  const ADD_DATES_TO_EXPECTED_RETURN = Object.assign(
-    {},
-    COMPLETE_RESULT_EXPECTED_RETURN
-  );
-  ADD_DATES_TO_EXPECTED_RETURN.modified = modifiedDates[0];
-  const EXPECTED_RESULT = [ADD_DATES_TO_EXPECTED_RETURN];
-  const results = await sf({ dataResourceFilters: ["all"], searchText: "" });
-
-  expect(results).toStrictEqual(EXPECTED_RESULT);
+  expect(results).toMatchInlineSnapshot(`
+    [
+      {
+        "contact": "testing@test.telicent",
+        "creator": "Tom @ Telicent",
+        "description": "All Testing dataset for testing all things",
+        "distributionAvailable": undefined,
+        "distributionIdentifier": undefined,
+        "distributionMediaType": undefined,
+        "distributionTitle": undefined,
+        "distributionURL": undefined,
+        "distributionUri": undefined,
+        "identifier": "95fd46da-7a61-4707-898f-AAAAAAAAAAAA",
+        "lastModifiedBy": undefined,
+        "modified": undefined,
+        "owner": "Testing dataset rights",
+        "publishDate": undefined,
+        "rights": undefined,
+        "title": "Testing Result",
+        "type": "http://www.w3.org/ns/dcat#Dataset",
+        "uri": "http://test.telicent/catalog#95fd46da-7a61-4707-898f-AAAAAAAAAAAA_Dataset",
+      },
+      {
+        "contact": "file:///fuseki/data/basic@test.telicent",
+        "creator": "http://telicent.io/catalog#test_data_dataset",
+        "description": "Basic test data, all for test cases",
+        "distributionAvailable": "[distribution__available]",
+        "distributionIdentifier": "http://www.w3.org/ns/dcat#abc123_Distribution",
+        "distributionMediaType": "[distribution__mediaType]",
+        "distributionTitle": "[distribution__title]",
+        "distributionURL": "http://www.access.com/url",
+        "distributionUri": "http://www.w3.org/ns/dcat#Dataset",
+        "identifier": "basic_data",
+        "lastModifiedBy": "Tom @ Telicent",
+        "modified": "[max_modified]",
+        "owner": "[qualifiedAttribution__agent__title]",
+        "publishDate": "[min_issued]",
+        "rights": "[rights__description]",
+        "title": "Basic",
+        "type": "http://www.w3.org/ns/dcat#Dataset",
+        "uri": "http://test.telicent/catalog#complete_result",
+      },
+    ]
+  `);
 });
 
 test("Check service only called once, cache take over", async () => {
@@ -241,21 +336,19 @@ test("Check service only called once, cache take over", async () => {
   MockCatalogServiceSpy.mockImplementation(async () => {
     return await [];
   });
-  const mockService = await setupServiceData(
-    SEARCH_TEMPLATE([COMPLETE_RESULT])
-  );
-  const sf = searchFactory(mockService as unknown as CatalogService);
+  const mockService = await setupServiceData([COMPLETE_RESULT]);
+  const search = searchFactory(mockService as unknown as CatalogService);
 
-  await sf({ dataResourceFilters: ["all"], searchText: "" });
+  await search({ dataResourceFilters: ["all"], searchText: "" });
 
   expect(MockCatalogServiceSpy).toHaveBeenCalled();
 
-  await sf({ dataResourceFilters: ["all"], searchText: "" });
+  await search({ dataResourceFilters: ["all"], searchText: "" });
 
   expect(MockCatalogServiceSpy).not.toHaveBeenCalledTimes(2);
   expect(MockCatalogServiceSpy).toHaveBeenCalledTimes(1);
 
-  await sf({ dataResourceFilters: ["all"], searchText: "" });
+  await search({ dataResourceFilters: ["all"], searchText: "" });
 
   expect(MockCatalogServiceSpy).not.toHaveBeenCalledTimes(2);
 

@@ -1,3 +1,5 @@
+import { DcatResourceQuerySolution, UITreeViewBaseItemType } from "../..";
+
 export const QUERY_STRING = `
       SELECT ?s  ?p ?o ?relationship ?partner ?resourceTitle WHERE {
         {
@@ -27,7 +29,7 @@ export const QUERY_STRING = `
       }
     `;
 
-export const CATALOG_QUERY_TEMPLATE = (bindings) => ({
+export const CATALOG_QUERY_TEMPLATE = (bindings: DcatResourceQuerySolution[]) => ({
   head: {
     vars: ["s", "p", "o", "relationship", "partner", "resourceTitle"],
   },
@@ -36,138 +38,113 @@ export const CATALOG_QUERY_TEMPLATE = (bindings) => ({
   },
 });
 
-export const BASIC_DATA_SET = {
-  s: {
-    type: "uri",
-    value:
-      "http://telicent.io/catalog#95fd46da-7a61-4707-898f-AAAAAAAAAAAA_Dataset",
+export const BASIC_DATA_SET: DcatResourceQuerySolution = {
+  identifier: {
+    type: "literal",
+    value: "basic_data",
   },
-  p: { type: "uri", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
-  o: { type: "uri", value: "http://www.w3.org/ns/dcat#Dataset" },
-  resourceTitle: {
+  uri: {
+    type: "uri",
+    value: "http://test.telicent/catalog#basic_data_dataset",
+  },
+  title: {
     type: "literal",
     value: "Basic",
   },
 };
 
-export const TEMPLATE_RESULT = (...children) => ({
+export const TEMPLATE_RESULT = (...children: UITreeViewBaseItemType[]) => ({
   id: "all",
   label: "All",
   children: [...children],
 });
-export const BASIC_RESULT = (...children) => ({
+export const BASIC_RESULT = (...children: UITreeViewBaseItemType[]) => ({
   id: "http://telicent.io/catalog#95fd46da-7a61-4707-898f-AAAAAAAAAAAA_Dataset",
   label: "Basic",
   children: [...children],
 });
 
 export const ADDITIONAL_DATA_SET = {
-  s: {
-    type: "uri",
-    value: "http://telicent.io/catalog#additional_data_dataset",
-  },
-  p: { type: "uri", value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type" },
-  o: { type: "uri", value: "http://www.w3.org/ns/dcat#Dataset" },
-  resourceTitle: { type: "literal", "xml:lang": "en", value: "Additional" },
-};
 
-export const ADDITIONAL_RESULT = (...children) => ({
+  identifier: {
+    type: "literal",
+    value: "basic_data",
+  },
+  uri: {
+    type: "uri",
+    value: "http://test.telicent/catalog#basic_data_dataset",
+  },
+  title: {
+    type: "literal",
+    value: "Basic",
+  },
+  resourceTitle: { type: "literal", "xml:lang": "en", value: "Additional" },
+} as unknown as DcatResourceQuerySolution;
+
+export const ADDITIONAL_RESULT = (...children: UITreeViewBaseItemType[]) => ({
   id: "http://telicent.io/catalog#additional_data_dataset",
   label: "Additional",
   children: [...children],
 });
 
-export const OWNER_CATALOG_ITEM = {
-  s: {
-    type: "uri",
-    value: "http://telicent.io/catalog#test_data_dataset",
+export const OWNER_CATALOG_ITEM:DcatResourceQuerySolution = {
+  identifier: {
+    type: "literal",
+    value: "owner_catalog",
   },
-  p: {
+  uri: {
     type: "uri",
-    value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+    value: "http://test.telicent/catalog#owner_catalog",
   },
-  o: {
-    type: "uri",
-    value: "http://www.w3.org/ns/dcat#Catalog",
-  },
-  relationship: {
-    type: "uri",
-    value: "http://www.w3.org/ns/dcat#dataset",
-  },
-  partner: {
-    type: "uri",
-    value: "http://telicent.io/catalog#additional_data_dataset",
+  title: {
+    type: "literal",
+    value: "Basic",
   },
 };
 
-export const OWNER_RESULT = (...children) => ({
+export const OWNER_RESULT = (...children: UITreeViewBaseItemType[]) => ({
   id: "http://telicent.io/catalog#test_data_dataset",
   label: "http://telicent.io/catalog#test_data_dataset",
   children: [...children],
 });
 
-export const OWNER2_CATALOG_ITEM = {
-  s: {
-    type: "uri",
-    value: "http://telicent.io/catalog#owner_data_dataset",
-  },
-  p: {
-    type: "uri",
-    value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-  },
-  o: {
-    type: "uri",
-    value: "http://www.w3.org/ns/dcat#Catalog",
-  },
-  relationship: {
-    type: "uri",
-    value: "http://www.w3.org/ns/dcat#dataset",
-  },
-  partner: {
-    type: "uri",
-    value:
-      "http://telicent.io/catalog#95fd46da-7a61-4707-898f-AAAAAAAAAAAA_Dataset",
-  },
-  resourceTitle: {
+export const OWNER2_CATALOG_ITEM:DcatResourceQuerySolution = {
+  identifier: {
     type: "literal",
-    value: "Owner",
+    value: "owner2_catalog",
+  },
+  uri: {
+    type: "uri",
+    value: "http://test.telicent/catalog#owner2_catalog",
+  },
+  title: {
+    type: "literal",
+    value: "Basic",
   },
 };
 
-export const OWNER2_RESULT = (...children) => ({
+export const OWNER2_RESULT = (...children: UITreeViewBaseItemType[]) => ({
   id: "http://telicent.io/catalog#owner_data_dataset",
   label: "Owner",
   children: [...children],
 });
 
-export const OWNER_OF_ALL_CATALOG_ITEM = {
-  s: {
-    type: "uri",
-    value: "http://telicent.io/catalog#top_level_data_dataset",
-  },
-  p: {
-    type: "uri",
-    value: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-  },
-  o: {
-    type: "uri",
-    value: "http://www.w3.org/ns/dcat#Catalog",
-  },
-  relationship: {
-    type: "uri",
-    value: "http://www.w3.org/ns/dcat#dataset",
-  },
-  partner: {
-    type: "uri",
-    value: "http://telicent.io/catalog#owner_data_dataset",
-  },
-  resourceTitle: {
+export const OWNER_OF_ALL_CATALOG_ITEM:DcatResourceQuerySolution = {
+  identifier: {
     type: "literal",
-    value: "Catalog",
+    value: "owner_of_all_catalog",
+  },
+  uri: {
+    type: "uri",
+    value: "http://test.telicent/catalog#owner_of_all_catalog",
+  },
+  title: {
+    type: "literal",
+    value: "Basic",
   },
 };
 
-export const OWNER_OF_ALL_RESULT = (...children) => ({
+export const OWNER_OF_ALL_RESULT = (...children: UITreeViewBaseItemType[]) => ({
   id: "http://telicent.io/catalog#top_level_data_dataset",
   label: "Catalog",
   children: [...children],

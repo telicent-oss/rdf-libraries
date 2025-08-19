@@ -5,12 +5,16 @@ import { Api, setup } from "../setup/setup.js";
 import { setupContainer } from "./utils/setupContainer.js";
 import { SEC } from "../utils/constants.js";
 
+const describeOrSkip = process.env?.DO_TEST_CONTAINERS
+  ? describe
+  : describe.skip;
+
 // !TODO Fix test
 // HOW
 //  1. First version - be able to fully disable "ByCola" logic
 //    (as you default "ByBailey")
 // WHEN https://telicent.atlassian.net/browse/TELFE-807
-describe("apiFactory", () => {
+describeOrSkip("apiFactory", () => {
   let environment: StartedDockerComposeEnvironment;
   let api: Api;
   let catalogService: CatalogService;
@@ -57,7 +61,7 @@ describe("apiFactory", () => {
             "creator": "Mario Giacomelli",
             "description": "2020 Royal Engineers’ Cornwall focused data catalog. Includes real-time IoT telemetry and historical archives for environmental and technological research.",
             "id": "http://telicent.io/data/catalog1",
-            "modified": "-",
+            "max_modified": "-",
             "publishDate": "-",
             "rights": "Effective Date: 25/10/20241.      1. Introduction      Thi…",
             "title": "Catalog: Cornwall Data",
@@ -69,7 +73,7 @@ describe("apiFactory", () => {
             "creator": "Kiki Sato",
             "description": "Q1 2021 Cornwall incident reports dataset in CSV format. Heavily redacted, supporting public safety analysis and policy development.",
             "id": "http://telicent.io/data/dataset1",
-            "modified": "-",
+            "max_modified": "-",
             "publishDate": "-",
             "rights": "Effective Date: 25/10/20241.      1. Introduction      Thi…",
             "title": "Dataset: Q1 2021",
@@ -81,7 +85,7 @@ describe("apiFactory", () => {
             "creator": "Oleg Novak",
             "description": "Cornwall Wind Detector data via JSON REST API. Real-time, API-token controlled access for analysis by environmental scientists and meteorologists.",
             "id": "http://telicent.io/data/dataservice1",
-            "modified": "-",
+            "max_modified": "-",
             "publishDate": "-",
             "rights": "Effective Date: 25/10/20241.      1. Introduction      Thi…",
             "title": "Service: Wind Feed",

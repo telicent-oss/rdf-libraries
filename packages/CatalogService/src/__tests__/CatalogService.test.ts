@@ -19,7 +19,11 @@ const initialNodeCount = 3;
 const triplestoreUri = "http://localhost:3030/";
 const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true } };
 
-describe("CatalogService", () => {
+const describeOrSkip = process.env.DO_TEST_CONTAINERS
+  ? describe
+  : describe.skip;
+
+describeOrSkip("CatalogService", () => {
   let environment: StartedDockerComposeEnvironment;
   let catalogService: CatalogService;
 

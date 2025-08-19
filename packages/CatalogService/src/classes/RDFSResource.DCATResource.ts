@@ -57,8 +57,8 @@ const warnWhenOptionsAndStatement = (
   options: ConstructorOptions,
   instance: DCATResource
 ) => {
-  if (!options.title) {
-    console.warn(`No title set for ${instance.uri} in query response`);
+  if (!options.statement?.title) {
+    console.warn(`No title set for ${instance.uri} in query response ${JSON.stringify(options?.statement)}`);
   }
   if (options.uri || options.title) {
     const optionsStatementStr = JSON.stringify(options.statement, null, 2);
@@ -388,7 +388,7 @@ export class DCATResource extends RDFSResource {
       distributionURL: this.distribution__accessURL,
       distributionMediaType: this.distribution__mediaType,
       distributionAvailable: this.distribution__available,
-      contributorTitle: this.contributor__title,
+      lastModifiedBy: this.contributor__title,
       publishDate: this.min_issued,
       modified: this.max_modified,
     } as Partial<UIDataResourceType>;

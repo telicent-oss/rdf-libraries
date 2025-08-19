@@ -78,6 +78,7 @@ const UITreeViewBaseItemSchema: z.ZodSchema<{
   children: Array<{
     id: string;
     label: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     children: any[];
   }>;
 }> = z.lazy(() =>
