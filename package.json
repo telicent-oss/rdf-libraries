@@ -6,6 +6,7 @@
     "clean": "yarn test --clearCache; yarn clean cache",
     "lint": "lerna run lint",
     "test": "lerna run test",
+    "prepublish": "lerna run prepublish",
     "test:stable": "lerna run test --scope=@telicent-oss/catalogservice && yarn test:ci",
     "test:ci": "yarn test --ignore @telicent-oss/catalogservice --ignore @telicent-oss/sparql-lib",
     "build": "lerna run build",

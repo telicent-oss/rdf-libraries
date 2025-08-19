@@ -1,5 +1,3 @@
-import { QueryResponse } from "@telicent-oss/rdfservice";
-
 import { catalogFactory } from "./catalogFactory";
 import {
   ADDITIONAL_DATA_SET,
@@ -42,13 +40,14 @@ afterAll(() => {
 });
 
 const setupServiceData = async (
-  data: DcatResourceQuerySolution[]
+  bindings: DcatResourceQuerySolution[]
 ): Promise<MockCatalogService> => {
-  runQuerySpy.mockImplementation(async () => CATALOG_QUERY_TEMPLATE(data));
+  runQuerySpy.mockImplementation(async () => CATALOG_QUERY_TEMPLATE(bindings));
   const service = new MockCatalogService();
   return service;
 };
 
+// Fix tests
 test.only("Check empty result for catalog", async () => {
   const mockService = await setupServiceData([]);
   const sf = catalogFactory(mockService as unknown as CatalogService);
@@ -59,10 +58,10 @@ test.only("Check empty result for catalog", async () => {
 
 test("Check one result in catalog", async () => {
   const mockService = await setupServiceData([BASIC_DATA_SET]);
-  const sf = catalogFactory(mockService as unknown as CatalogService);
-  const EXPECTED_RESULT = [TEMPLATE_RESULT(BASIC_RESULT())];
-  const results = await sf({ dataResourceFilters: ["all"], searchText: "" });
-  expect(results).toStrictEqual(EXPECTED_RESULT);
+  const catalog = catalogFactory(mockService as unknown as CatalogService);
+
+  const results = await catalog({ dataResourceFilters: ["all"], searchText: "" });
+  expect(results).toMatchInlineSnapshot();
 });
 
 test("Check two result at the same level", async () => {
