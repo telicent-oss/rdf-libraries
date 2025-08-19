@@ -8,7 +8,7 @@
     "test": "lerna run test",
     "prepublish:all": "lerna run prepublish --stream --no-prefix --concurrency 1",
     "test:stable": "lerna run test --scope=@telicent-oss/catalogservice && yarn test:ci",
-    "test:ci": "yarn test --ignore @telicent-oss/catalogservice --ignore @telicent-oss/sparql-lib",
+    "test:ci": "yarn test",
     "build": "lerna run build --stream --no-prefix --concurrency 1",
     "publish:ci": "./scripts/lerna/publish:ci.sh",
     "generate-docs": "lerna run generate-docs",
