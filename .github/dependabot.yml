@@ -27,3 +27,27 @@ updates:
     directory: "/packages/RdfService"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/packages/rdf-write-api"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/packages/react-lib"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/packages/ontology-icon-lib"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/packages/ontology-icon-react-lib"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/packages/dev-dependencies-lib"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/packages/sparql-lib"
+    schedule:
+      interval: "weekly"

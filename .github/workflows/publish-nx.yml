@@ -27,7 +27,7 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/package.json') }}
           restore-keys: ${{ runner.os }}-yarn-
 
       - uses: actions/setup-node@v4
@@ -35,6 +35,7 @@ jobs:
           node-version: 20.14
           # Note: The "registry-url" here doesn't populate .yarnrc :|
       - run: LOCAL_MACHINE=false yarn install --frozen-lockfile
+      - run: yarn build
       - run: ./scripts/lerna/publish:ci.sh
         env:
           YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}

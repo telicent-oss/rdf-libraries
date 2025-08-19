@@ -1,4 +1,4 @@
-name: Test release candidate
+name: test-release-nx.yml
 on:
   workflow_dispatch:
   push:
