@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/prov/qualified-attribution": {
+    "/prov/qualifiedAttribution": {
         parameters: {
             query?: never;
             header?: never;
@@ -23,14 +23,14 @@ export interface paths {
          *     - urn:telicent:update:objectproperty
          *     - urn:telicent:update:superuser
          */
-        post: operations["add_qualified_attribute_prov_qualified_attribution_post"];
+        post: operations["add_qualified_attribute_prov_qualifiedAttribution_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/prov/qualified-attribution/delete": {
+    "/prov/qualifiedAttribution/delete": {
         parameters: {
             query?: never;
             header?: never;
@@ -47,14 +47,14 @@ export interface paths {
          *     - urn:telicent:update:catalog_delete
          *     - urn:telicent:update:superuser
          */
-        post: operations["delete_qualified_attribute_prov_qualified_attribution_delete_post"];
+        post: operations["delete_qualified_attribute_prov_qualifiedAttribution_delete_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/prov/qualified-attribution/update": {
+    "/prov/qualifiedAttribution/update": {
         parameters: {
             query?: never;
             header?: never;
@@ -67,7 +67,71 @@ export interface paths {
          * Update Qualified Attribute
          * @description Updates a prov:qualifiedAttribution link between a node and a prov:Attribution instance
          */
-        post: operations["update_qualified_attribute_prov_qualified_attribution_update_post"];
+        post: operations["update_qualified_attribute_prov_qualifiedAttribution_update_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/prov/agent": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Agent
+         * @description Links a node to a prov:Attribution instance using the prov:qualifiedAttribution predicate.
+         */
+        post: operations["add_agent_prov_agent_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/prov/agent/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Agent
+         * @description Removes prov:agent link between a node and a prov:agent instance
+         *
+         *     Available to users with:
+         *     - urn:telicent:update:catalog_delete
+         *     - urn:telicent:update:superuser
+         */
+        post: operations["delete_agent_prov_agent_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/prov/agent/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Agent
+         * @description Updates a prov:agent link between a node and a prov:agent instance
+         */
+        post: operations["update_agent_prov_agent_update_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -566,7 +630,78 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/dcat/contact-point": {
+    "/dcterms/contributor": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Contributor
+         * @description Links a node to its published dcterms:contributor predicate. Note the contributor object must be an instance of
+         *     an Organisation
+         *
+         *     Available to users with:
+         *     - urn:telicent:update:catalog_write
+         *     - urn:telicent:update:writer
+         *     - urn:telicent:update:objectproperty
+         *     - urn:telicent:update:superuser
+         */
+        post: operations["add_contributor_dcterms_contributor_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcterms/contributor/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unlink Contributor
+         * @description Removes dcterms:contributor link between a node to an Organisation object.
+         *
+         *     Available to users with:
+         *     - urn:telicent:update:catalog_delete
+         *     - urn:telicent:update:superuser
+         */
+        post: operations["unlink_contributor_dcterms_contributor_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcterms/contributor/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Contributor Object
+         * @description Updates dcterms:contributor link between a node to an Organisation object.
+         */
+        post: operations["update_contributor_object_dcterms_contributor_update_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/contactPoint": {
         parameters: {
             query?: never;
             header?: never;
@@ -586,14 +721,14 @@ export interface paths {
          *     - urn:telicent:update:objectproperty
          *     - urn:telicent:update:superuser
          */
-        post: operations["add_contact_point_dcat_contact_point_post"];
+        post: operations["add_contact_point_dcat_contactPoint_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/dcat/contact-point/delete": {
+    "/dcat/contactPoint/delete": {
         parameters: {
             query?: never;
             header?: never;
@@ -610,14 +745,14 @@ export interface paths {
          *     - urn:telicent:update:catalog_delete
          *     - urn:telicent:update:superuser
          */
-        post: operations["delete_contact_point_dcat_contact_point_delete_post"];
+        post: operations["delete_contact_point_dcat_contactPoint_delete_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/dcat/contact-point/update": {
+    "/dcat/contactPoint/update": {
         parameters: {
             query?: never;
             header?: never;
@@ -630,14 +765,14 @@ export interface paths {
          * Update Contact Point
          * @description update the link between a catalog item and a contact point.
          */
-        post: operations["update_contact_point_dcat_contact_point_update_post"];
+        post: operations["update_contact_point_dcat_contactPoint_update_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/dcat/media-type": {
+    "/dcat/mediaType": {
         parameters: {
             query?: never;
             header?: never;
@@ -658,14 +793,14 @@ export interface paths {
          *     - urn:telicent:update:objectproperty
          *     - urn:telicent:update:superuser
          */
-        post: operations["add_media_type_dcat_media_type_post"];
+        post: operations["add_media_type_dcat_mediaType_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/dcat/media-type/delete": {
+    "/dcat/mediaType/delete": {
         parameters: {
             query?: never;
             header?: never;
@@ -682,14 +817,14 @@ export interface paths {
          *     - urn:telicent:update:catalog_delete
          *     - urn:telicent:update:superuser
          */
-        post: operations["delete_media_type_dcat_media_type_delete_post"];
+        post: operations["delete_media_type_dcat_mediaType_delete_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/dcat/media-type/update": {
+    "/dcat/mediaType/update": {
         parameters: {
             query?: never;
             header?: never;
@@ -702,7 +837,201 @@ export interface paths {
          * Update Media Type
          * @description Deletes the link between a catalog item and a media type.
          */
-        post: operations["update_media_type_dcat_media_type_update_post"];
+        post: operations["update_media_type_dcat_mediaType_update_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/distribution": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Distribution
+         * @description Links a catalog item to a distribution.
+         */
+        post: operations["add_distribution_dcat_distribution_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/distribution/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Distribution
+         * @description Deletes the link between a catalog item and a distribution.
+         *
+         *     Available to users with:
+         *     - urn:telicent:update:catalog_delete
+         *     - urn:telicent:update:superuser
+         */
+        post: operations["delete_distribution_dcat_distribution_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/distribution/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Distribution
+         * @description Deletes the link between a catalog item and a distribution.
+         */
+        post: operations["update_distribution_dcat_distribution_update_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/hadRole": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Had Role
+         * @description Links a catalog item to a media type (e.g., application/json, text/html).
+         *
+         *     The media type object should be a dcterms:MediaType
+         */
+        post: operations["add_had_role_dcat_hadRole_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/hadRole/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Had Role
+         * @description Deletes the link between a catalog item and a had role.
+         *
+         *     Available to users with:
+         *     - urn:telicent:update:catalog_delete
+         *     - urn:telicent:update:superuser
+         */
+        post: operations["delete_had_role_dcat_hadRole_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/hadRole/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Had Role
+         * @description Updates the link between a catalog item and a had role.
+         */
+        post: operations["update_had_role_dcat_hadRole_update_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/accessURL": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Access Url
+         * @description Links a catalog item to an AccessURL
+         */
+        post: operations["add_access_url_dcat_accessURL_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/accessURL/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Access Url
+         * @description Deletes the link between a catalog item and an accessURL.
+         *
+         *     Available to users with:
+         *     - urn:telicent:update:catalog_delete
+         *     - urn:telicent:update:superuser
+         */
+        post: operations["delete_access_url_dcat_accessURL_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/dcat/accessURL/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Access Url
+         * @description Deletes the link between a catalog item and a media type.
+         */
+        post: operations["update_access_url_dcat_accessURL_update_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -932,6 +1261,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/vcard/fn": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Add Fn
+         * @description Sets a fn for a vcard.
+         */
+        post: operations["add_fn_vcard_fn_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vcard/fn/delete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Delete Fn
+         * @description Deletes the fn from a vcard.
+         */
+        post: operations["delete_fn_vcard_fn_delete_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/vcard/fn/update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Update Fn
+         * @description Deletes the fn from a vcard.
+         */
+        post: operations["update_fn_vcard_fn_update_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/availability": {
         parameters: {
             query?: never;
@@ -970,6 +1359,90 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /** AccessURL */
+        AccessURL: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /** Access Url */
+            access_url: string;
+        };
+        /** AccessURLUpdate */
+        AccessURLUpdate: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /** New Access Url */
+            new_access_url: string;
+            /** Old Access Url */
+            old_access_url: string;
+        };
+        /** Agent */
+        Agent: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * Agent Uri
+             * Format: uri
+             */
+            agent_uri: string;
+        };
+        /** AgentUpdate */
+        AgentUpdate: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * New Agent Uri
+             * Format: uri
+             */
+            new_agent_uri: string;
+            /**
+             * Old Agent Uri
+             * Format: uri
+             */
+            old_agent_uri: string;
+        };
+        /** Attribution */
+        Attribution: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * Attribution Item Uri
+             * Format: uri
+             */
+            attribution_item_uri: string;
+        };
+        /** AttributionUpdate */
+        AttributionUpdate: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * New Attribution Item Uri
+             * Format: uri
+             */
+            new_attribution_item_uri: string;
+            /**
+             * Old Attribution Item Uri
+             * Format: uri
+             */
+            old_attribution_item_uri: string;
+        };
         /** CheckResult */
         CheckResult: {
             /** Name */
@@ -987,10 +1460,10 @@ export interface components {
              */
             item_uri: string;
             /**
-             * Rights Object Uri
+             * Contact Point Object Uri
              * Format: uri
              */
-            rights_object_uri: string;
+            contact_point_object_uri: string;
         };
         /** ContactPointUpdate */
         ContactPointUpdate: {
@@ -1000,46 +1473,46 @@ export interface components {
              */
             item_uri: string;
             /**
-             * Old Rights Object Uri
+             * New Contact Point Object Uri
              * Format: uri
              */
-            old_rights_object_uri: string;
+            new_contact_point_object_uri: string;
             /**
-             * New Rights Object Uri
+             * Old Contact Point Object Uri
              * Format: uri
              */
-            new_rights_object_uri: string;
+            old_contact_point_object_uri: string;
         };
-        /** DateTime */
-        DateTime: {
+        /** Contributor */
+        Contributor: {
             /**
              * Item Uri
              * Format: uri
              */
             item_uri: string;
             /**
-             * Datetime
-             * Format: date-time
+             * Contributor Object Uri
+             * Format: uri
              */
-            datetime: string;
+            contributor_object_uri: string;
         };
-        /** DateTimeUpdate */
-        DateTimeUpdate: {
+        /** ContributorUpdate */
+        ContributorUpdate: {
             /**
              * Item Uri
              * Format: uri
              */
             item_uri: string;
             /**
-             * Old Datetime
-             * Format: date-time
+             * New Contributor Object Uri
+             * Format: uri
              */
-            old_datetime: string;
+            new_contributor_object_uri: string;
             /**
-             * New Datetime
-             * Format: date-time
+             * Old Contributor Object Uri
+             * Format: uri
              */
-            new_datetime: string;
+            old_contributor_object_uri: string;
         };
         /** Description */
         Description: {
@@ -1058,10 +1531,41 @@ export interface components {
              * Format: uri
              */
             item_uri: string;
-            /** Old Description */
-            old_description: string;
             /** New Description */
             new_description: string;
+            /** Old Description */
+            old_description: string;
+        };
+        /** Distribution */
+        Distribution: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * Distribution Uri
+             * Format: uri
+             */
+            distribution_uri: string;
+        };
+        /** DistributionUpdate */
+        DistributionUpdate: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * New Distribution Uri
+             * Format: uri
+             */
+            new_distribution_uri: string;
+            /**
+             * Old Distribution Uri
+             * Format: uri
+             */
+            old_distribution_uri: string;
         };
         /** DocumentLink */
         DocumentLink: {
@@ -1076,10 +1580,63 @@ export interface components {
              */
             document: string;
         };
+        /** Fn */
+        Fn: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /** Fn */
+            fn: string;
+        };
+        /** FnUpdate */
+        FnUpdate: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /** New Fn */
+            new_fn: string;
+            /** Old Fn */
+            old_fn: string;
+        };
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HadRole */
+        HadRole: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * Role Uri
+             * Format: uri
+             */
+            role_uri: string;
+        };
+        /** HadRoleUpdate */
+        HadRoleUpdate: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * New Role Uri
+             * Format: uri
+             */
+            new_role_uri: string;
+            /**
+             * Old Role Uri
+             * Format: uri
+             */
+            old_role_uri: string;
         };
         /** HealthcheckReport */
         HealthcheckReport: {
@@ -1105,10 +1662,41 @@ export interface components {
              * Format: uri
              */
             item_uri: string;
-            /** Old Identifier */
-            old_identifier: string;
             /** New Identifier */
             new_identifier: string;
+            /** Old Identifier */
+            old_identifier: string;
+        };
+        /** IssuedDateTime */
+        IssuedDateTime: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * Datetime
+             * Format: date-time
+             */
+            datetime: string;
+        };
+        /** IssuedDateTimeUpdate */
+        IssuedDateTimeUpdate: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * New Datetime
+             * Format: date-time
+             */
+            new_datetime: string;
+            /**
+             * Old Datetime
+             * Format: date-time
+             */
+            old_datetime: string;
         };
         /** LiteralTripleAndDataset */
         LiteralTripleAndDataset: {
@@ -1117,6 +1705,8 @@ export interface components {
              * Format: uri
              */
             item_uri: string;
+            /** Value */
+            value?: string | null;
             /**
              * Subject
              * Format: uri
@@ -1153,15 +1743,46 @@ export interface components {
              */
             item_uri: string;
             /**
-             * Old Media Type Object Uri
-             * Format: uri
-             */
-            old_media_type_object_uri: string;
-            /**
              * New Media Type Object Uri
              * Format: uri
              */
             new_media_type_object_uri: string;
+            /**
+             * Old Media Type Object Uri
+             * Format: uri
+             */
+            old_media_type_object_uri: string;
+        };
+        /** ModifiedDateTime */
+        ModifiedDateTime: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * Datetime
+             * Format: date-time
+             */
+            datetime: string;
+        };
+        /** ModifiedDateTimeUpdate */
+        ModifiedDateTimeUpdate: {
+            /**
+             * Item Uri
+             * Format: uri
+             */
+            item_uri: string;
+            /**
+             * New Datetime
+             * Format: date-time
+             */
+            new_datetime: string;
+            /**
+             * Old Datetime
+             * Format: date-time
+             */
+            old_datetime: string;
         };
         /**
          * ObjectTripleAndDataset
@@ -1173,6 +1794,8 @@ export interface components {
              * Format: uri
              */
             item_uri: string;
+            /** Value */
+            value?: string | null;
             /**
              * Subject
              * Format: uri
@@ -1212,46 +1835,15 @@ export interface components {
              */
             item_uri: string;
             /**
-             * Old Publisher Object Uri
-             * Format: uri
-             */
-            old_publisher_object_uri: string;
-            /**
              * New Publisher Object Uri
              * Format: uri
              */
             new_publisher_object_uri: string;
-        };
-        /** QualifiedAttribute */
-        QualifiedAttribute: {
             /**
-             * Item Uri
+             * Old Publisher Object Uri
              * Format: uri
              */
-            item_uri: string;
-            /**
-             * Attribution Item Uri
-             * Format: uri
-             */
-            attribution_item_uri: string;
-        };
-        /** QualifiedAttributeUpdate */
-        QualifiedAttributeUpdate: {
-            /**
-             * Item Uri
-             * Format: uri
-             */
-            item_uri: string;
-            /**
-             * Old Attribution Item Uri
-             * Format: uri
-             */
-            old_attribution_item_uri: string;
-            /**
-             * New Attribution Item Uri
-             * Format: uri
-             */
-            new_attribution_item_uri: string;
+            old_publisher_object_uri: string;
         };
         /** RDFClass */
         RDFClass: {
@@ -1288,15 +1880,15 @@ export interface components {
              */
             item_uri: string;
             /**
-             * Old Rights Object Uri
-             * Format: uri
-             */
-            old_rights_object_uri: string;
-            /**
              * New Rights Object Uri
              * Format: uri
              */
             new_rights_object_uri: string;
+            /**
+             * Old Rights Object Uri
+             * Format: uri
+             */
+            old_rights_object_uri: string;
         };
         /** TelicentPrimaryName */
         TelicentPrimaryName: {
@@ -1325,10 +1917,10 @@ export interface components {
              * Format: uri
              */
             item_uri: string;
-            /** Old Title */
-            old_title: string;
             /** New Title */
             new_title: string;
+            /** Old Title */
+            old_title: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -1348,7 +1940,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    add_qualified_attribute_prov_qualified_attribution_post: {
+    add_qualified_attribute_prov_qualifiedAttribution_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1357,7 +1949,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["QualifiedAttribute"];
+                "application/json": components["schemas"]["Attribution"];
             };
         };
         responses: {
@@ -1381,7 +1973,7 @@ export interface operations {
             };
         };
     };
-    delete_qualified_attribute_prov_qualified_attribution_delete_post: {
+    delete_qualified_attribute_prov_qualifiedAttribution_delete_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1390,7 +1982,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["QualifiedAttribute"];
+                "application/json": components["schemas"]["Attribution"];
             };
         };
         responses: {
@@ -1414,7 +2006,7 @@ export interface operations {
             };
         };
     };
-    update_qualified_attribute_prov_qualified_attribution_update_post: {
+    update_qualified_attribute_prov_qualifiedAttribution_update_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -1423,7 +2015,106 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["QualifiedAttributeUpdate"];
+                "application/json": components["schemas"]["AttributionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_agent_prov_agent_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Agent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_agent_prov_agent_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Agent"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_agent_prov_agent_update_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AgentUpdate"];
             };
         };
         responses: {
@@ -1753,7 +2444,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DateTime"];
+                "application/json": components["schemas"]["ModifiedDateTime"];
             };
         };
         responses: {
@@ -1786,7 +2477,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DateTime"];
+                "application/json": components["schemas"]["ModifiedDateTime"];
             };
         };
         responses: {
@@ -1819,7 +2510,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DateTimeUpdate"];
+                "application/json": components["schemas"]["ModifiedDateTimeUpdate"];
             };
         };
         responses: {
@@ -1852,7 +2543,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DateTime"];
+                "application/json": components["schemas"]["IssuedDateTime"];
             };
         };
         responses: {
@@ -1885,7 +2576,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DateTime"];
+                "application/json": components["schemas"]["IssuedDateTime"];
             };
         };
         responses: {
@@ -1918,7 +2609,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["DateTimeUpdate"];
+                "application/json": components["schemas"]["IssuedDateTimeUpdate"];
             };
         };
         responses: {
@@ -2140,7 +2831,106 @@ export interface operations {
             };
         };
     };
-    add_contact_point_dcat_contact_point_post: {
+    add_contributor_dcterms_contributor_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Contributor"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unlink_contributor_dcterms_contributor_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Contributor"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_contributor_object_dcterms_contributor_update_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContributorUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_contact_point_dcat_contactPoint_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2173,7 +2963,7 @@ export interface operations {
             };
         };
     };
-    delete_contact_point_dcat_contact_point_delete_post: {
+    delete_contact_point_dcat_contactPoint_delete_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2206,7 +2996,7 @@ export interface operations {
             };
         };
     };
-    update_contact_point_dcat_contact_point_update_post: {
+    update_contact_point_dcat_contactPoint_update_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2239,7 +3029,7 @@ export interface operations {
             };
         };
     };
-    add_media_type_dcat_media_type_post: {
+    add_media_type_dcat_mediaType_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2272,7 +3062,7 @@ export interface operations {
             };
         };
     };
-    delete_media_type_dcat_media_type_delete_post: {
+    delete_media_type_dcat_mediaType_delete_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2305,7 +3095,7 @@ export interface operations {
             };
         };
     };
-    update_media_type_dcat_media_type_update_post: {
+    update_media_type_dcat_mediaType_update_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -2315,6 +3105,303 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["MediaTypeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_distribution_dcat_distribution_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Distribution"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_distribution_dcat_distribution_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Distribution"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_distribution_dcat_distribution_update_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DistributionUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_had_role_dcat_hadRole_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HadRole"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_had_role_dcat_hadRole_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HadRole"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_had_role_dcat_hadRole_update_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HadRoleUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_access_url_dcat_accessURL_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessURL"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_access_url_dcat_accessURL_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessURL"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_access_url_dcat_accessURL_update_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AccessURLUpdate"];
             };
         };
         responses: {
@@ -2612,6 +3699,105 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ObjectTripleAndDataset"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    add_fn_vcard_fn_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Fn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_fn_vcard_fn_delete_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["Fn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_fn_vcard_fn_update_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FnUpdate"];
             };
         };
         responses: {

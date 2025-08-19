@@ -1,5 +1,12 @@
 // tests/updateByPredicateFnFactory.jest.test.ts
-import { describe, it, beforeEach, afterEach, expect, jest } from "@jest/globals";
+import {
+  describe,
+  it,
+  beforeEach,
+  afterEach,
+  expect,
+  jest,
+} from "@jest/globals";
 import type { RdfWriteApiClientType, Triple } from ".";
 import { updateByPredicateFnFactory } from ".";
 
@@ -33,7 +40,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
       })),
     };
     // Cast once when passing to the factory; keep our local client strongly mock-typed
-    fns = updateByPredicateFnFactory({ client: client as unknown as RdfWriteApiClientType });
+    fns = updateByPredicateFnFactory({
+      client: client as unknown as RdfWriteApiClientType,
+    });
   });
 
   afterEach(() => {
@@ -43,7 +52,10 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
   it("exposes expected predicate keys", () => {
     expect(Object.keys(fns).sort()).toMatchInlineSnapshot(`
       [
+        "dcat:accessURL",
         "dcat:contactPoint",
+        "dcat:distribution",
+        "dcat:hadRole",
         "dcat:mediaType",
         "dct:description",
         "dct:identifier",
@@ -52,7 +64,10 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
         "dct:publisher",
         "dct:rights",
         "dct:title",
+        "dcterms:contributor",
+        "prov:agent",
         "prov:qualifiedAttribution",
+        "vcard:fn",
       ]
     `);
   });
@@ -120,17 +135,17 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           },
         ],
         [
-          "/dcat/contact-point/update",
+          "/dcat/contactPoint/update",
           {
             "body": {
               "item_uri": "http://example.org/item/1",
-              "new_rights_object_uri": "http://example.org/value/1",
-              "old_rights_object_uri": "http://example.org/prev/1",
+              "new_contact_point_object_uri": "http://example.org/value/1",
+              "old_contact_point_object_uri": "http://example.org/prev/1",
             },
           },
         ],
         [
-          "/dcat/media-type/update",
+          "/dcat/mediaType/update",
           {
             "body": {
               "item_uri": "http://example.org/item/1",
@@ -140,7 +155,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           },
         ],
         [
-          "/prov/qualified-attribution/update",
+          "/prov/qualifiedAttribution/update",
           {
             "body": {
               "item_uri": "http://example.org/item/1",
@@ -236,17 +251,17 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           },
         ],
         [
-          "/dcat/contact-point/update",
+          "/dcat/contactPoint/update",
           {
             "body": {
               "item_uri": "S",
-              "new_rights_object_uri": "O",
-              "old_rights_object_uri": null,
+              "new_contact_point_object_uri": "O",
+              "old_contact_point_object_uri": null,
             },
           },
         ],
         [
-          "/dcat/media-type/update",
+          "/dcat/mediaType/update",
           {
             "body": {
               "item_uri": "S",
@@ -256,7 +271,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           },
         ],
         [
-          "/prov/qualified-attribution/update",
+          "/prov/qualifiedAttribution/update",
           {
             "body": {
               "item_uri": "S",

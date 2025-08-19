@@ -46,7 +46,7 @@
   },
   "dependencies": {
     "uuid": "11.1.0",
-    "@telicent-oss/rdf-write-lib": "^0.0.1-TELFE-805.20",
+    "@telicent-oss/rdf-write-lib": "^0.0.1-TELFE-805.21",
     "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.34",
     "@telicent-oss/sparql-lib": "^0.0.1-TELFE-805.37",
     "zod": "^3.22.4"

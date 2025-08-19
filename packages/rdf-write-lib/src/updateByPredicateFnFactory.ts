@@ -33,19 +33,43 @@ type OmitEndpoints =
   | "/annotation"
   | "/annotation/delete"
   | "/object-property"
-  | "/object-property/delete";
+  | "/object-property/delete"
+  | "/prov/qualifiedAttribution"
+  | "/prov/qualifiedAttribution/delete"
+  | "/prov/agent"
+  | "/prov/agent/delete"
+  | "/dcterms/contributor"
+  | "/dcterms/contributor/delete"
+  | "/dcat/contactPoint"
+  | "/dcat/contactPoint/delete"
+  | "/dcat/mediaType"
+  | "/dcat/mediaType/delete"
+  | "/dcat/distribution"
+  | "/dcat/distribution/delete"
+  | "/dcat/hadRole"
+  | "/dcat/hadRole/delete"
+  | "/dcat/accessURL"
+  | "/dcat/accessURL/delete"
+  | "/vcard/fn"
+  | "/vcard/fn/delete";
 
 type RequiredEndpoints = Exclude<Endpoints, OmitEndpoints>;
 
 const predicatesToEndpoints = {
+  "dcat:distribution": "/dcat/distribution/update",
+  "dcat:hadRole": "/dcat/hadRole/update",
+  "dcat:accessURL": "/dcat/accessURL/update",
+  "dcterms:contributor": "/dcterms/contributor/update",
+  "vcard:fn": "/vcard/fn/update",
   "dct:publisher": "/dcterms/publisher/update",
   "dct:title": "/dcterms/title/update",
   "dct:description": "/dcterms/description/update",
   "dct:issued": "/dcterms/issued/update",
   "dct:rights": "/dcterms/rights/update",
-  "dcat:contactPoint": "/dcat/contact-point/update",
-  "dcat:mediaType": "/dcat/media-type/update",
-  "prov:qualifiedAttribution": "/prov/qualified-attribution/update",
+  "dcat:contactPoint": "/dcat/contactPoint/update",
+  "dcat:mediaType": "/dcat/mediaType/update",
+  "prov:qualifiedAttribution": "/prov/qualifiedAttribution/update",
+  "prov:agent": "/prov/agent/update",
   "dct:identifier": "/dcterms/identifier/update",
   "dct:modified": "/dcterms/modified/update",
 } as const satisfies Record<string, RequiredEndpoints>;
@@ -118,7 +142,7 @@ export const updateByPredicateFnFactory = ({
     }),
 
   "prov:qualifiedAttribution": ({ triple, prev }) =>
-    client.POST("/prov/qualified-attribution/update", {
+    client.POST("/prov/qualifiedAttribution/update", {
       body: {
         item_uri: triple.s,
         old_attribution_item_uri: prev as unknown as string,
@@ -136,15 +160,15 @@ export const updateByPredicateFnFactory = ({
     }),
 
   "dcat:contactPoint": ({ triple, prev }) =>
-    client.POST("/dcat/contact-point/update", {
+    client.POST("/dcat/contactPoint/update", {
       body: {
         item_uri: triple.s,
-        old_rights_object_uri: prev as unknown as string,
-        new_rights_object_uri: triple.o,
+        old_contact_point_object_uri: prev as unknown as string,
+        new_contact_point_object_uri: triple.o,
       },
     }),
   "dcat:mediaType": ({ triple, prev }) =>
-    client.POST("/dcat/media-type/update", {
+    client.POST("/dcat/mediaType/update", {
       body: {
         item_uri: triple.s,
         old_media_type_object_uri: prev as unknown as string,
@@ -158,6 +182,55 @@ export const updateByPredicateFnFactory = ({
         item_uri: triple.s,
         old_datetime: prev as unknown as string,
         new_datetime: triple.o,
+      },
+    }),
+  "dcat:distribution": ({ triple, prev }) =>
+    client.POST("/dcat/distribution/update", {
+      body: {
+        item_uri: triple.s,
+        old_distribution_uri: prev as unknown as string,
+        new_distribution_uri: triple.o,
+      },
+    }),
+  "dcat:hadRole": ({ triple, prev }) =>
+    client.POST("/dcat/hadRole/update", {
+      body: {
+        item_uri: triple.s,
+        old_role_uri: prev as unknown as string,
+        new_role_uri: triple.o,
+      },
+    }),
+  "dcat:accessURL": ({ triple, prev }) =>
+    client.POST("/dcat/accessURL/update", {
+      body: {
+        item_uri: triple.s,
+
+        old_access_url: prev as unknown as string,
+        new_access_url: triple.o,
+      },
+    }),
+  "dcterms:contributor": ({ triple, prev }) =>
+    client.POST("/dcterms/contributor/update", {
+      body: {
+        item_uri: triple.s,
+        old_contributor_object_uri: prev as unknown as string,
+        new_contributor_object_uri: triple.o,
+      },
+    }),
+  "vcard:fn": ({ triple, prev }) =>
+    client.POST("/vcard/fn/update", {
+      body: {
+        item_uri: triple.s,
+        old_fn: prev as unknown as string,
+        new_fn: triple.o,
+      },
+    }),
+  "prov:agent": ({ triple, prev }) =>
+    client.POST("/prov/agent/update", {
+      body: {
+        item_uri: triple.s,
+        old_agent_uri: prev as unknown as string,
+        new_agent_uri: triple.o,
       },
     }),
 });
