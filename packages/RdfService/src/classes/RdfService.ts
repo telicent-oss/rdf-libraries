@@ -19,7 +19,23 @@ import {
   XsdDataType,
 } from "../index";
 
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type RdfServiceConstructor<T> = abstract new (...args: any[]) => T
+
 export class RdfService extends AbstractConstructorPromises {
+
+  static classLookup: Record<string, RdfServiceConstructor<RDFSResource>> = {};
+
+  static lookupClass<C extends RdfServiceConstructor<RDFSResource>>(
+    clsUri: LongURI,
+    defaultCtor: C
+  ): C {
+    const found = this.classLookup[clsUri] as C | undefined;
+    return found ?? defaultCtor;
+  }
+
+
   public config: RDFServiceConfig;
   public constructorPromises: Promise<unknown>[] = [];
 
@@ -71,6 +87,8 @@ export class RdfService extends AbstractConstructorPromises {
   };
   updateCount: number;
 
+
+
   /**
    * @method constructor
    * @remarks
@@ -103,6 +121,7 @@ export class RdfService extends AbstractConstructorPromises {
     this.showWarnings = true;
 
     // why is this in the constructor if it is static?
+    // TODO make static
     this.dc = "http://purl.org/dc/elements/1.1/";
     this.dct = "http://purl.org/dc/terms/"; //@Dave -  DC items  to move up to the RdfService class. Didn't want to go messing with your code though
     this.xsd = "http://www.w3.org/2001/XMLSchema#";

@@ -176,7 +176,7 @@ export type XsdDataType =
   | "xsd:Name" //	XML Names
   | "xsd:NCName";
 
-export { RdfService } from "./classes/RdfService";
+export { RdfService, type RdfServiceConstructor } from "./classes/RdfService";
 
 import { RDFSResource } from "./classes/RDFSResource";
 import { AbstractConstructorPromises } from "./utils";

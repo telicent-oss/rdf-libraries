@@ -58,7 +58,11 @@ const warnWhenOptionsAndStatement = (
   instance: DCATResource
 ) => {
   if (!options.statement?.title) {
-    console.warn(`No title set for ${instance.uri} in query response ${JSON.stringify(options?.statement)}`);
+    console.warn(
+      `No title set for ${instance.uri} in query response ${JSON.stringify(
+        options?.statement
+      )}`
+    );
   }
   if (options.uri || options.title) {
     const optionsStatementStr = JSON.stringify(options.statement, null, 2);
@@ -87,8 +91,13 @@ const asErrorValueObject = (error: unknown, meta: unknown) => ({
   error: `${error} ${JSON.stringify(meta)}`,
 });
 
+export type StoreTripleUpdate = {
+  triple: Triple;
+  prev: string | null;
+  onSuccess: () => void;
+};
 export type StoreTriplesResult =
-  | Awaited<DispatchResult>
+  | StoreTripleUpdate
   | { error: string }
   | { message: string };
 export class DCATResource extends RDFSResource {
@@ -312,18 +321,33 @@ export class DCATResource extends RDFSResource {
     api: {
       updateByPredicateFns: RdfWriteApiByPredicateFn;
     }
-  ) {
-    const updates: { triple: Triple; prev: string | null }[] = [];
+  ): Promise<StoreTriplesResult[]> {
+    /** __Internal__StoreTripleUpdate is exactly the same
+     * as StoreTripleUpdate. EXCEPT it includes an
+     * onSuccess handler that is:
+     * 1. called
+     * 2. removed
+     * If the write dispatch is successful
+     */
+    type __Internal__StoreTripleUpdate = {
+      triple: Triple;
+      prev: string | null;
+      onSuccess: () => void;
+    };
+
+    const updates: __Internal__StoreTripleUpdate[] = [];
 
     switch (property) {
       case "publisher__title":
+        const newPublisher = this.uris.publisher || `${uuidv4()}_Publisher`;
         updates.push({
           triple: {
             s: this.uri,
             p: "dct:publisher",
-            o: this.uris.publisher || `${uuidv4()}_Publisher`,
+            o: newPublisher,
           },
           prev: this.uris.publisher || null,
+          onSuccess: () => (this.uris.publisher = newPublisher),
         });
         updates.push({
           triple: {
@@ -332,6 +356,7 @@ export class DCATResource extends RDFSResource {
             o: newValue,
           },
           prev: this.publisher__title || null,
+          onSuccess: () => this.publisher__title === newValue,
         });
         break;
     }
@@ -351,12 +376,20 @@ export class DCATResource extends RDFSResource {
             ? { message: "No-op, unchanged" }
             : !updateFn
             ? updateError(`No updateFn`)
-            : await updateFn(update)
+            : await updateFn(update).then(() => {
+                if ("onSuccess" in update) {
+                  const { onSuccess, ...restUpdate } = update;
+                  onSuccess(); // call and remove onSuccess
+                  return restUpdate as StoreTriplesResult;
+                }
+                return update;
+              })
         );
       } catch (error) {
         results.push(updateError(error));
       }
     }
+
     return results;
   }
 

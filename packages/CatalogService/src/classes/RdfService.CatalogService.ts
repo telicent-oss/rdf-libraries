@@ -7,6 +7,7 @@ import {
   RDFSResourceDescendant,
   LongURI,
   RDFSResource,
+  RdfServiceConstructor,
 } from "@telicent-oss/rdfservice";
 
 import { builder } from "@telicent-oss/sparql-lib";
@@ -27,6 +28,34 @@ export class CatalogService extends RdfService {
     dataset: "catalog",
     defaultNamespace: "http://telicent.io/catalog/",
     defaultSecurityLabel: "",
+  };
+
+  // !CRITICAL duplicating instance properties sucks.
+  // !But needs must.
+  // !CRITICAL refactor so all equivalent vars are static
+  // WHY they can be static, and I finally NEED them to be
+  // HOW convert the unchanging vars, and their associated
+  //  methods to static. Delete the instance properties
+  // WHEN https://telicent.atlassian.net/browse/TELFE-1275
+
+  // namespaces
+  static dcat = "http://www.w3.org/ns/dcat#";
+  static vcard = "http://www.w3.org/2006/vcard/ns#";
+
+  // with terms
+  static dcatResource = `${CatalogService.dcat}Resource`;
+  static dcatCatalog = `${CatalogService.dcat}Catalog`;
+  static dcatDataset = `${CatalogService.dcat}Dataset`;
+  static dcat_dataset = `${CatalogService.dcat}dataset`; // NOTE: not Dataset
+  static dcatDataService = `${CatalogService.dcat}DataService`;
+  static dcat_service = `${CatalogService.dcat}service`;
+  static dcat_catalog = `${CatalogService.dcat}catalog`;
+  
+  static classLookup: Record<string, RdfServiceConstructor<RDFSResource>> = {
+    [CatalogService.dcatResource]: DCATResource,
+    [CatalogService.dcatDataset]: DCATDataset,
+    [CatalogService.dcatDataService]: DCATDataService,
+    [CatalogService.dcatCatalog]: DCATCatalog,
   };
 
   dcat: string;
@@ -204,20 +233,20 @@ export class CatalogService extends RdfService {
 
   /**
    * Returns one specific instances
-   * WARNING: Re-uses getAllDCATResources for now, even if it returns a few 
+   * WARNING: Re-uses getAllDCATResources for now, even if it returns a few
    *  fields we don't need. This prioritizes maintainability/safety over the perf
    *  gained by clipping a few fields on a single entity
-   *      
+   *
    * @param {string} specificUri - prefixed property identifier.
    * @returns {Array} - An array of one dataset object with URIs, titles, and published dates
    */
-  async getDCATResource(options:{
-    resourceUri: string,
+  async getDCATResource(options: {
+    resourceUri: string;
   }): Promise<DCATResource[]> {
     const results = await this.runQuery<DcatResourceQuerySolution>(
       builder.catalog.getAllDCATResources({
         vocab: { dcat: this },
-        ...options
+        ...options,
       })
     );
     const resources: DCATResource[] = results.results.bindings.map(
