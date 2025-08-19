@@ -6,6 +6,7 @@
     "clean": "yarn test --clearCache; yarn clean cache",
     "lint": "lerna run lint",
     "test": "lerna run test",
+    "bump": "lerna exec -- ../../scripts/local-version-bump.sh",
     "prepublish:all": "lerna run prepublish --stream --no-prefix --concurrency 1",
     "test:stable": "lerna run test --scope=@telicent-oss/catalogservice && yarn test:ci",
     "test:ci": "yarn test",

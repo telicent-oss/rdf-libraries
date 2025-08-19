@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/dev-dependencies-lib",
-  "version": "0.0.1-TELFE-805.0",
+  "version": "0.0.1-TELFE-805.1",
   "private": false,
   "description": "Utility code",
   "main": "./dist/dev-dependencies-lib.cjs.js",

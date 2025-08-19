@@ -1,7 +1,7 @@
 {
   "name": "@telicent-oss/sparql-lib",
   "type": "module",
-  "version": "0.0.1-TELFE-805.37",
+  "version": "0.0.1-TELFE-805.38",
   "private": false,
   "description": "SPARQL functionality",
   "main": "./dist/sparql-lib.cjs.js",
@@ -58,7 +58,7 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@telicent-oss/dev-dependencies-lib": "^0.0.1-TELFE-805.0",
+    "@telicent-oss/dev-dependencies-lib": "^0.0.1-TELFE-805.1",
     "@types/jest": "^29.4.0",
     "eslint": "^8.56.0",
     "ts-jest": "^29.1.1",
