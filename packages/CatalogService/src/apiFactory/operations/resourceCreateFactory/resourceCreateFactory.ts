@@ -124,12 +124,18 @@ export const resourceCreateFactory = ({
           uriComponents.uri,
           operation.payload.title
         );
-
       await createByPredicateFns['rdf:type']({
         triple: {
           s: dcatResource.uri,
           p: 'rdf:type',
           o: dcatResource.types[0]
+        }
+      })
+      await createByPredicateFns['dct:identifier']({
+        triple: {
+          s: dcatResource.uri,
+          p: 'dct:identifier',
+          o: `${uriComponents.uuid}${uriComponents.postfix}`
         }
       })
     
