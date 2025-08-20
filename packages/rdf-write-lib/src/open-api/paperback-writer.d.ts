@@ -1514,6 +1514,11 @@ export interface components {
              */
             old_contributor_object_uri: string;
         };
+        /**
+         * DataSetEnum
+         * @enum {string}
+         */
+        DataSetEnum: "catalog" | "knowledge" | "ontology";
         /** Description */
         Description: {
             /**
@@ -1701,24 +1706,14 @@ export interface components {
         /** LiteralTripleAndDataset */
         LiteralTripleAndDataset: {
             /**
-             * Item Uri
-             * Format: uri
-             */
-            item_uri: string;
-            /** Value */
-            value?: string | null;
-            /**
              * Subject
              * Format: uri
              */
             subject: string;
-            /**
-             * Predicate
-             * Format: uri
-             */
-            predicate: string;
-            /** Obj */
-            obj: string;
+            predicate: components["schemas"]["PredicateEnum"];
+            /** Object */
+            object: string;
+            dataset: components["schemas"]["DataSetEnum"];
             /** Datatype */
             datatype?: string | null;
         };
@@ -1790,13 +1785,6 @@ export interface components {
          */
         ObjectTripleAndDataset: {
             /**
-             * Item Uri
-             * Format: uri
-             */
-            item_uri: string;
-            /** Value */
-            value?: string | null;
-            /**
              * Subject
              * Format: uri
              */
@@ -1807,13 +1795,19 @@ export interface components {
              */
             predicate: string;
             /**
-             * Obj
+             * Object
              * Format: uri
              */
-            obj: string;
+            object: string;
+            dataset: components["schemas"]["DataSetEnum"];
             /** Named Graph */
             named_graph?: string | null;
         };
+        /**
+         * PredicateEnum
+         * @enum {string}
+         */
+        PredicateEnum: "http://purl.org/dc/terms/title" | "http://purl.org/dc/terms/description" | "http://purl.org/dc/terms/identifier" | "http://www.w3.org/2004/02/skos/core#prefLabel" | "http://www.w3.org/2004/02/skos/core#altLabel" | "http://www.w3.org/2000/01/rdf-schema#label";
         /** Publisher */
         Publisher: {
             /**

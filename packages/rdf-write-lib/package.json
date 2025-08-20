@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/rdf-write-lib",
-  "version": "0.0.1-TELFE-805.26",
+  "version": "0.0.1-TELFE-805.28",
   "private": false,
   "description": "Allows writing of RDF data in Telicent CORE platform",
   "main": "./dist/rdf-write-lib.cjs.js",

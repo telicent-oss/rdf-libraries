@@ -3,3 +3,4 @@ SRC="./src/open-api"
 
 npx openapi-typescript  "$OPEN_API" -o "$SRC/paperback-writer.d.ts"
 yarn tsc --noEmit
+yarn build

@@ -19,7 +19,7 @@ const CLASS_MAP: Record<
   ResourceCreateParamsType["type"],
   keyof typeof CatalogService.classLookup
 > = {
-  dataSet: CatalogService.dcatResource,
+  dataSet: CatalogService.dcatDataset,
 };
 
 // !TODO
@@ -114,6 +114,9 @@ export const resourceCreateFactory = ({
       DCATResource
     ) as unknown as typeof DCATResource;
 
+    const createByPredicateFns = createByPredicateFnFactory({
+      client: rdfWriteApiClient,
+    });
     const dcatResource = catalogService.nodes[uriComponents.uri]
       ? throwAsAlreadyExists(uriComponents.uri, catalogService)
       : await ClassForType.createAsync(
@@ -122,13 +125,18 @@ export const resourceCreateFactory = ({
           operation.payload.title
         );
 
-    const createByPredicateFns = createByPredicateFnFactory({
-      client: rdfWriteApiClient,
-    });
+      await createByPredicateFns['rdf:type']({
+        triple: {
+          s: dcatResource.uri,
+          p: 'rdf:type',
+          o: dcatResource.types[0]
+        }
+      })
+    
     const uiFieldEntires = editableEntries(operation.payload);
     const results: ResourceCreateResults = {};
     for (const [uiField, uiFieldValue] of uiFieldEntires) {
-      console.log(`Updating ${uiField} to ${uiFieldValue}`);
+      console.log(`Updating ${uiField} to ${uiFieldValue}`, ClassForType, dcatResource);
       const updateErrors = await storeTriplesPhase2(
         "create",
         dcatResource,

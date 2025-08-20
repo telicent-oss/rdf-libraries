@@ -8,7 +8,7 @@ import { execaCommandSync } from "execa";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
-const CACHE_FILE = path.resolve(__dirname, ".prevSelections.gitignored.json");
+const CACHE_FILE = path.resolve(__dirname, "..", ".prevSelections.gitignored.json");
 const DRY_RUN = process.argv.includes("--dry-run");
 const GIT = process.argv.includes("--git");
 const YES = process.argv.includes("--yes");

@@ -53,8 +53,7 @@ type OmitEndpoints =
   | "/document-link"
   | "/telicent/primary-name"
   | "/ontology/rdfs-class"
-  | "/annotation"
-  | "/object-property";
+  | "/annotation";
 type RequiredEndpoints = Exclude<Endpoints, OmitEndpoints>;
 
 const predicatesToEndpoints = {
@@ -74,6 +73,7 @@ const predicatesToEndpoints = {
   "prov:agent": "/prov/agent",
   "dct:identifier": "/dcterms/identifier",
   "dct:modified": "/dcterms/modified",
+  "rdf:type": "/object-property",
 } as const satisfies Record<string, RequiredEndpoints>;
 
 // Use TS to do exhastive check of predicatesToEndpoints;
@@ -217,6 +217,16 @@ export const createByPredicateFnFactory = ({
       body: {
         item_uri: triple.s,
         agent_uri: triple.o,
+      },
+    }),
+    // TODO This and annotate should be accessed differently
+    "rdf:type": ({ triple }) =>
+    client.POST("/object-property", {
+      body: {
+        dataset: "catalog", // required, else defaults to knowledge
+        subject: triple.s,
+        predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        object: triple.o,
       },
     }),
 });

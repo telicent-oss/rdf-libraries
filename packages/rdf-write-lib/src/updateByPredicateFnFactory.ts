@@ -1,7 +1,6 @@
 import { RdfWriteApiClientType } from "./rdfWriteApiClientFactory";
 import { DispatchResult, Endpoints } from "./types";
 
-
 type OmitEndpoints =
   | "/dcterms/publisher"
   | "/dcterms/publisher/delete"
@@ -30,7 +29,6 @@ type OmitEndpoints =
   | "/ontology/rdfs-class"
   | "/annotation"
   | "/annotation/delete"
-  | "/object-property"
   | "/object-property/delete"
   | "/prov/qualifiedAttribution"
   | "/prov/qualifiedAttribution/delete"
@@ -70,6 +68,7 @@ const predicatesToEndpoints = {
   "prov:agent": "/prov/agent/update",
   "dct:identifier": "/dcterms/identifier/update",
   "dct:modified": "/dcterms/modified/update",
+  "rdf:type": "/object-property",
 } as const satisfies Record<string, RequiredEndpoints>;
 
 // Use TS to do exhastive check of predicatesToEndpoints;
@@ -229,6 +228,20 @@ export const updateByPredicateFnFactory = ({
         item_uri: triple.s,
         old_agent_uri: prev as unknown as string,
         new_agent_uri: triple.o,
+      },
+    }),
+  /**
+   * !CRITICAL. Test. Perhaps remove.
+   * WHEN https://telicent.atlassian.net/browse/TELFE-1275
+   * WHY in rush. Implemented to keep types simple
+   *  */
+  "rdf:type": ({ triple }) =>
+    client.POST("/object-property", {
+      body: {
+        dataset: "catalog", // required, else defaults to knowledge
+        subject: triple.s,
+        predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+        object: triple.o,
       },
     }),
 });

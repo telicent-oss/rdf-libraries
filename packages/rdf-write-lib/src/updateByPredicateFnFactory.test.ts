@@ -25,6 +25,7 @@ const PREDICATES = [
   "prov:qualifiedAttribution",
   "dct:identifier",
   "dct:modified",
+  "rdf:type",
 ] as const;
 
 describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
@@ -67,6 +68,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
         "dcterms:contributor",
         "prov:agent",
         "prov:qualifiedAttribution",
+        "rdf:type",
         "vcard:fn",
       ]
     `);
@@ -184,6 +186,17 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
             },
           },
         ],
+        [
+          "/object-property",
+          {
+            "body": {
+              "dataset": "catalog",
+              "object": "http://example.org/value/1",
+              "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+              "subject": "http://example.org/item/1",
+            },
+          },
+        ],
       ]
     `);
   });
@@ -297,6 +310,17 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
               "item_uri": "S",
               "new_datetime": "O",
               "old_datetime": null,
+            },
+          },
+        ],
+        [
+          "/object-property",
+          {
+            "body": {
+              "dataset": "catalog",
+              "object": "O",
+              "predicate": "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
+              "subject": "S",
             },
           },
         ],
