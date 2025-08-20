@@ -31,7 +31,7 @@ const UIToProperty = {
   contact: "contactPoint__fn",
   creator: "publisher__title",
   rights: "rights__description",
-  accessRights: "accessRights",
+  // accessRights: "accessRights",
   owner: "qualifiedAttribution__agent__title",
   distributionUri: "distribution",
   distributionIdentifier: "distribution__identifier",

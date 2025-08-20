@@ -125,8 +125,8 @@ export const COMPLETE_RESULT_EXPECTED_RETURN: UIDataResourceType = {
   lastModifiedBy: "-",
   publishDate: "-",
   modified: "-",
-  accessRights: "-",
-  qualifiedAttribution: "-",
+  // accessRights: "-",
+  // qualifiedAttribution: "-",
 };
 
 export const INCOMPLETE_RESULT = {
@@ -152,8 +152,8 @@ export const INCOMPLETE_RESULT_EXPECTED_RETURN: UIDataResourceType = {
   description: "-",
   modified: "-",
   publishDate: "-",
-  accessRights: "-",
-  qualifiedAttribution: "-",
+  // accessRights: "-",
+  // qualifiedAttribution: "-",
 
   distributionUri: "-",
   distributionIdentifier: "-",
@@ -212,8 +212,8 @@ export const ADDITIONAL_RESULT_EXPECTED_RETURN: UIDataResourceType = {
   description: "All Testing dataset for testing all things",
   modified: "-",
   publishDate: "-",
-  accessRights: "-",
-  qualifiedAttribution: "-",
+  // accessRights: "-",
+  // qualifiedAttribution: "-",
   owner: "-",
   creator: "Tom @ Telicent",
   type: "http://www.w3.org/ns/dcat#Dataset",

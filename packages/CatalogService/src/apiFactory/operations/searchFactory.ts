@@ -76,7 +76,7 @@ export const searchFactoryFn =
         .map(async (resource) => {
           const uiRepresentation = await resource.item.toUIRepresentation();
 
-          if (!config.FF_PHASE_2) {
+          if (!config.FF_CATALOG_UPDATE) {
             return uiRepresentation;
           }
 

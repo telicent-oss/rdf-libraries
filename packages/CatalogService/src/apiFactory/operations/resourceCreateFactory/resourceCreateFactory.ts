@@ -10,6 +10,7 @@ import {
   StoreTriplesResult,
 } from "../../../classes/RDFSResource.DCATResource";
 import { createUriComponents } from "../utils/createUriComponents";
+import { ZodError } from "zod/v4";
 
 export type ResourceCreateParamsType = {
   type: "dataSet";
@@ -40,7 +41,7 @@ const UIToProperty = {
   contact: "contactPoint__fn",
   creator: "publisher__title",
   rights: "rights__description",
-  accessRights: "accessRights",
+  // accessRights: "accessRights",
   owner: "qualifiedAttribution__agent__title",
   distributionUri: "distribution",
   distributionIdentifier: "distribution__identifier",
@@ -100,9 +101,14 @@ export const resourceCreateFactory = ({
     const uriComponents = await createUriComponents({
       base: "http://telicent.io/catalog#",
       postfix: POSTFIX_MAP[operation.type],
+    }).catch((error) => {
+      if (error instanceof ZodError) {
+        throw error.message;
+      }
+      throw { uri: `${error}` };
     });
-    if (uriComponents.uri !== "string") {
-      throw new Error("Expected to generate uri");
+    if (typeof uriComponents.uri !== "string") {
+      throw { uri: "Expected to generate uri" };
     }
 
     const ClassForType = catalogService.lookupClass(
@@ -112,7 +118,7 @@ export const resourceCreateFactory = ({
 
     const dcatResource = catalogService.nodes[uriComponents.uri]
       ? throwAsAlreadyExists(uriComponents.uri, catalogService)
-      : await ClassForType.createAsync(catalogService, uriComponents.uri);
+      : await ClassForType.createAsync(catalogService, uriComponents.uri, operation.payload.title);
 
     const updateByPredicateFns = updateByPredicateFnFactory({
       client: rdfWriteApiClient,

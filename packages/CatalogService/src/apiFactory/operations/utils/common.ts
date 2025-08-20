@@ -42,8 +42,8 @@ export const UIDataResourceSchema = z.object({
   contact: z.string(),                // contactPoint__fn
   creator: z.string(),                // publisher__title
   rights: z.string(),                 // rights__description
-  accessRights: z.string(),           // WRITE-ONLY accessRights
-  qualifiedAttribution: z.string(),   // WRITE-ONLY qualifiedAttribution
+  // accessRights: z.string(),           // WRITE-ONLY accessRights
+  // qualifiedAttribution: z.string(),   // WRITE-ONLY qualifiedAttribution
   owner: z.string(),                  // qualifiedAttribution__agent__title
   // Phase 2
   distributionUri: z.string(),        // distribution

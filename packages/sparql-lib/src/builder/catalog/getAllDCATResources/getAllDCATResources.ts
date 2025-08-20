@@ -41,6 +41,7 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
         ?rights__description                # rights
         ?accessRights                       # accessRights
         ?qualifiedAttribution               #   uris.qualifiedAttribution
+        ?qualifiedAttribution__agent        #   uris.qualifiedAttribution__agent
         ?qualifiedAttribution__agent__title # owner
         # Phase 2
         ?distribution                       # distributionUri, uris.distributionUri

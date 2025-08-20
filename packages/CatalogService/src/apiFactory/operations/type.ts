@@ -1,1 +1,1 @@
-export type ApiFactoryConfigType = { FF_PHASE_2?: boolean };
+export type ApiFactoryConfigType = { FF_CATALOG_UPDATE?: boolean };

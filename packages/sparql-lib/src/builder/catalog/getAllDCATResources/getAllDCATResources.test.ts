@@ -30,6 +30,7 @@ test("findWithParams", () => {
             ?rights__description                # rights
             ?accessRights                       # accessRights
             ?qualifiedAttribution               #   uris.qualifiedAttribution
+            ?qualifiedAttribution__agent        #   uris.qualifiedAttribution__agent
             ?qualifiedAttribution__agent__title # owner
             # Phase 2
             ?distribution                       # distributionUri, uris.distributionUri
@@ -126,7 +127,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -38,1 +38,1 @@
+    @@ -39,1 +39,1 @@
     -        
     +        <http://dcat.com/catalog#123> ?catRel ?uri .
     "
@@ -143,7 +144,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -67,6 +67,2 @@
+    @@ -68,6 +68,2 @@
     -            ?parent  ?catRel ?uri .
     -            FILTER (?catRel in (
     -        <http://www.w3.org/ns/dcat#dataset>,
@@ -166,7 +167,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -39,9 +39,1 @@
+    @@ -40,9 +40,1 @@
     -        FILTER (
     -                ?_type IN (
     -                    dcat:Resource,
@@ -192,11 +193,11 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -36,0 +37,1 @@
+    @@ -37,0 +38,1 @@
     +        VALUES ?uri { <http://dcat.com/#123_Dataset> }
-    @@ -38,1 +38,0 @@
+    @@ -39,1 +39,0 @@
     -        
-    @@ -67,6 +67,2 @@
+    @@ -68,6 +68,2 @@
     -            ?parent  ?catRel ?uri .
     -            FILTER (?catRel in (
     -        <http://www.w3.org/ns/dcat#dataset>,

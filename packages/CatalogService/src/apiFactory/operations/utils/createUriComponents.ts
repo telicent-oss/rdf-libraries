@@ -11,21 +11,20 @@ const IdentifierSchemaFor = (base: string) =>
         UUID_V4_RE,
         "uuid must start with uuid v4"
       ),
-      uri: z.string().url(),
+      uri: z.url(),
     })
-    .superRefine((v, ctx) => {
-      const expectedUri = `${base}${v.uuid}`;
-      if (v.uri !== expectedUri) {
+    .superRefine((value, ctx) => {
+      if (value.uri.startsWith(base) === false) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["uri"],
-          message: `uri mismatch; expected ${expectedUri}`,
+          message: `uri mismatch; expected to start with ${base} -instead  got ${value.uri}`,
         });
       }
     });
 
 export const createUriComponents = async ({ base, postfix= '' }: {base:string; postfix:string}) => {
-  const uuid = uuidv4(); // just UUID, no postfix
+  const uuid = uuidv4();
   const localName = `${uuid}${postfix}`;
   const uri = `${base}${localName}`;
   IdentifierSchemaFor(base).parse({ uuid, uri });
