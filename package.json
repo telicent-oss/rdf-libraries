@@ -7,6 +7,7 @@
     "lint": "lerna run lint",
     "test": "lerna run test",
     "tscNoEmit": "lerna run tscNoEmit",
+    "prep": "./scripts/prep.sh8",
     "bump": "lerna exec -- ../../scripts/local-version-bump.sh",
     "prepublish:all": "lerna run prepublish --stream --no-prefix --concurrency 1",
     "test:stable": "lerna run test --scope=@telicent-oss/catalogservice && yarn test:ci",

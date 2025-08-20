@@ -6,8 +6,11 @@ import {
 } from "@telicent-oss/rdf-write-lib";
 import {
   DCATResource,
-  StoreTriplesResult,
 } from "../../../classes/RDFSResource.DCATResource";
+import {
+  storeTriplesPhase2,
+  StoreTriplesResult,
+} from "../../../classes/RDFSResource.DCATResource/storeTriplesPhase2";
 
 export type ResourceUpdateParamsType = {
   type: "dataSet";
@@ -101,7 +104,9 @@ export const resourceUpdateFactory = ({
     const uiFieldEntires = editableEntries(operation.payload);
     const results: ResourceUpdateResults = {};
     for (const [uiField, uiFieldValue] of uiFieldEntires) {
-      const updateErrors = await dcatResource.storeTriples(
+      const updateErrors = await storeTriplesPhase2(
+        "update",
+        dcatResource,
         UIToProperty[uiField],
         uiFieldValue,
         {

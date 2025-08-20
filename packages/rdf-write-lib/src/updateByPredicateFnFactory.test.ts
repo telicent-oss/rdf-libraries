@@ -7,7 +7,7 @@ import {
   expect,
   jest,
 } from "@jest/globals";
-import type { RdfWriteApiClientType, Triple } from ".";
+import type { RdfWriteApiClientType, UpdateTriple } from ".";
 import { updateByPredicateFnFactory } from ".";
 
 // Keep the mock typing simple to avoid Jest generic/TS incompatibilities
@@ -78,7 +78,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
     const prev = "http://example.org/prev/1";
 
     for (const p of PREDICATES) {
-      const triple: Triple = { s, p, o };
+      const triple: UpdateTriple = { s, p, o };
       await fns[p]({ triple, prev });
     }
 
@@ -194,7 +194,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
     const prev = null;
 
     for (const p of PREDICATES) {
-      const triple: Triple = { s, p, o };
+      const triple: UpdateTriple = { s, p, o };
       await fns[p]({ triple, prev });
     }
 

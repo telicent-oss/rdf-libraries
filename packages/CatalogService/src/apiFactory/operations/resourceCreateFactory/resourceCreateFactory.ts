@@ -1,14 +1,12 @@
 import { CatalogService } from "../../../classes/RdfService.CatalogService";
 import { UIDataResourceType } from "../utils/common";
 import {
-  updateByPredicateFnFactory,
+  createByPredicateFnFactory,
   RdfWriteApiClientType,
 } from "@telicent-oss/rdf-write-lib";
 
-import {
-  DCATResource,
-  StoreTriplesResult,
-} from "../../../classes/RDFSResource.DCATResource";
+import { StoreTriplesResult, storeTriplesPhase2 } from "../../../classes/RDFSResource.DCATResource/storeTriplesPhase2";
+import { DCATResource } from "../../../classes/RDFSResource.DCATResource";
 import { createUriComponents } from "../utils/createUriComponents";
 import { ZodError } from "zod/v4";
 
@@ -118,26 +116,32 @@ export const resourceCreateFactory = ({
 
     const dcatResource = catalogService.nodes[uriComponents.uri]
       ? throwAsAlreadyExists(uriComponents.uri, catalogService)
-      : await ClassForType.createAsync(catalogService, uriComponents.uri, operation.payload.title);
+      : await ClassForType.createAsync(
+          catalogService,
+          uriComponents.uri,
+          operation.payload.title
+        );
 
-    const updateByPredicateFns = updateByPredicateFnFactory({
+    const createByPredicateFns = createByPredicateFnFactory({
       client: rdfWriteApiClient,
     });
     const uiFieldEntires = editableEntries(operation.payload);
     const results: ResourceCreateResults = {};
     for (const [uiField, uiFieldValue] of uiFieldEntires) {
-      const updateErrors = await dcatResource.storeTriples(
+      console.log(`Updating ${uiField} to ${uiFieldValue}`);
+      const updateErrors = await storeTriplesPhase2(
+        "create",
+        dcatResource,
         UIToProperty[uiField],
         uiFieldValue,
         {
-          updateByPredicateFns,
+          createByPredicateFns,
         }
       );
       if (updateErrors?.length) {
         results[uiField] = updateErrors;
       }
     }
-    console.log({ results });
     if (Object.values(results).some((value) => value.length)) {
       throw results;
     }

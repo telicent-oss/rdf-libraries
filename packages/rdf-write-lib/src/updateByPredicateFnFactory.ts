@@ -1,8 +1,6 @@
 import { RdfWriteApiClientType } from "./rdfWriteApiClientFactory";
+import { DispatchResult, Endpoints } from "./types";
 
-export type DispatchResult = ReturnType<RdfWriteApiClientType["POST"]>;
-
-export type Endpoints = Parameters<RdfWriteApiClientType["POST"]>[0];
 
 type OmitEndpoints =
   | "/dcterms/publisher"
@@ -81,22 +79,22 @@ type AssertNever<T extends never> = T;
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 type _check = AssertNever<Missing>;
 
-export type Triple = {
+export type UpdateTriple = {
   s: string;
   p: keyof typeof predicatesToEndpoints;
   o: string;
 };
 
-export type RdfWriteApiByPredicateFn = Record<
+export type UpdateByPredicateFn = Record<
   keyof typeof predicatesToEndpoints,
-  (options: { triple: Triple; prev: string | null }) => DispatchResult
+  (options: { triple: UpdateTriple; prev: string | null }) => DispatchResult
 >;
 
 export const updateByPredicateFnFactory = ({
   client,
 }: {
   client: RdfWriteApiClientType;
-}): RdfWriteApiByPredicateFn => ({
+}): UpdateByPredicateFn => ({
   "dct:publisher": ({ triple, prev }) =>
     client.POST("/dcterms/publisher/update", {
       body: {
