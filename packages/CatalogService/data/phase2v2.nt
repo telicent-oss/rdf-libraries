@@ -1,0 +1,33 @@
+<http://telicent.io/catalog#05396b62-3984-490c-be34-46ce9169cf2e_DataOwnerAttribution> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#Attribution> .
+<http://telicent.io/catalog#05396b62-3984-490c-be34-46ce9169cf2e_DataOwnerAttribution> <http://www.w3.org/ns/dcat#hadRole> <https://standards.iso.org/iso/19115/resources/Codelists/gml/CI_RoleCode.xml#owner> .
+<http://telicent.io/catalog#05396b62-3984-490c-be34-46ce9169cf2e_DataOwnerAttribution> <http://www.w3.org/ns/prov#agent> <http://telicent.io/catalog#43776db8-9f8f-3ae8-f1da-b14cae421779_DataOwner> .
+<https://standards.iso.org/iso/19115/resources/Codelists/gml/CI_RoleCode.xml#owner> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Role> .
+<http://telicent.io/catalog#43776db8-9f8f-3ae8-f1da-b14cae421779_DataOwner> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#Agent> .
+<http://telicent.io/catalog#43776db8-9f8f-3ae8-f1da-b14cae421779_DataOwner> <http://purl.org/dc/terms/title> "example.com Data Owner" .
+<http://telicent.io/catalog#5e7ac981-8871-4f27-a2bd-a24a001bd3fb_Publisher> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#Agent> .
+<http://telicent.io/catalog#5e7ac981-8871-4f27-a2bd-a24a001bd3fb_Publisher> <http://purl.org/dc/terms/title> "BBC Monitoring" .
+<http://telicent.io/catalog#9cd52ab3-d6a1-0d00-28e8-e29c6bfff533_Modifier> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/prov#Agent> .
+<http://telicent.io/catalog#9cd52ab3-d6a1-0d00-28e8-e29c6bfff533_Modifier> <http://purl.org/dc/terms/title> "Andy Gray" .
+<http://telicent.io/catalog#56f52052-f47f-9d94-f338-1f56b4757119_ContactPoint> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/2006/vcard/ns#Kind> .
+<http://telicent.io/catalog#56f52052-f47f-9d94-f338-1f56b4757119_ContactPoint> <http://www.w3.org/2006/vcard/ns#fn> "Example.com Data Team" .
+<http://telicent.io/catalog#f9c48006-e9df-4a59-84f8-245718163970_DataHandlingPolicy> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://purl.org/dc/terms/RightsStatement> .
+<http://telicent.io/catalog#f9c48006-e9df-4a59-84f8-245718163970_DataHandlingPolicy> <http://purl.org/dc/terms/title> "BBC Monitoring, Copyright \u00A9 2025 BBC" .
+<http://telicent.io/catalog#f9c48006-e9df-4a59-84f8-245718163970_DataHandlingPolicy> <http://purl.org/dc/terms/description> "BBC Monitoring, Copyright \u00A9 2025 BBC. The BBC is not responsible for the content of external sites." .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Distribution> .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://purl.org/dc/terms/title> "BBC Monitoring, RSS distribution" .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://purl.org/dc/terms/identifier> "43eaf65b-fc1e-476a-b35b-ccb0778a161e" .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://purl.org/dc/terms/available> "2025-08-06T15:17:36"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://www.w3.org/ns/dcat#accessURL> <https://monitoring.bbc.co.uk> .
+<http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> <http://www.w3.org/ns/dcat#mediaType> <https://www.iana.org/assignments/media-types/text/xml> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://www.w3.org/1999/02/22-rdf-syntax-ns#type> <http://www.w3.org/ns/dcat#Dataset> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/identifier> "95fd46da-7a61-4707-898f-49d4e2d73d4f" .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/title> "BBC Monitoring" .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/description> "BBC Monitoring tracks, translates, analyses and summarises global media to help you make sense of world events." .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://www.w3.org/ns/prov#qualifiedAttribution> <http://telicent.io/catalog#05396b62-3984-490c-be34-46ce9169cf2e_DataOwnerAttribution> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/publisher> <http://telicent.io/catalog#5e7ac981-8871-4f27-a2bd-a24a001bd3fb_Publisher> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/contributor> <http://telicent.io/catalog#9cd52ab3-d6a1-0d00-28e8-e29c6bfff533_Modifier> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/modified> "2025-07-31T15:02:03"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://www.w3.org/ns/dcat#contactPoint> <http://telicent.io/catalog#56f52052-f47f-9d94-f338-1f56b4757119_ContactPoint> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/rights> <http://telicent.io/catalog#f9c48006-e9df-4a59-84f8-245718163970_DataHandlingPolicy> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://purl.org/dc/terms/issued> "2025-07-31T15:02:03.263095884"^^<http://www.w3.org/2001/XMLSchema#dateTime> .
+<http://telicent.io/catalog#95fd46da-7a61-4707-898f-49d4e2d73d4f_Dataset> <http://www.w3.org/ns/dcat#distribution> <http://telicent.io/catalog#43eaf65b-fc1e-476a-b35b-ccb0778a161e_Distribution> .
