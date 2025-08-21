@@ -76,7 +76,7 @@ PREFIX sdo: <https://schema.org/>
             ?uri            dct:accessRights    ?accessRights } .
         OPTIONAL { 
             ?uri            dct:contributor     ?contributor .
-            ?contributor    dct:title           ?contributor_title } .
+            ?contributor    dct:title           ?contributor__title } .
         OPTIONAL { 
             ?parent         ?catRel             ?uri .
             FILTER (

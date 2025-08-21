@@ -23,13 +23,7 @@ export const prepareWritebackFactory =
           if (!config.FF_CATALOG_UPDATE) {
             return uiRepresentation;
           }
-          return Object.entries(uiRepresentation).reduce(
-            (accum, [key, value]) => ({
-              ...accum,
-              [key]: value === "-" ? undefined : value,
-            }),
-            {} as typeof uiRepresentation
-          );
+          return uiRepresentation;
         }
       )
     );

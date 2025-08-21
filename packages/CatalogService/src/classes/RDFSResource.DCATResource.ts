@@ -104,33 +104,35 @@ export class DCATResource extends RDFSResource {
 
   // _type
   // uri
+  classType?: string; // NOTE: Added for typing more than need
   identifier?: string;
-  title: string = "-";
-  description: string = "-";
-  contactPoint__fn: string = "-";
-  publisher__title: string = "-";
-  rights__description: string = "-";
-  accessRights: string = "-";
-  qualifiedAttribution__agent__title: string = "-";
-  owner: string = "-";
+  title?: string;
+  description?: string;
+  contactPoint__fn?: string;
+  publisher__title?: string;
+  rights__description?: string;
+  accessRights?: string;
+  qualifiedAttribution__agent__title?: string;
+  owner?: string;
   // Phase 2
-  distribution: string = "-";
-  distribution__identifier: string = "-";
-  distribution__title: string = "-";
-  distribution__accessURL: string = "-";
-  distribution__mediaType: string = "-";
-  distribution__available: string = "-";
-  contributor__title: string = "-";
-  min_issued: string = "-";
-  max_modified: string = "-";
-  // Not directly used by UI, only by "API"
+  distribution?: string;
+  distribution__identifier?: string;
+  distribution__title?: string;
+  distribution__accessURL?: string;
+  distribution__mediaType?: string;
+  distribution__available?: string;
+  contributor__title?: string;
+  min_issued?: string;
+  max_modified?: string;
+  // Not directly used by UI, only by "API" or Sparql
   __contactPoint?: string;
   __publisher?: string;
   __rights?: string;
   __qualifiedAttribution?: string;
   __qualifiedAttribution__agent?: string;
-  __distribution?: string;
   __contributor?: string;
+  __distribution__type?: string;
+  
 
   // Promises created in service constructor
   constructor(
@@ -248,12 +250,13 @@ export class DCATResource extends RDFSResource {
     });
     const { contactPoint, publisher, rights, contributor, ...aliasedBindings } =
       urisAndAliasedBindings;
-    // used for build triples for writing
+    // used for build triples for writing/reading
     this.__contactPoint = contactPoint?.value;
     this.__publisher = publisher?.value;
     this.__rights = rights?.value;
-    this.__distribution = distribution?.value;
     this.__contributor = contributor?.value;
+    // used for reading triples
+    this.__distribution__type = distribution?.value;
 
     // !DANGER !DANGER !DANGER
     // this.identifier = aliasedBindings.identifier

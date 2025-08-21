@@ -52,7 +52,6 @@ export async function loadData({
 
   const body = buildInsert(fs.readFileSync(filePath, "utf8"));
   try {
-    console.log(`cleanedUpdateUri: ${cleanedUpdateUri}`);
     const res = await fetch(cleanedUpdateUri, {
       method: "POST",
       headers: { "Content-Type": "application/sparql-update" },

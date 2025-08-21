@@ -1,14 +1,19 @@
-import { CatalogService } from "../../../classes/RdfService.CatalogService";
-import { UIDataResourceType } from "../utils/common";
 import {
   createByPredicateFnFactory,
   RdfWriteApiClientType,
 } from "@telicent-oss/rdf-write-lib";
 
-import { StoreTriplesResult, storeTriplesPhase2 } from "../../../classes/RDFSResource.DCATResource/storeTriplesPhase2";
+import { CatalogService } from "../../../classes/RdfService.CatalogService";
+import {
+  StoreTriplesResult,
+  storeTriplesForPhase2,
+} from "../../../classes/RDFSResource.DCATResource/storeTriplesForPhase2";
 import { DCATResource } from "../../../classes/RDFSResource.DCATResource";
+import { storeTripleResultsToValueObject } from "../../../classes/RDFSResource.DCATResource/storeTripleResultsToValueObject";
+
+import { UIDataResourceType } from "../utils/common";
 import { createUriComponents } from "../utils/createUriComponents";
-import { ZodError } from "zod/v4";
+import { throwWriteErrorForUri } from "../utils/throwWriteErrorForUri";
 
 export type ResourceCreateParamsType = {
   type: "dataSet";
@@ -21,51 +26,6 @@ const CLASS_MAP: Record<
 > = {
   dataSet: CatalogService.dcatDataset,
 };
-
-// !TODO
-// const convertToDcatResourceQuerySolution = (val: unknown) =>
-//   val as DcatResourceQuerySolution;
-// type StringKeys<T> = {
-//   [K in keyof T]-?: T[K] extends string ? K : never
-// }[keyof T];
-type StringOrUndefinedKeys<T> = {
-  [K in keyof T]-?: NonNullable<T[K]> extends string ? K : never;
-}[keyof T];
-
-const UIToProperty = {
-  identifier: "identifier",
-  title: "title",
-  description: "description",
-  contact: "contactPoint__fn",
-  creator: "publisher__title",
-  rights: "rights__description",
-  // accessRights: "accessRights",
-  owner: "qualifiedAttribution__agent__title",
-  distributionUri: "distribution",
-  distributionIdentifier: "distribution__identifier",
-  distributionTitle: "distribution__title",
-  distributionURL: "distribution__accessURL",
-  distributionMediaType: "distribution__mediaType",
-  distributionAvailable: "distribution__available",
-  lastModifiedBy: "contributor__title",
-  publishDate: "min_issued",
-  modified: "max_modified",
-} as const satisfies Partial<
-  Record<keyof UIDataResourceType, StringOrUndefinedKeys<DCATResource>>
->;
-
-type EditableField = keyof typeof UIToProperty;
-
-function editableEntries(
-  payload: Partial<UIDataResourceType>
-): Array<[EditableField, UIDataResourceType[EditableField]]> {
-  return (
-    Object.entries(payload) as Array<[keyof UIDataResourceType, unknown]>
-  ).filter(
-    (e): e is [EditableField, UIDataResourceType[EditableField]] =>
-      e[0] in UIToProperty
-  );
-}
 
 const POSTFIX_MAP: Record<ResourceCreateParamsType["type"], string> = {
   dataSet: "_Dataset",
@@ -85,7 +45,7 @@ export type ResourceCreateResults = Partial<
 
 /**
  *
- * @param rdfWriteApiClient
+ *
  * @returns
  */
 export const resourceCreateFactory = ({
@@ -95,18 +55,22 @@ export const resourceCreateFactory = ({
   catalogService: CatalogService;
   rdfWriteApiClient: RdfWriteApiClientType;
 }) => {
+  const options = { client: rdfWriteApiClient };
+  const createByPredicateFns = createByPredicateFnFactory(options);
+  const storeTripleAPI = { createByPredicateFns };
+  /**
+   *
+   *
+   * @returns
+   */
   return async function resourceCreate(operation: ResourceCreateParamsType) {
     const uriComponents = await createUriComponents({
       base: "http://telicent.io/catalog#",
       postfix: POSTFIX_MAP[operation.type],
-    }).catch((error) => {
-      if (error instanceof ZodError) {
-        throw error.message;
-      }
-      throw { uri: `${error}` };
-    });
+    }).catch(throwWriteErrorForUri);
+
     if (typeof uriComponents.uri !== "string") {
-      throw { uri: "Expected to generate uri" };
+      throwWriteErrorForUri(`Expected to generate ${operation}`);
     }
 
     const ClassForType = catalogService.lookupClass(
@@ -114,9 +78,6 @@ export const resourceCreateFactory = ({
       DCATResource
     ) as unknown as typeof DCATResource;
 
-    const createByPredicateFns = createByPredicateFnFactory({
-      client: rdfWriteApiClient,
-    });
     const dcatResource = catalogService.nodes[uriComponents.uri]
       ? throwAsAlreadyExists(uriComponents.uri, catalogService)
       : await ClassForType.createAsync(
@@ -124,41 +85,16 @@ export const resourceCreateFactory = ({
           uriComponents.uri,
           operation.payload.title
         );
-      await createByPredicateFns['rdf:type']({
-        triple: {
-          s: dcatResource.uri,
-          p: 'rdf:type',
-          o: dcatResource.types[0]
-        }
-      })
-      await createByPredicateFns['dct:identifier']({
-        triple: {
-          s: dcatResource.uri,
-          p: 'dct:identifier',
-          o: `${uriComponents.uuid}${uriComponents.postfix}`
-        }
-      })
-    
-    const uiFieldEntires = editableEntries(operation.payload);
-    const results: ResourceCreateResults = {};
-    for (const [uiField, uiFieldValue] of uiFieldEntires) {
-      console.log(`Updating ${uiField} to ${uiFieldValue}`, ClassForType, dcatResource);
-      const updateErrors = await storeTriplesPhase2(
-        "create",
-        dcatResource,
-        UIToProperty[uiField],
-        uiFieldValue,
-        {
-          createByPredicateFns,
-        }
-      );
-      if (updateErrors?.length) {
-        results[uiField] = updateErrors;
-      }
-    }
-    if (Object.values(results).some((value) => value.length)) {
-      throw results;
-    }
-    return results;
+
+    return storeTripleResultsToValueObject({
+      uiFields: {
+        classType: dcatResource.types.includes(dcatResource.types[0]) ? undefined : dcatResource.types[0],
+        identifier: `${uriComponents.uuid}${uriComponents.postfix}`,
+        ...operation.payload,
+      },
+      instance: dcatResource,
+      storeTriplesForOntology: storeTriplesForPhase2,
+      api: storeTripleAPI,
+    });
   };
 };

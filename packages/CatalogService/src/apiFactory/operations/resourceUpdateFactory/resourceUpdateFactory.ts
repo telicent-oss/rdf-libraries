@@ -1,82 +1,25 @@
-import { CatalogService } from "../../../classes/RdfService.CatalogService";
-import { UIDataResourceType } from "../utils/common";
 import {
   updateByPredicateFnFactory,
   RdfWriteApiClientType,
+  createByPredicateFnFactory,
 } from "@telicent-oss/rdf-write-lib";
-import {
-  DCATResource,
-} from "../../../classes/RDFSResource.DCATResource";
-import {
-  storeTriplesPhase2,
-  StoreTriplesResult,
-} from "../../../classes/RDFSResource.DCATResource/storeTriplesPhase2";
+
+import { CatalogService } from "../../../classes/RdfService.CatalogService";
+import { DCATResource } from "../../../classes/RDFSResource.DCATResource";
+import { storeTriplesForPhase2 } from "../../../classes/RDFSResource.DCATResource/storeTriplesForPhase2";
+import { storeTripleResultsToValueObject } from "../../../classes/RDFSResource.DCATResource/storeTripleResultsToValueObject";
+
+import { UIDataResourceType } from "../utils/common";
+import { throwWriteErrorForUri } from "../utils/throwWriteErrorForUri";
 
 export type ResourceUpdateParamsType = {
   type: "dataSet";
   payload: Partial<UIDataResourceType>;
 };
 
-// !TODO
-// const convertToDcatResourceQuerySolution = (val: unknown) =>
-//   val as DcatResourceQuerySolution;
-// type StringKeys<T> = {
-//   [K in keyof T]-?: T[K] extends string ? K : never
-// }[keyof T];
-type StringOrUndefinedKeys<T> = {
-  [K in keyof T]-?: NonNullable<T[K]> extends string ? K : never;
-}[keyof T];
-
-const UIToProperty = {
-  identifier: "identifier",
-  title: "title",
-  description: "description",
-  contact: "contactPoint__fn",
-  creator: "publisher__title",
-  rights: "rights__description",
-  // accessRights: "accessRights",
-  owner: "qualifiedAttribution__agent__title",
-  distributionUri: "distribution",
-  distributionIdentifier: "distribution__identifier",
-  distributionTitle: "distribution__title",
-  distributionURL: "distribution__accessURL",
-  distributionMediaType: "distribution__mediaType",
-  distributionAvailable: "distribution__available",
-  lastModifiedBy: "contributor__title",
-  publishDate: "min_issued",
-  modified: "max_modified",
-} as const satisfies Partial<
-  Record<keyof UIDataResourceType, StringOrUndefinedKeys<DCATResource>>
->;
-
-type EditableField = keyof typeof UIToProperty;
-
-function editableEntries(
-  payload: Partial<UIDataResourceType>
-): Array<[EditableField, UIDataResourceType[EditableField]]> {
-  return (
-    Object.entries(payload) as Array<[keyof UIDataResourceType, unknown]>
-  ).filter(
-    (e): e is [EditableField, UIDataResourceType[EditableField]] =>
-      e[0] in UIToProperty
-  );
-}
-
-const throwAsMatchedInstanceWrongTypes = (
-  item_uri: string,
-  catalogService: CatalogService
-) => {
-  console.log("catalogService", catalogService.dataResources);
-  throw new Error(
-    `Expected ${item_uri} to be instance of DCATResource. Instead got ${catalogService.nodes[item_uri]}`
-  );
-};
-export type ResourceUpdateResults = Partial<
-  Record<keyof UIDataResourceType, StoreTriplesResult[]>
->;
 /**
  *
- * @param rdfWriteApiClient
+ *
  * @returns
  */
 export const resourceUpdateFactory = ({
@@ -86,6 +29,19 @@ export const resourceUpdateFactory = ({
   catalogService: CatalogService;
   rdfWriteApiClient: RdfWriteApiClientType;
 }) => {
+  const options = { client: rdfWriteApiClient };
+  const updateByPredicateFns = updateByPredicateFnFactory(options);
+  const createByPredicateFns = createByPredicateFnFactory(options);
+  const storeTripleApi = { updateByPredicateFns, createByPredicateFns };
+  const throwWrongTypes = (item_uri: string) =>
+    throwWriteErrorForUri(
+      `Expected ${item_uri} to be DCATResource instance, instead got ${catalogService.nodes[item_uri]}`
+    );
+  /**
+   *
+   *
+   * @returns
+   */
   return async function resourceUpdate(operation: ResourceUpdateParamsType) {
     if (typeof operation.payload.uri !== "string") {
       throw new Error("Expected payload.uri to exist");
@@ -96,31 +52,14 @@ export const resourceUpdateFactory = ({
     const dcatResource =
       rdfsResource instanceof DCATResource
         ? (rdfsResource as DCATResource)
-        : throwAsMatchedInstanceWrongTypes(item_uri, catalogService);
+        : throwWrongTypes(item_uri);
 
-    const updateByPredicateFns = updateByPredicateFnFactory({
-      client: rdfWriteApiClient,
+    
+    return storeTripleResultsToValueObject({
+      uiFields: operation.payload,
+      instance: dcatResource,
+      storeTriplesForOntology: storeTriplesForPhase2,
+      api: storeTripleApi,
     });
-    const uiFieldEntires = editableEntries(operation.payload);
-    const results: ResourceUpdateResults = {};
-    for (const [uiField, uiFieldValue] of uiFieldEntires) {
-      const updateErrors = await storeTriplesPhase2(
-        "update",
-        dcatResource,
-        UIToProperty[uiField],
-        uiFieldValue,
-        {
-          updateByPredicateFns,
-        }
-      );
-      if (updateErrors?.length) {
-        results[uiField] = updateErrors;
-      }
-    }
-    console.log({ results });
-    if (Object.values(results).some((value) => value.length)) {
-      throw results;
-    }
-    return results;
   };
 };

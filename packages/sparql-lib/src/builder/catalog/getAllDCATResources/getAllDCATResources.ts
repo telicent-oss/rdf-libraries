@@ -100,14 +100,12 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
             # with AG 250814
             # ?qualifiedAttribution           dcat:hadRole                ?qualifiedAttribution__hadRole 
         } .
-        OPTIONAL { 
-            ?uri            dcat:distribution   ?distribution .
-            ?distribution   dct:identifier      ?distribution__identifier .
-            ?distribution   dct:title           ?distribution__title .
-            ?distribution   dcat:accessURL      ?distribution__accessURL .
-            ?distribution   dcat:mediaType      ?distribution__mediaType .
-            ?distribution   dct:available       ?distribution__available .
-        } .
+        OPTIONAL { ?uri dcat:distribution ?distribution . }
+        OPTIONAL { ?distribution dct:identifier ?distribution__identifier . }
+        OPTIONAL { ?distribution dct:title      ?distribution__title . }
+        OPTIONAL { ?distribution dcat:accessURL ?distribution__accessURL . }
+        OPTIONAL { ?distribution dcat:mediaType ?distribution__mediaType . }
+        OPTIONAL { ?distribution dct:available  ?distribution__available . }
 
         # aggregated modified
         OPTIONAL {
