@@ -41,7 +41,7 @@
   },
   "devDependencies": {
     "@telicent-oss/ontology-icon-lib": "^1.0.2-TELFE-805.0",
-    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.43",
+    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.48",
     "@telicent-oss/react-lib": "^0.5.0-TELFE-805.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -66,7 +66,7 @@
   "peerDependencies": {
     "@telicent-oss/ds": "*",
     "@telicent-oss/ontology-icon-lib": "^1.0.2-TELFE-805.0",
-    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.43",
+    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.48",
     "@telicent-oss/react-lib": "^0.5.0-TELFE-805.0",
     "react": "*",
     "react-dom": "*",

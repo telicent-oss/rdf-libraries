@@ -15,9 +15,10 @@ info()  { echo "→ $*";      }
 #####################################
 usage() {
   cat <<EOF
-Usage: $(basename "$0") -r REMOTE_SPARQL [-o OUTPUT_FILE]
+Usage: $(basename "$0") -r REMOTE_SPARQL [-o OUTPUT_FILE] [-b COOKIE]
   -r REMOTE_SPARQL     SPARQL endpoint URL (required)
   -o OUTPUT_FILE       Cleaned NT file (default: $DEF_FILE_CATALOG_NT)
+  -b COOKIE param
 This also writes raw triples to $DEF_FILE_CATALOG_RAW_NT
 EOF
   exit 1
@@ -26,11 +27,12 @@ EOF
 #####################################
 # Parse arguments
 #####################################
-REMOTE="" OUTPUT="$DEF_FILE_CATALOG_NT"
-while getopts "r:o:h" opt; do
+REMOTE="" COOKIE="" OUTPUT="$DEF_FILE_CATALOG_NT"
+while getopts "r:o:b:h" opt; do
   case "$opt" in
     r) REMOTE=$OPTARG ;;
     o) OUTPUT=$OPTARG ;;
+    b) COOKIE=$OPTARG ;;
     h) usage ;;
     *) usage ;;
   esac
@@ -97,6 +99,7 @@ WHERE {
 '
 if ! HTTP=$(curl -sS \
       -H "Accept: application/n-triples" \
+      -b "$COOKIE" \
       --data-urlencode "$query" \
       -w "%{http_code}" \
       -o "$RAW" \

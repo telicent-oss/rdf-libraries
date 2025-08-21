@@ -88,7 +88,7 @@ export const resourceCreateFactory = ({
 
     return storeTripleResultsToValueObject({
       uiFields: {
-        classType: dcatResource.types.includes(dcatResource.types[0]) ? undefined : dcatResource.types[0],
+        classType: dcatResource.types[0], // dcatResource.types.includes(dcatResource.types[0]) ? undefined : 
         identifier: `${uriComponents.uuid}${uriComponents.postfix}`,
         ...operation.payload,
       },

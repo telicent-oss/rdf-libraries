@@ -50,8 +50,6 @@ export type StoreTripleOperation = StoreTripleUpdate | StoreTripleCreate;
 
 export type Triple = StoreTripleOperation["triple"];
 
-
-
 // TODO use createUriComponents
 const createUri = (postfix: string = "") =>
   `http://telicent.io/catalog#${uuidv4()}${postfix}`;
@@ -73,11 +71,9 @@ type __Internal__StoreTripleOperation =
   | __Internal__StoreTripleUpdate
   | __Internal__StoreTripleCreate;
 
-
-
 /**
- * 
- * 
+ *
+ *
  * Surely can be replaced with nmap or something
  */
 export const createOperations = ({
@@ -97,6 +93,7 @@ export const createOperations = ({
         createByPredicateFns: CreateByPredicateFn;
       };
 }) => {
+  console.log({ property, newValue });
   const operations: __Internal__StoreTripleOperation[] = [];
 
   const pushLiteral = ({

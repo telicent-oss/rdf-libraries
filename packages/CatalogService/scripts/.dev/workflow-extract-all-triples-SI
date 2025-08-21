@@ -39,8 +39,13 @@ fi
 #####################################
 # Actual script
 #####################################
-# ./scripts/.dev/task/check-discrete
+COOKIE="$(./scripts/.dev/task/task-grab-cookie.sh ./scripts/.dev/workflow-extract-all-triples-SI.gitignored.curl)"
 
-./scripts/.dev/task/task-extract-all-triples-to-file -r http://localhost:5173/api/sparql/catalog/query
 
-cat ./data/catalog-select-all.gitignored.nt
+# ./scripts/.dev/task/task-extract-all-triples-to-file -r http://localhost:5173/api/sparql/catalog/query
+./scripts/.dev/task/task-extract-all-triples-to-file \
+  -b "$COOKIE" \
+  -r https://apps.system-integration.telicent-sandbox.telicent.live/api/sparql/catalog/query \
+  -o ./data/catalog-select-all.system-integration.gitignored.nt;
+
+cat ./data/catalog-select-all.system-integration.gitignored.nt;

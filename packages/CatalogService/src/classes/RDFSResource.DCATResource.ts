@@ -291,7 +291,7 @@ export class DCATResource extends RDFSResource {
     //   await this.getDcIssued(),
     // ]);
 
-    return {
+    const ui = {
       type: this.dataResourceType ?? RESOURCE_URI,
       uri: this.uri,
       identifier: this.identifier,
@@ -312,5 +312,7 @@ export class DCATResource extends RDFSResource {
       publishDate: this.min_issued,
       modified: this.max_modified,
     } as Partial<UIDataResourceType>;
+    console.log({ ui }, this);
+    return ui;
   }
 }
