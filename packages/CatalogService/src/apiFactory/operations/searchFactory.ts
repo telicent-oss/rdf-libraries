@@ -4,16 +4,18 @@ import { UIDataResourceType, UISearchParamsType } from "./utils/common";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
 import { ApiFactoryConfigType } from "./type";
 
+export const FF_DISABLED_CACHE = true;
+
 export const searchFactory = (
   service: CatalogService,
   config: ApiFactoryConfigType = {}
 ) => {
   let cachedResources: DCATResource[] | undefined = undefined;
   const getAllResources = async () => {
-    if (!cachedResources) {
+    if (!cachedResources || FF_DISABLED_CACHE) {
       cachedResources = await service.getAllDCATResources();
     }
-    return [...cachedResources];
+    return [...(cachedResources || [])];
   };
   return searchFactoryFn(getAllResources, config);
 };

@@ -1,6 +1,7 @@
 import {
   createByPredicateFnFactory,
   RdfWriteApiClientType,
+  updateByPredicateFnFactory,
 } from "@telicent-oss/rdf-write-lib";
 
 import { CatalogService } from "../../../classes/RdfService.CatalogService";
@@ -58,7 +59,8 @@ export const resourceCreateFactory = ({
 }) => {
   const options = { client: rdfWriteApiClient };
   const createByPredicateFns = createByPredicateFnFactory(options);
-  const storeTripleAPI = { createByPredicateFns };
+  const updateByPredicateFns = updateByPredicateFnFactory(options);
+  const storeTripleAPI = { createByPredicateFns, updateByPredicateFns };
   /**
    *
    *
@@ -92,6 +94,7 @@ export const resourceCreateFactory = ({
         );
 
     return storeTripleResultsToValueObject({
+      uri: dcatResource.uri, // Special case, created ahead of time
       uiFields: {
         classType: dcatResource.types[0], // dcatResource.types.includes(dcatResource.types[0]) ? undefined :
         identifier: `${uriComponents.uuid}${uriComponents.postfix}`,
@@ -100,6 +103,7 @@ export const resourceCreateFactory = ({
       instance: dcatResource,
       storeTriplesForOntology: storeTriplesForPhase2,
       api: storeTripleAPI,
+      catalogService,
     });
   };
 };

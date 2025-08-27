@@ -1,5 +1,6 @@
 import { RdfWriteApiClientType } from "./rdfWriteApiClientFactory";
 import { DispatchResult, Endpoints } from "./types";
+import { throwIfHTTPError } from "./utils/throwIfHTTPError";
 
 type OmitEndpoints =
   | "/dcterms/publisher"
@@ -101,7 +102,7 @@ export const updateByPredicateFnFactory = ({
         old_publisher_object_uri: prev as unknown as string,
         new_publisher_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dct:title": ({ triple, prev }) =>
     client.POST("/dcterms/title/update", {
       body: {
@@ -109,7 +110,7 @@ export const updateByPredicateFnFactory = ({
         old_title: prev as unknown as string,
         new_title: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:description": ({ triple, prev }) =>
     client.POST("/dcterms/description/update", {
@@ -118,7 +119,7 @@ export const updateByPredicateFnFactory = ({
         old_description: prev as unknown as string,
         new_description: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:issued": ({ triple, prev }) =>
     client.POST("/dcterms/issued/update", {
@@ -127,7 +128,7 @@ export const updateByPredicateFnFactory = ({
         old_datetime: prev as unknown as string,
         new_datetime: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:rights": ({ triple, prev }) =>
     client.POST("/dcterms/rights/update", {
@@ -136,7 +137,7 @@ export const updateByPredicateFnFactory = ({
         old_rights_object_uri: prev as unknown as string,
         new_rights_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "prov:qualifiedAttribution": ({ triple, prev }) =>
     client.POST("/prov/qualifiedAttribution/update", {
@@ -145,7 +146,7 @@ export const updateByPredicateFnFactory = ({
         old_attribution_item_uri: prev as unknown as string,
         new_attribution_item_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:identifier": ({ triple, prev }) =>
     client.POST("/dcterms/identifier/update", {
@@ -154,7 +155,7 @@ export const updateByPredicateFnFactory = ({
         old_identifier: prev as unknown as string,
         new_identifier: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dcat:contactPoint": ({ triple, prev }) =>
     client.POST("/dcat/contactPoint/update", {
@@ -163,7 +164,7 @@ export const updateByPredicateFnFactory = ({
         old_contact_point_object_uri: prev as unknown as string,
         new_contact_point_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcat:mediaType": ({ triple, prev }) =>
     client.POST("/dcat/mediaType/update", {
       body: {
@@ -171,7 +172,7 @@ export const updateByPredicateFnFactory = ({
         old_media_type_object_uri: prev as unknown as string,
         new_media_type_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:modified": ({ triple, prev }) =>
     client.POST("/dcterms/modified/update", {
@@ -180,7 +181,7 @@ export const updateByPredicateFnFactory = ({
         old_datetime: prev as unknown as string,
         new_datetime: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcat:distribution": ({ triple, prev }) =>
     client.POST("/dcat/distribution/update", {
       body: {
@@ -188,7 +189,7 @@ export const updateByPredicateFnFactory = ({
         old_distribution_uri: prev as unknown as string,
         new_distribution_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcat:hadRole": ({ triple, prev }) =>
     client.POST("/dcat/hadRole/update", {
       body: {
@@ -196,7 +197,7 @@ export const updateByPredicateFnFactory = ({
         old_role_uri: prev as unknown as string,
         new_role_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcat:accessURL": ({ triple, prev }) =>
     client.POST("/dcat/accessURL/update", {
       body: {
@@ -205,7 +206,7 @@ export const updateByPredicateFnFactory = ({
         old_access_url: prev as unknown as string,
         new_access_url: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcterms:contributor": ({ triple, prev }) =>
     client.POST("/dcterms/contributor/update", {
       body: {
@@ -213,7 +214,7 @@ export const updateByPredicateFnFactory = ({
         old_contributor_object_uri: prev as unknown as string,
         new_contributor_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "vcard:fn": ({ triple, prev }) =>
     client.POST("/vcard/fn/update", {
       body: {
@@ -221,7 +222,7 @@ export const updateByPredicateFnFactory = ({
         old_fn: prev as unknown as string,
         new_fn: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "prov:agent": ({ triple, prev }) =>
     client.POST("/prov/agent/update", {
       body: {
@@ -229,7 +230,7 @@ export const updateByPredicateFnFactory = ({
         old_agent_uri: prev as unknown as string,
         new_agent_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   /**
    * !CRITICAL. Test. Perhaps remove.
    * WHEN https://telicent.atlassian.net/browse/TELFE-1275
@@ -243,5 +244,5 @@ export const updateByPredicateFnFactory = ({
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
         object: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 });

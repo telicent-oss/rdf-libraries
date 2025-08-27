@@ -1,5 +1,6 @@
 import { RdfWriteApiClientType } from "./rdfWriteApiClientFactory";
 import { DispatchResult, Endpoints } from "./types";
+import { throwIfHTTPError } from "./utils/throwIfHTTPError";
 
 
 type OmitEndpoints =
@@ -105,14 +106,14 @@ export const createByPredicateFnFactory = ({
         item_uri: triple.s,
         publisher_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dct:title": ({ triple }) =>
     client.POST("/dcterms/title", {
       body: {
         item_uri: triple.s,
         title: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:description": ({ triple }) =>
     client.POST("/dcterms/description", {
@@ -120,7 +121,7 @@ export const createByPredicateFnFactory = ({
         item_uri: triple.s,
         description: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:issued": ({ triple }) =>
     client.POST("/dcterms/issued", {
@@ -128,7 +129,7 @@ export const createByPredicateFnFactory = ({
         item_uri: triple.s,
         datetime: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:rights": ({ triple }) =>
     client.POST("/dcterms/rights", {
@@ -136,7 +137,7 @@ export const createByPredicateFnFactory = ({
         item_uri: triple.s,
         rights_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "prov:qualifiedAttribution": ({ triple }) =>
     client.POST("/prov/qualifiedAttribution", {
@@ -144,7 +145,7 @@ export const createByPredicateFnFactory = ({
         item_uri: triple.s,
         attribution_item_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:identifier": ({ triple }) =>
     client.POST("/dcterms/identifier", {
@@ -152,7 +153,7 @@ export const createByPredicateFnFactory = ({
         item_uri: triple.s,
         identifier: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dcat:contactPoint": ({ triple }) =>
     client.POST("/dcat/contactPoint", {
@@ -160,14 +161,14 @@ export const createByPredicateFnFactory = ({
         item_uri: triple.s,
         contact_point_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcat:mediaType": ({ triple }) =>
     client.POST("/dcat/mediaType", {
       body: {
         item_uri: triple.s,
         media_type_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 
   "dct:modified": ({ triple }) =>
     client.POST("/dcterms/modified", {
@@ -175,21 +176,21 @@ export const createByPredicateFnFactory = ({
         item_uri: triple.s,
         datetime: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcat:distribution": ({ triple }) =>
     client.POST("/dcat/distribution", {
       body: {
         item_uri: triple.s,
         distribution_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcat:hadRole": ({ triple }) =>
     client.POST("/dcat/hadRole", {
       body: {
         item_uri: triple.s,
         role_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcat:accessURL": ({ triple }) =>
     client.POST("/dcat/accessURL", {
       body: {
@@ -197,21 +198,21 @@ export const createByPredicateFnFactory = ({
 
         access_url: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "dcterms:contributor": ({ triple }) =>
     client.POST("/dcterms/contributor", {
       body: {
         item_uri: triple.s,
         contributor_object_uri: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "vcard:fn": ({ triple }) =>
     client.POST("/vcard/fn", {
       body: {
         item_uri: triple.s,
         fn: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
   "prov:agent": ({ triple }) =>
     client.POST("/prov/agent", {
       body: {
@@ -228,5 +229,5 @@ export const createByPredicateFnFactory = ({
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
         object: triple.o,
       },
-    }),
+    }).then(throwIfHTTPError),
 });

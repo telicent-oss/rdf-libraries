@@ -5,9 +5,10 @@ import { validateIfDistributionIdentifierIsUnattached } from "../utils/validate/
 export const validateResourceUpdate = async (
   validateResource: ValidateResourceParams
 ) => {
-  const errors: ResourceOperationResults["errors"] = {};
-  await validateIfDistributionIdentifierIsUnattached(errors, validateResource);
+  let  errors: ResourceOperationResults["errors"] = {};
+  errors = await validateIfDistributionIdentifierIsUnattached(errors, validateResource);
   if (Object.keys(errors).length > 0) {
+
     throw { errors };
   }
 };

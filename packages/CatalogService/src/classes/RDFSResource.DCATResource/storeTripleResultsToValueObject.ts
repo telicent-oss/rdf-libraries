@@ -1,4 +1,5 @@
 import { UIDataResourceType } from "../../apiFactory/operations/utils/common";
+import { CatalogService } from "../RdfService.CatalogService";
 import { DCATResource } from "../RDFSResource.DCATResource";
 import { StoreTripleOperation } from "./createOperations";
 import {
@@ -60,10 +61,12 @@ export type ResourceOperationResults = {
 };
 
 type StoreTriplesOptions = {
+  uri:string;
   instance: DCATResource;
   uiFields: Partial<Editable>;
   storeTriplesForOntology: StoreTripleForOntology;
   api: Parameters<StoreTripleForOntology>[0]["api"];
+  catalogService: CatalogService;
 };
 
 /**
@@ -73,10 +76,12 @@ type StoreTriplesOptions = {
  * @returns
  */
 export const storeTripleResultsToValueObject = async ({
+  uri,
   uiFields,
   instance,
   storeTriplesForOntology,
   api,
+  catalogService,
 }: StoreTriplesOptions) => {
   // const updateModifiedDate = updateModifiedFactory({
   //   instance,
@@ -84,7 +89,7 @@ export const storeTripleResultsToValueObject = async ({
   // });
 
   const uiFieldEntires = editableEntries(uiFields);
-  const values: ResourceOperationResults["values"] = {};
+  const values: ResourceOperationResults["values"] = { uri };
   const errors: ResourceOperationResults["errors"] = {};
   const messages: ResourceOperationResults["messages"] = {};
   const operations: ResourceOperationResults["operations"] = {};
@@ -95,6 +100,7 @@ export const storeTripleResultsToValueObject = async ({
       property: UIToProperty[uiField],
       newValue: uiFieldValue,
       api,
+      catalogService,
     });
     // updateModifiedDate();
     values[uiField] = instance[UIToProperty[uiField]];

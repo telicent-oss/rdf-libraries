@@ -19,7 +19,7 @@ import {
   INCOMPLETE_RESULT_EXPECTED_RETURN,
   SEARCH_TEMPLATE,
 } from "./mock_data_from_responses";
-import { searchFactory } from "./searchFactory";
+import { FF_DISABLED_CACHE, searchFactory } from "./searchFactory";
 import { LongURI } from "@telicent-oss/rdfservice";
 
 class MockCatalogService {
@@ -344,14 +344,24 @@ test("Check service only called once, cache take over", async () => {
 
   await search({ dataResourceFilters: ["all"], searchText: "" });
 
-  expect(MockCatalogServiceSpy).not.toHaveBeenCalledTimes(2);
-  expect(MockCatalogServiceSpy).toHaveBeenCalledTimes(1);
+  // TODO fix
+  // WHEN https://telicent.atlassian.net/browse/TELFE-1275
+  if (FF_DISABLED_CACHE) {
+    expect(MockCatalogServiceSpy).toHaveBeenCalledTimes(2);
+  } else {
+    expect(MockCatalogServiceSpy).toHaveBeenCalledTimes(1);
+  }
 
   await search({ dataResourceFilters: ["all"], searchText: "" });
 
   expect(MockCatalogServiceSpy).not.toHaveBeenCalledTimes(2);
-
-  expect(MockCatalogServiceSpy).not.toHaveBeenCalledTimes(3);
-
-  expect(MockCatalogServiceSpy).toHaveBeenCalledTimes(1);
+  // TODO fix
+  // WHEN https://telicent.atlassian.net/browse/TELFE-1275
+  if (FF_DISABLED_CACHE) {
+    expect(MockCatalogServiceSpy).toHaveBeenCalledTimes(3);
+    expect(MockCatalogServiceSpy).not.toHaveBeenCalledTimes(1);
+  } else {
+    expect(MockCatalogServiceSpy).not.toHaveBeenCalledTimes(3);
+    expect(MockCatalogServiceSpy).toHaveBeenCalledTimes(1);
+  }
 });

@@ -11,6 +11,7 @@ import { storeTripleResultsToValueObject } from "../../../classes/RDFSResource.D
 
 import { UIDataResourceType } from "../utils/common";
 import { throwWriteErrorForUri } from "../utils/throwWriteErrorForUri";
+import { validateResourceUpdate } from "./validateResourceUpdate";
 
 export type ResourceUpdateParamsType = {
   type: "dataSet";
@@ -43,6 +44,10 @@ export const resourceUpdateFactory = ({
    * @returns
    */
   return async function resourceUpdate(operation: ResourceUpdateParamsType) {
+    await validateResourceUpdate({
+      catalogService,
+      operation,
+    });
     if (typeof operation.payload.uri !== "string") {
       throw new Error("Expected payload.uri to exist");
     }
@@ -54,12 +59,13 @@ export const resourceUpdateFactory = ({
         ? (rdfsResource as DCATResource)
         : throwWrongTypes(item_uri);
 
-    
     return storeTripleResultsToValueObject({
+      uri: item_uri,
       uiFields: operation.payload,
       instance: dcatResource,
       storeTriplesForOntology: storeTriplesForPhase2,
       api: storeTripleApi,
+      catalogService
     });
   };
 };

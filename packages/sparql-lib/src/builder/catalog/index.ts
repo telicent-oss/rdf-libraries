@@ -4,6 +4,7 @@ import { findWithOwner } from "./findWithOwner/findWithOwner";
 import { findWithParams } from "./findWithParams/findWithParams";
 import { askIfDistributionIdentifierIsUnattached } from "./askIfDistributionIdentifierIsUnattached/askIfDistributionIdentifierIsUnattached";
 import { askIfDistributionIdentifierExists } from "./askIfDistributionIdentifierExists/askIfDistributionIdentifierExists";
+import { askIfUniqueIdentifierOfType } from "./askIfUniqueIdentifierOfType/askIfUniqueIdentifierOfType";
 
 export const catalog = {
   getAllDCATResources,
@@ -11,4 +12,5 @@ export const catalog = {
   findWithParams,
   askIfDistributionIdentifierExists,
   askIfDistributionIdentifierIsUnattached,
+  askIfUniqueIdentifierOfType,
 };

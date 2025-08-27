@@ -84,13 +84,9 @@ export const createOperations = ({
   instance: DCATResource;
   property: GraphData;
   newValue: string;
-  api:
-    | {
+  api: {
         createByPredicateFns: CreateByPredicateFn;
         updateByPredicateFns: UpdateByPredicateFn;
-      }
-    | {
-        createByPredicateFns: CreateByPredicateFn;
       };
 }) => {
   console.log({ property, newValue });
@@ -100,10 +96,12 @@ export const createOperations = ({
     s = operations?.at(-1)?.triple.o || instance.uri,
     p,
     o = newValue,
+    checkUnique,
   }: {
     s?: Triple["s"];
     p: Triple["p"];
     o?: Triple["o"];
+    checkUnique?: boolean
   }) =>
     operations.push({
       type: instance[property] === undefined ? "create" : "update",
@@ -112,24 +110,29 @@ export const createOperations = ({
         p,
         o,
       },
+      checkUnique,
       prev: instance[property] || null,
       onSuccess: () => (instance[property] = newValue),
+      property
     });
 
-  const pushUri = (p: Triple["p"], property: GraphData, postfix?: string) =>
+  const pushUri = (p: Triple["p"], property: GraphData, postfix?: string, newLocalName?:string) =>
     operations.push({
+      property,
       type: instance[property] === undefined ? "create" : "update",
       triple: {
         s: operations?.at(-1)?.triple.o || instance.uri,
         p,
-        o: instance[property] || createUri(postfix),
+        o: instance[property] || `http://telicent.io/catalog#${newLocalName}` || createUri(postfix),
       },
       prev: instance[property] || null,
-      onSuccess: () => (instance[property] = newValue),
+      onSuccess: () => {
+        instance[property] = newValue;
+      },
     });
 
-  const pushUriForDistribution = () => {
-    pushUri("dcat:distribution", "distribution", "_Distribution");
+  const pushUriForDistribution = (newValue?:string) => {
+    pushUri("dcat:distribution", "distribution", "_Distribution", newValue);
   };
 
   // prettier-ignore
@@ -147,7 +150,7 @@ export const createOperations = ({
         });
         break;
       case "title":
-        pushLiteral({                               p: "dct:title"});
+        pushLiteral({                               p: "dct:title", checkUnique: true});
         break;
       case "identifier":
         pushLiteral({                               p:"dct:identifier"});
@@ -180,12 +183,14 @@ export const createOperations = ({
         pushLiteral({                               p:  "dcat:distribution"});
         break;
       case "distribution__identifier":
+        pushUriForDistribution(newValue);
+        pushLiteral({                                 p: "rdf:type",          o: "http://www.w3.org/ns/dcat#Distribution"})
+        pushLiteral({s: operations.at(-2)?.triple.o,  p: "dct:identifier",                                                    checkUnique: true });
+        break;
       case "distribution__title":
       case "distribution__accessURL":
       case "distribution__mediaType": {
-        const p = property === "distribution__identifier"
-            ? "dct:identifier"
-            : property === "distribution__title"
+        const p = property === "distribution__title"
             ? "dct:title"
             :property == 'distribution__accessURL'
             ? "dcat:accessURL"

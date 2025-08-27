@@ -37,10 +37,11 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
       POST: jest.fn(async (endpoint: string, init?: unknown) => ({
         ok: true,
         endpoint,
+        response: { status: 200 },
         init,
       })),
     };
-    // Cast once when passing to the factory; keep our local client strongly mock-typed
+      // Cast once when passing to the factory; keep our local client strongly mock-typed
     fns = updateByPredicateFnFactory({
       client: client as unknown as RdfWriteApiClientType,
     });

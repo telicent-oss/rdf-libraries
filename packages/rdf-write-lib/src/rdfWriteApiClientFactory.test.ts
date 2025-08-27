@@ -12,6 +12,7 @@ jest.mock("openapi-fetch", () => {
   const create = jest.fn(() => {
     const POST = jest.fn(async (_ep: string, _init?: unknown) => ({
       ok: true,
+      response: { status: 200 },
       data: { ep: _ep, init: _init },
     }));
     return { POST };

@@ -5,8 +5,8 @@ import { validateIfDistributionIdentifierExists } from "../utils/validate/valida
 export const validateResourceCreate = async (
   validateResource: ValidateResourceParams
 ) => {
-  const errors: ResourceOperationResults["errors"] = {};
-  await validateIfDistributionIdentifierExists(errors, validateResource);
+  let errors: ResourceOperationResults["errors"] = {};
+  errors = await validateIfDistributionIdentifierExists(errors, validateResource);
   if (Object.keys(errors).length > 0) {
     throw { errors };
   }
