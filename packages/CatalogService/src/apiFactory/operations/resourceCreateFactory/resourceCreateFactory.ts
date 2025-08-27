@@ -14,6 +14,7 @@ import { storeTripleResultsToValueObject } from "../../../classes/RDFSResource.D
 import { UIDataResourceType } from "../utils/common";
 import { createUriComponents } from "../utils/createUriComponents";
 import { throwWriteErrorForUri } from "../utils/throwWriteErrorForUri";
+import { validateResourceCreate } from "./validateResourceCreate";
 
 export type ResourceCreateParamsType = {
   type: "dataSet";
@@ -64,6 +65,10 @@ export const resourceCreateFactory = ({
    * @returns
    */
   return async function resourceCreate(operation: ResourceCreateParamsType) {
+    await validateResourceCreate({
+      catalogService,
+      operation,
+    });
     const uriComponents = await createUriComponents({
       base: "http://telicent.io/catalog#",
       postfix: POSTFIX_MAP[operation.type],
@@ -88,7 +93,7 @@ export const resourceCreateFactory = ({
 
     return storeTripleResultsToValueObject({
       uiFields: {
-        classType: dcatResource.types[0], // dcatResource.types.includes(dcatResource.types[0]) ? undefined : 
+        classType: dcatResource.types[0], // dcatResource.types.includes(dcatResource.types[0]) ? undefined :
         identifier: `${uriComponents.uuid}${uriComponents.postfix}`,
         ...operation.payload,
       },

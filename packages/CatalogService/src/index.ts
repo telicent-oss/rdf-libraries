@@ -13,6 +13,10 @@ export { DCATCatalog } from "./classes/RDFSResource.DCATResource.DCATDataset.DCA
 export { DCATDataService } from "./classes/RDFSResource.DCATResource.DCATDataset.DCATCatalog.DCATDataService";
 export { CatalogService } from "./classes/RdfService.CatalogService";
 
+
+export { type ResourceOperationResults } from "./classes/RDFSResource.DCATResource/storeTripleResultsToValueObject";
+export { type StoreTripleError } from "./classes/RDFSResource.DCATResource/storeTriplesForPhase2";
+
 export * from "./setup/setup";
 export * from "./setup/constants";
 export * from "./apiFactory/operations/utils/common";

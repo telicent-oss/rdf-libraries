@@ -2,5 +2,13 @@
 import { getAllDCATResources } from "./getAllDCATResources/getAllDCATResources";
 import { findWithOwner } from "./findWithOwner/findWithOwner";
 import { findWithParams } from "./findWithParams/findWithParams";
+import { askIfDistributionIdentifierIsUnattached } from "./askIfDistributionIdentifierIsUnattached/askIfDistributionIdentifierIsUnattached";
+import { askIfDistributionIdentifierExists } from "./askIfDistributionIdentifierExists/askIfDistributionIdentifierExists";
 
-export const catalog = { getAllDCATResources, findWithOwner, findWithParams };
+export const catalog = {
+  getAllDCATResources,
+  findWithOwner,
+  findWithParams,
+  askIfDistributionIdentifierExists,
+  askIfDistributionIdentifierIsUnattached,
+};

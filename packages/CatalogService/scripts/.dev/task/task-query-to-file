@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "✖ Error on line $LINENO"; exit 1' ERR
+
+DEF_OUTPUT="data/catalog-select-all.gitignored.nt";
+#####################################
+# Helpers
+#####################################
+error() { echo "✖ $*" >&2; exit 1; }
+info()  { echo "→ $*";      }
+
+#####################################
+# Usage
+#####################################
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") -r REMOTE_SPARQL [-o OUTPUT_FILE] [-b COOKIE] [-s SPARQL_FILE] [-f FORMAT]
+  -r REMOTE_SPARQL     SPARQL endpoint URL (required)
+  -o OUTPUT_FILE       (default: $DEF_OUTPUT)
+  -b COOKIE            cookie string for curl -b/--cookie
+  -s SPARQL_FILE       file containing the SPARQL query (optional)
+  -f FORMAT            response format: "nt" or "json"
+                       If omitted and -s is provided, format is inferred:
+                         SELECT/ASK     -> json
+                         CONSTRUCT/DESCRIBE -> nt
+EOF
+  exit 1
+}
+
+#####################################
+# Parse arguments
+#####################################
+REMOTE="" COOKIE="" OUTPUT="$DEF_OUTPUT" SPARQL_FILE="" FORMAT=""
+USER_SET_FORMAT=0
+while getopts "r:o:b:s:f:h" opt; do
+  case "$opt" in
+    r) REMOTE=$OPTARG ;;
+    o) OUTPUT=$OPTARG ;;
+    b) COOKIE=$OPTARG ;;
+    s) SPARQL_FILE=$OPTARG ;;
+    f) FORMAT=$OPTARG; USER_SET_FORMAT=1 ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+[[ -n $REMOTE ]] || usage
+
+#####################################
+# Require tools
+#####################################
+command -v curl >/dev/null || error "curl not installed"
+command -v grep >/dev/null || error "grep not installed"
+command -v sed  >/dev/null || error "sed not installed"
+command -v tr   >/dev/null || error "tr not installed"
+
+# 👉 Ensure output directory exists and is writable
+OUTDIR="$(dirname "$OUTPUT")"
+mkdir -p "$OUTDIR" || error "Cannot create output directory: $OUTDIR"
+[[ -w "$OUTDIR" ]] || error "Output directory not writable: $OUTDIR"
+
+
+#####################################
+# 1) Build query
+#####################################
+if [[ -n "$SPARQL_FILE" ]]; then
+  [[ -f "$SPARQL_FILE" ]] || error "SPARQL file not found: $SPARQL_FILE"
+  [[ -s "$SPARQL_FILE" ]] || error "SPARQL file is empty: $SPARQL_FILE"
+  query="query=$(cat "$SPARQL_FILE")"
+  info "Using SPARQL from $SPARQL_FILE"
+
+  # Infer format if user didn't provide -f
+  if [[ $USER_SET_FORMAT -eq 0 ]]; then
+    # Strip comments and PREFIX lines, uppercase, then find first keyword
+    UPPER=$(sed -E '/^\s*#/d;/^\s*PREFIX\b/Id' "$SPARQL_FILE" | tr '[:lower:]' '[:upper:]')
+    if echo "$UPPER" | grep -Eqm1 '\b(SELECT|ASK)\b'; then
+      FORMAT="json"
+    elif echo "$UPPER" | grep -Eqm1 '\b(CONSTRUCT|DESCRIBE)\b'; then
+      FORMAT="nt"
+    else
+      # Default if we can't tell (you can change this)
+      FORMAT="nt"
+    fi
+  fi
+else
+  # No -s: keep your existing default query
+  query='query=
+DESCRIBE <IRI>
+'
+  info "Using default SPARQL query (DESCRIBE <IRI>)"
+  # If user didn't specify -f, default to nt
+  [[ -n "$FORMAT" ]] || FORMAT="nt"
+fi
+
+# Validate format
+case "$FORMAT" in
+  nt|json) ;;
+  *) error 'FORMAT must be "nt" or "json"' ;;
+esac
+
+#####################################
+# 2) Filenames
+#####################################
+# If user left default output and we inferred json, swap extension.
+if [[ "$OUTPUT" == "$DEF_OUTPUT" && "$FORMAT" == "json" ]]; then
+  OUTPUT="${DEF_OUTPUT%.gitignored.nt}.gitignored.json"
+fi
+RAW="$OUTPUT"
+
+#####################################
+# 3) Fetch results
+#####################################
+if [[ "$FORMAT" == "nt" ]]; then
+  ACCEPT="application/n-triples"
+else
+  ACCEPT="application/sparql-results+json"
+fi
+
+info "Fetching from $REMOTE (format: $FORMAT) → $RAW"
+if ! HTTP=$(curl -sS \
+      -H "Accept: $ACCEPT" \
+      -H 'content-type: application/sparql-query' \
+      -b "${COOKIE:-}" \
+      --data-urlencode "$query" \
+      -w "%{http_code}" \
+      -o "$RAW" \
+      "$REMOTE"); then
+  error "Network error fetching results"
+fi
+
+[[ $HTTP -ge 200 && $HTTP -lt 300 ]] || { BODY=$(<"$RAW"); rm -f "$RAW"; error "Fetch failed HTTP $HTTP: $BODY"; }
+[[ -s $RAW ]] || error "Output file is empty"
+
+if [[ "$FORMAT" == "nt" ]]; then
+  COUNT=$(grep -c '^<' "$RAW" || echo 0)
+  info "Saved $COUNT triples to $RAW"
+else
+  BYTES=$(wc -c <"$RAW" | tr -d ' ')
+  info "Saved JSON ($BYTES bytes) to $RAW"
+fi

@@ -1,2 +1,2 @@
 # Catalog, Phase 2 ontology
-/packages/CatalogService/src/classes/RDFSResource.DCATResource/storeTriplesPhase2.ts @procolecato @afizzycola
+packages/CatalogService/src/classes/RDFSResource.DCATResource/createOperations.ts @afizzycola
