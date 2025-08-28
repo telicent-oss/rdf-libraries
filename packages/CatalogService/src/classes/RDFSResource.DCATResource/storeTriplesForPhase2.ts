@@ -183,7 +183,7 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
               ? error?.details
               : "detail" in error && error?.detail
               ? error?.detail
-              : error
+              : JSON.stringify(error)
           )
         );
       } else {
