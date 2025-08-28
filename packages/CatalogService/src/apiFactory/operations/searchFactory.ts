@@ -74,7 +74,10 @@ export const searchFactoryFn =
           }
           return true;
         })
-        .sort((a, b) => (b.score || 0) - (a.score || 0))
+        .sort((a, b) => params.searchText 
+        ? (b.score || 0) - (a.score || 0)
+        : +new Date(b.item.max_modified || 0) - +new Date(a.item.max_modified || 0)
+        )
         .map(async (resource) => {
           const uiRepresentation = await resource.item.toUIRepresentation();
 

@@ -2,7 +2,6 @@ import {
   UpdateByPredicateFn,
   CreateByPredicateFn,
   UpdateTriple,
-  CreateTriple,
 } from "@telicent-oss/rdf-write-lib";
 
 import { CatalogService, DCATResource } from "../../index";
@@ -14,22 +13,22 @@ import {
 import { builder } from "@telicent-oss/sparql-lib";
 // import { COMMON_PREFIXES_MAP } from "../../constants";
 
-// TODO move to generic file
-export type StoreTripleUpdate = {
+type StoreTripleBase = {
   triple: UpdateTriple;
-  prev: string | null;
+  property?: string;
   onSuccess: () => void;
+  dataset_uri: string;
+  checkUnique?: boolean;
+};
+// TODO move to generic file
+export type StoreTripleUpdate = StoreTripleBase & {
   type: "update";
-  property?:string;
+  prev: string | null;
 };
 
 // TODO move to generic file
-export type StoreTripleCreate = {
+export type StoreTripleCreate = StoreTripleBase & {
   type: "create";
-  triple: CreateTriple;
-  checkUnique?: boolean;
-  onSuccess: () => void;
-  property?:string;
 };
 
 export type StoreTripleError = { error: string };
@@ -82,23 +81,24 @@ export type StoreTripleForOntology = (options: {
   property: GraphData;
   newValue: string;
   api: {
-        createByPredicateFns: CreateByPredicateFn;
-        updateByPredicateFns: UpdateByPredicateFn;
-      };
-  catalogService: CatalogService
+    createByPredicateFns: CreateByPredicateFn;
+    updateByPredicateFns: UpdateByPredicateFn;
+  };
+  catalogService: CatalogService;
 }) => Promise<StoreTriplesResult[]>;
 
-
-
-
-  const maybeGetNotUniqueError = async  (catalogService:CatalogService, operation:StoreTripleOperation): Promise<undefined | string> => {
-    
-    const result = await catalogService.runQuery(builder.catalog.askIfUniqueIdentifierOfType(operation.triple));
-    if (result.boolean === true) {
-      return undefined;
-    }
-    return `Value "${operation.triple.o}" already exists`;
+const maybeGetNotUniqueError = async (
+  catalogService: CatalogService,
+  operation: StoreTripleOperation
+): Promise<undefined | string> => {
+  const result = await catalogService.runQuery(
+    builder.catalog.askIfUniqueIdentifierOfType(operation.triple)
+  );
+  if (result.boolean === true) {
+    return undefined;
   }
+  return `Value "${operation.triple.o}" already exists`;
+};
 
 /**
  *
@@ -110,11 +110,11 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
   property,
   newValue,
   api,
-  catalogService
+  catalogService,
 }) => {
   const asErrorValueObject = (error: unknown, meta: unknown) => ({
     details: `[${property}] ${error} ${JSON.stringify(meta)}`,
-    error: `${error}`
+    error: `${error}`,
   });
   const asMessage = (str: string) => ({ message: `[${property}] ${str}` });
 
@@ -130,22 +130,24 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
     const operationError = (error: unknown) =>
       asErrorValueObject(error, operation);
     try {
-      const notUniqueError = 'checkUnique' in operation && operation.checkUnique && await maybeGetNotUniqueError(catalogService, operation);
+      const notUniqueError =
+        "checkUnique" in operation &&
+        operation.checkUnique &&
+        (await maybeGetNotUniqueError(catalogService, operation));
       if (isErrorUpstream) {
         results.push(asMessage(`No-op, error isErrorUpstream `));
       } else if (notUniqueError) {
-        console.log('notUniqueError!', notUniqueError)
+        console.log("notUniqueError!", notUniqueError, operation);
         results.push(operationError(notUniqueError));
         isErrorUpstream = true;
       } else if (operation.type === "update") {
-        
         const updateFn = api.updateByPredicateFns[operation.triple.p];
         results.push(
           operation.prev === operation.triple.o
             ? asMessage("No-op, unchanged")
             : !updateFn
             ? operationError(`No updateFn for ${JSON.stringify(operation)}`)
-            : await updateFn(operation).then((res) => {
+            : await updateFn(operation).then(() => {
                 if ("onSuccess" in operation) {
                   const { onSuccess, ...restUpdate } = operation;
                   onSuccess(); // call and remove onSuccess
@@ -155,12 +157,13 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
               })
         );
       } else if (operation.type === "create") {
+        console.log("operation:: create", operation);
         // create
         const createFn = api.createByPredicateFns[operation.triple.p];
         results.push(
           !createFn
             ? operationError(`No createFn for ${JSON.stringify(operation)}`)
-            : await createFn(operation).then((res) => {
+            : await createFn(operation).then(() => {
                 if ("onSuccess" in operation) {
                   const { onSuccess, ...restUpdate } = operation;
                   onSuccess(); // call and remove onSuccess
@@ -171,7 +174,21 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
         );
       }
     } catch (error) {
-      results.push(operationError(error));
+      if (typeof error === "object" && error !== null) {
+        results.push(
+          operationError(
+            "message" in error && error?.message
+              ? error?.message
+              : "details" in error && error?.details
+              ? error?.details
+              : "detail" in error && error?.detail
+              ? error?.detail
+              : error
+          )
+        );
+      } else {
+        results.push(operationError(`Error ${error}`));
+      }
       isErrorUpstream = true;
     }
   }

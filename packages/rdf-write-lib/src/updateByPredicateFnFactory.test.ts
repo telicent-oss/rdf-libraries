@@ -41,7 +41,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
         init,
       })),
     };
-      // Cast once when passing to the factory; keep our local client strongly mock-typed
+    // Cast once when passing to the factory; keep our local client strongly mock-typed
     fns = updateByPredicateFnFactory({
       client: client as unknown as RdfWriteApiClientType,
     });
@@ -82,7 +82,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
 
     for (const p of PREDICATES) {
       const triple: UpdateTriple = { s, p, o };
-      await fns[p]({ triple, prev });
+      await fns[p]({ triple, prev, dataset_uri: "http://example.com#uri" });
     }
 
     expect((client.POST as jest.Mock).mock.calls).toMatchInlineSnapshot(`
@@ -101,6 +101,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/title/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_title": "http://example.org/value/1",
               "old_title": "http://example.org/prev/1",
@@ -111,6 +112,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/description/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_description": "http://example.org/value/1",
               "old_description": "http://example.org/prev/1",
@@ -121,6 +123,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/issued/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_datetime": "http://example.org/value/1",
               "old_datetime": "http://example.org/prev/1",
@@ -131,6 +134,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/rights/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_rights_object_uri": "http://example.org/value/1",
               "old_rights_object_uri": "http://example.org/prev/1",
@@ -141,6 +145,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcat/contactPoint/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_contact_point_object_uri": "http://example.org/value/1",
               "old_contact_point_object_uri": "http://example.org/prev/1",
@@ -161,6 +166,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/prov/qualifiedAttribution/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_attribution_item_uri": "http://example.org/value/1",
               "old_attribution_item_uri": "http://example.org/prev/1",
@@ -171,6 +177,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/identifier/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_identifier": "http://example.org/value/1",
               "old_identifier": "http://example.org/prev/1",
@@ -209,7 +216,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
 
     for (const p of PREDICATES) {
       const triple: UpdateTriple = { s, p, o };
-      await fns[p]({ triple, prev });
+      await fns[p]({ triple, prev, dataset_uri: "http://example.com#uri" });
     }
 
     expect((client.POST as jest.Mock).mock.calls).toMatchInlineSnapshot(`
@@ -228,6 +235,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/title/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_title": "O",
               "old_title": null,
@@ -238,6 +246,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/description/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_description": "O",
               "old_description": null,
@@ -248,6 +257,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/issued/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_datetime": "O",
               "old_datetime": null,
@@ -258,6 +268,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/rights/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_rights_object_uri": "O",
               "old_rights_object_uri": null,
@@ -268,6 +279,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcat/contactPoint/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_contact_point_object_uri": "O",
               "old_contact_point_object_uri": null,
@@ -288,6 +300,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/prov/qualifiedAttribution/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_attribution_item_uri": "O",
               "old_attribution_item_uri": null,
@@ -298,6 +311,7 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/identifier/update",
           {
             "body": {
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_identifier": "O",
               "old_identifier": null,

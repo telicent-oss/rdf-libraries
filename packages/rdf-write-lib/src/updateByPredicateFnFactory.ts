@@ -87,7 +87,7 @@ export type UpdateTriple = {
 
 export type UpdateByPredicateFn = Record<
   keyof typeof predicatesToEndpoints,
-  (options: { triple: UpdateTriple; prev: string | null }) => DispatchResult
+  (options: { triple: UpdateTriple; prev: string | null; dataset_uri:string }) => DispatchResult
 >;
 
 export const updateByPredicateFnFactory = ({
@@ -103,66 +103,73 @@ export const updateByPredicateFnFactory = ({
         new_publisher_object_uri: triple.o,
       },
     }).then(throwIfHTTPError),
-  "dct:title": ({ triple, prev }) =>
+  "dct:title": ({ triple, prev, dataset_uri }) =>
     client.POST("/dcterms/title/update", {
       body: {
         item_uri: triple.s,
         old_title: prev as unknown as string,
         new_title: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
-  "dct:description": ({ triple, prev }) =>
+  "dct:description": ({ triple, prev, dataset_uri }) =>
     client.POST("/dcterms/description/update", {
       body: {
         item_uri: triple.s,
         old_description: prev as unknown as string,
         new_description: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
-  "dct:issued": ({ triple, prev }) =>
+  "dct:issued": ({ triple, prev, dataset_uri }) =>
     client.POST("/dcterms/issued/update", {
       body: {
         item_uri: triple.s,
         old_datetime: prev as unknown as string,
         new_datetime: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
-  "dct:rights": ({ triple, prev }) =>
+  "dct:rights": ({ triple, prev, dataset_uri }) =>
     client.POST("/dcterms/rights/update", {
       body: {
         item_uri: triple.s,
         old_rights_object_uri: prev as unknown as string,
         new_rights_object_uri: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
-  "prov:qualifiedAttribution": ({ triple, prev }) =>
+  "prov:qualifiedAttribution": ({ triple, prev, dataset_uri }) =>
     client.POST("/prov/qualifiedAttribution/update", {
       body: {
         item_uri: triple.s,
         old_attribution_item_uri: prev as unknown as string,
         new_attribution_item_uri: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
-  "dct:identifier": ({ triple, prev }) =>
+  "dct:identifier": ({ triple, prev, dataset_uri }) =>
     client.POST("/dcterms/identifier/update", {
       body: {
         item_uri: triple.s,
         old_identifier: prev as unknown as string,
         new_identifier: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
-  "dcat:contactPoint": ({ triple, prev }) =>
+  "dcat:contactPoint": ({ triple, prev, dataset_uri }) =>
     client.POST("/dcat/contactPoint/update", {
       body: {
         item_uri: triple.s,
         old_contact_point_object_uri: prev as unknown as string,
         new_contact_point_object_uri: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
   "dcat:mediaType": ({ triple, prev }) =>
@@ -198,13 +205,13 @@ export const updateByPredicateFnFactory = ({
         new_role_uri: triple.o,
       },
     }).then(throwIfHTTPError),
-  "dcat:accessURL": ({ triple, prev }) =>
+  "dcat:accessURL": ({ triple, prev, dataset_uri }) =>
     client.POST("/dcat/accessURL/update", {
       body: {
         item_uri: triple.s,
-
         old_access_url: prev as unknown as string,
         new_access_url: triple.o,
+        dataset_uri,
       },
     }).then(throwIfHTTPError),
   "dcterms:contributor": ({ triple, prev }) =>
@@ -215,12 +222,13 @@ export const updateByPredicateFnFactory = ({
         new_contributor_object_uri: triple.o,
       },
     }).then(throwIfHTTPError),
-  "vcard:fn": ({ triple, prev }) =>
+  "vcard:fn": ({ triple, prev, dataset_uri }) =>
     client.POST("/vcard/fn/update", {
       body: {
         item_uri: triple.s,
         old_fn: prev as unknown as string,
         new_fn: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
   "prov:agent": ({ triple, prev }) =>

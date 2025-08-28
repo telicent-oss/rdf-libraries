@@ -19,7 +19,7 @@ export const validateIfDistributionIdentifierIsUnattached = async (
     })
   );
 
-  if (askResult.boolean) {
+  if (askResult.boolean === false) {
     return {
       ...errors,
       distributionIdentifier: [

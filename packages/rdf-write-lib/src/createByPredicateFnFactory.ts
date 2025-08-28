@@ -92,7 +92,7 @@ export type CreateTriple = {
 
 export type CreateByPredicateFn = Record<
   keyof typeof predicatesToEndpoints,
-  (options: { triple: CreateTriple }) => DispatchResult
+  (options: { triple: CreateTriple; dataset_uri:string }) => DispatchResult
 >;
 
 export const createByPredicateFnFactory = ({
@@ -107,27 +107,30 @@ export const createByPredicateFnFactory = ({
         publisher_object_uri: triple.o,
       },
     }).then(throwIfHTTPError),
-  "dct:title": ({ triple }) =>
+  "dct:title": ({ triple, dataset_uri }) =>
     client.POST("/dcterms/title", {
       body: {
         item_uri: triple.s,
         title: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
-  "dct:description": ({ triple }) =>
+  "dct:description": ({ triple, dataset_uri }) =>
     client.POST("/dcterms/description", {
       body: {
         item_uri: triple.s,
         description: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
-  "dct:issued": ({ triple }) =>
+  "dct:issued": ({ triple, dataset_uri }) =>
     client.POST("/dcterms/issued", {
       body: {
         item_uri: triple.s,
         datetime: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
@@ -147,11 +150,12 @@ export const createByPredicateFnFactory = ({
       },
     }).then(throwIfHTTPError),
 
-  "dct:identifier": ({ triple }) =>
+  "dct:identifier": ({ triple, dataset_uri }) =>
     client.POST("/dcterms/identifier", {
       body: {
         item_uri: triple.s,
         identifier: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
 
@@ -191,12 +195,12 @@ export const createByPredicateFnFactory = ({
         role_uri: triple.o,
       },
     }).then(throwIfHTTPError),
-  "dcat:accessURL": ({ triple }) =>
+  "dcat:accessURL": ({ triple, dataset_uri }) =>
     client.POST("/dcat/accessURL", {
       body: {
         item_uri: triple.s,
-
         access_url: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
   "dcterms:contributor": ({ triple }) =>
@@ -206,11 +210,12 @@ export const createByPredicateFnFactory = ({
         contributor_object_uri: triple.o,
       },
     }).then(throwIfHTTPError),
-  "vcard:fn": ({ triple }) =>
+  "vcard:fn": ({ triple, dataset_uri }) =>
     client.POST("/vcard/fn", {
       body: {
         item_uri: triple.s,
         fn: triple.o,
+        dataset_uri
       },
     }).then(throwIfHTTPError),
   "prov:agent": ({ triple }) =>

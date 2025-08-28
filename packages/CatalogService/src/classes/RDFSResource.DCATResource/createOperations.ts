@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from "uuid";
 import { CreateByPredicateFn } from "../../../../rdf-write-lib/dist/createByPredicateFnFactory";
 import { UpdateByPredicateFn } from "../../../../rdf-write-lib/dist/updateByPredicateFnFactory";
 import { DCATResource } from "../RDFSResource.DCATResource";
+import { createUri } from "./createUri";
 import { StoreTripleCreate, StoreTripleUpdate } from "./storeTriplesForPhase2";
 
 // TODO remove these "wordy" manually created types
@@ -50,9 +50,7 @@ export type StoreTripleOperation = StoreTripleUpdate | StoreTripleCreate;
 
 export type Triple = StoreTripleOperation["triple"];
 
-// TODO use createUriComponents
-const createUri = (postfix: string = "") =>
-  `http://telicent.io/catalog#${uuidv4()}${postfix}`;
+
 
 /** __Internal__StoreTripleUpdate is exactly the same
  * as StoreTripleUpdate. EXCEPT it includes an
@@ -71,86 +69,134 @@ type __Internal__StoreTripleOperation =
   | __Internal__StoreTripleUpdate
   | __Internal__StoreTripleCreate;
 
+export type CreateOperationsOptions = {
+  instance: DCATResource;
+  property: GraphData;
+  newValue: string;
+  api: {
+    createByPredicateFns: CreateByPredicateFn;
+    updateByPredicateFns: UpdateByPredicateFn;
+  };
+};
+
+/**
+ * Higher-order function
+ *
+ */
+const pushLiteralWithOperations = (
+  context: {
+    operations: __Internal__StoreTripleOperation[];
+  } & CreateOperationsOptions
+) =>
+  /**
+   * function
+   *
+   */
+  function pushLiteral(options: {
+    s?: Triple["s"];
+    p: Triple["p"];
+    o?: Triple["o"];
+    checkUnique?: boolean;
+  }) {
+    const { instance, property, operations, newValue } = context;
+    const s = options.s || operations?.at(-1)?.triple.o || instance.uri; // back-one or start "root"
+    const p = options.p;
+    const o = options.o || newValue; // passed value, else end "leaf"
+
+    operations.push({
+      type: instance[property] === undefined ? "create" : "update",
+      triple: { s, p, o },
+      checkUnique: options.checkUnique,
+      prev: instance[property] || null,
+      onSuccess: () => {
+        console.log(
+          `instance[${property}] (${instance[property]}) = ${newValue}`,
+          `${s} ${p} ${o}`
+        );
+        // instance[property] = newValue;
+      },
+      dataset_uri: instance.uri,
+      property,
+    });
+  };
+
+/**
+ * Higher-order function
+ *
+ */
+const pushUriWithOperations = (
+  context: {
+    operations: __Internal__StoreTripleOperation[];
+  } & CreateOperationsOptions
+) =>
+  /**
+   * function
+   *
+   */
+  function postUri(options: {
+    p: Triple["p"];
+    property: GraphData;
+    postfix: string;
+    newLocalName?: string;
+  }) {
+    const { instance, property, operations } = {
+      ...context,
+      property: options?.property,
+    };
+    const s = operations?.at(-1)?.triple.o || instance.uri; // back-one or start "root"
+    const p = options.p;
+    const o = instance[property] || createUri({ postfix: options.postfix }); // existing value, else create
+
+    operations.push({
+      type: instance[property] === undefined ? "create" : "update",
+      triple: { s, p, o },
+      prev: instance[property] || null,
+      onSuccess: () => {
+        console.log(
+          `instance[${property}] (${instance[property]}) = ${options.newLocalName}`,
+          `${s} ${p} ${o}`
+        );
+        // instance[property] = newValue;
+      },
+      dataset_uri: instance.uri,
+      property,
+    });
+  };
+
 /**
  *
  *
  * Surely can be replaced with nmap or something
  */
-export const createOperations = ({
-  instance,
-  property,
-  newValue,
-}: {
-  instance: DCATResource;
-  property: GraphData;
-  newValue: string;
-  api: {
-        createByPredicateFns: CreateByPredicateFn;
-        updateByPredicateFns: UpdateByPredicateFn;
-      };
-}) => {
-  console.log({ property, newValue });
+export const createOperations = (options: CreateOperationsOptions) => {
+  console.log(`createOperations for ${options.instance.uri}`, options);
   const operations: __Internal__StoreTripleOperation[] = [];
-
-  const pushLiteral = ({
-    s = operations?.at(-1)?.triple.o || instance.uri,
-    p,
-    o = newValue,
-    checkUnique,
-  }: {
-    s?: Triple["s"];
-    p: Triple["p"];
-    o?: Triple["o"];
-    checkUnique?: boolean
-  }) =>
-    operations.push({
-      type: instance[property] === undefined ? "create" : "update",
-      triple: {
-        s,
-        p,
-        o,
-      },
-      checkUnique,
-      prev: instance[property] || null,
-      onSuccess: () => (instance[property] = newValue),
-      property
-    });
-
-  const pushUri = (p: Triple["p"], property: GraphData, postfix?: string, newLocalName?:string) =>
-    operations.push({
-      property,
-      type: instance[property] === undefined ? "create" : "update",
-      triple: {
-        s: operations?.at(-1)?.triple.o || instance.uri,
-        p,
-        o: instance[property] || `http://telicent.io/catalog#${newLocalName}` || createUri(postfix),
-      },
-      prev: instance[property] || null,
-      onSuccess: () => {
-        instance[property] = newValue;
-      },
-    });
-
-  const pushUriForDistribution = (newValue?:string) => {
-    pushUri("dcat:distribution", "distribution", "_Distribution", newValue);
-  };
+  const pushLiteral = pushLiteralWithOperations({
+    operations,
+    ...options,
+  });
+  const pushUri = pushUriWithOperations({
+    operations,
+    ...options,
+  });
 
   // prettier-ignore
-  switch (property) {
-      // Edge-case: Init only
+  switch (options.property) {
+      // Edge-case: very first written
       case "classType":
         operations.push({
           type: "create" ,
           triple: {
-            s: instance.uri,
+            s: options.instance.uri,
             p: 'rdf:type',
-            o: newValue,
+            o: options.newValue,
           },
+          dataset_uri: options.instance.uri,
           onSuccess: () => {},
         });
         break;
       case "title":
-        pushLiteral({                               p: "dct:title", checkUnique: true});
+        pushLiteral({                               p: "dct:title",                                   checkUnique: true});
         break;
       case "identifier":
         pushLiteral({                               p:"dct:identifier"});
@@ -159,61 +205,56 @@ export const createOperations = ({
         pushLiteral({                               p:"dct:description"});
         break;
       case "publisher__title":
-        pushUri(      "dct:publisher",              "__publisher",                      "_Publisher");
+        pushUri({                                   p: "dct:publisher",                               property: "__publisher",                    postfix: "_Publisher" });
         pushLiteral({                               p:"dct:title"});
         break;
       case "contactPoint__fn":
-        pushUri(      "dcat:contactPoint",          "__contactPoint",                   "_ContactPoint");
+        pushUri({                                   p: "dcat:contactPoint",                           property: "__contactPoint",                 postfix: "_ContactPoint" });
         pushLiteral({                               p:  "vcard:fn"});
         break;
       case "rights__description":
-        pushUri(      "dct:rights",                 "__rights",                         "_DataHandlingPolicy");
+        pushUri({                                   p: "dct:rights",                                  property: "__rights",                       postfix: "_DataHandlingPolicy" });
         pushLiteral({                               p:  "dct:description"});
         break;
       case "accessRights":
         pushLiteral({                               p:  "dct:accessRights" as unknown as Triple['p']});
         break;
       case "qualifiedAttribution__agent__title":
-        pushUri(      "prov:qualifiedAttribution", "__qualifiedAttribution",          "_DataOwnerAttribution");
-        pushUri(      "prov:agent",                "__qualifiedAttribution__agent",   "_DataOwner");
+        pushUri({                                   p: "prov:qualifiedAttribution",                  property: "__qualifiedAttribution",          postfix: "_DataOwnerAttribution" });
+        pushUri({                                   p: "prov:agent",                                 property: "__qualifiedAttribution__agent",   postfix: "_DataOwner" });
         pushLiteral({                               p:  "dct:title"});
         break;
       // Phase 2
       case "distribution":
-        pushLiteral({                               p:  "dcat:distribution"});
+        pushUri({                                   p: "dcat:distribution",                      property: "distribution",                   postfix: "_Distribution" });
         break;
       case "distribution__identifier":
-        pushUriForDistribution(newValue);
-        pushLiteral({                                 p: "rdf:type",          o: "http://www.w3.org/ns/dcat#Distribution"})
-        pushLiteral({s: operations.at(-2)?.triple.o,  p: "dct:identifier",                                                    checkUnique: true });
-        break;
       case "distribution__title":
       case "distribution__accessURL":
       case "distribution__mediaType": {
-        const p = property === "distribution__title"
-            ? "dct:title"
-            :property == 'distribution__accessURL'
-            ? "dcat:accessURL"
-            : "dcat:mediaType";
-        pushUriForDistribution();
-        pushLiteral({                                 p: "rdf:type",          o: "http://www.w3.org/ns/dcat#Distribution"})
-        pushLiteral({s: operations.at(-2)?.triple.o,  p });
+        pushUri({                                   p: "dcat:distribution",                       property: "distribution",                  postfix: "_Distribution" });
+        pushLiteral({                               p: "rdf:type",              o: "http://www.w3.org/ns/dcat#Distribution"})
+        const p = 
+          options.property === "distribution__identifier"   ? 'dct:identifier'
+          : options.property === "distribution__title"      ? "dct:title"
+          : options.property == 'distribution__accessURL'   ? "dcat:accessURL"
+          : "dcat:mediaType";
+        const checkUnique = 
+          options.property === "distribution__identifier"   ? true : false;
+        pushLiteral({s: operations.at(-2)?.triple.o,      p,                checkUnique  });
         break;
       }
-      case "contributor__title":
-        pushUriForDistribution();
-        pushLiteral({p:  "dct:title"});
-        break;
       case "min_issued":
-        pushLiteral({p:  "dct:issued"});
+        pushLiteral({                                     p: "dct:issued"});
         break;
-      case "max_modified":
-        pushLiteral({p:  "dct:modified"});
-        break;
-      // case '_type': // handled during creation only
-      // case 'uri': // handled during creation only
-      // case "distribution__available": // auto-generated
+      
+      // case "contributor__title":       // Handled by paperback:
+      // case "max_modified":             // Handled by paperback:
+      // case '_type':                    // Handled during creation only
+      // case 'uri':                      // Handled during creation only
+      // case "distribution__available":  // Handled by pipeline
       default:
+        console.error(`Unsupported property ${options.property}`);
     }
   return operations;
 };

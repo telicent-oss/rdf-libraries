@@ -1368,6 +1368,11 @@ export interface components {
             item_uri: string;
             /** Access Url */
             access_url: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
         };
         /** AccessURLUpdate */
         AccessURLUpdate: {
@@ -1378,6 +1383,11 @@ export interface components {
             item_uri: string;
             /** New Access Url */
             new_access_url: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
             /** Old Access Url */
             old_access_url: string;
         };
@@ -1528,6 +1538,11 @@ export interface components {
             item_uri: string;
             /** Description */
             description: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
         };
         /** DescriptionUpdate */
         DescriptionUpdate: {
@@ -1538,6 +1553,11 @@ export interface components {
             item_uri: string;
             /** New Description */
             new_description: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
             /** Old Description */
             old_description: string;
         };
@@ -1594,6 +1614,11 @@ export interface components {
             item_uri: string;
             /** Fn */
             fn: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
         };
         /** FnUpdate */
         FnUpdate: {
@@ -1604,6 +1629,11 @@ export interface components {
             item_uri: string;
             /** New Fn */
             new_fn: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
             /** Old Fn */
             old_fn: string;
         };
@@ -1659,6 +1689,11 @@ export interface components {
             item_uri: string;
             /** Identifier */
             identifier: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
         };
         /** IdentifierUpdate */
         IdentifierUpdate: {
@@ -1669,6 +1704,11 @@ export interface components {
             item_uri: string;
             /** New Identifier */
             new_identifier: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
             /** Old Identifier */
             old_identifier: string;
         };
@@ -1684,6 +1724,11 @@ export interface components {
              * Format: date-time
              */
             datetime: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
         };
         /** IssuedDateTimeUpdate */
         IssuedDateTimeUpdate: {
@@ -1697,6 +1742,11 @@ export interface components {
              * Format: date-time
              */
             new_datetime: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
             /**
              * Old Datetime
              * Format: date-time
@@ -1903,6 +1953,11 @@ export interface components {
             item_uri: string;
             /** Title */
             title: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
         };
         /** TitleUpdate */
         TitleUpdate: {
@@ -1913,6 +1968,11 @@ export interface components {
             item_uri: string;
             /** New Title */
             new_title: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
             /** Old Title */
             old_title: string;
         };

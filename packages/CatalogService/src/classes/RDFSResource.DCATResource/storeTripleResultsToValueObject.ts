@@ -8,7 +8,6 @@ import {
   StoreTripleMessage,
   StoreTriplesResult,
 } from "./storeTriplesForPhase2";
-// import { updateModifiedFactory } from "./updateModifiedFactory";
 
 type StringOrUndefinedKeys<T> = {
   [K in keyof T]-?: NonNullable<T[K]> extends string ? K : never;
@@ -17,7 +16,7 @@ type StringOrUndefinedKeys<T> = {
 export type EdgeCaseOnlyInit = { classType: string };
 
 type Editable = UIDataResourceType & EdgeCaseOnlyInit;
-const UIToProperty = {
+const EditableUIToProperty = {
   classType: "classType",
   identifier: "identifier",
   title: "title",
@@ -35,19 +34,19 @@ const UIToProperty = {
   distributionAvailable: "distribution__available",
   lastModifiedBy: "contributor__title",
   publishDate: "min_issued",
-  modified: "max_modified",
+  // modified: "max_modified",
 } as const satisfies Partial<
   Record<keyof Editable, StringOrUndefinedKeys<DCATResource>>
 >;
 
-type EditableField = keyof typeof UIToProperty;
+type EditableField = keyof typeof EditableUIToProperty;
 
 function editableEntries(
   payload: Partial<Editable>
 ): Array<[EditableField, Editable[EditableField]]> {
   return (Object.entries(payload) as Array<[keyof Editable, unknown]>).filter(
     (e): e is [EditableField, Editable[EditableField]] =>
-      e[0] in UIToProperty || e[0] === "classType"
+      e[0] in EditableUIToProperty || e[0] === "classType"
   );
 }
 
@@ -83,10 +82,6 @@ export const storeTripleResultsToValueObject = async ({
   api,
   catalogService,
 }: StoreTriplesOptions) => {
-  // const updateModifiedDate = updateModifiedFactory({
-  //   instance,
-  //   api,
-  // });
 
   const uiFieldEntires = editableEntries(uiFields);
   const values: ResourceOperationResults["values"] = { uri };
@@ -97,13 +92,12 @@ export const storeTripleResultsToValueObject = async ({
   for (const [uiField, uiFieldValue] of uiFieldEntires) {
     const result = await storeTriplesForOntology({
       instance,
-      property: UIToProperty[uiField],
+      property: EditableUIToProperty[uiField],
       newValue: uiFieldValue,
       api,
       catalogService,
     });
-    // updateModifiedDate();
-    values[uiField] = instance[UIToProperty[uiField]];
+    values[uiField] = instance[EditableUIToProperty[uiField]];
     errors[uiField] = result.filter((el) => "error" in el);
     messages[uiField] = result.filter((el) => "message" in el);
     operations[uiField] = result.filter((el) => "type" in el);
