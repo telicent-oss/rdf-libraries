@@ -15,7 +15,7 @@ type StringOrUndefinedKeys<T> = {
 
 export type EdgeCaseOnlyInit = { classType: string };
 
-type Editable = UIDataResourceType & EdgeCaseOnlyInit;
+export type Editable = UIDataResourceType & EdgeCaseOnlyInit;
 const EditableUIToProperty = {
   classType: "classType",
   identifier: "identifier",
@@ -59,7 +59,7 @@ export type ResourceOperationResults = {
   results: Partial<Record<UiFields, StoreTriplesResult[]>>;
 };
 
-type StoreTriplesOptions = {
+export type StoreTriplesOptions = {
   uri:string;
   instance: DCATResource;
   uiFields: Partial<Editable>;

@@ -10,7 +10,7 @@ import {
   GraphData,
   StoreTripleOperation,
 } from "./createOperations";
-import { builder } from "@telicent-oss/sparql-lib";
+import { maybeGetNotUniqueError } from "./maybeGetNotUniqueError";
 // import { COMMON_PREFIXES_MAP } from "../../constants";
 
 type StoreTripleBase = {
@@ -86,19 +86,6 @@ export type StoreTripleForOntology = (options: {
   };
   catalogService: CatalogService;
 }) => Promise<StoreTriplesResult[]>;
-
-const maybeGetNotUniqueError = async (
-  catalogService: CatalogService,
-  operation: StoreTripleOperation
-): Promise<undefined | string> => {
-  const result = await catalogService.runQuery(
-    builder.catalog.askIfUniqueIdentifierOfType(operation.triple)
-  );
-  if (result.boolean === true) {
-    return undefined;
-  }
-  return `Value "${operation.triple.o}" already exists`;
-};
 
 /**
  *

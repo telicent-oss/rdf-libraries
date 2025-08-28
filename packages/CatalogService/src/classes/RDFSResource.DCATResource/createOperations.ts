@@ -113,7 +113,7 @@ const pushLiteralWithOperations = (
           `instance[${property}] (${instance[property]}) = ${newValue}`,
           `${s} ${p} ${o}`
         );
-        // instance[property] = newValue;
+        instance[property] = o;
       },
       dataset_uri: instance.uri,
       property,
@@ -134,6 +134,7 @@ const pushUriWithOperations = (
    *
    */
   function postUri(options: {
+    s?: Triple["s"];
     p: Triple["p"];
     property: GraphData;
     postfix: string;
@@ -143,20 +144,21 @@ const pushUriWithOperations = (
       ...context,
       property: options?.property,
     };
-    const s = operations?.at(-1)?.triple.o || instance.uri; // back-one or start "root"
+    const s = options.s || operations?.at(-1)?.triple.o || instance.uri; // back-one or start "root"
     const p = options.p;
     const o = instance[property] || createUri({ postfix: options.postfix }); // existing value, else create
+    const prev = instance[property] || null;
 
     operations.push({
       type: instance[property] === undefined ? "create" : "update",
       triple: { s, p, o },
-      prev: instance[property] || null,
+      prev,
       onSuccess: () => {
         console.log(
           `instance[${property}] (${instance[property]}) = ${options.newLocalName}`,
           `${s} ${p} ${o}`
         );
-        // instance[property] = newValue;
+        instance[property] = o;
       },
       dataset_uri: instance.uri,
       property,
@@ -226,21 +228,20 @@ export const createOperations = (options: CreateOperationsOptions) => {
         break;
       // Phase 2
       case "distribution":
-        pushUri({                                   p: "dcat:distribution",                      property: "distribution",                   postfix: "_Distribution" });
+        pushUri({  s: options.instance.uri,         p: "dcat:distribution",                      property: "distribution",                   postfix: "_Distribution" });
         break;
       case "distribution__identifier":
       case "distribution__title":
       case "distribution__accessURL":
       case "distribution__mediaType": {
-        pushUri({                                   p: "dcat:distribution",                       property: "distribution",                  postfix: "_Distribution" });
+        pushUri({ s: options.instance.uri,          p: "dcat:distribution",                       property: "distribution",                  postfix: "_Distribution" });
         pushLiteral({                               p: "rdf:type",              o: "http://www.w3.org/ns/dcat#Distribution"})
         const p = 
           options.property === "distribution__identifier"   ? 'dct:identifier'
           : options.property === "distribution__title"      ? "dct:title"
           : options.property == 'distribution__accessURL'   ? "dcat:accessURL"
           : "dcat:mediaType";
-        const checkUnique = 
-          options.property === "distribution__identifier"   ? true : false;
+        const checkUnique = options.property === "distribution__identifier";
         pushLiteral({s: operations.at(-2)?.triple.o,      p,                checkUnique  });
         break;
       }
