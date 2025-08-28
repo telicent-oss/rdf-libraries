@@ -249,7 +249,8 @@ export const createOperations = (options: CreateOperationsOptions) => {
         pushLiteral({                                     p: "dct:issued"});
         break;
       
-      // case "contributor__title":       // Handled by paperback:
+      case "contributor__title":       // Handled by paperback:
+        break;
       // case "max_modified":             // Handled by paperback:
       // case '_type':                    // Handled during creation only
       // case 'uri':                      // Handled during creation only
