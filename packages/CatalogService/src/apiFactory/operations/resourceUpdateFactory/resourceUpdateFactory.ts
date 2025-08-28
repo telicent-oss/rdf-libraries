@@ -44,10 +44,7 @@ export const resourceUpdateFactory = ({
    * @returns
    */
   return async function resourceUpdate(operation: ResourceUpdateParamsType) {
-    await validateResourceUpdate({
-      catalogService,
-      operation,
-    });
+
     if (typeof operation.payload.uri !== "string") {
       throw new Error("Expected payload.uri to exist");
     }
@@ -58,6 +55,12 @@ export const resourceUpdateFactory = ({
       rdfsResource instanceof DCATResource
         ? (rdfsResource as DCATResource)
         : throwWrongTypes(item_uri);
+
+    await validateResourceUpdate({
+      catalogService,
+      operation,
+      dcatResource,
+    });
 
     return storeTripleResultsToValueObject({
       uri: item_uri,
