@@ -74,6 +74,9 @@ test("findWithParams", () => {
             OPTIONAL { 
                 ?uri            dct:accessRights    ?accessRights } .
             OPTIONAL { 
+                ?uri            dct:contributor     ?contributor .
+                ?contributor    dct:title           ?contributor__title } .
+            OPTIONAL { 
                 ?parent  ?catRel ?uri .
                 FILTER (?catRel in (
             <http://www.w3.org/ns/dcat#dataset>,
@@ -145,7 +148,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -68,6 +68,2 @@
+    @@ -71,6 +71,2 @@
     -            ?parent  ?catRel ?uri .
     -            FILTER (?catRel in (
     -        <http://www.w3.org/ns/dcat#dataset>,
@@ -198,7 +201,7 @@ test("findWithParams", () => {
     +        VALUES ?uri { <http://dcat.com/#123_Dataset> }
     @@ -39,1 +39,0 @@
     -        
-    @@ -68,6 +68,2 @@
+    @@ -71,6 +71,2 @@
     -            ?parent  ?catRel ?uri .
     -            FILTER (?catRel in (
     -        <http://www.w3.org/ns/dcat#dataset>,

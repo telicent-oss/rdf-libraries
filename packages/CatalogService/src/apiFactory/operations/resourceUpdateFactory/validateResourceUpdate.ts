@@ -8,7 +8,6 @@ export const validateResourceUpdate = async (
   let  errors: ResourceOperationResults["errors"] = {};
   errors = await validateIfDistributionIdentifierIsUnattached(errors, validateResource);
   if (Object.keys(errors).length > 0) {
-
     throw { errors };
   }
 };

@@ -89,6 +89,9 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
         OPTIONAL { 
             ?uri            dct:accessRights    ?accessRights } .
         OPTIONAL { 
+            ?uri            dct:contributor     ?contributor .
+            ?contributor    dct:title           ?contributor__title } .
+        OPTIONAL { 
             ?parent  ${catalogRelationAllOrSpecific} ?uri .
             ${ifAllRelationsThenFilter}
         } .
