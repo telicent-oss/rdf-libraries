@@ -72,7 +72,13 @@ test("ditributionIdentifier", () => {
           "s": "<uniqe-uuid>_Resource",
         },
       ],
-      "classType": [],
+      "classType": [
+        {
+          "o": "New property",
+          "p": "rdf:type",
+          "s": "<uniqe-uuid>_Resource",
+        },
+      ],
       "contactPoint__fn": [
         {
           "o": "<unique-uuidu>_ContactPoint",
@@ -229,11 +235,6 @@ test("ditributionIdentifier", () => {
         {
           "o": "New property",
           "p": "dct:title",
-          "s": "<uniqe-uuid>_Resource",
-        },
-        {
-          "o": "New property",
-          "p": "rdf:type",
           "s": "<uniqe-uuid>_Resource",
         },
       ],
