@@ -222,9 +222,6 @@ export const createOperations = (options: CreateOperationsOptions) => {
         //
         //  NOTE
         //  The data contained within the ontology should include what is compound/mandatory and also drive FE validation
-        break;
-      case "title":
-        pushLiteral({                               p: "dct:title",                                   checkUnique: true});
         // TODO improve - see above
         operations.push({
           type: "create" ,
@@ -236,6 +233,9 @@ export const createOperations = (options: CreateOperationsOptions) => {
           onSuccess: () => {},
           ...predicateFnOptionsBase,
         });
+        break;
+      case "title":
+        pushLiteral({                               p: "dct:title",                                   checkUnique: true});
         break;
       case "identifier":
         pushLiteral({                               p:"dct:identifier"});

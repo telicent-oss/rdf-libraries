@@ -3,6 +3,7 @@ import {
   CreateByPredicateFn,
   UpdateTriple,
   PredicateFnOptionsBase,
+  DispatchResult,
 } from "@telicent-oss/rdf-write-lib";
 
 import { CatalogService, DCATResource } from "../../index";
@@ -161,7 +162,15 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
         );
       }
     } catch (error) {
-      if (typeof error === "object" && error !== null) {
+      if (
+        typeof error === "object" &&
+        error !== null &&
+        "error" in error &&
+        "response" in error
+      ) {
+        const reponse = error as unknown as Awaited<DispatchResult>;
+        operationError(reponse.error || "dispatch error");
+      } else if (typeof error === "object" && error !== null) {
         results.push(
           operationError(
             "message" in error && error?.message
