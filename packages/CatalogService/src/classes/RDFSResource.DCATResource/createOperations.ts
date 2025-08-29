@@ -197,6 +197,31 @@ export const createOperations = (options: CreateOperationsOptions) => {
   switch (options.property) {
       // Edge-case: very first written
       case "classType":
+        // TODO improve. This solution is very much relying of the state of things TODAY.
+        // WHY Today, due to a bug rdf:type has lower permissions (perhaps due to a bug)
+        //  I don't suppose rdf:type should inherently be more permitted than say dc:title. 
+        //  Its more likely a fluke of the current paperback-writer implementation.
+        //  
+        //  So the current solution is to simply do rdf:type write after title write.
+        //
+        //  This code can't be relied to delete things, it it has user permission 
+        // (which might be missing delete)
+        //
+        // HOW 
+        // Actual solution would create new endpoint to dryrun/prob creation
+        //    or enable compound operations with rollback capability
+        //
+        // pushLiteral({                               p: "dct:title",                                   dryRun: true});
+        // pushLiteral({                               p: "dct:title",                                   checkUnique: true});
+        // operations.push({                           p: 'rdf:type',
+        //
+        //
+        //  NOTE
+        //  The data contained within the ontology should include what is compound/mandatory and also drive FE validation
+        break;
+      case "title":
+        pushLiteral({                               p: "dct:title",                                   checkUnique: true});
+        // TODO improve - see above
         operations.push({
           type: "create" ,
           triple: {
@@ -207,9 +232,6 @@ export const createOperations = (options: CreateOperationsOptions) => {
           onSuccess: () => {},
           ...predicateFnOptionsBase,
         });
-        break;
-      case "title":
-        pushLiteral({                               p: "dct:title",                                   checkUnique: true});
         break;
       case "identifier":
         pushLiteral({                               p:"dct:identifier"});
