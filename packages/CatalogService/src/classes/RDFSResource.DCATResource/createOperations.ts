@@ -198,17 +198,21 @@ export const createOperations = (options: CreateOperationsOptions) => {
       // Edge-case: very first written
       case "classType":
         // TODO improve. This solution is very much relying of the state of things TODAY.
-        // WHY Today, due to a bug rdf:type has lower permissions (perhaps due to a bug)
-        //  I don't suppose rdf:type should inherently be more permitted than say dc:title. 
-        //  Its more likely a fluke of the current paperback-writer implementation.
-        //  
-        //  So the current solution is to simply do rdf:type write after title write.
+        // WHY Today, due to a bug, 
+        //  writing rdf:type is a more permitted operation than,
+        //  writing dct:title
         //
-        //  This code can't be relied to delete things, it it has user permission 
+        //  I don't suppose rdf:type should inherently be more permitted than dc:title. 
+        //  Its more likely a fluke of the current paperback-writer bugs/implementation
+        //  
+        //  So this SHORT-TERM solution is to simply do rdf:type write after title write
+        //  This binds them unnecessarily; but oh well.
+        //
+        //  Note: This code can't be relied to clean up triples, it it has user permission 
         // (which might be missing delete)
         //
-        // HOW 
-        // Actual solution would create new endpoint to dryrun/prob creation
+        // HOW
+        // Actual solution would create new endpoint to dryrun/probe creation
         //    or enable compound operations with rollback capability
         //
         // pushLiteral({                               p: "dct:title",                                   dryRun: true});
