@@ -82,7 +82,16 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
 
     for (const p of PREDICATES) {
       const triple: UpdateTriple = { s, p, o };
-      await fns[p]({ triple, prev, dataset_uri: "http://example.com#uri" });
+      await fns[p]({
+        triple,
+        prev,
+        dataset_uri: "http://example.com#uri",
+        vocab: {
+          mint_base: "http://mint_base",
+          PROV_PREFIX: "http://PROV_PREFIX",
+          XSD_DATETIME: "http://XSD_DATETIME",
+        },
+      });
     }
 
     expect((client.POST as jest.Mock).mock.calls).toMatchInlineSnapshot(`
@@ -91,6 +100,10 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/publisher/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_publisher_object_uri": "http://example.org/value/1",
               "old_publisher_object_uri": "http://example.org/prev/1",
@@ -101,6 +114,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/title/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_title": "http://example.org/value/1",
@@ -112,6 +128,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/description/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_description": "http://example.org/value/1",
@@ -123,6 +142,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/issued/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_datetime": "http://example.org/value/1",
@@ -134,6 +156,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/rights/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_rights_object_uri": "http://example.org/value/1",
@@ -145,6 +170,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcat/contactPoint/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_contact_point_object_uri": "http://example.org/value/1",
@@ -156,6 +184,10 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcat/mediaType/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_media_type_object_uri": "http://example.org/value/1",
               "old_media_type_object_uri": "http://example.org/prev/1",
@@ -166,6 +198,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/prov/qualifiedAttribution/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_attribution_item_uri": "http://example.org/value/1",
@@ -177,6 +212,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/identifier/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_identifier": "http://example.org/value/1",
@@ -188,6 +226,10 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/modified/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "http://example.org/item/1",
               "new_datetime": "http://example.org/value/1",
               "old_datetime": "http://example.org/prev/1",
@@ -216,7 +258,16 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
 
     for (const p of PREDICATES) {
       const triple: UpdateTriple = { s, p, o };
-      await fns[p]({ triple, prev, dataset_uri: "http://example.com#uri" });
+      await fns[p]({
+        triple,
+        prev,
+        dataset_uri: "http://example.com#uri",
+        vocab: {
+          mint_base: "http://mint_base",
+          PROV_PREFIX: "http://PROV_PREFIX",
+          XSD_DATETIME: "http://XSD_DATETIME",
+        },
+      });
     }
 
     expect((client.POST as jest.Mock).mock.calls).toMatchInlineSnapshot(`
@@ -225,6 +276,10 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/publisher/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_publisher_object_uri": "O",
               "old_publisher_object_uri": null,
@@ -235,6 +290,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/title/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_title": "O",
@@ -246,6 +304,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/description/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_description": "O",
@@ -257,6 +318,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/issued/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_datetime": "O",
@@ -268,6 +332,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/rights/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_rights_object_uri": "O",
@@ -279,6 +346,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcat/contactPoint/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_contact_point_object_uri": "O",
@@ -290,6 +360,10 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcat/mediaType/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_media_type_object_uri": "O",
               "old_media_type_object_uri": null,
@@ -300,6 +374,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/prov/qualifiedAttribution/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_attribution_item_uri": "O",
@@ -311,6 +388,9 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/identifier/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
               "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_identifier": "O",
@@ -322,6 +402,10 @@ describe("updateByPredicateFnFactory (Jest, no TS friction)", () => {
           "/dcterms/modified/update",
           {
             "body": {
+              "CATALOG_BASE": "http://mint_base",
+              "PROV_PREFIX": "http://PROV_PREFIX",
+              "XSD_DATETIME": "http://XSD_DATETIME",
+              "dataset_uri": "http://example.com#uri",
               "item_uri": "S",
               "new_datetime": "O",
               "old_datetime": null,
