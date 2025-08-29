@@ -10,6 +10,7 @@ import {
 } from "../apiFactory/operations/utils/common";
 import { CatalogService, DCATCatalog } from "../index";
 
+// !WARNING this is a duplicate of packages/CatalogService/src/index.ts
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
   // inherit uri: SPARQLResultBinding;
   // inherit _type?: SPARQLResultBinding;
@@ -24,6 +25,7 @@ export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
   rights__description?: SPARQLResultBinding;
   accessRights?: SPARQLResultBinding;
   qualifiedAttribution?: SPARQLResultBinding;
+  qualifiedAttribution__agent?: SPARQLResultBinding;
   qualifiedAttribution__agent__title?: SPARQLResultBinding;
   // DCAT Phase 2
   distribution?: SPARQLResultBinding;
@@ -128,8 +130,8 @@ export class DCATResource extends RDFSResource {
   __contactPoint?: string;
   __publisher?: string;
   __rights?: string;
-  __qualifiedAttribution?: string;
-  __qualifiedAttribution__agent?: string;
+  qualifiedAttribution?: string;
+  qualifiedAttribution__agent?: string;
   __contributor?: string;
   __distribution__type?: string;
   
@@ -211,6 +213,7 @@ export class DCATResource extends RDFSResource {
       rights__description,
       accessRights,
       qualifiedAttribution,
+      qualifiedAttribution__agent,
       qualifiedAttribution__agent__title,
       distribution,
       distribution__identifier,
@@ -238,6 +241,7 @@ export class DCATResource extends RDFSResource {
       qualifiedAttribution__agent__title:
         qualifiedAttribution__agent__title?.value,
       // Phase 2
+      qualifiedAttribution__agent: qualifiedAttribution__agent?.value,
       distribution: distribution?.value,
       distribution__identifier: distribution__identifier?.value,
       distribution__title: distribution__title?.value,

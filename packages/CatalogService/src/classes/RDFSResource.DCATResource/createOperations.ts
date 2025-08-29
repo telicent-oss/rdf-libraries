@@ -43,8 +43,8 @@ export type GraphData =
   | "__contactPoint"
   | "__publisher"
   | "__rights"
-  | "__qualifiedAttribution"
-  | "__qualifiedAttribution__agent"
+  | "qualifiedAttribution"
+  | "qualifiedAttribution__agent"
   | "__contributor"
   | "__distribution__type";
 
@@ -110,7 +110,7 @@ const pushLiteralWithContext = (
       checkUnique: options.checkUnique,
       prev: instance[property] || null,
       onSuccess: () => {
-        property === 'distribution__identifier' &&  console.log(
+        console.log(
           `instance[${property}] (${instance[property]}) = ${o}`,
           `${s} ${p} ${o}`
         );
@@ -156,7 +156,7 @@ const pushUriWithContext = (
       triple: { s, p, o },
       prev,
       onSuccess: () => {
-        property === 'distribution__identifier' &&  console.log(
+        console.log(
           `instance[${property}] (${instance[property]}) = ${o}`,
           `${s} ${p} ${o}`
         );
@@ -259,8 +259,8 @@ export const createOperations = (options: CreateOperationsOptions) => {
         pushLiteral({                               p:  "dct:accessRights" as unknown as Triple['p']});
         break;
       case "qualifiedAttribution__agent__title":
-        pushUri({                                   p: "prov:qualifiedAttribution",                  property: "__qualifiedAttribution",          postfix: "_DataOwnerAttribution" });
-        pushUri({                                   p: "prov:agent",                                 property: "__qualifiedAttribution__agent",   postfix: "_DataOwner" });
+        pushUri({                                   p: "prov:qualifiedAttribution",                  property: "qualifiedAttribution",          postfix: "_DataOwnerAttribution" });
+        pushUri({                                   p: "prov:agent",                                 property: "qualifiedAttribution__agent",   postfix: "_DataOwner" });
         pushLiteral({                               p:  "dct:title"});
         break;
       // Phase 2
@@ -295,5 +295,6 @@ export const createOperations = (options: CreateOperationsOptions) => {
       default:
         console.warn(`Unsupported property ${options.property}`);
     }
+    console.log(`Operations for ${options.property}`, operations);
   return operations;
 };

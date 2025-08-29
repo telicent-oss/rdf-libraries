@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/catalogservice",
-  "version": "1.0.0-TELFE-805.267",
+  "version": "1.0.0-TELFE-805.276",
   "// TEMP private": "needs merge to main",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",

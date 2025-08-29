@@ -34,6 +34,7 @@ export type DCATRankWrapper = {
   item: DCATResource;
 };
 
+// !WARNING Duplicated
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
   // _type?: SPARQLResultBinding;
   // uri: SPARQLResultBinding;
@@ -45,6 +46,7 @@ export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
   rights__description?: SPARQLResultBinding;
   accessRights?: SPARQLResultBinding;
   qualifiedAttribution?: SPARQLResultBinding;
+  qualifiedAttribution__agent?: SPARQLResultBinding;
   qualifiedAttribution__agent__title?: SPARQLResultBinding;
   // Phase 2
   //   distribution
