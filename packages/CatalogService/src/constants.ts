@@ -5,6 +5,7 @@ export const version = packageJSON?.version;
 export const DEBUG = true;
 
 
+
 export const COMMON_PREFIXES_MAP = {
   dcat: "http://www.w3.org/ns/dcat#",
   dcterms: "http://purl.org/dc/terms/",
@@ -14,6 +15,7 @@ export const COMMON_PREFIXES_MAP = {
   tcat: "http://telicent.io/catalog#",
   sdo: "https://schema.org/",
   vcard: "http://www.w3.org/2006/vcard/ns#fn",
+  xsd: "http://www.w3.org/2001/XMLSchema#",
 } as const;;
 export const COMMON_PREFIXES = (
   Object.entries(COMMON_PREFIXES_MAP) as [string, string][]

@@ -1,8 +1,10 @@
+import { PredicateFnOptionsBase } from "@telicent-oss/rdf-write-lib";
 import { CreateByPredicateFn } from "../../../../rdf-write-lib/dist/createByPredicateFnFactory";
 import { UpdateByPredicateFn } from "../../../../rdf-write-lib/dist/updateByPredicateFnFactory";
 import { DCATResource } from "../RDFSResource.DCATResource";
 import { createUri } from "./createUri";
 import { StoreTripleCreate, StoreTripleUpdate } from "./storeTriplesForPhase2";
+import { COMMON_PREFIXES_MAP } from "../../constants";
 
 // TODO remove these "wordy" manually created types
 // WHY
@@ -50,8 +52,6 @@ export type StoreTripleOperation = StoreTripleUpdate | StoreTripleCreate;
 
 export type Triple = StoreTripleOperation["triple"];
 
-
-
 /** __Internal__StoreTripleUpdate is exactly the same
  * as StoreTripleUpdate. EXCEPT it includes an
  * onSuccess handler that is:
@@ -83,9 +83,10 @@ export type CreateOperationsOptions = {
  * Higher-order function
  *
  */
-const pushLiteralWithOperations = (
+const pushLiteralWithContext = (
   context: {
     operations: __Internal__StoreTripleOperation[];
+    predicateFnOptionsBase: PredicateFnOptionsBase;
   } & CreateOperationsOptions
 ) =>
   /**
@@ -109,14 +110,14 @@ const pushLiteralWithOperations = (
       checkUnique: options.checkUnique,
       prev: instance[property] || null,
       onSuccess: () => {
-        console.log(
-          `instance[${property}] (${instance[property]}) = ${newValue}`,
-          `${s} ${p} ${o}`
-        );
+        // console.log(
+        //   `instance[${property}] (${instance[property]}) = ${newValue}`,
+        //   `${s} ${p} ${o}`
+        // );
         instance[property] = o;
       },
-      dataset_uri: instance.uri,
       property,
+      ...context.predicateFnOptionsBase,
     });
   };
 
@@ -124,9 +125,10 @@ const pushLiteralWithOperations = (
  * Higher-order function
  *
  */
-const pushUriWithOperations = (
+const pushUriWithContext = (
   context: {
     operations: __Internal__StoreTripleOperation[];
+    predicateFnOptionsBase: PredicateFnOptionsBase;
   } & CreateOperationsOptions
 ) =>
   /**
@@ -154,31 +156,40 @@ const pushUriWithOperations = (
       triple: { s, p, o },
       prev,
       onSuccess: () => {
-        console.log(
-          `instance[${property}] (${instance[property]}) = ${options.newLocalName}`,
-          `${s} ${p} ${o}`
-        );
+        // console.log(
+        //   `instance[${property}] (${instance[property]}) = ${options.newLocalName}`,
+        //   `${s} ${p} ${o}`
+        // );
         instance[property] = o;
       },
-      dataset_uri: instance.uri,
       property,
+      ...context.predicateFnOptionsBase,
     });
   };
 
 /**
  *
  *
- * Surely can be replaced with nmap or something
+ * Idea: Leverage Triples library to make exhaustive/complete type-safe operations
  */
 export const createOperations = (options: CreateOperationsOptions) => {
-  console.log(`createOperations for ${options.instance.uri}`, options);
+  const predicateFnOptionsBase: PredicateFnOptionsBase = {
+    dataset_uri: options.instance.uri,
+    vocab: {
+      mint_base: COMMON_PREFIXES_MAP.tcat,
+      PROV_PREFIX: COMMON_PREFIXES_MAP.prov,
+      XSD_DATETIME: `${COMMON_PREFIXES_MAP.xsd}dateTime`,
+    },
+  };
   const operations: __Internal__StoreTripleOperation[] = [];
-  const pushLiteral = pushLiteralWithOperations({
+  const pushLiteral = pushLiteralWithContext({
     operations,
+    predicateFnOptionsBase,
     ...options,
   });
-  const pushUri = pushUriWithOperations({
+  const pushUri = pushUriWithContext({
     operations,
+    predicateFnOptionsBase,
     ...options,
   });
 
@@ -193,8 +204,8 @@ export const createOperations = (options: CreateOperationsOptions) => {
             p: 'rdf:type',
             o: options.newValue,
           },
-          dataset_uri: options.instance.uri,
           onSuccess: () => {},
+          ...predicateFnOptionsBase,
         });
         break;
       case "title":

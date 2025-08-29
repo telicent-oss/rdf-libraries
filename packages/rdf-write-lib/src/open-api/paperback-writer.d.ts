@@ -1373,6 +1373,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** AccessURLUpdate */
         AccessURLUpdate: {
@@ -1388,6 +1403,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /** Old Access Url */
             old_access_url: string;
         };
@@ -1403,6 +1433,26 @@ export interface components {
              * Format: uri
              */
             agent_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** AgentUpdate */
         AgentUpdate: {
@@ -1416,6 +1466,26 @@ export interface components {
              * Format: uri
              */
             new_agent_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /**
              * Old Agent Uri
              * Format: uri
@@ -1434,6 +1504,26 @@ export interface components {
              * Format: uri
              */
             attribution_item_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** AttributionUpdate */
         AttributionUpdate: {
@@ -1447,6 +1537,26 @@ export interface components {
              * Format: uri
              */
             new_attribution_item_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /**
              * Old Attribution Item Uri
              * Format: uri
@@ -1474,6 +1584,26 @@ export interface components {
              * Format: uri
              */
             contact_point_object_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** ContactPointUpdate */
         ContactPointUpdate: {
@@ -1487,6 +1617,26 @@ export interface components {
              * Format: uri
              */
             new_contact_point_object_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /**
              * Old Contact Point Object Uri
              * Format: uri
@@ -1543,6 +1693,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** DescriptionUpdate */
         DescriptionUpdate: {
@@ -1558,6 +1723,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /** Old Description */
             old_description: string;
         };
@@ -1573,6 +1753,26 @@ export interface components {
              * Format: uri
              */
             distribution_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** DistributionUpdate */
         DistributionUpdate: {
@@ -1586,6 +1786,26 @@ export interface components {
              * Format: uri
              */
             new_distribution_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /**
              * Old Distribution Uri
              * Format: uri
@@ -1619,6 +1839,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** FnUpdate */
         FnUpdate: {
@@ -1634,6 +1869,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /** Old Fn */
             old_fn: string;
         };
@@ -1694,6 +1944,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** IdentifierUpdate */
         IdentifierUpdate: {
@@ -1709,6 +1974,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /** Old Identifier */
             old_identifier: string;
         };
@@ -1729,6 +2009,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** IssuedDateTimeUpdate */
         IssuedDateTimeUpdate: {
@@ -1747,6 +2042,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /**
              * Old Datetime
              * Format: date-time
@@ -1779,6 +2089,26 @@ export interface components {
              * Format: uri
              */
             media_type_object_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** MediaTypeUpdate */
         MediaTypeUpdate: {
@@ -1792,6 +2122,26 @@ export interface components {
              * Format: uri
              */
             new_media_type_object_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /**
              * Old Media Type Object Uri
              * Format: uri
@@ -1870,6 +2220,26 @@ export interface components {
              * Format: uri
              */
             publisher_object_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** PublisherUpdate */
         PublisherUpdate: {
@@ -1883,6 +2253,26 @@ export interface components {
              * Format: uri
              */
             new_publisher_object_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /**
              * Old Publisher Object Uri
              * Format: uri
@@ -1915,6 +2305,26 @@ export interface components {
              * Format: uri
              */
             rights_object_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** RightsUpdate */
         RightsUpdate: {
@@ -1928,6 +2338,26 @@ export interface components {
              * Format: uri
              */
             new_rights_object_uri: string;
+            /**
+             * Dataset Uri
+             * Format: uri
+             */
+            dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /**
              * Old Rights Object Uri
              * Format: uri
@@ -1958,6 +2388,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
         };
         /** TitleUpdate */
         TitleUpdate: {
@@ -1973,6 +2418,21 @@ export interface components {
              * Format: uri
              */
             dataset_uri: string;
+            /**
+             * Catalog Base
+             * @default http://telicent.io/catalog#
+             */
+            CATALOG_BASE: string;
+            /**
+             * Prov Prefix
+             * @default http://www.w3.org/ns/prov#
+             */
+            PROV_PREFIX: string;
+            /**
+             * Xsd Datetime
+             * @default http://www.w3.org/2001/XMLSchema#dateTime
+             */
+            XSD_DATETIME: string;
             /** Old Title */
             old_title: string;
         };

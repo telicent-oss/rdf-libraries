@@ -2,6 +2,7 @@ import {
   UpdateByPredicateFn,
   CreateByPredicateFn,
   UpdateTriple,
+  PredicateFnOptionsBase,
 } from "@telicent-oss/rdf-write-lib";
 
 import { CatalogService, DCATResource } from "../../index";
@@ -17,9 +18,8 @@ type StoreTripleBase = {
   triple: UpdateTriple;
   property?: string;
   onSuccess: () => void;
-  dataset_uri: string;
   checkUnique?: boolean;
-};
+} & PredicateFnOptionsBase;
 // TODO move to generic file
 export type StoreTripleUpdate = StoreTripleBase & {
   type: "update";

@@ -1,5 +1,5 @@
 import { RdfWriteApiClientType } from "./rdfWriteApiClientFactory";
-import { DispatchResult, Endpoints } from "./types";
+import { DispatchResult, Endpoints, PredicateFnOptionsBase } from "./types";
 import { throwIfHTTPError } from "./utils/throwIfHTTPError";
 
 type OmitEndpoints =
@@ -87,7 +87,7 @@ export type UpdateTriple = {
 
 export type UpdateByPredicateFn = Record<
   keyof typeof predicatesToEndpoints,
-  (options: { triple: UpdateTriple; prev: string | null; dataset_uri:string }) => DispatchResult
+  (options: { triple: UpdateTriple; prev: string | null; } & PredicateFnOptionsBase) => DispatchResult
 >;
 
 export const updateByPredicateFnFactory = ({
@@ -95,148 +95,203 @@ export const updateByPredicateFnFactory = ({
 }: {
   client: RdfWriteApiClientType;
 }): UpdateByPredicateFn => ({
-  "dct:publisher": ({ triple, prev }) =>
+  "dct:publisher": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcterms/publisher/update", {
       body: {
         item_uri: triple.s,
         old_publisher_object_uri: prev as unknown as string,
         new_publisher_object_uri: triple.o,
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,
       },
     }).then(throwIfHTTPError),
-  "dct:title": ({ triple, prev, dataset_uri }) =>
+  "dct:title": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcterms/title/update", {
       body: {
         item_uri: triple.s,
         old_title: prev as unknown as string,
         new_title: triple.o,
-        dataset_uri
-      },
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,},
     }).then(throwIfHTTPError),
 
-  "dct:description": ({ triple, prev, dataset_uri }) =>
+  "dct:description": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcterms/description/update", {
       body: {
         item_uri: triple.s,
         old_description: prev as unknown as string,
         new_description: triple.o,
-        dataset_uri
-      },
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,},
     }).then(throwIfHTTPError),
 
-  "dct:issued": ({ triple, prev, dataset_uri }) =>
+  "dct:issued": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcterms/issued/update", {
       body: {
         item_uri: triple.s,
         old_datetime: prev as unknown as string,
         new_datetime: triple.o,
-        dataset_uri
-      },
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,},
     }).then(throwIfHTTPError),
 
-  "dct:rights": ({ triple, prev, dataset_uri }) =>
+  "dct:rights": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcterms/rights/update", {
       body: {
         item_uri: triple.s,
         old_rights_object_uri: prev as unknown as string,
         new_rights_object_uri: triple.o,
-        dataset_uri
-      },
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,},
     }).then(throwIfHTTPError),
 
-  "prov:qualifiedAttribution": ({ triple, prev, dataset_uri }) =>
+  "prov:qualifiedAttribution": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/prov/qualifiedAttribution/update", {
       body: {
         item_uri: triple.s,
         old_attribution_item_uri: prev as unknown as string,
         new_attribution_item_uri: triple.o,
-        dataset_uri
-      },
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,},
     }).then(throwIfHTTPError),
 
-  "dct:identifier": ({ triple, prev, dataset_uri }) =>
+  "dct:identifier": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcterms/identifier/update", {
       body: {
         item_uri: triple.s,
         old_identifier: prev as unknown as string,
         new_identifier: triple.o,
-        dataset_uri
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,
       },
     }).then(throwIfHTTPError),
 
-  "dcat:contactPoint": ({ triple, prev, dataset_uri }) =>
+  "dcat:contactPoint": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcat/contactPoint/update", {
       body: {
         item_uri: triple.s,
         old_contact_point_object_uri: prev as unknown as string,
         new_contact_point_object_uri: triple.o,
-        dataset_uri
-      },
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,},
     }).then(throwIfHTTPError),
-  "dcat:mediaType": ({ triple, prev }) =>
+  "dcat:mediaType": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcat/mediaType/update", {
       body: {
         item_uri: triple.s,
         old_media_type_object_uri: prev as unknown as string,
         new_media_type_object_uri: triple.o,
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,
+      
       },
     }).then(throwIfHTTPError),
 
-  "dct:modified": ({ triple, prev }) =>
+  "dct:modified": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcterms/modified/update", {
       body: {
         item_uri: triple.s,
         old_datetime: prev as unknown as string,
         new_datetime: triple.o,
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,
+      
       },
     }).then(throwIfHTTPError),
-  "dcat:distribution": ({ triple, prev }) =>
+  "dcat:distribution": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcat/distribution/update", {
       body: {
         item_uri: triple.s,
         old_distribution_uri: prev as unknown as string,
         new_distribution_uri: triple.o,
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,
+      
       },
     }).then(throwIfHTTPError),
-  "dcat:hadRole": ({ triple, prev }) =>
+  "dcat:hadRole": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcat/hadRole/update", {
       body: {
         item_uri: triple.s,
         old_role_uri: prev as unknown as string,
         new_role_uri: triple.o,
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,
+      
       },
     }).then(throwIfHTTPError),
-  "dcat:accessURL": ({ triple, prev, dataset_uri }) =>
+  "dcat:accessURL": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcat/accessURL/update", {
       body: {
         item_uri: triple.s,
         old_access_url: prev as unknown as string,
         new_access_url: triple.o,
         dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,
+      
       },
     }).then(throwIfHTTPError),
-  "dcterms:contributor": ({ triple, prev }) =>
+  "dcterms:contributor": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/dcterms/contributor/update", {
       body: {
         item_uri: triple.s,
         old_contributor_object_uri: prev as unknown as string,
         new_contributor_object_uri: triple.o,
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,
+      
       },
     }).then(throwIfHTTPError),
-  "vcard:fn": ({ triple, prev, dataset_uri }) =>
+  "vcard:fn": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/vcard/fn/update", {
       body: {
         item_uri: triple.s,
         old_fn: prev as unknown as string,
         new_fn: triple.o,
-        dataset_uri
-      },
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,},
     }).then(throwIfHTTPError),
-  "prov:agent": ({ triple, prev }) =>
+  "prov:agent": ({ triple, prev, dataset_uri, vocab }) =>
     client.POST("/prov/agent/update", {
       body: {
         item_uri: triple.s,
         old_agent_uri: prev as unknown as string,
         new_agent_uri: triple.o,
+        dataset_uri,
+        CATALOG_BASE: vocab.mint_base,
+        PROV_PREFIX: vocab.PROV_PREFIX,
+        XSD_DATETIME: vocab.XSD_DATETIME,
+      
       },
     }).then(throwIfHTTPError),
   /**
@@ -250,7 +305,7 @@ export const updateByPredicateFnFactory = ({
         dataset: "catalog", // required, else defaults to knowledge
         subject: triple.s,
         predicate: "http://www.w3.org/1999/02/22-rdf-syntax-ns#type",
-        object: triple.o,
+        object: triple.o,      
       },
     }).then(throwIfHTTPError),
 });
