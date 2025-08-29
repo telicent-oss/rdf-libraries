@@ -16,7 +16,12 @@ export const validateIfDistributionIdentifierIsUnattached = async (
   if (distributionIdentifier === currentDistributionIdentifier) {
     return errors; // no change
   }
-  console.log('Going to check', currentDistributionIdentifier, distributionIdentifier, { operation, dcatResource });
+  console.log(
+    "Going to check",
+    `currentDistributionIdentifier: ${currentDistributionIdentifier}`,
+    `distributionIdentifier:${distributionIdentifier}`,
+    { operation, dcatResource }
+  );
 
   const askResult = await catalogService.runQuery(
     builder.catalog.askIfDistributionIdentifierIsUnattached({

@@ -56,6 +56,7 @@ export const resourceUpdateFactory = ({
         ? (rdfsResource as DCATResource)
         : throwWrongTypes(item_uri);
 
+    console.log('updating', dcatResource)
     await validateResourceUpdate({
       catalogService,
       operation,

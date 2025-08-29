@@ -110,10 +110,10 @@ const pushLiteralWithContext = (
       checkUnique: options.checkUnique,
       prev: instance[property] || null,
       onSuccess: () => {
-        // console.log(
-        //   `instance[${property}] (${instance[property]}) = ${newValue}`,
-        //   `${s} ${p} ${o}`
-        // );
+        property === 'distribution__identifier' &&  console.log(
+          `instance[${property}] (${instance[property]}) = ${o}`,
+          `${s} ${p} ${o}`
+        );
         instance[property] = o;
       },
       property,
@@ -156,10 +156,10 @@ const pushUriWithContext = (
       triple: { s, p, o },
       prev,
       onSuccess: () => {
-        // console.log(
-        //   `instance[${property}] (${instance[property]}) = ${options.newLocalName}`,
-        //   `${s} ${p} ${o}`
-        // );
+        property === 'distribution__identifier' &&  console.log(
+          `instance[${property}] (${instance[property]}) = ${o}`,
+          `${s} ${p} ${o}`
+        );
         instance[property] = o;
       },
       property,
@@ -279,7 +279,7 @@ export const createOperations = (options: CreateOperationsOptions) => {
           : options.property == 'distribution__accessURL'   ? "dcat:accessURL"
           : "dcat:mediaType";
         const checkUnique = options.property === "distribution__identifier";
-        pushLiteral({s: operations.at(-2)?.triple.o,      p,                checkUnique  });
+        pushLiteral({s: operations.at(-2)?.triple.o,      p,                o: options.newValue,  checkUnique  });
         break;
       }
       case "min_issued":
@@ -293,7 +293,7 @@ export const createOperations = (options: CreateOperationsOptions) => {
       // case 'uri':                      // Handled during creation only
       // case "distribution__available":  // Handled by pipeline
       default:
-        console.error(`Unsupported property ${options.property}`);
+        console.warn(`Unsupported property ${options.property}`);
     }
   return operations;
 };
