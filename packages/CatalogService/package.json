@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/catalogservice",
-  "version": "1.0.0-TELFE-805.276",
+  "version": "1.0.0-TELFE-805.277",
   "// TEMP private": "needs merge to main",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",
@@ -47,7 +47,7 @@
   },
   "dependencies": {
     "@telicent-oss/rdf-write-lib": "^0.0.1-TELFE-805.69",
-    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.58",
+    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.59",
     "@telicent-oss/sparql-lib": "^0.0.1-TELFE-805.85",
     "perfect-debounce": "1.0.0",
     "uuid": "11.1.0",

@@ -86,6 +86,7 @@ export type StoreTripleForOntology = (options: {
     updateByPredicateFns: UpdateByPredicateFn;
   };
   catalogService: CatalogService;
+  sleepMsBetweenRequests?: number;
 }) => Promise<StoreTriplesResult[]>;
 
 /**
@@ -99,6 +100,7 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
   newValue,
   api,
   catalogService,
+  sleepMsBetweenRequests = 0,
 }) => {
   const asErrorValueObject = (error: unknown, meta: unknown) => ({
     details: `[${property}] ${error} ${JSON.stringify(meta)}`,
@@ -187,6 +189,9 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
       }
       isErrorUpstream = true;
     }
+    await new Promise((fulfill) => {
+      setTimeout(fulfill, sleepMsBetweenRequests)
+    })
   }
   return results;
 };

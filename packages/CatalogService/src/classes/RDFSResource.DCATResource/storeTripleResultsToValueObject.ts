@@ -1,3 +1,4 @@
+import { ApiFactoryConfigType } from "src/apiFactory/operations/type";
 import { UIDataResourceType } from "../../apiFactory/operations/utils/common";
 import { CatalogService } from "../RdfService.CatalogService";
 import { DCATResource } from "../RDFSResource.DCATResource";
@@ -66,6 +67,7 @@ export type StoreTriplesOptions = {
   storeTriplesForOntology: StoreTripleForOntology;
   api: Parameters<StoreTripleForOntology>[0]["api"];
   catalogService: CatalogService;
+  config?: ApiFactoryConfigType;
 };
 
 /**
@@ -81,6 +83,7 @@ export const storeTripleResultsToValueObject = async ({
   storeTriplesForOntology,
   api,
   catalogService,
+  config,
 }: StoreTriplesOptions) => {
 
   const uiFieldEntires = editableEntries(uiFields);
@@ -96,6 +99,7 @@ export const storeTripleResultsToValueObject = async ({
       newValue: uiFieldValue,
       api,
       catalogService,
+      sleepMsBetweenRequests: config?.QA_SLEEP_BETWEEN_CALLS,
     });
     values[uiField] = instance[EditableUIToProperty[uiField]];
     errors[uiField] = result.filter((el) => "error" in el);

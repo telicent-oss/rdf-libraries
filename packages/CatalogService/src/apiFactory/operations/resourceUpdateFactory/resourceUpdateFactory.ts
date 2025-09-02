@@ -12,6 +12,7 @@ import { storeTripleResultsToValueObject } from "../../../classes/RDFSResource.D
 import { UIDataResourceType } from "../utils/common";
 import { throwWriteErrorForUri } from "../utils/throwWriteErrorForUri";
 import { validateResourceUpdate } from "./validateResourceUpdate";
+import { ApiFactoryConfigType } from "../type";
 
 export type ResourceUpdateParamsType = {
   type: "dataSet";
@@ -26,9 +27,11 @@ export type ResourceUpdateParamsType = {
 export const resourceUpdateFactory = ({
   catalogService,
   rdfWriteApiClient,
+  config
 }: {
   catalogService: CatalogService;
   rdfWriteApiClient: RdfWriteApiClientType;
+  config?: ApiFactoryConfigType;
 }) => {
   const options = { client: rdfWriteApiClient };
   const updateByPredicateFns = updateByPredicateFnFactory(options);
@@ -69,7 +72,8 @@ export const resourceUpdateFactory = ({
       instance: dcatResource,
       storeTriplesForOntology: storeTriplesForPhase2,
       api: storeTripleApi,
-      catalogService
+      catalogService,
+      config,
     });
   };
 };
