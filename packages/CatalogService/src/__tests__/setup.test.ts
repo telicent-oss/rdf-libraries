@@ -22,21 +22,35 @@ const triplestoreUri = "http://localhost:3030/";
 const initialTripleCount = 11;
 const catalogServiceOptions = { triplestoreUri, config: { NO_WARNINGS: true } };
 
-describe("CatalogService", () => {
+const describeOrSkip = process.env.DO_TEST_CONTAINERS
+  ? describe
+  : describe.skip;
+
+  const beforeAllOrSkip = process.env.DO_TEST_CONTAINERS
+  ? beforeAll
+  : console.log;
+  const afterAllOrSkip = process.env.DO_TEST_CONTAINERS
+  ? afterAll
+  : console.log;
+  const afterEachOrSkip = process.env.DO_TEST_CONTAINERS
+  ? afterEach
+  : console.log;
+
+describeOrSkip("CatalogService", () => {
   let environment: StartedDockerComposeEnvironment;
   let catalogService: CatalogService;
 
-  beforeAll(async () => {
+  beforeAllOrSkip(async () => {
     ({ catalogService, environment } = await setupContainer(
       catalogServiceOptions
     ));
   }, 60 * SEC);
 
-  afterAll(async () => {
+  afterAllOrSkip(async () => {
     await environment.down({ removeVolumes: true });
   }, 60 * SEC);
 
-  afterEach(async () => {
+  afterEachOrSkip(async () => {
     await catalogService.runUpdate(["DELETE WHERE {?s ?p ?o }"]); //clear the dataset
   }, 60 * SEC);
 

@@ -8,7 +8,6 @@
 import {
   createQueryResponseSchema,
   LongURI,
-  PrefixedURI,
   QueryResponse,
   RdfService,
   RDFSResource,
@@ -16,7 +15,6 @@ import {
   SPARQLQuerySolution,
   SPARQLResultBinding,
   SparQLResultBinding,
-  SPOQuerySolution,
   StringsDict,
   TypedNodeQuerySolution,
   XsdDataType,
@@ -491,6 +489,7 @@ abstract class OntologyItem extends RDFSResource {
 
   //dummy function to be overriden by subclasses
   // TODO Good chance this method could be replaced with interface or abstract class
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async describe(): Promise<any> {
     return undefined;
   }
@@ -556,7 +555,7 @@ export type DiagramRelationship = {
   source?: DiagramElement;
   target?: DiagramElement;
   relationship?: LongURI;
-  style?: Object;
+  style?: Record<string, unknown>;
 };
 
 //A wrapper class for an RDF Property (or an OWL ObjectProperty / DatatypeProperty)
@@ -581,8 +580,9 @@ export class RDFProperty extends OntologyItem {
   }
 
   async getNodes(
-    nodeURIs: string[],
-    optionalPredicates: string[] = []
+    _nodeURIs: string[],
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    _optionalPredicates: string[] = []
   ): Promise<RDFSResource[]> {
     const out: RDFSResource[] = [];
 
@@ -1748,6 +1748,7 @@ export class OntologyService extends RdfService {
         let cls = defaultCls;
         if (statement._type) {
           const types = statement._type.value.split(" ");
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           cls = this.lookupClass(types[0], defaultCls) as any;
         }
         const item = new cls(this, undefined, undefined, statement);

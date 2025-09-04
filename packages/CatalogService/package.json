@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/catalogservice",
-  "version": "1.0.0",
+  "version": "1.0.0-TELFE-805.277",
   "// TEMP private": "needs merge to main",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",
@@ -36,7 +36,8 @@
     "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
     "start:store": "yarn start:triple-store-for-local-dev-and-tests",
     "prepublish": "yarn lint && yarn test",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "tscNoEmit": "yarn tsc --noEmit"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -45,22 +46,27 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "1.0.0",
-    "@types/cors": "2.8.17",
-    "cors": "2.8.5",
-    "express": "4.19.2",
-    "snapshot-diff": "0.10.0",
+    "@telicent-oss/rdf-write-lib": "^0.0.1-TELFE-805.69",
+    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.59",
+    "@telicent-oss/sparql-lib": "^0.0.1-TELFE-805.85",
+    "perfect-debounce": "1.0.0",
+    "uuid": "11.1.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@telicent-oss/dev-dependencies-lib": "^0.0.1-TELFE-805.1",
     "@microsoft/tsdoc": "^0.14.2",
     "@types/diff": "^5.2.2",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.4.0",
     "@types/node": "16.11.7",
     "@types/tcp-port-used": "^1.0.4",
+    "express": "4.19.2",
+    "snapshot-diff": "0.10.0",
+    "@types/cors": "2.8.17",
     "diff": "^7.0.0",
     "eslint": "^8.56.0",
+    "cors": "2.8.5",
     "eslint-plugin-tsdoc": "^0.2.17",
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",

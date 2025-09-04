@@ -3,12 +3,16 @@
   "compilerOptions": {
     "module": "ESNext", // Important for ESM support
     "target": "ESNext", // Compile to a modern ECMAScript version
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
     "strict": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@telicent-oss/sparql-lib": ["../sparql-lib/src/index.ts"]
+    }
   },
   "// ts-node": "https://github.com/nodejs/node/issues/48207#issuecomment-1872668858",
   "ts-node": {
@@ -17,3 +21,4 @@
     "esm": true,
   },
 }
+

@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontology-icon-react-lib",
-  "version": "1.0.3",
+  "version": "1.0.3-TELFE-805.0",
   "private": false,
   "description": "React functionality for working with icons from @telicent/ontologyservice",
   "main": "./dist/index.js",
@@ -30,7 +30,8 @@
     "link": "yarn link",
     "local-publish": "npm publish --registry http://localhost:4873 --prepatch",
     "prepublish": "yarn lint && yarn test",
-    "prepublishOnly": "yarn build"
+    "prepublishOnly": "yarn build",
+    "tscNoEmit": "yarn tsc --noEmit"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -39,9 +40,9 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "devDependencies": {
-    "@telicent-oss/ontology-icon-lib": "^1.0.2",
-    "@telicent-oss/rdfservice": "1.0.0",
-    "@telicent-oss/react-lib": "^0.5.0",
+    "@telicent-oss/ontology-icon-lib": "^1.0.2-TELFE-805.0",
+    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.59",
+    "@telicent-oss/react-lib": "^0.5.0-TELFE-805.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-error-boundary": "^4.0.12",
@@ -64,9 +65,9 @@
   },
   "peerDependencies": {
     "@telicent-oss/ds": "*",
-    "@telicent-oss/ontology-icon-lib": "*",
-    "@telicent-oss/rdfservice": "*",
-    "@telicent-oss/react-lib": "*",
+    "@telicent-oss/ontology-icon-lib": "^1.0.2-TELFE-805.0",
+    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.59",
+    "@telicent-oss/react-lib": "^0.5.0-TELFE-805.0",
     "react": "*",
     "react-dom": "*",
     "react-error-boundary": "*",

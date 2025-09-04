@@ -1,6 +1,6 @@
 //import { SPARQL } from "packages/RdfService";
 
-import { OntologyService, Style } from "./index";
+import { Style } from "./index";
 /*
  * @function makeStyleObject
  * @remarks

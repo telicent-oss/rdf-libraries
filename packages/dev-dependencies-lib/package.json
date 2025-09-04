@@ -1,0 +1,62 @@
+{
+  "name": "@telicent-oss/dev-dependencies-lib",
+  "version": "0.0.1-TELFE-805.1",
+  "private": false,
+  "description": "Utility code",
+  "main": "./dist/dev-dependencies-lib.cjs.js",
+  "files": [
+    "dist/*"
+  ],
+  "type": "module",
+  "module": "./dist/dev-dependencies-lib.es.js",
+  "types": "./dist/dev-dependencies-lib.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/dev-dependencies-lib.es.js",
+      "require": "./dist/dev-dependencies-lib.cjs.js",
+      "types": "./dist/dev-dependencies-lib.d.ts"
+    }
+  },
+  "scripts": {
+    "start": "vite",
+    "test": "jest --runInBand ",
+    "build": "rm -rf ./dist && vite build",
+    "lint": "yarn eslint **/*.ts",
+    "link": "yarn link",
+    "local-publish": "npm publish --registry http://localhost:4873 --prepatch",
+    "prepublish": "yarn lint && yarn test",
+    "prepublishOnly": "yarn build",
+    "tscNoEmit": "yarn tsc --noEmit"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "diff": "^7.0.0",
+    "testcontainers": "^10.14.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^29.4.0",
+    "eslint": "^8.56.0",
+    "ts-jest": "^29.1.1",
+    "ts-node": "^10.9.1",
+    "tsc": "^2.0.4",
+    "typescript": "^5.5.4",
+    "vite": "^4.5.3",
+    "vite-plugin-dts": "^3.6.3",
+    "vite-tsconfig-paths": "^4.2.1"
+  },
+  "peerDependencies": {},
+  "engines": {
+    "node": ">=20.14.0"
+  },
+  "resolutions": {
+    "rollup": "3.29.5"
+  }
+}

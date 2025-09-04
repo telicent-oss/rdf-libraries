@@ -4,12 +4,16 @@ import { setupContainer } from "./utils/setupContainer";
 import { IESService, IESServicePassedOptions } from "../IESService/IESService";
 import { SEC } from "../constants";
 
+const describeOrSkip = process.env.DO_TEST_CONTAINERS
+  ? describe
+  : describe.skip;
+
 const passedOptions: Partial<IESServicePassedOptions> = {
   triplestoreUri: "http://localhost:3030/",
   config: { NO_WARNINGS: true },
 };
 
-describe("IESService", () => {
+describeOrSkip("IESService", () => {
   let environment: StartedDockerComposeEnvironment;
   let service: IESService;
 

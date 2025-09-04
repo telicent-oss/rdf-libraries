@@ -11,7 +11,7 @@ fi
 yarn config set registry "https://registry.npmjs.org/"
 echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
 
-yarn build
+yarn lerna run build --stream --no-prefix --concurrency 1  --include-dependencies
 
 # 4. Check for uncommitted changes
 if ! git diff-index --quiet HEAD --; then

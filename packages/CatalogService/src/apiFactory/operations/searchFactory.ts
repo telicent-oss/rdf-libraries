@@ -1,27 +1,37 @@
-import { z } from "zod";
 import { CatalogService, DCATResource } from "../../index";
 
-import { UIDataResourceSchema, UISearchContextType, UISearchParamsType } from "./utils/common";
+import { UIDataResourceType, UISearchParamsType } from "./utils/common";
 import { transformDataResourceFilters } from "./utils/transformDataResourceFilters";
+import { ApiFactoryConfigType } from "./type";
 
-export const searchFactory = (service: CatalogService) => {
+export const FF_DISABLED_CACHE = true;
+
+export const searchFactory = (
+  service: CatalogService,
+  config: ApiFactoryConfigType = {}
+) => {
   let cachedResources: DCATResource[] | undefined = undefined;
   const getAllResources = async () => {
-    if (!cachedResources) {
+    if (!cachedResources || FF_DISABLED_CACHE) {
       cachedResources = await service.getAllDCATResources();
     }
-    return [...cachedResources];
+    return [...(cachedResources || [])];
   };
-  return searchFactoryFn(getAllResources);
+  return searchFactoryFn(getAllResources, config);
 };
 
 export const searchFactoryFn =
-  (getResourcesFn: () => Promise<DCATResource[]>) =>
+  (
+    getResourcesFn: () => Promise<DCATResource[]>,
+    config: ApiFactoryConfigType = {}
+  ) =>
   async (
     params: UISearchParamsType,
-    context: { ownerEmail?: string} = {} as UISearchContextType
-  ): Promise<Array<z.infer<typeof UIDataResourceSchema>>> => {
-    const { hasOwnerFilter, dataResourceFilter } = transformDataResourceFilters(
+    // context: { ownerEmail?: string} = {} as UISearchContextType
+  ): Promise<Array<Partial<UIDataResourceType>>> => {
+    const { 
+      // hasOwnerFilter, 
+      dataResourceFilter } = transformDataResourceFilters(
       params.dataResourceFilters
     );
     // Simplify to get all Data Resources, need to keep an eye on this to check it doesnt
@@ -30,7 +40,7 @@ export const searchFactoryFn =
     const re = params.searchText
       ? new RegExp(params.searchText.toLowerCase(), "gi")
       : undefined;
-    let isWarnOwnerEmailExpected = false
+    // let isWarnOwnerEmailExpected = false
     const found = await Promise.all(
       resources
         .filter((resource) => {
@@ -41,15 +51,15 @@ export const searchFactoryFn =
             resource.uri === dataResourceFilter
           );
         })
-        .filter((resource) => {
-          if (!hasOwnerFilter) {
-            return true
-          }
-          if (context?.ownerEmail === undefined) {
-            isWarnOwnerEmailExpected = true
-          }
-          return resource.attributionAgentStr === context.ownerEmail
-        })
+        // .filter((resource) => {
+        //   if (!hasOwnerFilter) {
+        //     return true
+        //   }
+        //   if (context?.ownerEmail === undefined) {
+        //     isWarnOwnerEmailExpected = true
+        //   }
+        //   return resource.publisher__title === context.ownerEmail;
+        // })
         .map((resource) => ({
           item: resource,
           score: 0,
@@ -64,11 +74,21 @@ export const searchFactoryFn =
           }
           return true;
         })
-        .sort((a, b) => (b.score || 0) - (a.score || 0))
-        .map(async (resource) => await resource.item.toUIRepresentation())
+        .sort((a, b) => params.searchText 
+        ? (b.score || 0) - (a.score || 0)
+        : +new Date(b.item.max_modified || 0) - +new Date(a.item.max_modified || 0)
+        )
+        .map(async (resource) => {
+          const uiRepresentation = await resource.item.toUIRepresentation();
+
+          if (!config.FF_CATALOG_UPDATE) {
+            return uiRepresentation;
+          }
+          return uiRepresentation;
+        })
     );
-    if (isWarnOwnerEmailExpected) {
-      console.error('Expected ownerEmail to be set to search for owned resources')
-    }
+    // if (isWarnOwnerEmailExpected) {
+    //   console.error('Expected ownerEmail to be set to search for owned resources')
+    // }
     return found;
   };

@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "✖ Error on line $LINENO"; exit 1' ERR
+
+DEF_OUTPUT="data/catalog-select-all.gitignored.nt";
+#####################################
+# Helpers
+#####################################
+error() { echo "✖ $*" >&2; exit 1; }
+info()  { echo "→ $*";      }
+
+#####################################
+# Usage
+#####################################
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") -r REMOTE_SPARQL [-o OUTPUT_FILE] [-b COOKIE]
+  -r REMOTE_SPARQL     SPARQL endpoint URL (required)
+  -o OUTPUT_FILE       (default: $DEF_OUTPUT)
+  -b COOKIE param
+EOF
+  exit 1
+}
+
+#####################################
+# Parse arguments
+#####################################
+REMOTE="" COOKIE="" OUTPUT="$DEF_OUTPUT"
+while getopts "r:o:b:h" opt; do
+  case "$opt" in
+    r) REMOTE=$OPTARG ;;
+    o) OUTPUT=$OPTARG ;;
+    b) COOKIE=$OPTARG ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+[[ -n $REMOTE ]] || usage
+
+#####################################
+# Require tools
+#####################################
+command -v curl >/dev/null || error "curl not installed"
+command -v grep >/dev/null || error "grep not installed"
+
+#####################################
+# Filenames
+#####################################
+RAW="${OUTPUT%.gitignored.nt}.gitignored.nt"
+
+#####################################
+# 1) Fetch raw triples
+#####################################
+query='query=
+DESCRIBE <IRI>
+'
+info "Fetching all DCAT triples from $REMOTE and placing into $RAW"
+if ! HTTP=$(curl -sS \
+      -H "Accept: application/n-triples" \
+      -b "$COOKIE" \
+      --data-urlencode "$query" \
+      -w "%{http_code}" \
+      -o "$RAW" \
+      "$REMOTE"); then
+  error "Network error fetching triples"
+fi
+[[ $HTTP -ge 200 && $HTTP -lt 300 ]] || { BODY=$(<"$RAW"); rm -f "$RAW"; error "Fetch failed HTTP $HTTP: $BODY"; }
+[[ -s $RAW ]] || error "Raw file is empty"
+COUNT_RAW=$(grep -c '^<' "$RAW" || echo 0)
+info "Saved $COUNT_RAW raw triples to $RAW" 

@@ -1,5 +1,6 @@
 docker-compose.yml
 data
+!./packages/CatalogService/data/phase2v2.nt
 graph-config
 
 # Logs

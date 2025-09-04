@@ -1,0 +1,114 @@
+#!/usr/bin/env bash
+set -euo pipefail
+trap 'echo "✖ Error on line $LINENO"; exit 1' ERR
+
+DEF_FILE_CATALOG_NT="data/catalog.gitignored.nt";
+DEF_FILE_CATALOG_RAW_NT="${DEF_FILE_CATALOG_NT%.gitignored.nt}-raw.gitignored.nt"
+#####################################
+# Helpers
+#####################################
+error() { echo "✖ $*" >&2; exit 1; }
+info()  { echo "→ $*";      }
+
+#####################################
+# Usage
+#####################################
+usage() {
+  cat <<EOF
+Usage: $(basename "$0") -r REMOTE_SPARQL [-o OUTPUT_FILE] [-b COOKIE]
+  -r REMOTE_SPARQL     SPARQL endpoint URL (required)
+  -o OUTPUT_FILE       Cleaned NT file (default: $DEF_FILE_CATALOG_NT)
+  -b COOKIE param
+This also writes raw triples to $DEF_FILE_CATALOG_RAW_NT
+EOF
+  exit 1
+}
+
+#####################################
+# Parse arguments
+#####################################
+REMOTE="" COOKIE="" OUTPUT="$DEF_FILE_CATALOG_NT"
+while getopts "r:o:b:h" opt; do
+  case "$opt" in
+    r) REMOTE=$OPTARG ;;
+    o) OUTPUT=$OPTARG ;;
+    b) COOKIE=$OPTARG ;;
+    h) usage ;;
+    *) usage ;;
+  esac
+done
+[[ -n $REMOTE ]] || usage
+
+#####################################
+# Require tools
+#####################################
+command -v curl >/dev/null || error "curl not installed"
+command -v grep >/dev/null || error "grep not installed"
+
+#####################################
+# Filenames
+#####################################
+RAW="${OUTPUT%.gitignored.nt}-raw.gitignored.nt"
+
+#####################################
+# 1) Fetch raw triples
+#####################################
+info "Fetching all DCAT triples from $REMOTE"
+
+# Old
+query='query=
+PREFIX dct:  <http://purl.org/dc/terms/>
+PREFIX dcat: <http://www.w3.org/ns/dcat#>
+
+CONSTRUCT {
+  ?s ?p ?o .
+  ?s dct:modified ?maxMod .
+  ?s dct:issued   ?minIss .
+}
+WHERE {
+  # all non-date triples
+  {
+    SELECT DISTINCT ?s ?p ?o WHERE {
+      ?s a ?type .
+      FILTER(?type IN (
+        dcat:Resource,
+        dcat:Dataset,
+        dcat:DataService,
+        dcat:Catalog,
+        dcat:DatasetSeries
+      )) .
+      ?s ?p ?o .
+      FILTER(?p NOT IN (dct:modified, dct:issued))
+    }
+  }
+  # one latest modified
+  OPTIONAL {
+    SELECT ?s (MAX(?m) AS ?maxMod) WHERE {
+      ?s dct:modified ?m .
+      FILTER(isLiteral(?m))
+    } GROUP BY ?s
+  }
+  # one earliest issued
+  OPTIONAL {
+    SELECT ?s (MIN(?i) AS ?minIss) WHERE {
+      ?s dct:issued ?i .
+      FILTER(isLiteral(?i))
+    } GROUP BY ?s
+  }
+}
+'
+if ! HTTP=$(curl -sS \
+      -H "Accept: application/n-triples" \
+      -b "$COOKIE" \
+      --data-urlencode "$query" \
+      -w "%{http_code}" \
+      -o "$RAW" \
+      "$REMOTE"); then
+  error "Network error fetching triples"
+fi
+[[ $HTTP -ge 200 && $HTTP -lt 300 ]] || { BODY=$(<"$RAW"); rm -f "$RAW"; error "Fetch failed HTTP $HTTP: $BODY"; }
+[[ -s $RAW ]] || error "Raw file is empty"
+COUNT_RAW=$(grep -c '^<' "$RAW" || echo 0)
+info "Saved $COUNT_RAW raw triples to $RAW"
+
+
