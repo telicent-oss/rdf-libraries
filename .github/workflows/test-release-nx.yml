@@ -21,7 +21,7 @@ jobs:
             packages/*/node_modules
           key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
           restore-keys: ${{ runner.os }}-yarn-
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version: 20.14
           registry-url: 'https://registry.npmjs.org/'
