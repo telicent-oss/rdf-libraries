@@ -14,9 +14,37 @@ echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
 yarn lerna run build --stream --no-prefix --concurrency 1  --include-dependencies
 
 # 4. Check for uncommitted changes
+git update-index -q --refresh || true
 if ! git diff-index --quiet HEAD --; then
-  git_status=$(git status --short)
-  echo "Error: Uncommitted changes detected. Commit or stash them before publishing: $git_status"
+  echo "::error title=Uncommitted changes detected::Commit or stash them before publishing."
+
+  # Always show a concise, machine-stable list in CI logs
+  echo "::group::git status --porcelain (working tree)"
+  git -c core.quotePath=false status --porcelain=v1 --untracked-files=all || true
+  echo "::endgroup::"
+
+  # Also show names + change types for quick scanning
+  echo "::group::git diff --name-status (tracked changes)"
+  git diff --name-status --relative || true
+  echo "::endgroup::"
+
+  # Write to GitHub Step Summary if available
+  if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+    {
+      echo "### Uncommitted changes"
+      echo
+      echo '```text'
+      git -c core.quotePath=false status --porcelain=v1 --untracked-files=all || true
+      echo '```'
+      echo
+      echo "#### Tracked file changes"
+      echo
+      echo '```text'
+      git diff --name-status --relative || true
+      echo '```'
+    } >> "$GITHUB_STEP_SUMMARY"
+  fi
+
   exit 1
 fi
 
