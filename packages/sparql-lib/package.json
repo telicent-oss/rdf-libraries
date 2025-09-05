@@ -1,7 +1,7 @@
 {
   "name": "@telicent-oss/sparql-lib",
   "type": "module",
-  "version": "0.0.1-TELFE-805.85",
+  "version": "0.0.2",
   "private": false,
   "description": "SPARQL functionality",
   "main": "./dist/sparql-lib.cjs.js",
@@ -57,9 +57,8 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {},
   "devDependencies": {
-    "@telicent-oss/dev-dependencies-lib": "^0.0.1-TELFE-805.1",
+    "@telicent-oss/dev-dependencies-lib": "^0.0.2",
     "@types/jest": "^29.4.0",
     "eslint": "^8.56.0",
     "ts-jest": "^29.1.1",
@@ -70,7 +69,6 @@
     "vite-plugin-dts": "^3.6.3",
     "vite-tsconfig-paths": "^4.2.1"
   },
-  "peerDependencies": {},
   "engines": {
     "node": ">=20.14.0"
   },
