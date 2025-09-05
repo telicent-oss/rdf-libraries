@@ -81,6 +81,14 @@
       "changelog-path": "CHANGELOG.md",
       "bumpPatchForMinorPreMajor": true,
       "release-type": "node"
+    },
+    "packages/mui-icons-material/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
     }
   }
 }

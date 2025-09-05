@@ -1,0 +1,74 @@
+{
+  "name": "@telicent-oss/mui-icons-material",
+  "version": "1.0.0",
+  "author": "MUI Team originally, then cut-down by telicent-oss",
+  "description": "Telicent-oss's Material Design icons distributed as SVG React components.",
+  "main": "./generated/index.js",
+  "keywords": [
+    "react",
+    "react-component",
+    "mui",
+    "material-ui",
+    "material design",
+    "icons"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git",
+    "directory": "packages/mui-icons-material"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/telicent-oss/rdf-libraries/issues"
+  },
+  "scripts": {
+    "build": "./scripts/gen-icons",
+    "test": "echo 'none'"
+  },
+  "dependencies": {
+    "@babel/runtime": "^7.28.2"
+  },
+  "peerDependencies": {
+    "@types/react": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "react": "^17.0.0 || ^18.0.0 || ^19.0.0",
+    "@mui/material": "^7.3.1"
+  },
+  "peerDependenciesMeta": {
+    "@types/react": {
+      "optional": true
+    }
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "import": {
+        "types": "./generated/esm/index.d.ts",
+        "default": "./generated/esm/index.js"
+      },
+      "require": {
+        "types": "./generated/index.d.ts",
+        "default": "./generated/index.js"
+      }
+    },
+    "./*": {
+      "import": {
+        "types": "./generated/esm/*.d.ts",
+        "default": "./generated/esm/*.js"
+      },
+      "require": {
+        "types": "./generated/*.d.ts",
+        "default": "./generated/*.js"
+      }
+    },
+    "./esm": null,
+    "./utils/*": null
+  },
+  "private": false
+}
