@@ -44,7 +44,7 @@
     "@telicent-oss/ontology-icon-lib": "^1.0.3",
     "@telicent-oss/rdfservice": "^1.0.1",
     "@telicent-oss/react-lib": "^0.5.1",
-    "@testing-library/jest-dom": "6.6.3",
+    "@testing-library/jest-dom": "6.8.0",
     "@testing-library/react": "^14.0.0",
     "@types/jest": "^29.4.0",
     "@types/node": "16.11.7",
