@@ -15,8 +15,8 @@ yarn lerna run build --stream --no-prefix --concurrency 1  --include-dependencie
 
 # 4. Check for uncommitted changes
 if ! git diff-index --quiet HEAD --; then
-  git status --short
-  echo "Error: Uncommitted changes detected. Commit or stash them before publishing."
+  git_status=$(git status --short)
+  echo "Error: Uncommitted changes detected. Commit or stash them before publishing: $git_status"
   exit 1
 fi
 
