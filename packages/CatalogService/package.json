@@ -57,7 +57,7 @@
     "@microsoft/tsdoc": "^0.14.2",
     "@telicent-oss/dev-dependencies-lib": "^0.0.2",
     "@types/cors": "2.8.17",
-    "@types/diff": "^5.2.2",
+    "@types/diff": "^8.0.0",
     "@types/express": "^4.17.21",
     "@types/jest": "^29.4.0",
     "@types/node": "16.11.7",
