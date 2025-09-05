@@ -24,6 +24,8 @@
     "lint": "yarn eslint **/*.ts",
     "link": "yarn link",
     "local-publish": "npm publish --registry http://localhost:4873 --prepatch",
+    "graduate-prerelease-to-release": "./scripts/lerna/graduate-prerelease-to-release.sh",
+    "graduate": "yarn graduate-prerelease-to-release",
     "prepublish": "yarn lint && yarn test",
     "prepublishOnly": "yarn build",
     "tscNoEmit": "yarn tsc --noEmit"
