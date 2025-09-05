@@ -22,7 +22,8 @@
     "url": "https://github.com/telicent-oss/rdf-libraries/issues"
   },
   "scripts": {
-    "build": "./scripts/gen-icons"
+    "build": "./scripts/gen-icons",
+    "test": "echo 'none'"
   },
   "dependencies": {
     "@babel/runtime": "^7.28.2"
