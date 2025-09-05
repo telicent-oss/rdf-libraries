@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/rdfservice",
-  "version": "1.0.0-TELFE-805.59",
+  "version": "1.0.1",
   "private": false,
   "description": "RdfService is a helper library that abstracts away the complexity of interacting with RDF triplestores, providing basic CRUD abilities.",
   "main": "./dist/rdfservice.mjs",
@@ -44,6 +44,7 @@
     "@microsoft/tsdoc": "^0.14.2",
     "@types/jest": "^29.4.0",
     "@types/node": "16.11.7",
+    "eslint": "^8.56.0",
     "eslint-plugin-tsdoc": "^0.2.17",
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",
@@ -54,8 +55,7 @@
     "typescript": "^5.5.4",
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
-    "vite-tsconfig-paths": "^4.2.1",
-    "eslint": "^8.56.0"
+    "vite-tsconfig-paths": "^4.2.1"
   },
   "dependencies": {
     "zod": "^3.22.4"

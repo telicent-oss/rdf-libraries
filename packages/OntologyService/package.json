@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/ontologyservice",
-  "version": "1.0.2-TELFE-805.1",
+  "version": "1.0.3",
   "private": false,
   "description": "Simple client-side library for working with RDF ontologies. Includes basic CRUD abilities and functions to help you navigate an ontology hierarchy.",
   "main": "./dist/ontologyservice.mjs",
@@ -36,7 +36,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "dependencies": {
-    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.59",
+    "@telicent-oss/rdfservice": "^1.0.1",
     "@types/lodash": "^4.17.13",
     "lodash": "^4.17.21",
     "zod": "^3.23.8"
@@ -45,6 +45,7 @@
     "@microsoft/tsdoc": "^0.14.2",
     "@types/jest": "^29.4.0",
     "@types/node": "16.11.7",
+    "eslint": "^8.56.0",
     "eslint-plugin-tsdoc": "^0.2.17",
     "jest-fetch-mock": "^3.0.3",
     "remove": "^0.1.5",
@@ -55,8 +56,7 @@
     "typescript": "^5.5.4",
     "vite": "^4.5.3",
     "vite-plugin-dts": "^3.6.3",
-    "vite-tsconfig-paths": "^4.2.1",
-    "eslint": "^8.56.0"
+    "vite-tsconfig-paths": "^4.2.1"
   },
   "resolutions": {
     "rollup": "3.29.5"
