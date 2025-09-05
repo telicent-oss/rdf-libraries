@@ -3212,14 +3212,6 @@
     react-router-dom "^6.23.1"
     zod "^3.21.4"
 
-"@telicent-oss/react-lib@^0.5.0":
-  version "0.5.0"
-  resolved "https://registry.yarnpkg.com/@telicent-oss/react-lib/-/react-lib-0.5.0.tgz#76f3e529cd9e990fa6b1185e48c0ac93bce19b88"
-  integrity sha512-JCZeU4amzQ0Xg41+MDmX69SzjH3fu8boyx7AnVnHp3oqIxGB4Yk4Nqjb6G8jV5JrzwXrKe10UdQtg3jhas7dFg==
-  dependencies:
-    react "18.2.0"
-    react-dom "18.2.0"
-
 "@telicent-oss/telicent-frontend-cli@^1.2.1", "@telicent-oss/telicent-frontend-cli@^1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@telicent-oss/telicent-frontend-cli/-/telicent-frontend-cli-1.5.0.tgz#afb2a6938af7e5a02aac151b82a30751b0135b37"
