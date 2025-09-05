@@ -44,7 +44,6 @@ if ! git diff-index --quiet HEAD --; then
       echo '```'
     } >> "$GITHUB_STEP_SUMMARY"
   fi
-
   exit 1
 fi
 
