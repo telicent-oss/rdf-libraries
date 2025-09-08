@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+# shrink-mui-icons.sh
+# macOS + Ubuntu. Requires: yarn, jq, curl, tar, rsync, awk, node.
+set -euo pipefail
+
+PKG="@mui/icons-material"
+MANIFEST="${1:-./icon-manifest}"   # one path/glob per line; '#' comments allowed
+DEST="${2:-./packages/mui-icons-material}"  # your slim package root
+
+need() { command -v "$1" >/dev/null || { echo "missing: $1" >&2; exit 1; }; }
+need yarn; need jq; need curl; need tar; need rsync; need awk; need node
+
+echo "→ Resolving tarball for $PKG" >&2
+TAR_URL="$(yarn info "$PKG" --json 2>/dev/null \
+  | jq -r 'try (.data."dist.tarball") // try (.data.dist.tarball) // try (.dist.tarball) // empty' \
+  | tail -n1)"
+if [ -z "$TAR_URL" ]; then
+  TAR_URL="$(npm view "$PKG" dist.tarball 2>/dev/null || true)"
+fi
+[ -n "$TAR_URL" ] || { echo "✖ Could not determine dist.tarball URL" >&2; exit 1; }
+echo "   tarball: $TAR_URL" >&2
+
+TMP="./.gitignored.extracted";
+mkdir -p "$TMP"
+TARBALL="$TMP/pkg.tgz"
+
+echo "→ Downloading… $TARBALL" >&2
+curl -fsSL "$TAR_URL" -o "$TARBALL"
+
+echo "→ Extracting…" >&2
+mkdir -p "$TMP/extract"
+tar -xzf "$TARBALL" -C "$TMP/extract"
+
+if [ -d "$TMP/extract/package" ]; then
+  PKGDIR="$TMP/extract/package"
+else
+  PKGDIR="$(find "$TMP/extract" -mindepth 1 -maxdepth 1 -type d | head -n1)"
+fi
+echo "extracted $TMP/extract"
+[ -n "${PKGDIR:-}" ] || { echo "✖ Could not find extracted dir" >&2; exit 1; }
+
+# Clean target
+mkdir -p "$DEST"
+rm -rf "$DEST/esm" "$DEST/"*.{js,d.ts,map} 2>/dev/null || true
+
+# Copy selected files in ONE pass
+echo "→ Copying selected files to $DEST" >&2
+CLEAN="$TMP/manifest.includes"
+awk '
+  { gsub(/^[ \t]+|[ \t]+$/, "", $0) }
+  /^$/ { next }
+  /^#/ { next }
+  { print }
+' "$MANIFEST" > "$CLEAN"
+
+# Ensure utils/ and esm/utils/ are kept regardless of manifest
+rsync -a --prune-empty-dirs \
+  --include='*/' \
+  --include='utils/***' \
+  --include-from="$CLEAN" \
+  --exclude='*' \
+  "$PKGDIR/esm/" "$DEST/esm/"
+
+rsync -a --prune-empty-dirs \
+  --include='*/' \
+  --include='utils/***' \
+  --include-from="$CLEAN" \
+  --exclude='*' \
+  "$PKGDIR/" "$DEST/"
+
+# Remove anything that isn’t a top-level icon file or its .d.ts (keep esm/ versions)
+find "$DEST" -maxdepth 1 -type f ! -name '*.js' ! -name '*.d.ts' -delete
+
+# Generate index files for both ESM and CJS (plus d.ts)
+echo "→ Generating index files" >&2
+node "$(dirname "$0")/gen-index.mjs" "$DEST"
+rm -rf ./generated
+mv "$DEST" ./generated
+rm -rf ./packages
+echo "✓ Done"
