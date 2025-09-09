@@ -6,6 +6,7 @@ module.exports = {
   ChevronRight: require('./ChevronRight.js').default,
   Clear: require('./Clear.js').default,
   Edit: require('./Edit.js').default,
+  ExpandLess: require('./ExpandLess.js').default,
   List: require('./List.js').default,
   LocationOn: require('./LocationOn.js').default,
   Remove: require('./Remove.js').default,
