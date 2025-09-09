@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/mui-icons-material",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": "MUI Team originally, then cut-down by telicent-oss",
   "description": "Telicent-oss's Material Design icons distributed as SVG React components.",
   "main": "./generated/index.js",
