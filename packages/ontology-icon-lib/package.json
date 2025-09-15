@@ -39,7 +39,7 @@
   "dependencies": {
     "@telicent-oss/ontologyservice": "^1.0.3",
     "lodash.startcase": "^4.4.0",
-    "zod": "^3.22.4"
+    "zod": "^4.1.8"
   },
   "devDependencies": {
     "@types/jest": "^29.4.0",
