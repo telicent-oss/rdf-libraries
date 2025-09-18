@@ -280,7 +280,21 @@ export class DCATResource extends RDFSResource {
       : options.defaults?.type;
   }
   toFindString() {
-    return `${this.title} + ${this.description} + ${this.owner} + ${this.publisher__title} + ${this.contactPoint__fn} + ${this.identifier}`;
+    const findStr = [
+      this.title,
+      this.description,
+      this.owner,
+      this.publisher__title,
+      this.contactPoint__fn,
+      this.identifier,
+      this.distribution__identifier,
+      this.contributor__title,
+      this.qualifiedAttribution__agent__title,
+      this.min_issued,
+      this.max_modified,
+    ].filter(el => Boolean(el))
+    .join(' + ');
+    return findStr
   }
 
 

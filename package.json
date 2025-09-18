@@ -11,6 +11,7 @@
     "lp": "yarn local-publish --yes",
     "plp": "yarn prep && yarn local-publish --yes",
     "bump": "lerna exec -- ../../scripts/local-version-bump.sh",
+    "bump-graduate": "./scripts/lerna/graduate-prerelease-to-release.sh",
     "prepublish:all": "lerna run prepublish --stream --no-prefix --concurrency 1",
     "test:stable": "lerna run test --scope=@telicent-oss/catalogservice && yarn test:ci",
     "test:ci": "yarn test",
