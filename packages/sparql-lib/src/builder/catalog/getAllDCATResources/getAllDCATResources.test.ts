@@ -73,9 +73,18 @@ test("findWithParams", () => {
                 ?rights         dct:description     ?rights__description } .
             OPTIONAL { 
                 ?uri            dct:accessRights    ?accessRights } .
-            OPTIONAL { 
-                ?uri            dct:contributor     ?contributor .
-                ?contributor    dct:title           ?contributor__title } .
+            OPTIONAL {
+            {
+                SELECT ?uri
+                    (SAMPLE(?c) AS ?contributor)
+                    (GROUP_CONCAT(DISTINCT ?t; separator=" | ") AS ?contributor__title)
+                WHERE {
+                ?uri dct:contributor ?c .
+                ?c   dct:title       ?t .
+                }
+                GROUP BY ?uri
+            }
+            }
             OPTIONAL { 
                 ?parent  ?catRel ?uri .
                 FILTER (?catRel in (
@@ -148,7 +157,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -71,6 +71,2 @@
+    @@ -80,6 +80,2 @@
     -            ?parent  ?catRel ?uri .
     -            FILTER (?catRel in (
     -        <http://www.w3.org/ns/dcat#dataset>,
@@ -201,7 +210,7 @@ test("findWithParams", () => {
     +        VALUES ?uri { <http://dcat.com/#123_Dataset> }
     @@ -39,1 +39,0 @@
     -        
-    @@ -71,6 +71,2 @@
+    @@ -80,6 +80,2 @@
     -            ?parent  ?catRel ?uri .
     -            FILTER (?catRel in (
     -        <http://www.w3.org/ns/dcat#dataset>,

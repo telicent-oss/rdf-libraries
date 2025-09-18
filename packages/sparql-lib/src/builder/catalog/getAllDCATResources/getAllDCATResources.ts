@@ -88,9 +88,18 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
             ?rights         dct:description     ?rights__description } .
         OPTIONAL { 
             ?uri            dct:accessRights    ?accessRights } .
-        OPTIONAL { 
-            ?uri            dct:contributor     ?contributor .
-            ?contributor    dct:title           ?contributor__title } .
+        OPTIONAL {
+        {
+            SELECT ?uri
+                (SAMPLE(?c) AS ?contributor)
+                (GROUP_CONCAT(DISTINCT ?t; separator=" | ") AS ?contributor__title)
+            WHERE {
+            ?uri dct:contributor ?c .
+            ?c   dct:title       ?t .
+            }
+            GROUP BY ?uri
+        }
+        }
         OPTIONAL { 
             ?parent  ${catalogRelationAllOrSpecific} ?uri .
             ${ifAllRelationsThenFilter}
