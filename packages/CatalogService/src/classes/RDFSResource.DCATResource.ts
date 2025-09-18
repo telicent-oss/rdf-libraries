@@ -294,7 +294,6 @@ export class DCATResource extends RDFSResource {
       this.max_modified,
     ].filter(el => Boolean(el))
     .join(' + ');
-    console.log({ findStr });
     return findStr
   }
 
