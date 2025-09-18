@@ -94,4 +94,8 @@ if [ "${COMMIT:-0}" = "1" ]; then
 fi
 
 echo
-echo "Done. Prerelease suffixes removed first; yarn version run per package; no tags created; nothing pushed."
+echo "Step 1 Done. Prerelease suffixes removed first; yarn version run per package; no tags created; nothing pushed."
+ ./scripts/sync-versions.mjs
+
+echo "Step 2 Done. Synced versions."
+

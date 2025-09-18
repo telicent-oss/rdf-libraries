@@ -65,9 +65,9 @@
   },
   "peerDependencies": {
     "@telicent-oss/ds": "*",
-    "@telicent-oss/ontology-icon-lib": "^1.0.2-TELFE-805.0",
-    "@telicent-oss/rdfservice": "^1.0.0-TELFE-805.59",
-    "@telicent-oss/react-lib": "^0.5.0-TELFE-805.0",
+    "@telicent-oss/ontology-icon-lib": "^1.0.3",
+    "@telicent-oss/rdfservice": "^1.0.1",
+    "@telicent-oss/react-lib": "^0.5.1",
     "react": "*",
     "react-dom": "*",
     "react-error-boundary": "*",
