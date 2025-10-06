@@ -51,7 +51,7 @@
     "@swc/core": "1.5.7",
     "@telicent-oss/telicent-frontend-cli": "^1.5.0",
     "@types/jest": "^29.5.12",
-    "@types/node": "18.19.9",
+    "@types/node": "24.6.2",
     "@typescript-eslint/eslint-plugin": "6.20.0",
     "@typescript-eslint/parser": "6.20.0",
     "babel-jest": "^29.7.0",
