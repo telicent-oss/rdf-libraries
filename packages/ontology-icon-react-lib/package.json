@@ -40,7 +40,7 @@
     "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
   },
   "devDependencies": {
-    "@telicent-oss/ds": "^0.29.0",
+    "@telicent-oss/ds": "^0.31.4",
     "@telicent-oss/ontology-icon-lib": "^1.0.3",
     "@telicent-oss/rdfservice": "^1.0.1",
     "@telicent-oss/react-lib": "^0.5.1",
