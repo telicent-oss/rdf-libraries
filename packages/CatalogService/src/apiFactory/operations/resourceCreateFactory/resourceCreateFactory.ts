@@ -16,6 +16,9 @@ import { UIDataResourceType } from "../utils/common";
 import { createUriComponents } from "../utils/createUriComponents";
 import { throwWriteErrorForUri } from "../utils/throwWriteErrorForUri";
 import { validateResourceCreate } from "./validateResourceCreate";
+import { COMMON_PREFIXES_MAP } from "../../../constants";
+import { FieldError } from "../utils/fieldError";
+
 
 export type ResourceCreateParamsType = {
   type: "dataSet";
@@ -33,13 +36,17 @@ const POSTFIX_MAP: Record<ResourceCreateParamsType["type"], string> = {
   dataSet: "_Dataset",
 } as const;
 
-const throwAsAlreadyExists = (
-  item_uri: string,
-  catalogService: CatalogService
-) => {
-  throw new Error(
-    `Expected ${item_uri} to not be instance of DCATResource. Instead this already exists ${catalogService.nodes[item_uri]}`
-  );
+const throwAsAlreadyExists = (uri: string, identifier: string) => {
+  const fieldError: FieldError = {
+    code: "dataset.identifier.duplicate",
+    summary: `Dataset identifier "${identifier}" is already in use`,
+    context: { identifier, uri },
+  };
+  throw {
+    errors: {
+      identifier: [fieldError],
+    },
+  };
 };
 export type ResourceCreateResults = Partial<
   Record<keyof UIDataResourceType, StoreTriplesResult[]>
@@ -71,8 +78,14 @@ export const resourceCreateFactory = ({
       catalogService,
       operation,
     });
+    const identifier = operation.payload.identifier && operation.payload.identifier.trim();
+    if (!identifier) {
+      throwWriteErrorForUri("identifier is required");
+    }
+
     const uriComponents = await createUriComponents({
-      base: "http://telicent.io/catalog#",
+      base: COMMON_PREFIXES_MAP['tcat-dataset'],
+      identifier,
       postfix: POSTFIX_MAP[operation.type],
     }).catch(throwWriteErrorForUri);
 
@@ -86,7 +99,7 @@ export const resourceCreateFactory = ({
     ) as unknown as typeof DCATResource;
 
     const dcatResource = catalogService.nodes[uriComponents.uri]
-      ? throwAsAlreadyExists(uriComponents.uri, catalogService)
+      ? throwAsAlreadyExists(uriComponents.uri, uriComponents.localName)
       : await ClassForType.createAsync(
           catalogService,
           uriComponents.uri,
@@ -97,8 +110,8 @@ export const resourceCreateFactory = ({
       uri: dcatResource.uri, // Special case, created ahead of time
       uiFields: {
         classType: dcatResource.types[0], // dcatResource.types.includes(dcatResource.types[0]) ? undefined :
-        identifier: `${uriComponents.uuid}${uriComponents.postfix}`,
         ...operation.payload,
+        identifier: uriComponents.localName,
       },
       instance: dcatResource,
       storeTriplesForOntology: storeTriplesForPhase2,

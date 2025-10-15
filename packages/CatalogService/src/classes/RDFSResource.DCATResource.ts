@@ -9,6 +9,7 @@ import {
   UIDataResourceType,
 } from "../apiFactory/operations/utils/common";
 import { CatalogService, DCATCatalog } from "../index";
+import { REGEX } from "src/constants";
 
 // !WARNING this is a duplicate of packages/CatalogService/src/index.ts
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {
@@ -48,6 +49,33 @@ type ConstructorOptions = {
   type: LongURI;
   catalog?: DCATCatalog;
   statement?: DcatResourceQuerySolution;
+};
+
+
+
+export const normaliseDateTimeLiteral = (
+  value?: string | null
+): string | undefined => {
+  if (!value) return value ?? undefined;
+
+  const match = value.match(REGEX[`YYYY-MM-DDTHH:mm:ss[.fraction][Z|±HH:MM]`]);
+  if (!match) {
+    return value;
+  }
+
+  const [, base, fractional = "", zone = "Z"] = match;
+  const digits = fractional ? fractional.slice(1) : "";
+  const milliseconds = digits.slice(0, 3);
+  const normalisedLiteral = `${base}${
+    milliseconds ? `.${milliseconds}` : ""
+  }${zone}`;
+  const date = new Date(normalisedLiteral);
+
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  return date.toISOString();
 };
 
 const warnWhenOptionsAndStatement = (
@@ -247,10 +275,12 @@ export class DCATResource extends RDFSResource {
       distribution__title: distribution__title?.value,
       distribution__accessURL: distribution__accessURL?.value,
       distribution__mediaType: distribution__mediaType?.value,
-      distribution__available: distribution__available?.value,
+      distribution__available: normaliseDateTimeLiteral(
+        distribution__available?.value
+      ),
       contributor__title: contributor__title?.value,
-      min_issued: min_issued?.value,
-      max_modified: max_modified?.value,
+      min_issued: normaliseDateTimeLiteral(min_issued?.value),
+      max_modified: normaliseDateTimeLiteral(max_modified?.value),
     });
     const { contactPoint, publisher, rights, contributor, ...aliasedBindings } =
       urisAndAliasedBindings;

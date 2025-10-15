@@ -211,6 +211,62 @@ yarn start:triple-store-for-local-dev-and-tests
 
 Or alternatively run your own.
 
+## Notes
+
+### Processing
+
+Triple = A Subject Predirect Object triple aka a directed graph edge.
+
+Data types:
+1. triples - raw building blocks
+2. operations - instructions to create triples
+3. properties - SQL bindings that represent sub-graphs within a dataset.
+  e.g. `distribution` represents one triple segement. Whilst `distribution__identifier` represents the `distribution` triple, and an downstream `identifer` triple
+
+### Use case (Simplified):
+
+UI sends both `distribution` and `distribution__mediaType` properties in one payload:
+
+
+### Execution flow
+
+1. UI payload (key-order matters :sad: )
+```
+{
+  "distribution": "<prefix>#dist-123"
+  "distribution__mediaType":  "text/csv"
+}
+```
+
+2. `storeTripleResultsToValueObject`
+
+```js
+instance = new DCATDataSet()
+```
+```py
+for each field (await sequentially):
+
+(loop 1) field = "distribution"
+  → call storeTriplesForPhase2(property="distribution")
+    → createOperations() builds:
+        • createTriple: dataset ─dcat:distribution→ "<prefix>#dist-123"
+    → queue executed via API
+    → onSuccess updates instance.distribution = "<prefix>#dist-123"
+
+(loop 2) field = "distribution__mediaType"
+  → call storeTriplesForPhase2(property="distribution__mediaType")
+    → createOperations sees instance.distribution already set
+        • reuse URI for pushUri (no new UUID)
+        • add literal triple: "<prefix>#dist-123" ─dcat:mediaType→ "text/csv"
+    → queue executed via API
+    → onSuccess keeps instance.distribution unchanged
+```
+
+Important:
+- Each field is processed and awaited before the next
+- the new distribution URI is visible to the mediaType branch, so it attaches to the same node instead of minting a second one.
+
+
 ## Related Links
 
 * [Catalog](https://github.com/Telicent-oss/catalog) - ReactJS web app that uses this package
@@ -227,3 +283,5 @@ Or alternatively run your own.
 ## API
 
 For detailed API usage examples, refer to `CatalogService.test.ts` (and other tests)
+
+

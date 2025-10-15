@@ -1,91 +1,319 @@
-import { DispatchResult } from "@telicent-oss/rdf-write-lib";
-import { DCATResource } from "../RDFSResource.DCATResource";
-import { StoreTriplesOptions } from "./storeTripleResultsToValueObject";
-import { CatalogService } from "../RdfService.CatalogService";
+import type { DispatchResult } from "@telicent-oss/rdf-write-lib";
+import { createOperations } from "./createOperations";
+import { maybeGetNotUniqueError } from "./maybeGetNotUniqueError";
 import { storeTriplesForPhase2 } from "./storeTriplesForPhase2";
-import { GraphData } from "./createOperations";
+import type { FieldError } from "../../apiFactory/operations/utils/fieldError";
+import type {
+  CreateByPredicateFn,
+  UpdateByPredicateFn,
+} from "@telicent-oss/rdf-write-lib";
 
-type InfiniteApi<R> = {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: (...args: any[]) => R;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: symbol]: (...args: any[]) => R;
+jest.mock("./createOperations");
+jest.mock("./maybeGetNotUniqueError");
+
+const mockedCreateOperations = createOperations as jest.MockedFunction<
+  typeof createOperations
+>;
+const mockedMaybeGetNotUniqueError =
+  maybeGetNotUniqueError as jest.MockedFunction<
+    typeof maybeGetNotUniqueError
+  >;
+
+const noop = jest.fn(async () => undefined);
+
+const createProxy = () =>
+  new Proxy({} as Record<string, jest.Mock>, {
+    get: () => noop,
+  });
+
+const api = {
+  createByPredicateFns: createProxy() as unknown as CreateByPredicateFn,
+  updateByPredicateFns: createProxy() as unknown as UpdateByPredicateFn,
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const createInfiniteApi = <R>(impl: (...args: any[]) => R): InfiniteApi<R> =>
-  new Proxy(Object.create(null), {
-    get:
-      () =>
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (...args: any[]) =>
-        impl(...args),
-  }) as InfiniteApi<R>;
+const catalogService = {
+  runQuery: jest.fn(),
+} as never;
 
-const infiniteApi = createInfiniteApi((args) => {
-  const result: Awaited<DispatchResult> = {
-    response: {
-      status: 200,
-      body: "body",
-    },
-    data: [],
-    error: undefined,
-    args,
-  } as unknown as Awaited<DispatchResult>;
-  return Promise.resolve(result);
+const baseOperation = {
+  triple: { s: "<s>", p: "dct:title", o: "New title" },
+  dataset_uri: "http://example.com/dataset#1",
+  property: "title",
+} as const;
+
+beforeEach(() => {
+  jest.clearAllMocks();
 });
 
-test.skip("storeTriplesForPhase2 distribution", async () => {
-  const uri = "http://ex.com#Dataset_Apples🔴";
-  const instance = {
-    uri,
-    title: "DataSet Apples🔴",
-    type: "http://www.w3.org/2000/01/rdf-schema#Resource",
-  } as unknown as DCATResource;
-  const api = {
-    createByPredicateFns: infiniteApi,
-    updateByPredicateFns: infiniteApi,
-  } as unknown as StoreTriplesOptions["api"];
-  const catalogService = infiniteApi as unknown as CatalogService;
+const instanceFactory = (extra: Record<string, unknown> = {}) => ({
+  uri: "http://example.com/dataset#1",
+  ...extra,
+}) as unknown as Record<string, unknown>;
 
-  const property: GraphData = "distribution__identifier";
+describe("storeTriplesForPhase2", () => {
+  it("executes operations and returns normalized results", async () => {
+    const onSuccess = jest.fn();
+    mockedCreateOperations.mockReturnValue([
+      {
+        ...baseOperation,
+        type: "create",
+        onSuccess,
+      },
+    ] as never);
 
-  const result = storeTriplesForPhase2({
-    instance,
-    property,
-    newValue: "new dist idenfifier",
-    api,
-    catalogService,
+    const instance = instanceFactory({ title: "Old title" });
+
+    const result = await storeTriplesForPhase2({
+      instance: instance as never,
+      property: "title",
+      newValue: "New title",
+      api,
+      catalogService,
+    });
+
+    expect(onSuccess).toHaveBeenCalled();
+    expect(result).toEqual([
+      expect.objectContaining({
+        type: "create",
+        dataset_uri: "http://example.com/dataset#1",
+        property: "title",
+        triple: { s: "<s>", p: "dct:title", o: "New title" },
+      }),
+    ]);
   });
-  expect(await result).toMatchInlineSnapshot(`
-    [
+
+  it("returns field error when maybeGetNotUniqueError reports conflict", async () => {
+    const fieldError: FieldError = {
+      code: "catalog.identifier.duplicate",
+      summary: "Value \"New title\" already exists",
+    };
+    mockedCreateOperations.mockReturnValue([
       {
-        "dataset_uri": "http://ex.com#Dataset_Apples🔴",
-        "prev": null,
-        "property": "distribution",
-        "triple": {
-          "o": "http://telicent.io/catalog#522cb734-9fba-4898-8983-2c422a11f916_Distribution",
-          "p": "dcat:distribution",
-          "s": "http://ex.com#Dataset_Apples🔴",
-        },
-        "type": "create",
+        ...baseOperation,
+        type: "create",
+        checkUnique: true,
+      },
+    ] as never);
+    mockedMaybeGetNotUniqueError.mockResolvedValue(fieldError);
+
+    const result = await storeTriplesForPhase2({
+      instance: instanceFactory() as never,
+      property: "title",
+      newValue: "New title",
+      api,
+      catalogService,
+    });
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        code: "catalog.identifier.duplicate",
+        summary: "Value \"New title\" already exists",
+        context: expect.objectContaining({
+          dataset: "http://example.com/dataset#1",
+          predicate: "dct:title",
+          property: "title",
+        }),
+      }),
+    ]);
+  });
+
+  it("wraps failures from missing create handler", async () => {
+    mockedCreateOperations.mockReturnValue([
+      {
+        ...baseOperation,
+        type: "create",
+      },
+    ] as never);
+
+    const apiWithoutHandler = {
+      createByPredicateFns: {} as unknown as CreateByPredicateFn,
+      updateByPredicateFns: {} as unknown as UpdateByPredicateFn,
+    } as never;
+
+    const result = await storeTriplesForPhase2({
+      instance: instanceFactory() as never,
+      property: "title",
+      newValue: "New title",
+      api: apiWithoutHandler,
+      catalogService,
+    });
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        code: "catalog.write.error",
+        summary: expect.stringContaining("No createFn"),
+        context: expect.objectContaining({
+          dataset: "http://example.com/dataset#1",
+          predicate: "dct:title",
+          property: "title",
+        }),
+      }),
+    ]);
+  });
+
+  it("returns no-op message when update does not change value", async () => {
+    mockedCreateOperations.mockReturnValue([
+      {
+        ...baseOperation,
+        type: "update",
+        prev: "Same",
+        triple: { ...baseOperation.triple, o: "Same" },
+      },
+    ] as never);
+
+    const result = await storeTriplesForPhase2({
+      instance: instanceFactory({ title: "Same" }) as never,
+      property: "title",
+      newValue: "Same",
+      api,
+      catalogService,
+    });
+
+    expect(result).toEqual([
+      { message: "[title] No-op, unchanged" },
+    ]);
+  });
+
+  it("executes update operations and calls onSuccess", async () => {
+    const onSuccess = jest.fn();
+    const updateFn = jest.fn(async () => undefined);
+    const updateApi = {
+      createByPredicateFns: api.createByPredicateFns,
+      updateByPredicateFns: new Proxy({} as Record<string, jest.Mock>, {
+        get: () => updateFn,
+      }) as unknown as UpdateByPredicateFn,
+    } as never;
+
+    mockedCreateOperations.mockReturnValue([
+      {
+        ...baseOperation,
+        type: "update",
+        prev: "Old title",
+        onSuccess,
+      },
+    ] as never);
+
+    const result = await storeTriplesForPhase2({
+      instance: instanceFactory({ title: "Old title" }) as never,
+      property: "title",
+      newValue: "New title",
+      api: updateApi,
+      catalogService,
+    });
+
+    expect(updateFn).toHaveBeenCalled();
+    expect(onSuccess).toHaveBeenCalled();
+    expect(result).toEqual([
+      expect.objectContaining({
+        type: "update",
+        triple: { s: "<s>", p: "dct:title", o: "New title" },
+      }),
+    ]);
+  });
+
+  it("wraps dispatch errors from update handlers", async () => {
+    const updateError = {
+      error: "dispatch fail",
+      response: {},
+    } as unknown as DispatchResult;
+    const updateFn = jest.fn(async () => Promise.reject(updateError));
+    const updateApi = {
+      createByPredicateFns: api.createByPredicateFns,
+      updateByPredicateFns: new Proxy({} as Record<string, jest.Mock>, {
+        get: () => updateFn,
+      }) as unknown as UpdateByPredicateFn,
+    } as never;
+
+    mockedCreateOperations.mockReturnValue([
+      {
+        ...baseOperation,
+        type: "update",
+        prev: "Old title",
+      },
+    ] as never);
+
+    const result = await storeTriplesForPhase2({
+      instance: instanceFactory({ title: "Old title" }) as never,
+      property: "title",
+      newValue: "New title",
+      api: updateApi,
+      catalogService,
+    });
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        code: "catalog.write.error",
+        summary: "dispatch fail",
+      }),
+    ]);
+  });
+
+  it("propagates field errors thrown by update handlers", async () => {
+    const fieldError: FieldError = {
+      code: "catalog.update.failure",
+      summary: "Custom field error",
+    };
+    const updateFn = jest.fn(async () => Promise.reject(fieldError));
+    const updateApi = {
+      createByPredicateFns: api.createByPredicateFns,
+      updateByPredicateFns: new Proxy({} as Record<string, jest.Mock>, {
+        get: () => updateFn,
+      }) as unknown as UpdateByPredicateFn,
+    } as never;
+
+    mockedCreateOperations.mockReturnValue([
+      {
+        ...baseOperation,
+        type: "update",
+        prev: "Old title",
+      },
+    ] as never);
+
+    const result = await storeTriplesForPhase2({
+      instance: instanceFactory({ title: "Old title" }) as never,
+      property: "title",
+      newValue: "New title",
+      api: updateApi,
+      catalogService,
+    });
+
+    expect(result).toEqual([
+      expect.objectContaining({
+        code: "catalog.update.failure",
+        summary: "Custom field error",
+      }),
+    ]);
+  });
+
+  it("adds noop message for operations after an upstream error", async () => {
+    const fieldError: FieldError = {
+      code: "catalog.identifier.duplicate",
+      summary: "Duplicate",
+    };
+    mockedCreateOperations.mockReturnValue([
+      {
+        ...baseOperation,
+        type: "create",
+        checkUnique: true,
       },
       {
-        "checkUnique": undefined,
-        "dataset_uri": "http://ex.com#Dataset_Apples🔴",
-        "prev": null,
-        "property": "distribution__identifier",
-        "triple": {
-          "o": "http://www.w3.org/ns/dcat#Distribution",
-          "p": "rdf:type",
-          "s": "http://telicent.io/catalog#522cb734-9fba-4898-8983-2c422a11f916_Distribution",
-        },
-        "type": "create",
+        ...baseOperation,
+        type: "create",
       },
-      {
-        "details": "[distribution__identifier] NOT UNIQUE "new dist idenfifier" already exists {"type":"create","triple":{"s":"http://telicent.io/catalog#522cb734-9fba-4898-8983-2c422a11f916_Distribution","p":"dct:identifier","o":"new dist idenfifier"},"checkUnique":true,"prev":null,"dataset_uri":"http://ex.com#Dataset_Apples🔴","property":"distribution__identifier"}",
-        "error": "NOT UNIQUE "new dist idenfifier" already exists",
-      },
-    ]
-  `);
+    ] as never);
+    mockedMaybeGetNotUniqueError.mockResolvedValueOnce(fieldError).mockResolvedValueOnce(undefined);
+
+    const result = await storeTriplesForPhase2({
+      instance: instanceFactory() as never,
+      property: "title",
+      newValue: "New title",
+      api,
+      catalogService,
+    });
+
+    expect(result).toEqual([
+      expect.objectContaining({ summary: "Duplicate" }),
+      { message: "[title] No-op, error isErrorUpstream " },
+    ]);
+  });
 });

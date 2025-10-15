@@ -65,7 +65,7 @@ export const COMPLETE_RESULT: DcatResourceQuerySolution = {
   },
   distribution__identifier: {
     type: "uri",
-    value: "http://www.w3.org/ns/dcat#abc123_Distribution",
+    value: "http://telicent.io/catalog/distribution#abc123",
   },
   distribution__accessURL: {
     type: "literal",

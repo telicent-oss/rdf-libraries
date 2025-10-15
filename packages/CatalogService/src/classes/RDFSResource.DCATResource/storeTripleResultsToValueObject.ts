@@ -4,10 +4,10 @@ import { CatalogService } from "../RdfService.CatalogService";
 import { DCATResource } from "../RDFSResource.DCATResource";
 import { StoreTripleOperation } from "./createOperations";
 import {
-  StoreTripleError,
   StoreTripleForOntology,
   StoreTripleMessage,
   StoreTriplesResult,
+  StoreTripleError,
 } from "./storeTriplesForPhase2";
 
 type StringOrUndefinedKeys<T> = {
@@ -86,6 +86,7 @@ export const storeTripleResultsToValueObject = async ({
   config,
 }: StoreTriplesOptions) => {
 
+  // UI uses distributionUri/distributionIdentifier; mapping below converts to graph properties (distribution, distribution__identifier)
   const uiFieldEntires = editableEntries(uiFields);
   const values: ResourceOperationResults["values"] = { uri };
   const errors: ResourceOperationResults["errors"] = {};
@@ -102,7 +103,9 @@ export const storeTripleResultsToValueObject = async ({
       sleepMsBetweenRequests: config?.QA_SLEEP_BETWEEN_CALLS,
     });
     values[uiField] = instance[EditableUIToProperty[uiField]];
-    errors[uiField] = result.filter((el) => "error" in el);
+    errors[uiField] = result.filter(
+      (el): el is StoreTripleError => "summary" in el
+    );
     messages[uiField] = result.filter((el) => "message" in el);
     operations[uiField] = result.filter((el) => "type" in el);
     results[uiField] = result;

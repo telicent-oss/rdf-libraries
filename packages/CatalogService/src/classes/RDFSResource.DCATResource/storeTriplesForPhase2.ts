@@ -13,6 +13,7 @@ import {
   StoreTripleOperation,
 } from "./createOperations";
 import { maybeGetNotUniqueError } from "./maybeGetNotUniqueError";
+import { FieldError, withContext } from "../../apiFactory/operations/utils/fieldError";
 // import { COMMON_PREFIXES_MAP } from "../../constants";
 
 type StoreTripleBase = {
@@ -32,7 +33,7 @@ export type StoreTripleCreate = StoreTripleBase & {
   type: "create";
 };
 
-export type StoreTripleError = { error: string };
+export type StoreTripleError = FieldError;
 export type StoreTripleMessage = { message: string };
 
 export type StoreTriplesResult =
@@ -102,9 +103,15 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
   catalogService,
   sleepMsBetweenRequests = 0,
 }) => {
-  const asErrorValueObject = (error: unknown, meta: unknown) => ({
-    details: `[${property}] ${error} ${JSON.stringify(meta)}`,
-    error: `${error}`,
+  const baseContext = {
+    property,
+  };
+
+  const asFieldError = (summary: string, options?: Partial<FieldError>) => ({
+    code: options?.code ?? "catalog.write.error",
+    summary,
+    details: options?.details,
+    context: { ...baseContext, ...(options?.context ?? {}) },
   });
   const asMessage = (str: string) => ({ message: `[${property}] ${str}` });
 
@@ -117,8 +124,31 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
   const results: StoreTriplesResult[] = [];
   let isErrorUpstream: boolean = false;
   for (const operation of operations) {
-    const operationError = (error: unknown) =>
-      asErrorValueObject(error, operation);
+    const addOperationContext = (error: FieldError) =>
+      withContext(error, {
+        ...baseContext,
+        predicate: operation.triple.p,
+        subject: String(operation.triple.s),
+        object: String(operation.triple.o),
+        dataset: operation.dataset_uri,
+      });
+
+    const operationError = (error: unknown) => {
+      if (typeof error === "object" && error !== null && "summary" in error) {
+        return addOperationContext(error as FieldError);
+      }
+      const summary =
+        typeof error === "string"
+          ? error
+          : error instanceof Error
+          ? error.message
+          : String(error);
+      return addOperationContext(
+        asFieldError(summary, {
+          details: JSON.stringify(operation),
+        })
+      );
+    };
     try {
       const notUniqueError =
         "checkUnique" in operation &&
@@ -128,7 +158,7 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
         results.push(asMessage(`No-op, error isErrorUpstream `));
       } else if (notUniqueError) {
         console.log("notUniqueError!", notUniqueError, operation);
-        results.push(operationError(notUniqueError));
+        results.push(addOperationContext(notUniqueError));
         isErrorUpstream = true;
       } else if (operation.type === "update") {
         const updateFn = api.updateByPredicateFns[operation.triple.p];
@@ -171,18 +201,14 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
         "response" in error
       ) {
         const reponse = error as unknown as Awaited<DispatchResult>;
-        operationError(reponse.error || "dispatch error");
-      } else if (typeof error === "object" && error !== null) {
         results.push(
           operationError(
-            "message" in error && error?.message
-              ? error?.message
-              : "details" in error && error?.details
-              ? error?.details
-              : "detail" in error && error?.detail
-              ? error?.detail
-              : JSON.stringify(error)
+            reponse.error || "dispatch error"
           )
+        );
+      } else if (typeof error === "object" && error !== null) {
+        results.push(
+          operationError(error)
         );
       } else {
         results.push(operationError(`Error ${error}`));

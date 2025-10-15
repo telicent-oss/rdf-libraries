@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/catalogservice",
-  "version": "1.1.2",
+  "version": "1.1.2-TELFE-1332.23",
   "// TEMP private": "needs merge to main",
   "private": false,
   "description": "Simple client-side library for working with DCAT data.",
@@ -27,6 +27,8 @@
   "scripts": {
     "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
     "test": "jest --runInBand",
+    "test:diff": "jest --runInBand --changedSince=origin/main --coverage --coverageReporters html --coverageDirectory ./coverage/diff",
+    "test:coverage": "jest --runInBand --coverage --coverageReporters html --coverageDirectory ./coverage/diff",
     "test:updateSnapshot": "yarn test -- --updateSnapshot",
     "test:100": "for i in {1..100}; do echo \"Test run: $i\" && yarn jest && sleep .5 || break; done",
     "build": "rm -rf ./dist && vite build",
