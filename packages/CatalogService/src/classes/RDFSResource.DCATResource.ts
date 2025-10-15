@@ -9,7 +9,7 @@ import {
   UIDataResourceType,
 } from "../apiFactory/operations/utils/common";
 import { CatalogService, DCATCatalog } from "../index";
-import { REGEX } from "src/constants";
+import { REGEX } from "../constants";
 
 // !WARNING this is a duplicate of packages/CatalogService/src/index.ts
 export interface DcatResourceQuerySolution extends TypedNodeQuerySolution {

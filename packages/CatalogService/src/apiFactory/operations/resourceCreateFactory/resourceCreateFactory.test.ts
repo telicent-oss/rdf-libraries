@@ -1,4 +1,4 @@
-import { COMMON_PREFIXES_MAP } from "src/constants";
+import { COMMON_PREFIXES_MAP } from "../../../constants";
 import { resourceCreateFactory } from "./resourceCreateFactory";
 
 jest.mock("@telicent-oss/rdf-write-lib", () => ({
