@@ -14,6 +14,8 @@ test("findWithParams", () => {
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX prov: <http://www.w3.org/ns/prov#>
     PREFIX tcat: <http://telicent.io/catalog#>
+    PREFIX tcat-dataset: <http://telicent.io/catalog/dataset#>
+    PREFIX tcat-distribution: <http://telicent.io/catalog/distribution#>
     PREFIX sdo: <https://schema.org/>
 
         SELECT DISTINCT
@@ -140,7 +142,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -39,1 +39,1 @@
+    @@ -41,1 +41,1 @@
     -        
     +        <http://dcat.com/catalog#123> ?catRel ?uri .
     "
@@ -157,7 +159,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -80,6 +80,2 @@
+    @@ -82,6 +82,2 @@
     -            ?parent  ?catRel ?uri .
     -            FILTER (?catRel in (
     -        <http://www.w3.org/ns/dcat#dataset>,
@@ -180,7 +182,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -40,9 +40,1 @@
+    @@ -42,9 +42,1 @@
     -        FILTER (
     -                ?_type IN (
     -                    dcat:Resource,
@@ -206,11 +208,11 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -37,0 +38,1 @@
+    @@ -39,0 +40,1 @@
     +        VALUES ?uri { <http://dcat.com/#123_Dataset> }
-    @@ -39,1 +39,0 @@
+    @@ -41,1 +41,0 @@
     -        
-    @@ -80,6 +80,2 @@
+    @@ -82,6 +82,2 @@
     -            ?parent  ?catRel ?uri .
     -            FILTER (?catRel in (
     -        <http://www.w3.org/ns/dcat#dataset>,
