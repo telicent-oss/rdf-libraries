@@ -50,7 +50,7 @@
   "dependencies": {
     "@telicent-oss/rdf-write-lib": "^1.0.2",
     "@telicent-oss/rdfservice": "^1.0.1",
-    "@telicent-oss/sparql-lib": "0.0.4-TELFE-1332.62",
+    "@telicent-oss/sparql-lib": "^0.0.4-TELFE-1332.63",
     "perfect-debounce": "1.0.0",
     "uuid": "11.1.0",
     "zod": "^3.22.4"
