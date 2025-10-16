@@ -10,9 +10,12 @@ jest.mock("../utils/createUriComponents", () => ({
   createUriComponents: jest.fn(),
 }));
 
-jest.mock("../../../classes/RDFSResource.DCATResource/storeTripleResultsToValueObject", () => ({
-  storeTripleResultsToValueObject: jest.fn(),
-}));
+jest.mock(
+  "../../../classes/RDFSResource.DCATResource/storeTripleResultsToValueObject",
+  () => ({
+    storeTripleResultsToValueObject: jest.fn(),
+  })
+);
 
 jest.mock("./validateResourceCreate", () => ({
   validateResourceCreate: jest.fn(),
@@ -22,16 +25,15 @@ import { createUriComponents } from "../utils/createUriComponents";
 import { storeTripleResultsToValueObject } from "../../../classes/RDFSResource.DCATResource/storeTripleResultsToValueObject";
 import { validateResourceCreate } from "./validateResourceCreate";
 
-const mockedCreateUriComponents =
-  createUriComponents as jest.MockedFunction<typeof createUriComponents>;
+const mockedCreateUriComponents = createUriComponents as jest.MockedFunction<
+  typeof createUriComponents
+>;
 const mockedStoreTripleResultsToValueObject =
   storeTripleResultsToValueObject as jest.MockedFunction<
     typeof storeTripleResultsToValueObject
   >;
 const mockedValidateResourceCreate =
-  validateResourceCreate as jest.MockedFunction<
-    typeof validateResourceCreate
-  >;
+  validateResourceCreate as jest.MockedFunction<typeof validateResourceCreate>;
 
 describe("resourceCreateFactory", () => {
   const createAsync = jest.fn(async (_service, uri: string) => ({
@@ -43,6 +45,15 @@ describe("resourceCreateFactory", () => {
     nodes: {} as Record<string, unknown>,
     lookupClass: jest.fn(() => ({
       createAsync,
+    })),
+    runQuery: jest.fn(async () => ({
+      results: {
+        bindings: [
+          {
+            identifier: { value: "test-identifier" },
+          },
+        ],
+      },
     })),
   };
 
@@ -75,36 +86,35 @@ describe("resourceCreateFactory", () => {
     });
 
     expect(result).toMatchInlineSnapshot(`
-{
-  "message": "store-result",
-}
-`);
+      {
+        "message": "store-result",
+      }
+    `);
 
     expect(mockedCreateUriComponents.mock.calls).toMatchInlineSnapshot(`
-[
-  [
-    {
-      "base": "http://telicent.io/catalog/dataset#",
-      "identifier": "dataset-id",
-      "postfix": "_Dataset",
-    },
-  ],
-]
-`);
+      [
+        [
+          {
+            "base": "http://telicent.io/catalog/dataset#",
+            "identifier": "dataset-id",
+            "postfix": "_Dataset",
+          },
+        ],
+      ]
+    `);
 
     const storeCall = mockedStoreTripleResultsToValueObject.mock.calls[0][0];
 
-    expect(storeCall.uri).toBe(
-      "http://telicent.io/catalog/dataset#dataset-id"
-    );
+    expect(storeCall.uri).toBe("http://telicent.io/catalog/dataset#dataset-id");
     expect(storeCall.uiFields).toMatchInlineSnapshot(`
-{
-  "classType": "http://www.w3.org/ns/dcat#Dataset",
-  "description": "Lorem ipsum",
-  "identifier": "dataset-id",
-  "title": "Dataset title",
-}
-`);
+      {
+        "classType": "http://www.w3.org/ns/dcat#Dataset",
+        "description": "Lorem ipsum",
+        "distributionIdentifier": "test-identifier",
+        "identifier": "dataset-id",
+        "title": "Dataset title",
+      }
+    `);
   });
 
   it("throws when identifier is blank", async () => {
@@ -122,19 +132,43 @@ describe("resourceCreateFactory", () => {
         },
       })
     ).rejects.toMatchInlineSnapshot(`
-{
-  "errors": {
-    "uri": [
       {
-        "code": "catalog.uri.invalid",
-        "summary": "identifier is required",
-      },
-    ],
-  },
-}
-`);
+        "errors": {
+          "uri": [
+            {
+              "code": "catalog.uri.invalid",
+              "summary": "identifier is required",
+            },
+          ],
+        },
+        "messages": {},
+        "operations": {},
+        "results": {},
+        "values": {},
+      }
+    `);
 
     expect(mockedCreateUriComponents).not.toHaveBeenCalled();
     expect(mockedStoreTripleResultsToValueObject).not.toHaveBeenCalled();
+  });
+
+  it("wraps unexpected failures in a form error", async () => {
+    mockedStoreTripleResultsToValueObject.mockRejectedValueOnce(
+      new Error("boom")
+    );
+    const factory = resourceCreateFactory({
+      catalogService: catalogService as never,
+      rdfWriteApiClient: {} as never,
+    });
+
+    await expect(
+      factory({
+        type: "dataSet",
+        payload: {
+          identifier: "dataset-id",
+          title: "Title",
+        },
+      })
+    ).rejects.toMatchInlineSnapshot(`[Error: boom]`);
   });
 });

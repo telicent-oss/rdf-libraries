@@ -2,15 +2,19 @@
 import { getAllDCATResources } from "./getAllDCATResources/getAllDCATResources";
 import { findWithOwner } from "./findWithOwner/findWithOwner";
 import { findWithParams } from "./findWithParams/findWithParams";
-import { askIfDistributionIdentifierIsUnattached } from "./askIfDistributionIdentifierIsUnattached/askIfDistributionIdentifierIsUnattached";
-import { askIfDistributionIdentifierExists } from "./askIfDistributionIdentifierExists/askIfDistributionIdentifierExists";
-import { askIfUniqueIdentifierOfType } from "./askIfUniqueIdentifierOfType/askIfUniqueIdentifierOfType";
+import { askIfDistributionUriIsUnattached } from "./askIfDistributionUriIsUnattached/askIfDistributionUriIsUnattached";
+import { askIfDistributionUriExists } from "./askIfDistributionUriExists/askIfDistributionUriExists";
+import { askIfSubjectUriIsUniqueForType } from "./askIfSubjectUriIsUniqueForType/askIfSubjectUriIsUniqueForType";
+import { askIfObjectIsUniqueForPredicate } from "./askIfObjectIsUniqueForPredicate/askIfObjectIsUniqueForPredicate";
+import { getDistributionByUri } from "./getDistributionByUri/getDistributionByUri";
 
 export const catalog = {
   getAllDCATResources,
   findWithOwner,
   findWithParams,
-  askIfDistributionIdentifierExists,
-  askIfDistributionIdentifierIsUnattached,
-  askIfUniqueIdentifierOfType,
+  askIfDistributionUriExists,
+  askIfDistributionUriIsUnattached,
+  askIfSubjectUriIsUniqueForType,
+  askIfObjectIsUniqueForPredicate,
+  getDistributionByUri,
 };

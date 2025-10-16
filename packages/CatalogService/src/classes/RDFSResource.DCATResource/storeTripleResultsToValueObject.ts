@@ -51,10 +51,10 @@ function editableEntries(
   );
 }
 
-type UiFields = keyof Editable;
+type UiFields = keyof Editable | "_unknown";
 export type ResourceOperationResults = {
   values: Partial<Record<UiFields, string>>;
-  errors: Partial<Record<UiFields, StoreTripleError[]>>;
+  errors: Partial<Record<UiFields | 'form', StoreTripleError[]>>;
   messages: Partial<Record<UiFields, StoreTripleMessage[]>>;
   operations: Partial<Record<UiFields, StoreTripleOperation[]>>;
   results: Partial<Record<UiFields, StoreTriplesResult[]>>;

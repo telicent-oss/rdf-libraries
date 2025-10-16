@@ -12,7 +12,7 @@ import {
   GraphData,
   StoreTripleOperation,
 } from "./createOperations";
-import { maybeGetNotUniqueError } from "./maybeGetNotUniqueError";
+import { maybeGetErrorForObjectIsUniqueForPredicate } from "./maybeGetErrorForObjectIsUniqueForPredicate";
 import { FieldError, withContext } from "../../apiFactory/operations/utils/fieldError";
 // import { COMMON_PREFIXES_MAP } from "../../constants";
 
@@ -20,7 +20,7 @@ type StoreTripleBase = {
   triple: UpdateTriple;
   property?: string;
   onSuccess: () => void;
-  checkUnique?: boolean;
+  checkObjectIsUniqueForPredicate?: boolean;
 } & PredicateFnOptionsBase;
 // TODO move to generic file
 export type StoreTripleUpdate = StoreTripleBase & {
@@ -151,9 +151,9 @@ export const storeTriplesForPhase2: StoreTripleForOntology = async ({
     };
     try {
       const notUniqueError =
-        "checkUnique" in operation &&
-        operation.checkUnique &&
-        (await maybeGetNotUniqueError(catalogService, operation));
+        "checkObjectIsUniqueForPredicate" in operation &&
+        operation.checkObjectIsUniqueForPredicate &&
+        (await maybeGetErrorForObjectIsUniqueForPredicate(catalogService, operation));
       if (isErrorUpstream) {
         results.push(asMessage(`No-op, error isErrorUpstream `));
       } else if (notUniqueError) {

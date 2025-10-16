@@ -120,78 +120,78 @@ test("ditributionIdentifier", () => {
       ],
       "distribution": [
         {
-          "o": "http://telicent.io/catalog/distribution#new_distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
       ],
       "distribution__accessURL": [
         {
-          "o": "http://telicent.io/catalog/distribution#new_distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
         {
           "o": "http://www.w3.org/ns/dcat#Distribution",
           "p": "rdf:type",
-          "s": "http://telicent.io/catalog/distribution#new_distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
         {
           "o": "New property",
           "p": "dcat:accessURL",
-          "s": "http://telicent.io/catalog/distribution#new_distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
       ],
       "distribution__available": [],
       "distribution__identifier": [
         {
-          "o": "http://telicent.io/catalog/distribution#new_distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
         {
           "o": "http://www.w3.org/ns/dcat#Distribution",
           "p": "rdf:type",
-          "s": "http://telicent.io/catalog/distribution#new_distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
         {
           "o": "new_distribution",
           "p": "dct:identifier",
-          "s": "http://telicent.io/catalog/distribution#new_distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
       ],
       "distribution__mediaType": [
         {
-          "o": "http://telicent.io/catalog/distribution#new_distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
         {
           "o": "http://www.w3.org/ns/dcat#Distribution",
           "p": "rdf:type",
-          "s": "http://telicent.io/catalog/distribution#new_distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
         {
           "o": "New property",
           "p": "dcat:mediaType",
-          "s": "http://telicent.io/catalog/distribution#new_distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
       ],
       "distribution__title": [
         {
-          "o": "http://telicent.io/catalog/distribution#new_distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
         {
           "o": "http://www.w3.org/ns/dcat#Distribution",
           "p": "rdf:type",
-          "s": "http://telicent.io/catalog/distribution#new_distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
         {
           "o": "New property",
           "p": "dct:title",
-          "s": "http://telicent.io/catalog/distribution#new_distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
       ],
       "identifier": [

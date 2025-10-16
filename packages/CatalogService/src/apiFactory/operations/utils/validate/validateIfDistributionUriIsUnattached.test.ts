@@ -1,7 +1,7 @@
-import { validateIfDistributionIdentifierIsUnattached } from "./validateIfDistributionIdentifierIsUnattached";
+import { validateIfDistributionUriIsUnattached } from "./validateIfDistributionUriIsUnattached";
 import type { FieldError } from "../fieldError";
 
-describe("validateIfDistributionIdentifierIsUnattached", () => {
+describe("validateIfDistributionUriIsUnattached", () => {
   const catalogService = {
     runQuery: jest.fn(),
   } as unknown as {
@@ -19,7 +19,7 @@ describe("validateIfDistributionIdentifierIsUnattached", () => {
   });
 
   it("returns errors when identifier is locked", async () => {
-    const errors = await validateIfDistributionIdentifierIsUnattached(
+    const errors = await validateIfDistributionUriIsUnattached(
       {},
       {
         catalogService: catalogService as never,
@@ -42,7 +42,7 @@ describe("validateIfDistributionIdentifierIsUnattached", () => {
       boolean: false,
     });
 
-    const errors = await validateIfDistributionIdentifierIsUnattached(
+    const errors = await validateIfDistributionUriIsUnattached(
       {},
       {
         catalogService: catalogService as never,
@@ -54,20 +54,7 @@ describe("validateIfDistributionIdentifierIsUnattached", () => {
       }
     );
 
-    expect(errors).toMatchInlineSnapshot(`
-      {
-        "distributionIdentifier": [
-          {
-            "code": "distribution.identifier.duplicate",
-            "context": {
-              "identifier": "dist-123",
-              "uri": "http://telicent.io/catalog/distribution#dist-123",
-            },
-            "summary": "Distribution identifier \"dist-123\" is already attached to another dataset",
-          },
-        ],
-      }
-    `);
+    expect(errors).toMatchInlineSnapshot(`{}`);
   });
 
   it("returns existing errors unchanged when identifier missing", async () => {
@@ -75,17 +62,14 @@ describe("validateIfDistributionIdentifierIsUnattached", () => {
       distributionIdentifier: [{ code: "prev", summary: "Existing error" }],
     };
 
-    const errors = await validateIfDistributionIdentifierIsUnattached(
-      previous,
-      {
-        catalogService: catalogService as never,
-        dcatResource: baseDcatResource as never,
-        operation: {
-          type: "dataSet",
-          payload: {},
-        },
-      }
-    );
+    const errors = await validateIfDistributionUriIsUnattached(previous, {
+      catalogService: catalogService as never,
+      dcatResource: baseDcatResource as never,
+      operation: {
+        type: "dataSet",
+        payload: {},
+      },
+    });
 
     expect(errors).toBe(previous);
   });

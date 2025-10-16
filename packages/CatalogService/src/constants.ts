@@ -9,9 +9,9 @@ export const REGEX = {
     /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(\.\d+)?(Z|[+-]\d{2}:\d{2})?$/,
 };
 
-export const DATASET_URI_PREFIX = "http://telicent.io/catalog/dataset#";
-export const DISTRIBUTION_URI_PREFIX =
-  "http://telicent.io/catalog/distribution#";
+export const DATASET_NAMESPACE = "http://telicent.io/catalog/dataset#";
+export const DISTRIBUTION_NAMESPACE =
+  "http://telicent.io/catalog/Distribution#";
 
 export const COMMON_PREFIXES_MAP = {
   dcat: "http://www.w3.org/ns/dcat#",
@@ -20,8 +20,8 @@ export const COMMON_PREFIXES_MAP = {
   rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
   prov: "http://www.w3.org/ns/prov#",
   tcat: "http://telicent.io/catalog#",
-  "tcat-dataset": DATASET_URI_PREFIX,
-  "tcat-distribution": DISTRIBUTION_URI_PREFIX,
+  "tcat-dataset": DATASET_NAMESPACE,
+  "tcat-distribution": DISTRIBUTION_NAMESPACE,
   sdo: "https://schema.org/",
   vcard: "http://www.w3.org/2006/vcard/ns#fn",
   xsd: "http://www.w3.org/2001/XMLSchema#",
@@ -33,7 +33,7 @@ export const COMMON_PREFIXES = (
   .join("\n");
 
 export const buildDatasetUri = (identifier: string) =>
-  `${DATASET_URI_PREFIX}${identifier}`;
+  `${DATASET_NAMESPACE}${identifier}`;
 
 export const buildDistributionUri = (identifier: string) =>
-  `${DISTRIBUTION_URI_PREFIX}${identifier}`;
+  `${DISTRIBUTION_NAMESPACE}${identifier}`;

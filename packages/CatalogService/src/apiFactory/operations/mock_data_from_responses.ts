@@ -65,7 +65,7 @@ export const COMPLETE_RESULT: DcatResourceQuerySolution = {
   },
   distribution__identifier: {
     type: "uri",
-    value: "http://telicent.io/catalog/distribution#abc123",
+    value: "http://telicent.io/catalog/Distribution#abc123",
   },
   distribution__accessURL: {
     type: "literal",

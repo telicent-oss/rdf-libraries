@@ -1,12 +1,12 @@
 import { ResourceOperationResults } from "src/classes/RDFSResource.DCATResource/storeTripleResultsToValueObject";
 import { ValidateResourceParams } from "../utils/validate/types";
-import { validateIfDistributionIdentifierIsUnattached } from "../utils/validate/validateIfDistributionIdentifierIsUnattached";
+import { validateIfDistributionUriIsUnattached } from "../utils/validate/validateIfDistributionUriIsUnattached";
 
 export const validateResourceUpdate = async (
   validateResource: ValidateResourceParams,
 ) => {
   let  errors: ResourceOperationResults["errors"] = {};
-  errors = await validateIfDistributionIdentifierIsUnattached(errors, validateResource,);
+  errors = await validateIfDistributionUriIsUnattached(errors, validateResource,);
   if (Object.keys(errors).length > 0) {
     throw { errors };
   }

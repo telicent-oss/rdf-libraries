@@ -97,7 +97,7 @@ const pushLiteralWithContext = (
     s?: Triple["s"];
     p: Triple["p"];
     o?: Triple["o"];
-    checkUnique?: boolean;
+    checkObjectIsUniqueForPredicate?: boolean;
     checkSubjectExists?: boolean;
   }) {
     const { instance, property, operations, newValue } = context;
@@ -108,7 +108,7 @@ const pushLiteralWithContext = (
     operations.push({
       type: instance[property] === undefined ? "create" : "update",
       triple: { s, p, o },
-      checkUnique: options.checkUnique,
+      checkObjectIsUniqueForPredicate: options.checkObjectIsUniqueForPredicate,
       // checkSubjectExists: options.checkSubjectExists,
       prev: instance[property] || null,
       onSuccess: () => {
@@ -227,7 +227,7 @@ export const createOperations = (options: CreateOperationsOptions) => {
         //    or enable compound operations with rollback capability
         //
         // pushLiteral({                               p: "dct:title",                                   dryRun: true});
-        // pushLiteral({                               p: "dct:title",                                   checkUnique: true});
+        // pushLiteral({                               p: "dct:title",                                   checkObjectIsUniqueForPredicate: true});
         // operations.push({                           p: 'rdf:type',
         //
         //
@@ -246,7 +246,7 @@ export const createOperations = (options: CreateOperationsOptions) => {
         });
         break;
       case "title":
-        pushLiteral({                               p: "dct:title",                                   checkUnique: true});
+        pushLiteral({                               p: "dct:title",                                   });
         break;
       case "identifier":
         pushLiteral({                               p:"dct:identifier"});
@@ -256,7 +256,7 @@ export const createOperations = (options: CreateOperationsOptions) => {
         break;
       case "publisher__title":
         pushUri({                                   p: "dct:publisher",                               property: "__publisher",                    postfix: "_Publisher" });
-        pushLiteral({                               p:"dct:title"});
+        pushLiteral({                               p: "dct:title"});
         break;
       case "contactPoint__fn":
         pushUri({                                   p: "dcat:contactPoint",                           property: "__contactPoint",                 postfix: "_ContactPoint" });
@@ -291,8 +291,7 @@ export const createOperations = (options: CreateOperationsOptions) => {
           : options.property === "distribution__title"      ? "dct:title"
           : options.property == 'distribution__accessURL'   ? "dcat:accessURL"
           : "dcat:mediaType";
-        const checkUnique = options.property === "distribution__identifier";
-        pushLiteral({s: operations.at(-2)?.triple.o,      p,                  o: options.newValue,                              checkUnique  });
+        pushLiteral({s: operations.at(-2)?.triple.o,      p,                  o: options.newValue });
         break;
       }
       case "min_issued":

@@ -1,11 +1,11 @@
 import { validateResourceUpdate } from "./validateResourceUpdate";
-import { validateIfDistributionIdentifierIsUnattached } from "../utils/validate/validateIfDistributionIdentifierIsUnattached";
+import { validateIfDistributionUriIsUnattached } from "../utils/validate/validateIfDistributionUriIsUnattached";
 
-jest.mock("../utils/validate/validateIfDistributionIdentifierIsUnattached");
+jest.mock("../utils/validate/validateIfDistributionUriIsUnattached");
 
 const mockedValidateDistribution =
-  validateIfDistributionIdentifierIsUnattached as jest.MockedFunction<
-    typeof validateIfDistributionIdentifierIsUnattached
+  validateIfDistributionUriIsUnattached as jest.MockedFunction<
+    typeof validateIfDistributionUriIsUnattached
   >;
 
 const baseParams = {

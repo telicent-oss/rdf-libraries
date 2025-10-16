@@ -1,6 +1,6 @@
 import type { DispatchResult } from "@telicent-oss/rdf-write-lib";
 import { createOperations } from "./createOperations";
-import { maybeGetNotUniqueError } from "./maybeGetNotUniqueError";
+import { maybeGetErrorForObjectIsUniqueForPredicate } from "./maybeGetErrorForObjectIsUniqueForPredicate";
 import { storeTriplesForPhase2 } from "./storeTriplesForPhase2";
 import type { FieldError } from "../../apiFactory/operations/utils/fieldError";
 import type {
@@ -9,14 +9,14 @@ import type {
 } from "@telicent-oss/rdf-write-lib";
 
 jest.mock("./createOperations");
-jest.mock("./maybeGetNotUniqueError");
+jest.mock("./maybeGetErrorForObjectIsUniqueForPredicate");
 
 const mockedCreateOperations = createOperations as jest.MockedFunction<
   typeof createOperations
 >;
 const mockedMaybeGetNotUniqueError =
-  maybeGetNotUniqueError as jest.MockedFunction<
-    typeof maybeGetNotUniqueError
+  maybeGetErrorForObjectIsUniqueForPredicate as jest.MockedFunction<
+    typeof maybeGetErrorForObjectIsUniqueForPredicate
   >;
 
 const noop = jest.fn(async () => undefined);
@@ -82,7 +82,7 @@ describe("storeTriplesForPhase2", () => {
     ]);
   });
 
-  it("returns field error when maybeGetNotUniqueError reports conflict", async () => {
+  it("returns field error when maybeGetErrorForObjectIsUniqueForPredicate reports conflict", async () => {
     const fieldError: FieldError = {
       code: "catalog.identifier.duplicate",
       summary: "Value \"New title\" already exists",
@@ -91,7 +91,7 @@ describe("storeTriplesForPhase2", () => {
       {
         ...baseOperation,
         type: "create",
-        checkUnique: true,
+        checkObjectIsUniqueForPredicate: true,
       },
     ] as never);
     mockedMaybeGetNotUniqueError.mockResolvedValue(fieldError);
@@ -294,7 +294,7 @@ describe("storeTriplesForPhase2", () => {
       {
         ...baseOperation,
         type: "create",
-        checkUnique: true,
+        checkObjectIsUniqueForPredicate: true,
       },
       {
         ...baseOperation,

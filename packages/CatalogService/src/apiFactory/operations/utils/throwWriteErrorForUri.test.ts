@@ -18,7 +18,7 @@ test("throwWriteErrorForUri", () => {
           "uri": [
             {
               "code": "catalog.uri.invalid",
-              "summary": "Error: normal",
+              "summary": "normal",
             },
           ],
         },
@@ -28,15 +28,7 @@ test("throwWriteErrorForUri", () => {
           "uri": [
             {
               "code": "catalog.uri.invalid",
-              "summary": "[
-      {
-        "code": "invalid_type",
-        "expected": "string",
-        "received": "number",
-        "path": [],
-        "message": "Expected string, received number"
-      }
-    ]",
+              "summary": "(root): Expected string, received number",
             },
           ],
         },

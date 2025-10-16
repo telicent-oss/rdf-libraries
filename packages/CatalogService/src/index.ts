@@ -13,8 +13,8 @@ export {
   version,
   buildDatasetUri,
   buildDistributionUri,
-  DATASET_URI_PREFIX,
-  DISTRIBUTION_URI_PREFIX,
+  DATASET_NAMESPACE,
+  DISTRIBUTION_NAMESPACE,
 } from "./constants";
 export { DCATDataset } from "./classes/RDFSResource.DCATResource.DCATDataset";
 export { DCATCatalog } from "./classes/RDFSResource.DCATResource.DCATDataset.DCATCatalog";
