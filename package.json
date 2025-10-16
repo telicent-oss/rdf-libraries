@@ -22,6 +22,8 @@
     "postinstall": "[ \"$LOCAL_MACHINE\" = \"false\" ] && echo 'Skipping tefe hook-postinstall' || tefe hook-postinstall",
     "create-links": "yarn create-links-to-local-packages",
     "local:link": "yarn use-local-packages:link",
+    "check-package-relative-installs": "./scripts/check-package-relative-installs.sh",
+    "pre:local-publish": "yarn check-package-relative-installs",
     "local-publish": "./scripts/local-publish.mjs",
     "local:unlink": "yarn use-local-packages:unlink",
     "use-links": "yarn use-links-to-local-packages",
