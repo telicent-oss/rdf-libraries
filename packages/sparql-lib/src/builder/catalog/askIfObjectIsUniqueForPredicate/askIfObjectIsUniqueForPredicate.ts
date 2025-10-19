@@ -14,11 +14,11 @@ export const askIfObjectIsUniqueForPredicate = ({ s, p, o }: UpdateTriple) => {
 
   return `
   # For the given (s, p), there is no object different from "o"
-ASK {
-  FILTER NOT EXISTS {
-    <${s}> ${pred} ?other .
-    FILTER (?other != ${obj})
+  ASK {
+    FILTER NOT EXISTS {
+      <${s}> ${pred} ?other .
+      FILTER (?other != ${obj})
+    }
   }
-}
 `.trim();
 };
