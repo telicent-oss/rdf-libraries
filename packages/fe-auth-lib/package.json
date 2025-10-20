@@ -1,0 +1,33 @@
+{
+  "name": "@telicent-oss/fe-auth-lib",
+  "version": "0.0.1-TELFE-1314.21",
+  "description": "OAuth2 client library for Telicent Authentication Server",
+  "main": "src/AuthServerOAuth2Client.js",
+  "module": "src/AuthServerOAuth2Client.js",
+  "types": "src/AuthServerOAuth2Client.d.ts",
+  "exports": {
+    ".": {
+      "import": "./src/AuthServerOAuth2Client.js",
+      "require": "./src/AuthServerOAuth2Client.js",
+      "types": "./src/AuthServerOAuth2Client.d.ts"
+    },
+    "./src/AuthServerOAuth2Client.js": {
+      "import": "./src/AuthServerOAuth2Client.js",
+      "require": "./src/AuthServerOAuth2Client.js",
+      "types": "./src/AuthServerOAuth2Client.d.ts"
+    }
+  },
+  "files": [
+    "src/",
+    "README.md",
+    "INTEGRATION_GUIDE.md",
+    "API_REFERENCE.md",
+    "INSTRUCTIONS.md"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "echo \"No-op: Nothing to build\"",
+    "local-publish": "./scripts/local-publish.sh",
+    "postlocal-publish": "./scripts/update-deps.mjs --file ./updateDeps.gitignored.json"
+  }
+}
