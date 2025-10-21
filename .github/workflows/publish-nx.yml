@@ -41,7 +41,7 @@ jobs:
         run: LOCAL_MACHINE=false yarn install
 
       - name: Build CatalogService
-        run: npx lerna run build --scope=@telicent-oss/catalogservice
+        run: npx lerna run build
 
       - name: Publish to npm
         run: npx lerna publish from-package --scope=@telicent-oss/catalogservice --registry https://registry.npmjs.org/ --no-private --yes --loglevel silly
