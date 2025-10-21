@@ -41,7 +41,14 @@ jobs:
         run: LOCAL_MACHINE=false yarn install
 
       - name: Build
-        run: npx lerna run build
+        run: npx lerna@^9 run build
 
-      - name: Publish to npm
-        run: npx lerna publish from-package --no-private --yes --loglevel silly
+      - name: Publish
+        env:
+          # Ensure npm provenance is enabled for all npm publish calls
+          NPM_CONFIG_PROVENANCE: 'true'
+        run: |
+          npx lerna@^9 publish from-package \
+            --no-private \
+            --yes \
+            --loglevel silly
