@@ -38,10 +38,10 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Install dependencies
-        run: npx lerna bootstrap
+        run: LOCAL_MACHINE=false npm install --legacy-peer-deps
 
       - name: Build CatalogService
-        run: LOCAL_MACHINE=false npx lerna bootstrap
+        run: npx lerna run build --scope=@telicent-oss/catalogservice
 
       - name: Publish to npm
         run: npx lerna publish from-package --scope=@telicent-oss/catalogservice --registry https://registry.npmjs.org/ --no-private --yes --loglevel silly
