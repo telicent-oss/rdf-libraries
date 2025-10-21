@@ -62,7 +62,7 @@
     "react-dom": "*"
   },
   "engines": {
-    "node": ">=20.14.0"
+    "node": ">=20.19.0"
   },
   "resolutions": {
     "rollup": "3.29.5"
