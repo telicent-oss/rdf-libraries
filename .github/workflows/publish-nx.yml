@@ -34,6 +34,10 @@ jobs:
         with:
           node-version: 20.14
           # Note: The "registry-url" here doesn't populate .yarnrc :|
+
+      - name: Ensure npm 11.5.1+ for Trusted Publishing
+        run: npm install -g npm@latest
+
       - run: LOCAL_MACHINE=false yarn install --frozen-lockfile
       - run: yarn build
       - name: publish changed packages
@@ -41,19 +45,11 @@ jobs:
           #!/usr/bin/env bash
           set -euo pipefail
 
-          # 1. Ensure the Yarn/NPM auth token is set
-          #if [ -z "${YARN_AUTH_TOKEN:-}" ]; then
-          #  echo "Error: YARN_AUTH_TOKEN environment variable is not set. Exiting."
-          #  exit 1
-          #fi
-
-          # 2. Configure Yarn registry and token
-          # echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
-          # yarn config set registry "https://registry.npmjs.org/"
+          # Note: Authentication via GitHub OIDC Trusted Publisher (no tokens needed)
 
           yarn lerna run build --stream --no-prefix --concurrency 1  --include-dependencies
 
-          # 3. Check for uncommitted changes
+          # Check for uncommitted changes
           git update-index -q --refresh || true
           if ! git diff-index --quiet HEAD --; then
             echo "::error title=Uncommitted changes detected::Commit or stash them before publishing."
@@ -87,7 +83,7 @@ jobs:
             exit 1
           fi
 
-          # 4. Run Lerna from-package with Yarn
+          # Publish via Lerna (authenticates via OIDC)
           yarn lerna publish from-package \
             --registry "https://registry.npmjs.org/" \
             --no-private \
@@ -95,5 +91,4 @@ jobs:
             --concurrency 1 \
             --loglevel silly
         env:
-          YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
