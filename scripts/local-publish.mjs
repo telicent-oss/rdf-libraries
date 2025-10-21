@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * local-publish.mjs
- * BIG UPDATE: Oct 21 2025 (4a7830c6) not battle tested
+ * BIG UPDATE: Oct 21 2025 (4a7830c6) not battle tested (remove this line after 3+ months of use)
  *
  * Behavior
  * - Normal run:

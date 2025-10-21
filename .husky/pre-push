@@ -3,3 +3,4 @@
 
 ./scripts/cp-LICENSE-root-to-packages.sh
 ./scripts/check-release-please-config/index.js
+yarn test
