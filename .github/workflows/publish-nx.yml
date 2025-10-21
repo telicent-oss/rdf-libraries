@@ -95,5 +95,5 @@ jobs:
             --concurrency 1 \
             --loglevel silly
         env:
-          YARN_AUTH_TOKEN: ${{ npm.token }}
+          YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
