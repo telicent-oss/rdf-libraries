@@ -38,13 +38,14 @@ jobs:
       - run: yarn build
       - name: publish changed packages
         run: |
+          #!/usr/bin/env bash
           set -euo pipefail
 
           # 1. Ensure the Yarn/NPM auth token is set
-          if [ -z "${YARN_AUTH_TOKEN:-}" ]; then
-            echo "Error: YARN_AUTH_TOKEN environment variable is not set. Exiting."
-            exit 1
-          fi
+          #if [ -z "${YARN_AUTH_TOKEN:-}" ]; then
+          #  echo "Error: YARN_AUTH_TOKEN environment variable is not set. Exiting."
+          #  exit 1
+          #fi
 
           # 2. Configure Yarn registry and token
           yarn config set registry "https://registry.npmjs.org/"
