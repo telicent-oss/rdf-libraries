@@ -7,10 +7,6 @@ if [ -z "${YARN_AUTH_TOKEN:-}" ]; then
   exit 1
 fi
 
-# 2. Configure Yarn registry and token
-yarn config set registry "https://registry.npmjs.org/"
-echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
-
 yarn lerna run build --stream --no-prefix --concurrency 1  --include-dependencies
 
 # 3. Check for uncommitted changes
@@ -48,10 +44,8 @@ if ! git diff-index --quiet HEAD --; then
 fi
 
 # 4. Run Lerna from-package with Yarn
-yarn lerna publish from-package \
-  --registry "https://registry.npmjs.org/" \
+npx lerna@^9 publish from-package \
   --no-private \
   --yes \
   --concurrency 1 \
   --loglevel silly
-  
