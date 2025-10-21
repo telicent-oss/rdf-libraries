@@ -30,20 +30,18 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 24
+          node-version: 20
           registry-url: 'https://registry.npmjs.org'
 
       # Ensure npm 11.5.1 or later is installed
       - name: Update npm
         run: npm install -g npm@latest
 
-      - name: Install dependencies
+      - name: Install
         run: LOCAL_MACHINE=false yarn install
 
-      - name: Build CatalogService
+      - name: Build
         run: npx lerna run build
 
       - name: Publish to npm
-        run: npx lerna publish from-package --scope=@telicent-oss/catalogservice --registry https://registry.npmjs.org/ --no-private --yes --loglevel silly
-        env:
-          NPM_CONFIG_PROVENANCE: true
+        run: npx lerna publish from-package --scope=@telicent-oss/catalogservice --no-private --yes --loglevel silly
