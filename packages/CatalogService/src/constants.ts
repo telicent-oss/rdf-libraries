@@ -23,7 +23,11 @@ export const COMMON_PREFIXES_MAP = {
   "tcat-dataset": DATASET_NAMESPACE,
   "tcat-distribution": DISTRIBUTION_NAMESPACE,
   sdo: "https://schema.org/",
-  vcard: "http://www.w3.org/2006/vcard/ns#fn", // TODO https://github.com/telicent-oss/rdf-libraries/pull/299#discussion_r2432701466
+  // TODO the localName "fn" is wrong - and should be removed
+  // WHEN we decide to keep vcard
+  // HOW if keeping - remove "fn" and test else delete all vcard code
+  // CONTEXT https://github.com/telicent-oss/rdf-libraries/pull/299#discussion_r2432701466
+  vcard: "http://www.w3.org/2006/vcard/ns#fn",
   xsd: "http://www.w3.org/2001/XMLSchema#",
 } as const;
 export const COMMON_PREFIXES = (
