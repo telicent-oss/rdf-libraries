@@ -36,60 +36,17 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
           # Note: The "registry-url" here doesn't populate .yarnrc :|
 
-      - name: Ensure npm 11.5.1+ for Trusted Publishing
+      # Ensure npm 11.5.1 or later is installed
+      - name: Update npm
         run: npm install -g npm@latest
 
-      - run: LOCAL_MACHINE=false yarn install --frozen-lockfile
-      - run: yarn build
-      - name: publish changed packages
-        run: |
-          #!/usr/bin/env bash
-          set -euo pipefail
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
 
-          # Note: Authentication via GitHub OIDC Trusted Publisher (no tokens needed)
+      - name: Build CatalogService
+        run: yarn lerna run build
 
-          yarn lerna run build --stream --no-prefix --concurrency 1  --include-dependencies
-
-          # Check for uncommitted changes
-          git update-index -q --refresh || true
-          if ! git diff-index --quiet HEAD --; then
-            echo "::error title=Uncommitted changes detected::Commit or stash them before publishing."
-
-            # Always show a concise, machine-stable list in CI logs
-            echo "::group::git status --porcelain (working tree)"
-            git -c core.quotePath=false status --porcelain=v1 --untracked-files=all || true
-            echo "::endgroup::"
-
-            # Also show names + change types for quick scanning
-            echo "::group::git diff --name-status (tracked changes)"
-            git diff --name-status --relative || true
-            echo "::endgroup::"
-
-            # Write to GitHub Step Summary if available
-            if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-              {
-                echo "### Uncommitted changes"
-                echo
-                echo '```text'
-                git -c core.quotePath=false status --porcelain=v1 --untracked-files=all || true
-                echo '```'
-                echo
-                echo "#### Tracked file changes"
-                echo
-                echo '```text'
-                git diff --name-status --relative || true
-                echo '```'
-              } >> "$GITHUB_STEP_SUMMARY"
-            fi
-            exit 1
-          fi
-
-          # Publish via Lerna (authenticates via OIDC)
-          yarn lerna publish from-package \
-            --registry "https://registry.npmjs.org/" \
-            --no-private \
-            --yes \
-            --concurrency 1 \
-            --loglevel silly
+      - name: Publish to npm
+        run: yarn lerna publish from-package --scope=@telicent-oss/catalogservice --registry https://registry.npmjs.org/ --no-private --yes --loglevel silly
         env:
           NPM_CONFIG_PROVENANCE: true
