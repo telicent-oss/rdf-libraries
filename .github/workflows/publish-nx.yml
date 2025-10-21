@@ -38,5 +38,4 @@ jobs:
       - run: yarn build
       - run: ./scripts/lerna/publish:ci.sh
         env:
-          YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
