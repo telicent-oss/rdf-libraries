@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 /**
  * local-publish.mjs
+ * BIG UPDATE: Oct 21 2025 (4a7830c6) not battle tested
  *
  * Behavior
  * - Normal run:
  *     1) Select ONE source package.
  *     2) Bump source version (branch-driven) via local-version-bump.sh.
- *     3) Update only the dependents' ranges on the source to the new version.
+ *     3) Update only the dependents' ranges on the source to the new version. 
  *     4) Compute affected set = source + dependents (transitive).
  *     5) Add dependency-closure so builds have prerequisites available.
  *     6) Topo-build all in closure; publish only the affected set in topo order.

@@ -24,6 +24,7 @@ export const COMMON_PREFIXES_MAP = {
   "tcat-distribution": DISTRIBUTION_NAMESPACE,
   sdo: "https://schema.org/",
   // TODO the localName "fn" is wrong - and should be removed
+  // TODO the localName "fn" is wrong - and should be removed
   // WHEN we decide to keep vcard
   // HOW if keeping - remove "fn" and test else delete all vcard code
   // CONTEXT https://github.com/telicent-oss/rdf-libraries/pull/299#discussion_r2432701466
