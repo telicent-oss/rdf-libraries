@@ -44,4 +44,4 @@ jobs:
         run: npx lerna run build
 
       - name: Publish to npm
-        run: npx lerna publish from-package --scope=@telicent-oss/catalogservice --no-private --yes --loglevel silly
+        run: npx lerna publish from-package --no-private --yes --loglevel silly
