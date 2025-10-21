@@ -1,15 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# 1. Ensure the Yarn/NPM auth token is set
-if [ -z "${YARN_AUTH_TOKEN:-}" ]; then
-  echo "Error: YARN_AUTH_TOKEN environment variable is not set. Exiting."
-  exit 1
-fi
-
+# 1. Build
 yarn lerna run build --stream --no-prefix --concurrency 1  --include-dependencies
 
-# 3. Check for uncommitted changes
+# 2. Check for uncommitted changes
 git update-index -q --refresh || true
 if ! git diff-index --quiet HEAD --; then
   echo "::error title=Uncommitted changes detected::Commit or stash them before publishing."
