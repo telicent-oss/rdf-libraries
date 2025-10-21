@@ -48,8 +48,8 @@ jobs:
           #fi
 
           # 2. Configure Yarn registry and token
-          yarn config set registry "https://registry.npmjs.org/"
-          echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
+          # echo "//registry.npmjs.org/:_authToken=${YARN_AUTH_TOKEN}" >> ~/.npmrc
+          # yarn config set registry "https://registry.npmjs.org/"
 
           yarn lerna run build --stream --no-prefix --concurrency 1  --include-dependencies
 
