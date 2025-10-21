@@ -45,7 +45,6 @@ jobs:
 
       - name: Publish
         env:
-          # Ensure npm provenance is enabled for all npm publish calls
           NPM_CONFIG_PROVENANCE: 'true'
         run: |
           npx lerna@^9 publish from-package \
