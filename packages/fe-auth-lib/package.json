@@ -39,5 +39,8 @@
   },
   "dependencies": {
     "zod": "^3.23.8"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
