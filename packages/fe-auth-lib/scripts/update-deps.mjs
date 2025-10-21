@@ -39,13 +39,39 @@ if (repos.length === 0) {
   process.exit(1)
 }
 
-// 3. For each repo, update matching deps to the new version
+// 3. Validate all paths upfront - fail fast if any are invalid
+console.log(`\n🔍 Validating ${repos.length} target repo(s)...`)
+const invalidPaths = []
+for (const { path: repo } of repos) {
+  const pkgPath = resolve(repo, 'package.json')
+  const absolutePath = resolve(cwd, repo)
+  if (!existsSync(pkgPath)) {
+    invalidPaths.push({ repo, pkgPath, absolutePath })
+  } else {
+    console.log(`  ✓ ${repo}`)
+  }
+}
+
+if (invalidPaths.length > 0) {
+  console.error('\n❌ ERROR: Invalid repo path(s) found in updateDeps.gitignored.json:\n')
+  for (const { repo, pkgPath, absolutePath } of invalidPaths) {
+    console.error(`  Path: ${repo}`)
+    console.error(`  Absolute: ${absolutePath}`)
+    console.error(`  Looking for: ${pkgPath}`)
+    console.error(`  Status: NOT FOUND\n`)
+  }
+  console.error('📝 Next steps:')
+  console.error('  1. Verify the target repositories exist')
+  console.error('  2. Update updateDeps.gitignored.json with correct relative paths')
+  console.error(`  3. Paths should be relative to: ${cwd}\n`)
+  process.exit(1)
+}
+
+console.log(`\n✅ All paths validated. Updating dependencies...\n`)
+
+// 4. For each repo, update matching deps to the new version
 for (const { path: repo, postUpdateDependency } of repos) {
   const pkgPath = resolve(repo, 'package.json')
-  if (!existsSync(pkgPath)) {
-    console.warn(`Skipping ${repo}: package.json not found`)
-    continue
-  }
 
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
   for (const field of ['dependencies', 'devDependencies', 'resolutions']) {

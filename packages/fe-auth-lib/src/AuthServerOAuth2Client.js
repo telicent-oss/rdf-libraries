@@ -1,3 +1,13 @@
+// Import schema for validation (Node.js/bundler environments)
+let GetUserInfoSchema;
+if (typeof require !== 'undefined') {
+    try {
+        GetUserInfoSchema = require('./schemas.js').GetUserInfoSchema;
+    } catch (e) {
+        console.warn('Zod schema not available, validation will be skipped:', e.message);
+    }
+}
+
 // Unified OAuth2 Client Implementation using Auth Server Session Management
 // Works for both same-domain and cross-domain scenarios with automatic detection
 class AuthServerOAuth2Client {
@@ -510,27 +520,45 @@ class AuthServerOAuth2Client {
                 return null;
             }
 
-            // Return user info in the same format as the previous API response
-            return {
+            // Build user info object from token payload
+            const userInfo = {
                 sub: payload.sub,
-                name: payload.preferred_name || payload.sub,
                 email: payload.email,
-                scope: payload.scopes,
                 preferred_name: payload.preferred_name,
-                given_name: payload.given_name,
-                family_name: payload.family_name,
-                roles: payload.roles,
-                externalProvider: payload,
-                // Add any other claims that might be present
+                iss: payload.iss,
                 aud: payload.aud,
                 exp: payload.exp,
                 iat: payload.iat,
-                iss: payload.iss,
-                // Add token validity info
+                jti: payload.jti,
+                // Optional OIDC claims
+                nonce: payload.nonce,
+                auth_time: payload.auth_time,
+                sid: payload.sid,
+                azp: payload.azp,
+                // FE client additions
+                name: payload.preferred_name || payload.name || payload.sub,
                 token_expired: false,
                 token_expires_at: new Date(payload.exp * 1000).toISOString(),
-                source: 'id_token'
+                source: 'id_token',
+                externalProvider: payload
             };
+
+            // Validate against schema if available
+            if (GetUserInfoSchema) {
+                try {
+                    const validated = GetUserInfoSchema.parse(userInfo);
+                    console.log('User info validated successfully against schema');
+                    return validated;
+                } catch (validationError) {
+                    console.error('User info validation failed:', validationError);
+                    // Return unvalidated data but log the error
+                    console.warn('Returning unvalidated user info. Validation errors:', validationError.errors);
+                    return userInfo;
+                }
+            }
+
+            // Return without validation if schema not available
+            return userInfo;
         } catch (error) {
             console.error('Error getting user info from ID token:', error);
             return null;

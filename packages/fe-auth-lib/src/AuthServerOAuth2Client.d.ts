@@ -27,46 +27,50 @@ export interface AuthServerOAuth2ClientConfig {
 
 /**
  * User information extracted from ID token or userinfo endpoint
+ * Matches GetUserInfoSchema from schemas.js
  */
 export interface UserInfo {
-  /** Subject (unique user identifier) */
+  // Core user identity (always present)
+  /** Subject (unique user identifier) - Always present */
   sub: string;
+  /** Email address - NOT NULL in DB */
+  email: string;
+  /** Preferred display name - NOT NULL in DB */
+  preferred_name: string;
+
+  // Standard OIDC claims (always present)
+  /** Token issuer URL */
+  iss: string;
+  /** Token audience (client ID) */
+  aud: string;
+  /** Token expiration time (Unix timestamp) */
+  exp: number;
+  /** Token issued at time (Unix timestamp) */
+  iat: number;
+  /** JWT ID */
+  jti: string;
+
+  // Optional OIDC claims (conditional)
+  /** Nonce for token validation - Only if sent in auth request */
+  nonce?: string;
+  /** Authentication timestamp */
+  auth_time?: number;
+  /** Session ID */
+  sid?: string;
+  /** Authorized party */
+  azp?: string;
+
+  // FE client additions
   /** Display name */
   name?: string;
-  /** Email address */
-  email?: string;
-  /** Granted OAuth2 scopes */
-  scope?: string;
-  /** Preferred display name */
-  preferred_name?: string;
-  /** First name */
-  given_name?: string;
-  /** Last name */
-  family_name?: string;
-  /** User roles (array or comma-separated string) */
-  roles?: string[] | string;
-  /** User permissions (array or comma-separated string) */
-  permissions?: string[] | string;
-  /** Additional user attributes */
-  attributes?: Record<string, any>;
-  /** External identity provider details */
-  externalProvider?: any;
-  /** Token audience */
-  aud?: string;
-  /** Token expiration time (Unix timestamp) */
-  exp?: number;
-  /** Token issued at time (Unix timestamp) */
-  iat?: number;
-  /** Token issuer */
-  iss?: string;
-  /** Nonce for token validation */
-  nonce?: string;
   /** Whether the cached token is expired */
   token_expired?: boolean;
   /** Token expiration timestamp (ISO string) */
   token_expires_at?: string;
   /** Source of user info ('id_token' or 'oauth2_userinfo_api') */
   source?: string;
+  /** External identity provider details */
+  externalProvider?: Record<string, unknown>;
 }
 
 /**
