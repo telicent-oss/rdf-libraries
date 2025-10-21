@@ -38,7 +38,7 @@ jobs:
         run: npm install -g npm@latest
 
       - name: Install dependencies
-        run: LOCAL_MACHINE=false npm install --legacy-peer-deps
+        run: LOCAL_MACHINE=false yarn install
 
       - name: Build CatalogService
         run: npx lerna run build --scope=@telicent-oss/catalogservice
