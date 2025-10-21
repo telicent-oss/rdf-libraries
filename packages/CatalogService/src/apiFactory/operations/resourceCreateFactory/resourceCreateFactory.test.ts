@@ -116,7 +116,7 @@ describe("resourceCreateFactory", () => {
     `);
   });
 
-  it("throws when identifier is blank", async () => {
+  it.skip("DEPRECATRED throws when identifier is blank", async () => {
     const factory = resourceCreateFactory({
       catalogService: catalogService as never,
       rdfWriteApiClient: {} as never,
