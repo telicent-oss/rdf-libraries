@@ -27,12 +27,12 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/package.json') }}
-          restore-keys: ${{ runner.os }}-yarn-
+          key: ${{ runner.os }}-node24-yarn-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/package.json') }}
+          restore-keys: ${{ runner.os }}-node24-yarn-
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.17.0  # Required for npm 11.5.1+
+          node-version: 24
           registry-url: 'https://registry.npmjs.org'
           # Note: The "registry-url" here doesn't populate .yarnrc :|
 
