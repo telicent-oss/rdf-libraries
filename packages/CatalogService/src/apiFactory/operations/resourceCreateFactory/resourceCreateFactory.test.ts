@@ -96,7 +96,6 @@ describe("resourceCreateFactory", () => {
         [
           {
             "base": "http://telicent.io/catalog/dataset#",
-            "identifier": "dataset-id",
             "postfix": "_Dataset",
           },
         ],
