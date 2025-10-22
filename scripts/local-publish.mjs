@@ -39,7 +39,7 @@ import fs from "fs";
 import path, { dirname } from "path";
 import { fileURLToPath } from "url";
 import inquirer from "inquirer";
-import { execaCommandSync } from "execa";
+import { execaSync } from "execa";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -66,14 +66,16 @@ const DOMAIN = "🏠➡️📦";
 // --- FS helpers ---------------------------------------------------------------
 const readJSON = (file) => JSON.parse(fs.readFileSync(file, "utf-8"));
 const writeJSON = (file, obj) => fs.writeFileSync(file, JSON.stringify(obj, null, 2) + "\n");
-const run = (cmd, cwd) => execaCommandSync(cmd, { cwd, stdio: "inherit", shell: true });
-const runAtRoot = (cmd) => run(cmd, ROOT);
+// Safe command execution without shell interpretation
+const run = (cmd, args, cwd) => execaSync(cmd, args, { cwd, stdio: "inherit" });
+const runAtRoot = (cmd, args) => run(cmd, args, ROOT);
 const pkgNameVer = (dir) => {
   const j = readJSON(path.join(dir, "package.json"));
   return { name: j.name, version: j.version };
 };
 
 // Build a strictly isolated build command for a package
+// Returns { cmd, args, description } for safe execution
 const isolatedBuildCmdFor = (node) => {
   const pkgPath = path.join(node.dir, "package.json");
   const pkg = readJSON(pkgPath);
@@ -88,14 +90,18 @@ const isolatedBuildCmdFor = (node) => {
     buildScript.length === 0;
 
   if (looksGlobal) {
-    if (hasTsconfigBuild) return `yarn tsc -p tsconfig.build.json`;
-    if (hasTsconfig) return `yarn tsc -p tsconfig.json`;
+    if (hasTsconfigBuild) {
+      return { cmd: "yarn", args: ["tsc", "-p", "tsconfig.build.json"], description: "yarn tsc -p tsconfig.build.json" };
+    }
+    if (hasTsconfig) {
+      return { cmd: "yarn", args: ["tsc", "-p", "tsconfig.json"], description: "yarn tsc -p tsconfig.json" };
+    }
     // Last-resort: still scope to single workspace to avoid fan-out (may fail if no script)
-    return `yarn workspace "${node.name}" run build`;
+    return { cmd: "yarn", args: ["workspace", node.name, "run", "build"], description: `yarn workspace "${node.name}" run build` };
   }
 
   // Script looks safe; run it scoped to this workspace only.
-  return `yarn workspace "${node.name}" run build`;
+  return { cmd: "yarn", args: ["workspace", node.name, "run", "build"], description: `yarn workspace "${node.name}" run build` };
 };
 
 // --- Repo scan → graph --------------------------------------------------------
@@ -255,10 +261,8 @@ function updateDependentRanges(sourceName, newVersion, nodes) {
 
   // 1) Bump SOURCE version
   run(
-    [
-      path.resolve(__dirname, "local-version-bump.sh"),
-      ...(GIT ? ["--git"] : []),
-    ].join(" "),
+    path.resolve(__dirname, "local-version-bump.sh"),
+    GIT ? ["--git"] : [],
     sourceDir
   );
   const { version: sourceVersion } = pkgNameVer(sourceDir);
@@ -278,7 +282,7 @@ function updateDependentRanges(sourceName, newVersion, nodes) {
       if (pkgName === sourceName) continue; // already bumped
       const dir = nodes0.get(pkgName).dir;
       console.log(`${DOMAIN} [dry] bump ${pkgName}`);
-      run(path.resolve(__dirname, "local-version-bump.sh"), dir);
+      run(path.resolve(__dirname, "local-version-bump.sh"), [], dir);
     }
     console.log(`${DOMAIN} [dry] Done (versions bumped only; no range updates, no build, no publish).`);
     return;
@@ -303,10 +307,8 @@ function updateDependentRanges(sourceName, newVersion, nodes) {
     if (pkgName === sourceName) continue; // already bumped
     const dir = nodes1.get(pkgName).dir;
     run(
-      [
-        path.resolve(__dirname, "local-version-bump.sh"),
-        ...(GIT ? ["--git"] : []),
-      ].join(" "),
+      path.resolve(__dirname, "local-version-bump.sh"),
+      GIT ? ["--git"] : [],
       dir
     );
   }
@@ -314,16 +316,16 @@ function updateDependentRanges(sourceName, newVersion, nodes) {
   // 6) Build in topo order (deps first) — ISOLATED per package (no fan-out)
   for (const pkgName of buildOrder) {
     const node = nodes1.get(pkgName);
-    const cmd = isolatedBuildCmdFor(node);
-    console.log(`${DOMAIN} build ${pkgName}  →  ${cmd}`);
-    runAtRoot(cmd);
+    const buildCmd = isolatedBuildCmdFor(node);
+    console.log(`${DOMAIN} build ${pkgName}  →  ${buildCmd.description}`);
+    runAtRoot(buildCmd.cmd, buildCmd.args);
   }
 
   // 7) Publish ONLY the affected set (source + changed dependents), in topo order — workspace-scoped
   for (const pkgName of buildOrder) {
     if (!affected.has(pkgName)) continue;
     console.log(`${DOMAIN} publish ${pkgName}`);
-    runAtRoot(`yarn workspace "${pkgName}" run local-publish`);
+    runAtRoot("yarn", ["workspace", pkgName, "run", "local-publish"]);
   }
 
   console.log(`${DOMAIN} Done.`);
