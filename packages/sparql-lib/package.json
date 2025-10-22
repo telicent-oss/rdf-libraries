@@ -1,7 +1,7 @@
 {
   "name": "@telicent-oss/sparql-lib",
   "type": "module",
-  "version": "0.0.4-TELFE-1332.72",
+  "version": "0.0.4",
   "private": false,
   "description": "SPARQL functionality",
   "main": "./dist/sparql-lib.cjs.js",
