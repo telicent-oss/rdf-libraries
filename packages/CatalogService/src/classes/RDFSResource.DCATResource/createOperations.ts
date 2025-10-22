@@ -97,17 +97,19 @@ const pushLiteralWithContext = (
     s?: Triple["s"];
     p: Triple["p"];
     o?: Triple["o"];
-    checkUnique?: boolean;
+    checkObjectIsUniqueForPredicate?: boolean;
+    checkSubjectExists?: boolean;
   }) {
     const { instance, property, operations, newValue } = context;
-    const s = options.s || operations?.at(-1)?.triple.o || instance.uri; // back-one or start "root"
+    const s = options.s || operations?.at(-1)?.triple.o || instance.uri; // back-one or start "root". This should REALLY be explict and not a default
     const p = options.p;
     const o = options.o || newValue; // passed value, else end "leaf"
 
     operations.push({
       type: instance[property] === undefined ? "create" : "update",
       triple: { s, p, o },
-      checkUnique: options.checkUnique,
+      checkObjectIsUniqueForPredicate: options.checkObjectIsUniqueForPredicate,
+      // checkSubjectExists: options.checkSubjectExists,
       prev: instance[property] || null,
       onSuccess: () => {
         console.log(
@@ -138,17 +140,26 @@ const pushUriWithContext = (
   function postUri(options: {
     s?: Triple["s"];
     p: Triple["p"];
-    property: GraphData;
-    postfix: string;
+    // TODO union of param value objects for 2 methods for building uris
+    // This (
+    o?: Triple["o"];
+    // ) and this (
+    postfix?: string;
     newLocalName?: string;
+    // ) should be mutually exclusive value objects
+    property: GraphData;
+    isObjectRequired?:boolean;
   }) {
     const { instance, property, operations } = {
       ...context,
       property: options?.property,
     };
+    if (options.isObjectRequired && !instance[property]) {
+      throw new Error(`expected ${property} to exist in instance, instead got ${instance[property]} (${instance.className} ${instance.uri})`)
+    }
     const s = options.s || operations?.at(-1)?.triple.o || instance.uri; // back-one or start "root"
     const p = options.p;
-    const o = instance[property] || createUri({ postfix: options.postfix }); // existing value, else create
+    const o = options.o || instance[property] || createUri({ postfix: options.postfix || '' }); // existing value, else create
     const prev = instance[property] || null;
 
     operations.push({
@@ -216,7 +227,7 @@ export const createOperations = (options: CreateOperationsOptions) => {
         //    or enable compound operations with rollback capability
         //
         // pushLiteral({                               p: "dct:title",                                   dryRun: true});
-        // pushLiteral({                               p: "dct:title",                                   checkUnique: true});
+        // pushLiteral({                               p: "dct:title",                                   checkObjectIsUniqueForPredicate: true});
         // operations.push({                           p: 'rdf:type',
         //
         //
@@ -235,7 +246,7 @@ export const createOperations = (options: CreateOperationsOptions) => {
         });
         break;
       case "title":
-        pushLiteral({                               p: "dct:title",                                   checkUnique: true});
+        pushLiteral({                               p: "dct:title",                                   });
         break;
       case "identifier":
         pushLiteral({                               p:"dct:identifier"});
@@ -245,7 +256,7 @@ export const createOperations = (options: CreateOperationsOptions) => {
         break;
       case "publisher__title":
         pushUri({                                   p: "dct:publisher",                               property: "__publisher",                    postfix: "_Publisher" });
-        pushLiteral({                               p:"dct:title"});
+        pushLiteral({                               p: "dct:title"});
         break;
       case "contactPoint__fn":
         pushUri({                                   p: "dcat:contactPoint",                           property: "__contactPoint",                 postfix: "_ContactPoint" });
@@ -265,21 +276,22 @@ export const createOperations = (options: CreateOperationsOptions) => {
         break;
       // Phase 2
       case "distribution":
-        pushUri({  s: options.instance.uri,         p: "dcat:distribution",                      property: "distribution",                   postfix: "_Distribution" });
+        // FE sends distributionId; derive the fully qualified URI here to keep ontology wiring local.
+        const distributionUri = `${COMMON_PREFIXES_MAP["tcat-distribution"]}${options.newValue}`
+        pushUri({       s: options.instance.uri,    p: "dcat:distribution",               o: distributionUri,                 property: 'distribution',  });
         break;
       case "distribution__identifier":
       case "distribution__title":
       case "distribution__accessURL":
       case "distribution__mediaType": {
-        pushUri({ s: options.instance.uri,          p: "dcat:distribution",                       property: "distribution",                  postfix: "_Distribution" });
+        pushUri({       s: options.instance.uri,    p: "dcat:distribution",                                                     property: 'distribution',  isObjectRequired: true});
         pushLiteral({                               p: "rdf:type",              o: "http://www.w3.org/ns/dcat#Distribution"})
         const p = 
           options.property === "distribution__identifier"   ? 'dct:identifier'
           : options.property === "distribution__title"      ? "dct:title"
           : options.property == 'distribution__accessURL'   ? "dcat:accessURL"
           : "dcat:mediaType";
-        const checkUnique = options.property === "distribution__identifier";
-        pushLiteral({s: operations.at(-2)?.triple.o,      p,                o: options.newValue,  checkUnique  });
+        pushLiteral({s: operations.at(-2)?.triple.o,      p,                  o: options.newValue });
         break;
       }
       case "min_issued":
@@ -295,6 +307,6 @@ export const createOperations = (options: CreateOperationsOptions) => {
       default:
         console.warn(`Unsupported property ${options.property}`);
     }
-    console.log(`Operations for ${options.property}`, operations);
+    // console.log(`Operations for ${options.property}`, operations);
   return operations;
 };

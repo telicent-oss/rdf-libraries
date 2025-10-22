@@ -116,10 +116,16 @@ export const getAllDCATResources = <V extends typeof VOCAB>({
         ?uri dcat:distribution ?distribution .
         ?distribution a dcat:Distribution .
         OPTIONAL { ?distribution dct:identifier ?distribution__identifier . }
-        OPTIONAL { ?distribution dct:title       ?distribution__title . }
-        OPTIONAL { ?distribution dcat:accessURL  ?distribution__accessURL . }
+        OPTIONAL { ?distribution dct:title ?distribution__title . }
+        OPTIONAL { ?distribution dcat:accessURL ?distribution__accessURL . }
         OPTIONAL { ?distribution dcat:mediaType  ?distribution__mediaType . }
-        OPTIONAL { ?distribution dct:available   ?distribution__available . }
+        OPTIONAL {
+            ?distribution dct:available ?distribution__available .
+            FILTER NOT EXISTS {
+            ?distribution dct:available ?a2 .
+            FILTER (?a2 > ?distribution__available)
+            }
+        }
         }
 
         # aggregated modified

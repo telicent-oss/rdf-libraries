@@ -3,6 +3,10 @@
 //      THEN any other with the SAME ?t and same identifier is a conflict
 // - IF S has NO rdf:type 
 //      THEN only others with NO rdf:type and same identifier are a conflict
+
+/**
+ * @deprecated distribution uri is weakly bound to identifier - uri is the better thing to check
+ */ 
 export const askIfUniqueIdentifierOfType = ({
   s,
   o,

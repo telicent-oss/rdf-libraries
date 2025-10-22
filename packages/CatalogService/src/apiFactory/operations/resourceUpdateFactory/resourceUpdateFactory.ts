@@ -13,6 +13,8 @@ import { UIDataResourceType } from "../utils/common";
 import { throwWriteErrorForUri } from "../utils/throwWriteErrorForUri";
 import { validateResourceUpdate } from "./validateResourceUpdate";
 import { ApiFactoryConfigType } from "../type";
+import { normaliseOperationFailure } from "../utils/normaliseOperationFailure";
+import { HACK_doNoOverwriteIdentifierIfExists } from "../utils/HACK_doNoOverwriteIdentifierIfExists";
 
 export type ResourceUpdateParamsType = {
   type: "dataSet";
@@ -47,33 +49,40 @@ export const resourceUpdateFactory = ({
    * @returns
    */
   return async function resourceUpdate(operation: ResourceUpdateParamsType) {
+    try {
+      if (typeof operation.payload.uri !== "string") {
+        throw new Error("Expected payload.uri to exist");
+      }
+      await HACK_doNoOverwriteIdentifierIfExists(catalogService, operation.payload);
 
-    if (typeof operation.payload.uri !== "string") {
-      throw new Error("Expected payload.uri to exist");
+      const item_uri = operation.payload.uri;
+      const rdfsResource = catalogService.nodes[item_uri];
+      const dcatResource =
+        rdfsResource instanceof DCATResource
+          ? (rdfsResource as DCATResource)
+          : throwWrongTypes(item_uri);
+
+      console.log("updating", dcatResource);
+      await validateResourceUpdate({
+        catalogService,
+        operation,
+        dcatResource,
+      });
+
+      return storeTripleResultsToValueObject({
+        uri: item_uri,
+        uiFields: operation.payload,
+        instance: dcatResource,
+        storeTriplesForOntology: storeTriplesForPhase2,
+        api: storeTripleApi,
+        catalogService,
+        config,
+      });
+    } catch (error) {
+      throw normaliseOperationFailure(error, {
+        code: "catalog.write.unknown",
+        summary: "Failed to update dataset",
+      });
     }
-
-    const item_uri = operation.payload.uri;
-    const rdfsResource = catalogService.nodes[item_uri];
-    const dcatResource =
-      rdfsResource instanceof DCATResource
-        ? (rdfsResource as DCATResource)
-        : throwWrongTypes(item_uri);
-
-    console.log('updating', dcatResource)
-    await validateResourceUpdate({
-      catalogService,
-      operation,
-      dcatResource,
-    });
-
-    return storeTripleResultsToValueObject({
-      uri: item_uri,
-      uiFields: operation.payload,
-      instance: dcatResource,
-      storeTriplesForOntology: storeTriplesForPhase2,
-      api: storeTripleApi,
-      catalogService,
-      config,
-    });
   };
 };

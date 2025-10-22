@@ -60,14 +60,14 @@ test("DCATResource maps a minimal statement", () => {
     {
       "contributor__title": "test user | manual 1",
       "identifier": "ds-1",
-      "max_modified": "2025-09-16T14:51:25.951299+00:00",
-      "min_issued": "2025-07-31T15:02:03.263095884",
+      "max_modified": "2025-09-16T14:51:25.951Z",
+      "min_issued": "2025-07-31T15:02:03.263Z",
       "title": "BBC Monitoring",
       "uri": "http://example.org/ds/1",
     }
   `);
 
   expect(r.toFindString()).toMatchInlineSnapshot(
-    `"BBC Monitoring + desc + BBC + Team X + ds-1 + dist-1 + test user | manual 1 + Data Owner + 2025-07-31T15:02:03.263095884 + 2025-09-16T14:51:25.951299+00:00"`
+    `"BBC Monitoring + desc + BBC + Team X + ds-1 + dist-1 + test user | manual 1 + Data Owner + 2025-07-31T15:02:03.263Z + 2025-09-16T14:51:25.951Z"`
   );
 });

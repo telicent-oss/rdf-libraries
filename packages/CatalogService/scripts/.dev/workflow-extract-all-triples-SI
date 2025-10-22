@@ -39,13 +39,19 @@ fi
 #####################################
 # Actual script
 #####################################
-COOKIE="$(./scripts/.dev/task/task-grab-cookie.sh ./scripts/.dev/workflow-extract-all-triples-SI.gitignored.curl)"
-
-
-# ./scripts/.dev/task/task-extract-all-triples-to-file -r http://localhost:5173/api/sparql/catalog/query
+dateStr=$(date '+%y%m%d-%H%M')
+output="./data/catalog-select-all.system-integration.gitignored.$dateStr.nt"
 ./scripts/.dev/task/task-extract-all-triples-to-file \
-  -b "$COOKIE" \
-  -r https://apps.system-integration.telicent-sandbox.telicent.live/api/sparql/catalog/query \
-  -o ./data/catalog-select-all.system-integration.gitignored.nt;
+  -r http://localhost:5173/api/sparql/catalog/query \
+  -o "$output";
+  
+# ./scripts/.dev/task/task-extract-all-triples-to-file \
+#   -b "$COOKIE" \
+#   -r https://apps.system-integration.telicent-sandbox.telicent.live/api/sparql/catalog/query \
 
-cat ./data/catalog-select-all.system-integration.gitignored.nt;
+raw_output="${output%.gitignored.nt}.gitignored.nt"
+if [[ -f "$raw_output" ]]; then
+  cat "$raw_output"
+else
+  cat "$output"
+fi

@@ -21,6 +21,7 @@ import {
   DCATResource,
   DEBUG,
 } from "../index";
+import { VOCAB } from "../../../sparql-lib/src/builder/catalog/constants";
 
 export class CatalogService extends RdfService {
   static DEFAULT_CONSTRUCTOR_ARGS = {
@@ -69,6 +70,9 @@ export class CatalogService extends RdfService {
   dcatDataService: string;
   dcat_service: string;
   dcat_catalog: string;
+  tcat: string;
+  tcatDataset: string;
+  tcatDistribution: string;
   vcard: string;
   loaded: boolean = false;
   dataResources: DCATResource[] = [];
@@ -117,6 +121,9 @@ export class CatalogService extends RdfService {
     this.dcatDataService = `${this.dcat}DataService`;
     this.dcat_service = `${this.dcat}service`;
     this.dcat_catalog = `${this.dcat}catalog`;
+    this.tcat = "http://telicent.io/catalog#";
+    this.tcatDataset = "http://telicent.io/catalog/dataset#";
+    this.tcatDistribution = "http://telicent.io/catalog/Distribution#";
 
     this.classLookup[this.dcatResource] = DCATResource;
     this.classLookup[this.dcatDataset] = DCATDataset;
@@ -124,6 +131,12 @@ export class CatalogService extends RdfService {
     this.classLookup[this.dcatCatalog] = DCATCatalog;
     this.addPrefix("dcat:", this.dcat);
     this.addPrefix("vcard:", this.vcard);
+    this.addPrefix("tcat:", this.tcat);
+    this.addPrefix("tcat-dataset:", this.tcatDataset);
+    this.addPrefix("tcat-distribution:", this.tcatDistribution);
+    this.addPrefix("tcat:", this.tcat);
+    this.addPrefix("tcat-dataset:", this.tcatDataset);
+    this.addPrefix("tcat-distribution:", this.tcatDistribution);
   }
 
   async rankedWrapForDCAT(
@@ -200,7 +213,7 @@ export class CatalogService extends RdfService {
   ): Promise<DCATResource[]> {
     const results = await this.runQuery<DcatResourceQuerySolution>(
       builder.catalog.getAllDCATResources({
-        vocab: { dcat: this },
+        vocab: { dcat: this, tcat: VOCAB.tcat },
         cls,
         catalog,
         catalogRelation,
@@ -245,7 +258,7 @@ export class CatalogService extends RdfService {
   }): Promise<DCATResource[]> {
     const results = await this.runQuery<DcatResourceQuerySolution>(
       builder.catalog.getAllDCATResources({
-        vocab: { dcat: this },
+        vocab: { dcat: this, tcat: VOCAB.tcat },
         ...options,
       })
     );

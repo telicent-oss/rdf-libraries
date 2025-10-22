@@ -51,20 +51,28 @@ RAW="${OUTPUT%.gitignored.nt}.gitignored.nt"
 #####################################
 # 1) Fetch raw triples
 #####################################
-query='query=
-DESCRIBE <IRI>
-'
+query='query=CONSTRUCT { ?s ?p ?o } WHERE { ?s ?p ?o }'
 info "Fetching all DCAT triples from $REMOTE and placing into $RAW"
-if ! HTTP=$(curl -sS \
-      -H "Accept: application/n-triples" \
-      -b "$COOKIE" \
-      --data-urlencode "$query" \
-      -w "%{http_code}" \
-      -o "$RAW" \
-      "$REMOTE"); then
+curl_args=(
+  -sS
+  -H "Accept: application/n-triples"
+  --data-urlencode "$query"
+  -w "%{http_code}"
+  -o "$RAW"
+  "$REMOTE"
+)
+if [[ -n $COOKIE ]]; then
+  curl_args+=(-b "$COOKIE")
+fi
+if ! HTTP=$(curl "${curl_args[@]}"); then
   error "Network error fetching triples"
 fi
 [[ $HTTP -ge 200 && $HTTP -lt 300 ]] || { BODY=$(<"$RAW"); rm -f "$RAW"; error "Fetch failed HTTP $HTTP: $BODY"; }
 [[ -s $RAW ]] || error "Raw file is empty"
 COUNT_RAW=$(grep -c '^<' "$RAW" || echo 0)
-info "Saved $COUNT_RAW raw triples to $RAW" 
+info "Saved $COUNT_RAW raw triples to $RAW"
+
+if [[ "$RAW" != "$OUTPUT" ]]; then
+  cp "$RAW" "$OUTPUT"
+  info "Copied raw triples to $OUTPUT"
+fi
