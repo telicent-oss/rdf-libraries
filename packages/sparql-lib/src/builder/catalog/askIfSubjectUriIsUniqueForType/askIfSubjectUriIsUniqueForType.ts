@@ -9,7 +9,7 @@ const RDF_TYPE = `${RDF_DOMAIN}#type` as const;
 
 
 export const askIfSubjectUriIsUniqueForType = ({ s, p, o }: UpdateTriple) => {
-  // Be wary about format
+  // Enforce short-form - instead of full url
   if (p !== 'rdf:type') {
     throw new Error(`askIfSubjectUriIsUniqueForType expects p === rdf:type (${RDF_TYPE}), got: ${p}`);
   }

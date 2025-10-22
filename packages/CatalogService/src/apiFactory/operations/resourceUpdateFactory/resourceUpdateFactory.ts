@@ -14,7 +14,7 @@ import { throwWriteErrorForUri } from "../utils/throwWriteErrorForUri";
 import { validateResourceUpdate } from "./validateResourceUpdate";
 import { ApiFactoryConfigType } from "../type";
 import { normaliseOperationFailure } from "../utils/normaliseOperationFailure";
-import { HACK_doNoOverwriteIdentiferIfExists } from "../utils/HACK_doNoOverwriteIdentiferIfExists";
+import { HACK_doNoOverwriteIdentifierIfExists } from "../utils/HACK_doNoOverwriteIdentifierIfExists";
 
 export type ResourceUpdateParamsType = {
   type: "dataSet";
@@ -53,7 +53,7 @@ export const resourceUpdateFactory = ({
       if (typeof operation.payload.uri !== "string") {
         throw new Error("Expected payload.uri to exist");
       }
-      await HACK_doNoOverwriteIdentiferIfExists(catalogService, operation.payload);
+      await HACK_doNoOverwriteIdentifierIfExists(catalogService, operation.payload);
 
       const item_uri = operation.payload.uri;
       const rdfsResource = catalogService.nodes[item_uri];

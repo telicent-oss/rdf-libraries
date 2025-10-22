@@ -4,10 +4,8 @@ import { ValidateResourceParams } from "./types";
 import { FieldError } from "../fieldError";
 import { DISTRIBUTION_NAMESPACE } from "../../../../constants";
 import { DistributionByUriResult } from "@telicent-oss/sparql-lib";
-// TODO rename NAMESPACE
 
-
-// TODO Make less odd -Weird way of signaling there is a noew error
+// TODO Make less odd -Weird way of signalling there is a new error
 // WHY Very hard to anticipate
 export const validateIfDistributionUriIsUnattached = async (
   errors: ResourceOperationResults["errors"],
@@ -38,13 +36,10 @@ export const validateIfDistributionUriIsUnattached = async (
         uri: distributionUri,
       },
     };
-    console.log(`colliding`, fieldError);
     return {
       ...errors,
       distributionUri: [...(errors?.distributionUri || []), fieldError],
     };
-  } else {
-    console.log(`not colliding`, distribution, dcatResource)
   }
   return errors;
 };

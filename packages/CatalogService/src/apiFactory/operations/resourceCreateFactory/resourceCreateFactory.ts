@@ -19,7 +19,7 @@ import { validateResourceCreate } from "./validateResourceCreate";
 import { COMMON_PREFIXES_MAP } from "../../../constants";
 import { FieldError } from "../utils/fieldError";
 import { normaliseOperationFailure } from "../utils/normaliseOperationFailure";
-import { HACK_doNoOverwriteIdentiferIfExists } from "../utils/HACK_doNoOverwriteIdentiferIfExists";
+import { HACK_doNoOverwriteIdentifierIfExists } from "../utils/HACK_doNoOverwriteIdentifierIfExists";
 
 
 export type ResourceCreateParamsType = {
@@ -76,7 +76,7 @@ export const resourceCreateFactory = ({
    * @returns
    */
   return async function resourceCreate(operation: ResourceCreateParamsType) {
-    await HACK_doNoOverwriteIdentiferIfExists(catalogService, operation.payload);
+    await HACK_doNoOverwriteIdentifierIfExists(catalogService, operation.payload);
     try {
       await validateResourceCreate({
         catalogService,
