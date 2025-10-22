@@ -27,7 +27,7 @@ jobs:
             packages/*/node_modules
           key: ${{ runner.os }}-node20-${{ hashFiles('**/package-lock.json') }}
           restore-keys: ${{ runner.os }}-node20-
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: 20
           registry-url: 'https://registry.npmjs.org'
