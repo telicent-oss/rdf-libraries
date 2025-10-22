@@ -1,8 +1,11 @@
-// Import schema for validation (Node.js/bundler environments)
+// Import schemas for validation (Node.js/bundler environments)
 let GetUserInfoSchema;
+let AuthServerOAuth2ClientConfigSchema;
 if (typeof require !== 'undefined') {
     try {
-        GetUserInfoSchema = require('./schemas.js').GetUserInfoSchema;
+        const schemas = require('./schemas.js');
+        GetUserInfoSchema = schemas.GetUserInfoSchema;
+        AuthServerOAuth2ClientConfigSchema = schemas.AuthServerOAuth2ClientConfigSchema;
     } catch (e) {
         console.warn('Zod schema not available, validation will be skipped:', e.message);
     }
@@ -15,6 +18,15 @@ class AuthServerOAuth2Client {
     static OAUTH_SUCCESS = 'oauth-success';
     static OAUTH_ERROR = 'oauth-error';
     constructor(config) {
+        if (AuthServerOAuth2ClientConfigSchema && config) {
+            try {
+                AuthServerOAuth2ClientConfigSchema.parse(config);
+            } catch (error) {
+                console.error('❌ Invalid AuthServerOAuth2Client configuration:', error.errors || error.message);
+                throw new Error(`Invalid AuthServerOAuth2Client configuration: ${error.message}`);
+            }
+        }
+
         this.config = {
             clientId: 'spa-client', // Default - should be overridden
             authServerUrl: 'http://auth.telicent.localhost',

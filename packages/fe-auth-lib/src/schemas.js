@@ -1,6 +1,7 @@
 // Import zod for runtime validation (handle both Node.js and browser environments)
 let z;
 let GetUserInfoSchema;
+let AuthServerOAuth2ClientConfigSchema;
 
 try {
   if (typeof require !== 'undefined') {
@@ -41,17 +42,39 @@ if (z) {
   source: z.string().optional(),
   externalProvider: z.record(z.unknown()).optional(),
   });
+
+  /**
+   * Zod schema for AuthServerOAuth2Client constructor config
+   */
+  AuthServerOAuth2ClientConfigSchema = z.object({
+    // OAuth2 client identifier
+    clientId: z.string().optional(),
+    authServerUrl: z.string().url().optional(),
+    redirectUri: z.string().url().optional(),
+    popupRedirectUri: z.string().url().optional().nullable(),
+    scope: z.string().optional(),
+    apiUrl: z.string().url().optional(),
+    onLogout: z.function().optional(),
+  }).strict();
 }
 
 // ES module and CommonJS exports
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = {
-    GetUserInfoSchema
+    GetUserInfoSchema,
+    AuthServerOAuth2ClientConfigSchema
   };
-  module.exports.default = GetUserInfoSchema;
+  module.exports.default = {
+    GetUserInfoSchema,
+    AuthServerOAuth2ClientConfigSchema
+  };
 }
 
 if (typeof exports !== 'undefined' && typeof module === 'undefined') {
   exports.GetUserInfoSchema = GetUserInfoSchema;
-  exports.default = GetUserInfoSchema;
+  exports.AuthServerOAuth2ClientConfigSchema = AuthServerOAuth2ClientConfigSchema;
+  exports.default = {
+    GetUserInfoSchema,
+    AuthServerOAuth2ClientConfigSchema
+  };
 }

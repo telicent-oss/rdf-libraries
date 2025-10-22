@@ -32,7 +32,7 @@
     "INSTRUCTIONS.md"
   ],
   "scripts": {
-    "test": "echo \"Pre-release version for testing: no tests yet\"",
+    "test": "jest",
     "build": "echo \"No-op: Nothing to build\"",
     "local-publish": "./scripts/local-publish.sh",
     "postlocal-publish": "./scripts/update-deps.mjs --file ./updateDeps.gitignored.json"
