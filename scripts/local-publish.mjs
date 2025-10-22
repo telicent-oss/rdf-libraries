@@ -74,6 +74,30 @@ const pkgNameVer = (dir) => {
   return { name: j.name, version: j.version };
 };
 
+// Check if the npm registry is reachable
+function checkRegistryIsUp() {
+  if (DRY_RUN) {
+    console.log(`${DOMAIN} Skipping registry check (--dry-run mode)`);
+    return;
+  }
+
+  try {
+    console.log(`${DOMAIN} Checking registry availability...`);
+    const result = execaSync("npm", ["ping"], { stdio: "pipe", timeout: 5000 });
+    if (result.exitCode === 0) {
+      console.log(`${DOMAIN} ✓ Registry is reachable`);
+    } else {
+      console.error(`${DOMAIN} ✗ Registry ping failed`);
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error(`${DOMAIN} ✗ Failed to reach registry:`);
+    console.error(`  ${error.message}`);
+    console.error(`\nMake sure your local registry (e.g., Verdaccio) is running.`);
+    process.exit(1);
+  }
+}
+
 // Build a strictly isolated build command for a package
 // Returns { cmd, args, description } for safe execution
 const isolatedBuildCmdFor = (node) => {
@@ -236,6 +260,9 @@ function updateDependentRanges(sourceName, newVersion, nodes) {
 
 // --- Main ---------------------------------------------------------------------
 (async () => {
+  // Check registry is reachable before proceeding
+  checkRegistryIsUp();
+
   // Select ONE source
   const prev = fs.existsSync(CACHE_FILE) ? JSON.parse(fs.readFileSync(CACHE_FILE, "utf-8")) : [];
   const choices = repoPkgs.map((dir) => ({ name: dir, checked: prev.includes(dir) }));
