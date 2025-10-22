@@ -221,7 +221,7 @@ Data types:
 1. triples - raw building blocks
 2. operations - instructions to create triples
 3. properties - SPARQL bindings that represent sub-graphs within a dataset.
-  e.g. `distribution` represents one triple segement. Whilst `distribution__identifier` represents the `distribution` triple, and an downstream `identifer` triple
+  e.g. `distribution` represents one triple segment. Whilst `distribution__identifier` represents the `distribution` triple, and an downstream `identifier` triple
 
 ### Use case (Simplified):
 
