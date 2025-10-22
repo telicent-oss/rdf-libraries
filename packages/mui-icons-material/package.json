@@ -22,7 +22,7 @@
     "url": "https://github.com/telicent-oss/rdf-libraries/issues"
   },
   "scripts": {
-    "build": "./scripts/gen-icons",
+    "build": "node -e \"process.exit(process.env.CI && process.env.GITHUB_ACTIONS ? 0 : 1)\" || ./scripts/gen-icons",
     "test": "echo 'none'"
   },
   "dependencies": {

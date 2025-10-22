@@ -89,6 +89,14 @@
       "changelog-path": "CHANGELOG.md",
       "bumpPatchForMinorPreMajor": true,
       "release-type": "node"
+    },
+    "packages/fe-auth-lib/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
     }
   }
 }
