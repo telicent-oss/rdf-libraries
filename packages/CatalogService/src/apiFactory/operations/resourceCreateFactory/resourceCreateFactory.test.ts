@@ -96,7 +96,6 @@ describe("resourceCreateFactory", () => {
         [
           {
             "base": "http://telicent.io/catalog/dataset#",
-            "identifier": "dataset-id",
             "postfix": "_Dataset",
           },
         ],
@@ -117,7 +116,7 @@ describe("resourceCreateFactory", () => {
     `);
   });
 
-  it("throws when identifier is blank", async () => {
+  it.skip("DEPRECATRED throws when identifier is blank", async () => {
     const factory = resourceCreateFactory({
       catalogService: catalogService as never,
       rdfWriteApiClient: {} as never,

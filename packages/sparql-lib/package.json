@@ -1,7 +1,7 @@
 {
   "name": "@telicent-oss/sparql-lib",
   "type": "module",
-  "version": "0.0.4-TELFE-1332.64",
+  "version": "0.0.4-TELFE-1332.70",
   "private": false,
   "description": "SPARQL functionality",
   "main": "./dist/sparql-lib.cjs.js",
@@ -70,7 +70,7 @@
     "vite-tsconfig-paths": "^4.2.1"
   },
   "engines": {
-    "node": ">=20.14.0"
+    "node": ">=20.19.0"
   },
   "resolutions": {
     "rollup": "3.29.5"

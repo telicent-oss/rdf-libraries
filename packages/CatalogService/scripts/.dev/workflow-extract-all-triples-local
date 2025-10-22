@@ -41,7 +41,9 @@ fi
 #####################################
 # ./scripts/.dev/task/check-discrete
 
-# ./scripts/.dev/task/task-extract-all-triples-to-file -r http://localhost:5173/api/sparql/catalog/query
-./scripts/.dev/task/task-extract-all-triples-to-file -r https://apps.system-integration.telicent-sandbox.telicent.live/api/sparql/catalog/query
+# Extract current local Fuseki catalog dataset
+./scripts/.dev/task/task-extract-all-triples-to-file \
+  -r http://localhost:3030/catalog/query \
+  -o "./data/catalog-select-all.local.gitignored.nt"
 
-cat ./data/catalog-select-all.gitignored.nt
+cat ./data/catalog-select-all.local.gitignored.nt

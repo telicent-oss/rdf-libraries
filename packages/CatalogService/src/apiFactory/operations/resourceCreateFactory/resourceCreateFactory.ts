@@ -82,15 +82,14 @@ export const resourceCreateFactory = ({
         catalogService,
         operation,
       });
-      const identifier =
-        operation.payload.identifier && operation.payload.identifier.trim();
-      if (!identifier) {
-        throwWriteErrorForUri("identifier is required");
-      }
+      // const identifier =
+      //   operation.payload.identifier && operation.payload.identifier.trim();
+      // if (!identifier) {
+      //   throwWriteErrorForUri("identifier is required");
+      // }
 
       const uriComponents = await createUriComponents({
         base: COMMON_PREFIXES_MAP["tcat-dataset"],
-        identifier,
         postfix: POSTFIX_MAP[operation.type],
       }).catch(throwWriteErrorForUri);
 

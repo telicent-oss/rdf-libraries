@@ -37,12 +37,12 @@ describe("maybeGetErrorForObjectIsUniqueForPredicate", () => {
         "calls": [
           [
             "# For the given (s, p), there is no object different from "o"
-      ASK {
-        FILTER NOT EXISTS {
-          <<s>> <p> ?other .
-          FILTER (?other != "<o>")
-        }
-      }",
+        ASK {
+          FILTER NOT EXISTS {
+            <<s>> <p> ?other .
+            FILTER (?other != "<o>")
+          }
+        }",
           ],
         ],
         "results": [

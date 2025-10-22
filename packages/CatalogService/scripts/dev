@@ -1,0 +1,390 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PKG_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+PACKAGE_DEV_DIR="$SCRIPT_DIR/.dev"
+SHARED_DEV_DIR="$(cd "$PKG_ROOT/../../scripts/dev" && pwd)"
+DATA_DIR="$PKG_ROOT/data"
+FUSEKI_URL="${FUSEKI_URL:-http://localhost:3030}"
+JENA_ADMIN_USER="${JENA_ADMIN_USER:-admin}"
+JENA_ADMIN_PASSWORD="${JENA_ADMIN_PASSWORD:-}"
+CONFIG_TTL="$PKG_ROOT/volume/config.ttl"
+SELECTED_ENV_NAME=""
+SELECTED_BASE_URL=""
+
+DEFAULT_PLOT_DIR="$PKG_ROOT/images"
+DEFAULT_DATA_DIR="$PKG_ROOT/data"
+
+ensure_dir() {
+  local dir="$1"
+  [[ -d "$dir" ]] || mkdir -p "$dir"
+}
+
+set_environment_context() {
+  case "$1" in
+    local)
+      SELECTED_ENV_NAME="local"
+      SELECTED_BASE_URL="$FUSEKI_URL"
+      ;;
+    system-integration)
+      SELECTED_ENV_NAME="system-integration"
+      SELECTED_BASE_URL="https://apps.system-integration.telicent-sandbox.telicent.live/api/sparql"
+      ;;
+    *)
+      echo "✖ Unknown environment: $1" >&2
+      return 1
+      ;;
+  esac
+  return 0
+}
+
+if ! command -v fzf >/dev/null 2>&1; then
+  echo "✖ fzf is required. Install (e.g. brew install fzf) and try again." >&2
+  exit 1
+fi
+
+ensure_exec() {
+  local path="$1"
+  if [[ ! -x "$path" ]]; then
+    echo "✖ Script is not executable: $path" >&2
+    exit 1
+  fi
+}
+
+select_environment() {
+  local choice
+  choice="$(printf "local\nsystem-integration\n" | fzf --prompt="Environment > ")"
+  [[ -n "$choice" ]] || return 1
+  set_environment_context "$choice"
+  return 0
+}
+
+load_guidance() {
+  local script="$PACKAGE_DEV_DIR/workflow-load-triples-from-guidancev2"
+  ensure_exec "$script"
+  "$script"
+}
+
+extract_local() {
+  local script="$PACKAGE_DEV_DIR/workflow-extract-all-triples-local"
+  ensure_exec "$script"
+  "$script"
+}
+
+extract_system_integration() {
+  local script="$PACKAGE_DEV_DIR/workflow-extract-all-triples-SI"
+  ensure_exec "$script"
+  "$script"
+}
+
+choose_file_from_dir() {
+  local dir="$1"
+  local prompt="${2:-Select file > }"
+  if [[ ! -d "$dir" ]]; then
+    echo "✖ Directory not found: $dir" >&2
+    return 1
+  fi
+
+  local selection
+  selection=$(
+    find "$dir" -maxdepth 1 -type f -print \
+      | sort \
+      | while IFS= read -r file; do
+          rel="${file#"$dir/"}"
+          [[ "$rel" == "$file" ]] && rel="$(basename "$file")"
+          printf '%s\t%s\n' "$rel" "$file"
+        done \
+      | fzf --with-nth=1 --delimiter='\t' \
+            --prompt="$prompt" \
+            --preview 'head -n 20 {2}' \
+            --preview-window=right:60%
+  )
+  [[ -n "$selection" ]] || return 1
+  printf "%s" "${selection#*$'\t'}"
+}
+
+choose_file_from_data() {
+  choose_file_from_dir "$DATA_DIR" "Select data file > "
+}
+
+choose_directory_from_dir() {
+  local dir="$1"
+  local prompt="${2:-Select directory > }"
+  if [[ ! -d "$dir" ]]; then
+    echo "✖ Directory not found: $dir" >&2
+    return 1
+  fi
+
+  local selection
+  selection=$(
+    find "$dir" -maxdepth 1 -type d -print \
+      | sort \
+      | while IFS= read -r path; do
+          rel="${path#"$dir/"}"
+          [[ "$rel" == "$path" ]] && rel="$(basename "$path")"
+          printf '%s\t%s\n' "$rel" "$path"
+        done \
+      | fzf --with-nth=1 --delimiter='\t' \
+            --prompt="$prompt" \
+            --preview 'ls -1 {2} | head -n 20' \
+            --preview-window=right:60%
+  )
+  [[ -n "$selection" ]] || return 1
+  printf "%s" "${selection#*$'\t'}"
+}
+
+select_format() {
+  local format
+  format=$(printf "svg\npng\n" | fzf --prompt="Select output format > " --height=5)
+  [[ -n "$format" ]] || format="svg"
+  printf "%s" "$format"
+}
+
+load_triples_from_file() {
+  local env_selection endpoint label
+  env_selection="$(printf "local\nsystem-integration\n" | fzf --prompt="Load into which environment? > ")"
+  [[ -n "$env_selection" ]] || return
+
+  case "$env_selection" in
+    local)
+      endpoint="http://localhost:3030/catalog/query"
+      label="local Fuseki ($endpoint)"
+      ;;
+    system-integration)
+      endpoint="https://apps.system-integration.telicent-sandbox.telicent.live/api/sparql/catalog/query"
+      label="system-integration ($endpoint)"
+      ;;
+    *)
+      echo "✖ Unknown environment: $env_selection" >&2
+      return
+      ;;
+  esac
+
+  local file
+  if ! file="$(choose_file_from_data)"; then
+    echo "✖ No file selected" >&2
+    return
+  fi
+
+  echo "→ Loading $(basename "$file") into $label"
+  local import_script="$PACKAGE_DEV_DIR/task/task-import-triples-from-file"
+  ensure_exec "$import_script"
+  "$import_script" -l "$endpoint" -i "$file"
+
+  if [[ "$env_selection" == "local" ]]; then
+    set_environment_context "local" || return
+    jena_dump_dataset "catalog" "local" || true
+  fi
+}
+
+jenacurl() {
+  if [[ -n "$JENA_ADMIN_PASSWORD" ]]; then
+    curl -sS -u "${JENA_ADMIN_USER}:${JENA_ADMIN_PASSWORD}" "$@"
+  else
+    curl -sS "$@"
+  fi
+}
+
+list_datasets() {
+  if [[ ! -r "$CONFIG_TTL" ]]; then
+    echo "✖ Cannot read $CONFIG_TTL" >&2
+    return 1
+  fi
+  grep -E 'fuseki:name *"/' "$CONFIG_TTL" | sed -E 's/.*fuseki:name *"\/([^" ]+)".*/\1/'
+}
+
+jena_select_dataset() {
+  local env="${1:-$SELECTED_ENV_NAME}"
+  local datasets selection
+  if [[ "$env" == "local" ]]; then
+    datasets="$(list_datasets)" || return 1
+    selection="$(printf "%s\n" "$datasets" | fzf --prompt="Dataset ($env) > ")"
+    [[ -n "$selection" ]] || return 1
+    printf "%s" "$selection"
+  else
+    printf "Enter dataset name for %s [catalog]: " "$env" >&2
+    read -r selection
+    [[ -n "$selection" ]] || selection="catalog"
+    printf "%s" "$selection"
+  fi
+}
+
+confirm_or_abort() {
+  local message="$1"
+  printf "%s [y/N]: " "$message" >&2
+  read -r reply
+  [[ "$reply" =~ ^[Yy]$ ]] || { echo "✖ Aborted" >&2; return 1; }
+  return 0
+}
+
+jena_run_query() {
+  local dataset env_override query endpoint result
+  dataset="${1:-}"
+  env_override="${2:-}"
+  if [[ -n "$env_override" ]]; then
+    set_environment_context "$env_override" || return
+  else
+    select_environment || return
+  fi
+  if [[ -z "$dataset" ]]; then
+    dataset="$(jena_select_dataset "$SELECTED_ENV_NAME")" || return
+  fi
+  confirm_or_abort "Run query against dataset=$dataset endpoint=${SELECTED_BASE_URL%/}/${dataset}/query environment=$SELECTED_ENV_NAME" || return
+  echo "Enter SPARQL (blank line to submit, Ctrl+C to cancel):" >&2
+  query=""
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && break
+    query+="$line"$'\n'
+  done
+  [[ -n "$query" ]] || { echo "✖ No query entered" >&2; return 1; }
+  endpoint="${SELECTED_BASE_URL%/}/${dataset}/query"
+  result=$(jenacurl -G "$endpoint" --data-urlencode "query=$query" -H "Accept: text/tab-separated-values") || {
+    echo "✖ Query failed against $endpoint" >&2
+    return 1
+  }
+  echo "$result"
+}
+
+jena_dump_dataset() {
+  local dataset env_override endpoint
+  dataset="${1:-}"
+  env_override="${2:-}"
+  if [[ -n "$env_override" ]]; then
+    set_environment_context "$env_override" || return
+  else
+    select_environment || return
+  fi
+  if [[ -z "$dataset" ]]; then
+    dataset="$(jena_select_dataset "$SELECTED_ENV_NAME")" || return
+  fi
+  confirm_or_abort "Dump dataset=$dataset endpoint=${SELECTED_BASE_URL%/}/${dataset}/query environment=$SELECTED_ENV_NAME" || return
+  endpoint="${SELECTED_BASE_URL%/}/${dataset}/query"
+  jenacurl -G "$endpoint" --data-urlencode 'query=SELECT ?s ?p ?o WHERE { ?s ?p ?o }'
+}
+
+jena_wipe_dataset() {
+  local dataset env_override endpoint confirm
+  env_override="${1:-}"
+  if [[ -n "$env_override" ]]; then
+    set_environment_context "$env_override" || return
+  else
+    select_environment || return
+  fi
+  if [[ "$SELECTED_ENV_NAME" != "local" ]]; then
+    echo "✖ Dataset wipe is only permitted for the local environment" >&2
+    return 1
+  fi
+  dataset="$(jena_select_dataset "$SELECTED_ENV_NAME")" || return
+  printf "Type dataset name \"%s\" to confirm wipe on %s (endpoint %s/%s): " "$dataset" "$SELECTED_ENV_NAME" "${SELECTED_BASE_URL%/}" "$dataset" >&2
+  read -r confirm
+  [[ "$confirm" == "$dataset" ]] || { echo "✖ Confirmation mismatch. Aborting." >&2; return 1; }
+  endpoint="${SELECTED_BASE_URL%/}/${dataset}/update"
+  jenacurl -X POST --data-urlencode 'update=CLEAR ALL' "$endpoint" >/dev/null && echo "→ Cleared $dataset"
+}
+
+chart_triples_helper() {
+  local chart_cmd="$SHARED_DEV_DIR/graph/chart-triples"
+  ensure_exec "$chart_cmd"
+  local input
+  input=$(choose_file_from_dir "$DEFAULT_DATA_DIR" "Select triples file > ") || return
+  local format
+  format=$(select_format)
+  local default_output="$DEFAULT_PLOT_DIR/$(basename "${input%.*}").$format"
+  printf "Output file [%s]: " "$default_output"
+  read -r output
+  [[ -z "$output" ]] && output="$default_output"
+  ensure_dir "$(dirname "$output")"
+  "$chart_cmd" -i "$input" -o "$output" -f "$format"
+  echo "→ Rendered $output"
+}
+
+chart_triples_folder_helper() {
+  local chart_folder_cmd="$SHARED_DEV_DIR/graph/chart-triples-folder"
+  ensure_exec "$chart_folder_cmd"
+  local directory
+  directory=$(choose_directory_from_dir "$DEFAULT_DATA_DIR" "Select folder > ") || return
+  local format
+  format=$(select_format)
+  "$chart_folder_cmd" -d "$directory" -f "$format"
+  echo "→ Charts generated in $directory"
+}
+
+curl_sparql_helper() {
+  local curl_cmd="$SHARED_DEV_DIR/graph/curl-sparql-query"
+  ensure_exec "$curl_cmd"
+  local query_file
+  query_file=$(choose_file_from_dir "$DEFAULT_DATA_DIR" "Select SPARQL file > ") || return
+  select_environment || return
+  local dataset
+  dataset="$(jena_select_dataset "$SELECTED_ENV_NAME")" || return
+  local default_dataset_uri
+  if [[ "$SELECTED_ENV_NAME" == "local" ]]; then
+    default_dataset_uri="${SELECTED_BASE_URL%/}/$dataset"
+  else
+    default_dataset_uri="${SELECTED_BASE_URL%/}/$dataset"
+  fi
+  printf "Dataset URI [%s]: " "$default_dataset_uri"
+  read -r dataset_uri
+  [[ -z "$dataset_uri" ]] && dataset_uri="$default_dataset_uri"
+  local method
+  method=$(printf "post\nget\n" | fzf --prompt="HTTP method > " --height=4)
+  [[ -z "$method" ]] && method="post"
+  "$curl_cmd" --sparqlFile "$query_file" --datasetUri "$dataset_uri" --method "$method"
+}
+
+run_shared_helper() {
+  local choices selection script
+  choices=$(find "$SHARED_DEV_DIR" -type f -perm -u+x -print | sort)
+  if [[ -z "$choices" ]]; then
+    echo "✖ No executable helpers found in $SHARED_DEV_DIR" >&2
+    return
+  fi
+  selection=$(printf "%s\n" "$choices" | sed "s|$SHARED_DEV_DIR/||" | fzf --prompt="Shared helper > ")
+  [[ -n "$selection" ]] || return
+  script="$SHARED_DEV_DIR/$selection"
+  case "$selection" in
+    graph/chart-triples)
+      chart_triples_helper ;;
+    graph/chart-triples-folder)
+      chart_triples_folder_helper ;;
+    graph/curl-sparql-query)
+      curl_sparql_helper ;;
+    *)
+      "$script" ;;
+  esac
+}
+
+main_menu() {
+  local options descriptions
+  options=(
+    "load-guidance::Load guidancev2 demo triples into local Fuseki"
+    "load-triples::Load triples from ./data into chosen environment"
+    "extract-local::Extract all triples from local Fuseki to ./data"
+    "extract-system-integration::Extract all triples from system-integration"
+    "jena-query::Run arbitrary SPARQL against a dataset"
+    "jena-dump::Dump all triples from a dataset"
+    "jena-wipe::CLEAR ALL triples from a dataset"
+    "shared-helper::Run shared repository script (../../scripts/dev)"
+  )
+
+  local formatted selection key
+  formatted="$(printf "%s\n" "${options[@]}" | awk -F'::' '{printf "%-24s %s\n", $1, $2}')"
+  selection="$(printf "%s\n" "$formatted" | fzf --prompt="CatalogService dev > " | awk '{print $1}')"
+  [[ -n "$selection" ]] || return
+
+  key="$selection"
+  case "$key" in
+    load-guidance) load_guidance ;;
+    load-triples) load_triples_from_file ;;
+    extract-local) extract_local ;;
+    extract-system-integration) extract_system_integration ;;
+    jena-query) jena_run_query ;;
+    jena-dump) jena_dump_dataset ;;
+    jena-wipe) jena_wipe_dataset ;;
+    shared-helper) run_shared_helper ;;
+    *) echo "✖ Unknown selection: $key" >&2 ;;
+  esac
+}
+
+main_menu

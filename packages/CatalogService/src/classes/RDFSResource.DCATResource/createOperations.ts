@@ -307,6 +307,6 @@ export const createOperations = (options: CreateOperationsOptions) => {
       default:
         console.warn(`Unsupported property ${options.property}`);
     }
-    console.log(`Operations for ${options.property}`, operations);
+    // console.log(`Operations for ${options.property}`, operations);
   return operations;
 };

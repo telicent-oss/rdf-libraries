@@ -17,26 +17,24 @@ jobs:
         run: |
           git config --global user.email "${{ github.actor }}@users.noreply.github.com"
           git config --global user.name "${{ github.actor }}"
-
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
       - uses: actions/cache@v4
         with:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}-${{ hashFiles('**/package.json') }}
-          restore-keys: ${{ runner.os }}-yarn-
-
+          key: ${{ runner.os }}-node20-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: ${{ runner.os }}-node20-
       - uses: actions/setup-node@v4
         with:
-          node-version: 20.14
-          # Note: The "registry-url" here doesn't populate .yarnrc :|
-      - run: LOCAL_MACHINE=false yarn install --frozen-lockfile
-      - run: yarn build
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+      - run: npm install -g npm@latest # npm 11.5.1 req for Trusted publish
+      - run: LOCAL_MACHINE=false yarn install
+      - run: npx lerna@^9 run build # lerna 9 req for Trusted publish
       - run: ./scripts/lerna/publish:ci.sh
         env:
-          YARN_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
+          NPM_CONFIG_PROVENANCE: 'true'
+        
