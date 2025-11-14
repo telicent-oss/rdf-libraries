@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * Zod schema for getUserInfo return type
@@ -40,18 +40,22 @@ export type UserInfo = z.infer<typeof GetUserInfoSchema>;
  * Validates URLs are absolute, not relative
  */
 export declare const AuthServerOAuth2ClientConfigSchema: z.ZodObject<{
-  clientId: z.ZodOptional<z.ZodString>;
+  clientId: z.ZodString;
   authServerUrl: z.ZodOptional<z.ZodString>;
   redirectUri: z.ZodOptional<z.ZodString>;
   popupRedirectUri: z.ZodOptional<z.ZodNullable<z.ZodString>>;
   scope: z.ZodOptional<z.ZodString>;
   apiUrl: z.ZodOptional<z.ZodString>;
-  onLogout: z.ZodOptional<z.ZodFunction<z.ZodTuple<[], z.ZodUnknown>, z.ZodUnknown>>;
+  onLogout: z.ZodOptional<
+    z.ZodFunction<z.ZodTuple<[], z.ZodUnknown>, z.ZodUnknown>
+  >;
 }>;
 
-export type AuthServerOAuth2ClientConfig = z.infer<typeof AuthServerOAuth2ClientConfigSchema>;
+export type AuthServerOAuth2ClientConfig = z.infer<
+  typeof AuthServerOAuth2ClientConfigSchema
+>;
 
 export default {
   GetUserInfoSchema,
-  AuthServerOAuth2ClientConfigSchema
+  AuthServerOAuth2ClientConfigSchema,
 };
