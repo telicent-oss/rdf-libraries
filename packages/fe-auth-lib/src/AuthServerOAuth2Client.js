@@ -22,6 +22,15 @@ class AuthServerOAuth2Client {
   static OAUTH_SUCCESS = "oauth-success";
   static OAUTH_ERROR = "oauth-error";
   constructor(config) {
+    if (
+      !config.clientId ||
+      typeof config.clientId !== "string" ||
+      config.clientId.trim() === ""
+    ) {
+      throw new Error(
+        "AuthServerOAuth2Client: `clientId` is required and must be a non-empty string"
+      );
+    }
     if (AuthServerOAuth2ClientConfigSchema && config) {
       try {
         AuthServerOAuth2ClientConfigSchema.parse(config);
