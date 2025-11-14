@@ -401,7 +401,7 @@ class AuthServerOAuth2Client {
   }
 
   // Check if user is authenticated by checking session via auth-server
-  async isAuthenticated({ signal }) {
+  async isAuthenticated(signal) {
     try {
       const headers = {
         Accept: "application/json",

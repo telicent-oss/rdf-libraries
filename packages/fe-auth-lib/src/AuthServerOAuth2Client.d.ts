@@ -107,7 +107,6 @@ export interface RequestOptions {
   [key: string]: any;
 }
 
-
 /**
  * OAuth2 Authorization Code + PKCE client for Telicent auth-server integration.
  *
@@ -268,7 +267,7 @@ declare class AuthServerOAuth2Client {
    * }
    * ```
    */
-  isAuthenticated(): Promise<boolean>;
+  isAuthenticated(signal?: AbortSignal): Promise<boolean>;
 
   /**
    * Decode JWT token payload
@@ -408,7 +407,10 @@ declare class AuthServerOAuth2Client {
    * );
    * ```
    */
-  makeAuthenticatedRequest(url: string, options?: RequestOptions): Promise<Response>;
+  makeAuthenticatedRequest(
+    url: string,
+    options?: RequestOptions
+  ): Promise<Response>;
 
   /**
    * Logout user and destroy session
@@ -461,7 +463,11 @@ declare class AuthServerOAuth2Client {
   /**
    * Process response and handle authentication errors
    */
-  afterRequest(response: Response, url: string, options?: RequestOptions): Response;
+  afterRequest(
+    response: Response,
+    url: string,
+    options?: RequestOptions
+  ): Response;
 
   /**
    * Helper method to clear all auth-related storage
@@ -472,3 +478,4 @@ declare class AuthServerOAuth2Client {
 // ES module exports
 export default AuthServerOAuth2Client;
 export { AuthServerOAuth2Client };
+
