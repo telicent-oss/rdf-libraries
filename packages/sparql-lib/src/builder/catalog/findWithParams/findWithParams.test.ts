@@ -13,6 +13,8 @@ test("findWithParams", () => {
     PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
     PREFIX prov: <http://www.w3.org/ns/prov#>
     PREFIX tcat: <http://telicent.io/catalog#>
+    PREFIX tcat-dataset: <http://telicent.io/catalog/dataset#>
+    PREFIX tcat-distribution: <http://telicent.io/catalog/Distribution#>
     PREFIX sdo: <https://schema.org/>
 
 
@@ -75,9 +77,9 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -29,0 +30,1 @@
+    @@ -31,0 +32,1 @@
     +    ?uri dct:accessRights "http://example.com#accessRights" .
-    @@ -31,1 +31,0 @@
+    @@ -33,1 +33,0 @@
     -    
     "
   `);
@@ -93,10 +95,10 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -28,1 +28,1 @@
+    @@ -30,1 +30,1 @@
     -        
     +        ?uri ?pred ?literal .
-    @@ -31,1 +31,1 @@
+    @@ -33,1 +33,1 @@
     -    
     +    FILTER(CONTAINS(LCASE(?literal), "needle in haystack")) .
     "
@@ -113,7 +115,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -26,3 +26,15 @@
+    @@ -28,3 +28,15 @@
     -        
     -        ?uri a ?_type .
     -        
@@ -147,7 +149,7 @@ test("findWithParams", () => {
     "===================================================================
     --- a	
     +++ b	
-    @@ -26,3 +26,15 @@
+    @@ -28,3 +28,15 @@
     -        
     -        ?uri a ?_type .
     -        
@@ -166,7 +168,7 @@ test("findWithParams", () => {
     +            <http://example.com#abc123_ownerUri> ?catRel ?uri .
     +            ?uri ?pred ?literal .
     +        }
-    @@ -31,1 +43,1 @@
+    @@ -33,1 +45,1 @@
     -    
     +    FILTER(CONTAINS(LCASE(?literal), "needle in haystack")) .
     "

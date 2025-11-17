@@ -6,13 +6,19 @@ import {
 } from "./createOperations";
 
 jest.mock("./createUri", () => ({
-  createUri: jest.fn(({ postfix }) => {
+  createUri: jest.fn(({ postfix = "", base, localName }) => {
+    if (typeof base === "string" && typeof localName === "string") {
+      return `${base}${localName}`;
+    }
     return `<unique-uuidu>${postfix}`;
   }),
 }));
 
 test("ditributionIdentifier", () => {
-  const instance = { uri: "<uniqe-uuid>_Resource" } as unknown as DCATResource;
+  const instance = {
+    uri: "<uniqe-uuid>_Resource",
+    distribution__identifier: "new_distribution",
+  } as unknown as DCATResource;
   const api = {} as unknown as CreateOperationsOptions["api"];
 
   expect(
@@ -44,18 +50,31 @@ test("ditributionIdentifier", () => {
         "__contributor",
         "__distribution__type",
       ] as GraphData[]
-    ).reduce(
-      (accum, property) => ({
-        [property]: createOperations({
-          instance,
-          newValue: "New property",
-          property,
-          api,
-        }).map((el) => el.triple),
+    ).reduce((accum, property) => {
+      const newValueMap: Partial<Record<GraphData, string>> = {
+        distribution: "new_distribution",
+        distribution__identifier: "new_distribution",
+      };
+      const newValue = newValueMap[property] ?? "New property";
+      const operationsForProperty = createOperations({
+        instance,
+        newValue,
+        property,
+        api,
+      });
+      const triples = operationsForProperty.map((el) => el.triple);
+
+      operationsForProperty.forEach((operation) => {
+        if ("onSuccess" in operation && typeof operation.onSuccess === "function") {
+          operation.onSuccess();
+        }
+      });
+
+      return {
+        [property]: triples,
         ...accum,
-      }),
-      {}
-    )
+      };
+    }, {})
   ).toMatchInlineSnapshot(`
     {
       "__contactPoint": [],
@@ -101,78 +120,78 @@ test("ditributionIdentifier", () => {
       ],
       "distribution": [
         {
-          "o": "<unique-uuidu>_Distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
       ],
       "distribution__accessURL": [
         {
-          "o": "<unique-uuidu>_Distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
         {
           "o": "http://www.w3.org/ns/dcat#Distribution",
           "p": "rdf:type",
-          "s": "<unique-uuidu>_Distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
         {
           "o": "New property",
           "p": "dcat:accessURL",
-          "s": "<unique-uuidu>_Distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
       ],
       "distribution__available": [],
       "distribution__identifier": [
         {
-          "o": "<unique-uuidu>_Distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
         {
           "o": "http://www.w3.org/ns/dcat#Distribution",
           "p": "rdf:type",
-          "s": "<unique-uuidu>_Distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
         {
-          "o": "New property",
+          "o": "new_distribution",
           "p": "dct:identifier",
-          "s": "<unique-uuidu>_Distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
       ],
       "distribution__mediaType": [
         {
-          "o": "<unique-uuidu>_Distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
         {
           "o": "http://www.w3.org/ns/dcat#Distribution",
           "p": "rdf:type",
-          "s": "<unique-uuidu>_Distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
         {
           "o": "New property",
           "p": "dcat:mediaType",
-          "s": "<unique-uuidu>_Distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
       ],
       "distribution__title": [
         {
-          "o": "<unique-uuidu>_Distribution",
+          "o": "http://telicent.io/catalog/Distribution#new_distribution",
           "p": "dcat:distribution",
           "s": "<uniqe-uuid>_Resource",
         },
         {
           "o": "http://www.w3.org/ns/dcat#Distribution",
           "p": "rdf:type",
-          "s": "<unique-uuidu>_Distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
         {
           "o": "New property",
           "p": "dct:title",
-          "s": "<unique-uuidu>_Distribution",
+          "s": "http://telicent.io/catalog/Distribution#new_distribution",
         },
       ],
       "identifier": [

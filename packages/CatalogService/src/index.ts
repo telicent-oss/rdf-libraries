@@ -7,7 +7,15 @@
 
 export { formatDataAsArray } from "./__tests__/utils/formatDataAsArray";
 export * from "./classes/RDFSResource.DCATResource";
-export { COMMON_PREFIXES, DEBUG, version } from "./constants";
+export {
+  COMMON_PREFIXES,
+  DEBUG,
+  version,
+  buildDatasetUri,
+  buildDistributionUri,
+  DATASET_NAMESPACE,
+  DISTRIBUTION_NAMESPACE,
+} from "./constants";
 export { DCATDataset } from "./classes/RDFSResource.DCATResource.DCATDataset";
 export { DCATCatalog } from "./classes/RDFSResource.DCATResource.DCATDataset.DCATCatalog";
 export { DCATDataService } from "./classes/RDFSResource.DCATResource.DCATDataset.DCATCatalog.DCATDataService";
@@ -16,6 +24,7 @@ export { CatalogService } from "./classes/RdfService.CatalogService";
 
 export { type ResourceOperationResults } from "./classes/RDFSResource.DCATResource/storeTripleResultsToValueObject";
 export { type StoreTripleError } from "./classes/RDFSResource.DCATResource/storeTriplesForPhase2";
+export { type FieldError } from "./apiFactory/operations/utils/fieldError";
 
 export * from "./setup/setup";
 export * from "./setup/constants";
