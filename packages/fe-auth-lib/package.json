@@ -39,6 +39,11 @@
   "dependencies": {
     "zod": "^3.23.8"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/telicent-oss/rdf-libraries.git",
+    "directory": "packages/fe-auth-lib"
+  },
   "publishConfig": {
     "access": "public"
   },
