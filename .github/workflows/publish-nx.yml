@@ -40,7 +40,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Upgrade npm to latest
-        run: npm install -g npm@latest # npm >= 11.5.1 required for trusted publishing
+        run: LOCAL_MACHINE=false npm install -g npm@latest # npm >= 11.5.1 required for trusted publishing
 
       - name: Verify npm version >= 11.5.1
         run: |
@@ -96,7 +96,7 @@ jobs:
           registry-url: 'https://registry.npmjs.org'
 
       - name: Upgrade npm to latest
-        run: npm install -g npm@latest # npm >= 11.5.1 required for trusted publishing
+        run: LOCAL_MACHINE=false npm install -g npm@latest # npm >= 11.5.1 required for trusted publishing
 
       - name: Verify npm version >= 11.5.1
         run: |
