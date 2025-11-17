@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/fe-auth-lib",
-  "version": "0.0.1-TELFE-1371.17",
+  "version": "0.0.1-TELFE-1371.30",
   "private": false,
   "license": "Apache-2.0",
   "description": "OAuth2 client library for Telicent Authentication Server",
@@ -34,8 +34,7 @@
   "scripts": {
     "test": "jest",
     "build": "echo \"No-op: Nothing to build\"",
-    "local-publish": "./scripts/local-publish.sh",
-    "postlocal-publish": "./scripts/update-deps.mjs --file ./updateDeps.gitignored.json"
+    "local-publish": "npm publish --registry http://localhost:4873"
   },
   "dependencies": {
     "zod": "^3.23.8"
