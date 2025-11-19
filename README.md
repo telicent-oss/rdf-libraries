@@ -144,6 +144,8 @@ ontology-icon-react-lib
 
 ## Publishing
 
+:warning: Manual only for now
+
 1. **Feature branch**: `npm run bump` — create/increment prerelease versions
 2. **Commit & push**: Let CI publish prerelease to npm
 3. **Merge to main**: `npm run bump-graduate` — convert prerelease to stable version
