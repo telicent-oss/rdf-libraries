@@ -144,13 +144,12 @@ ontology-icon-react-lib
 
 ## Publishing
 
-:warning: Manual only for now
+1. **Start prerelease**: `yarn prerelease` — interactively select packages, creates `prerelease/**` branch
+2. **Push branch**: CI auto-publishes prerelease to npm
+3. **Graduate to stable**: `npm run bump-graduate` — converts prerelease versions to stable
+4. **Merge to main & push**: CI auto-publishes stable release to npm
 
-1. **Start prerelease**: `yarn prerelease` — creates `prerelease/**` branch and bumps version
-2. **Increment prerelease**: `yarn bump` — bump prerelease version for additional changes
-3. **Commit & push**: CI auto-publishes prerelease to npm
-4. **Merge to main**: `npm run bump-graduate` — convert prerelease to stable version
-5. **Commit & push**: CI auto-publishes stable release to npm
+> **Note**: For direct releases without the prerelease flow, manually update package versions in `package.json`
 
 ## API
 
