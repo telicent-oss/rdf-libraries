@@ -12,6 +12,7 @@
     "plp": "yarn prep && yarn local-publish --yes",
     "bump": "lerna exec -- ../../scripts/local-version-bump.sh",
     "bump-graduate": "./scripts/lerna/graduate-prerelease-to-release.sh",
+    "prerelease": "tsx scripts/create-prerelease.ts",
     "prepublish:all": "lerna run prepublish --stream --no-prefix --concurrency 1",
     "test:stable": "lerna run test --scope=@telicent-oss/catalogservice && yarn test:ci",
     "test:ci": "yarn test",
@@ -68,6 +69,7 @@
     "prettier": "^2.8.8",
     "ts-jest": "^29.2.3",
     "ts-node": "^10.9.2",
+    "tsx": "^4.19.2",
     "typescript": "^5.5.4"
   },
   "workspaces": [
@@ -76,6 +78,8 @@
   "resolutions": {
     "@telicent-oss/telicent-frontend-cli": "^1.5.0",
     "braces": "^3.0.3",
+    "nx": "19.8.14",
+    "@nx/devkit": "19.8.14",
     "@nrwl/tao": "^19.8.14",
     "@nrwl/devkit": "^19.8.14"
   }

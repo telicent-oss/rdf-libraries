@@ -41,10 +41,18 @@ if (repos.length === 0) {
 
 // 3. For each repo, update matching deps to the new version
 for (const { path: repo, postUpdateDependency } of repos) {
+  const repoPath = resolve(repo)
+  if (!existsSync(repoPath)) {
+    console.error(`Error: Directory not found: ${repo}`)
+    console.error(`Resolved path: ${repoPath}`)
+    process.exit(1)
+  }
+
   const pkgPath = resolve(repo, 'package.json')
   if (!existsSync(pkgPath)) {
-    console.warn(`Skipping ${repo}: package.json not found`)
-    continue
+    console.error(`Error: package.json not found in: ${repo}`)
+    console.error(`Expected at: ${pkgPath}`)
+    process.exit(1)
   }
 
   const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8'))
