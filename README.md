@@ -142,6 +142,13 @@ ontology-icon-react-lib
 - Make package purpose clear from its name
 
 
+## Publishing
+
+1. **Feature branch**: `npm run bump` — create/increment prerelease versions
+2. **Commit & push**: Let CI publish prerelease to npm
+3. **Merge to main**: `npm run bump-graduate` — convert prerelease to stable version
+4. **Commit & push**: Let CI publish stable release to npm
+
 ## API
 
 - [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)
