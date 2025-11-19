@@ -142,6 +142,15 @@ ontology-icon-react-lib
 - Make package purpose clear from its name
 
 
+## Publishing
+
+1. **Start prerelease**: `yarn prerelease` — interactively select packages, creates `prerelease/**` branch
+2. **Push branch**: CI auto-publishes prerelease to npm
+3. **Graduate to stable**: `npm run bump-graduate` — converts prerelease versions to stable
+4. **Merge to main & push**: CI auto-publishes stable release to npm
+
+> **Note**: For direct releases without the prerelease flow, manually update package versions in `package.json`
+
 ## API
 
 - [Ontology Service API docs](https://telicent-oss.github.io/rdf-libraries/ontology-service/docs/)
