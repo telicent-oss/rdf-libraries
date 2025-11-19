@@ -19,12 +19,10 @@ import {
   XsdDataType,
 } from "../index";
 
-
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type RdfServiceConstructor<T> = abstract new (...args: any[]) => T
+export type RdfServiceConstructor<T> = abstract new (...args: any[]) => T;
 
 export class RdfService extends AbstractConstructorPromises {
-
   static classLookup: Record<string, RdfServiceConstructor<RDFSResource>> = {};
 
   static lookupClass<C extends RdfServiceConstructor<RDFSResource>>(
@@ -34,7 +32,6 @@ export class RdfService extends AbstractConstructorPromises {
     const found = this.classLookup[clsUri] as C | undefined;
     return found ?? defaultCtor;
   }
-
 
   public config: RDFServiceConfig;
   public constructorPromises: Promise<unknown>[] = [];
@@ -86,8 +83,6 @@ export class RdfService extends AbstractConstructorPromises {
     [key: LongURI]: RDFSResourceDescendant;
   };
   updateCount: number;
-
-
 
   /**
    * @method constructor
@@ -301,6 +296,7 @@ export class RdfService extends AbstractConstructorPromises {
         "Content-Type": "application/sparql-query",
         Accept: "application/sparql-results+json",
       },
+      credentials: "include",
       body: this.sparqlPrefixes + query,
     });
 
