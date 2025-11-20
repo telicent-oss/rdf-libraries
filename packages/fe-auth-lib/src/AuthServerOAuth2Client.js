@@ -147,16 +147,6 @@ class AuthServerOAuth2Client {
     sessionStorage.setItem("oauth_code_verifier", codeVerifier);
     sessionStorage.setItem("oauth_redirect_uri", finalRedirectUri);
 
-    console.log("params --", {
-      response_type: "code",
-      client_id: this.config.clientId,
-      redirect_uri: finalRedirectUri,
-      state: state,
-      nonce: nonce,
-      code_challenge: codeChallenge,
-      code_challenge_method: "S256",
-    });
-
     // Build authorization URL
     const params = new URLSearchParams({
       response_type: "code",
@@ -164,7 +154,7 @@ class AuthServerOAuth2Client {
       redirect_uri: finalRedirectUri,
       return_to: window.location.href,
       scope: this.config.scope,
-      state: state,
+      state: `${state}_${atob(window.location.href)}`,
       nonce: nonce,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
