@@ -111,10 +111,11 @@ class AuthServerOAuth2Client {
 
   // Base64 URL encoding
   base64URLEncode(array) {
-    return btoa(String.fromCharCode.apply(null, array))
-      .replace(/\+/g, "-")
-      .replace(/\//g, "_")
-      .replace(/=/g, "");
+    return this.base64URLEncodeString(String.fromCharCode.apply(null, array));
+  }
+
+  base64URLEncodeString(str) {
+    return btoa(str).replace(/\+/g, "-").replace(/\//g, "_").replace(/=/g, "");
   }
 
   // Generate random state
