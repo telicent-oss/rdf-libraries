@@ -147,7 +147,7 @@ class AuthServerOAuth2Client {
     sessionStorage.setItem("oauth_code_verifier", codeVerifier);
     sessionStorage.setItem("oauth_redirect_uri", finalRedirectUri);
 
-    console.log({
+    console.log("params --", {
       response_type: "code",
       client_id: this.config.clientId,
       redirect_uri: finalRedirectUri,
@@ -171,8 +171,6 @@ class AuthServerOAuth2Client {
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
     });
-
-    console.log({ params });
 
     const authUrl = `${
       this.config.authServerUrl
