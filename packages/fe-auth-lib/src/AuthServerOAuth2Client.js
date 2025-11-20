@@ -151,8 +151,6 @@ class AuthServerOAuth2Client {
       response_type: "code",
       client_id: this.config.clientId,
       redirect_uri: finalRedirectUri,
-      return_to: window.location.href,
-      scope: this.config.scope,
       state: state,
       nonce: nonce,
       code_challenge: codeChallenge,
@@ -210,7 +208,7 @@ class AuthServerOAuth2Client {
     const params = new URLSearchParams({
       response_type: "code",
       client_id: this.config.clientId,
-      redirect_uri: finalRedirectUri,
+      redirect_uri: `${finalRedirectUri}?redirect_to=${window.location.href}`,
       scope: this.config.scope,
       state: state,
       nonce: nonce,
