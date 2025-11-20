@@ -154,7 +154,7 @@ class AuthServerOAuth2Client {
       redirect_uri: finalRedirectUri,
       return_to: window.location.href,
       scope: this.config.scope,
-      state: `${state}_${atob(window.location.href)}`,
+      state: `${state}_${btoa(window.location.href)}`,
       nonce: nonce,
       code_challenge: codeChallenge,
       code_challenge_method: "S256",
