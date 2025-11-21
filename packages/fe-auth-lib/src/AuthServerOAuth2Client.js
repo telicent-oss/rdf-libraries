@@ -199,7 +199,7 @@ class AuthServerOAuth2Client {
     const params = new URLSearchParams({
       response_type: "code",
       client_id: this.config.clientId,
-      redirect_uri: `${finalRedirectUri}?redirect_to=${window.location.href}`,
+      redirect_uri: finalRedirectUri,
       scope: this.config.scope,
       state: state,
       nonce: nonce,
