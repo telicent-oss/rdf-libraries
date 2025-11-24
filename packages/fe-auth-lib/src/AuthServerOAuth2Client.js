@@ -424,7 +424,7 @@ class AuthServerOAuth2Client {
       if (response.ok) {
         const result = await response.json();
         // set auth_session_id if user is already signed in
-        sessionStorage.setItem("auth_session_id", result.sessionToken);
+        sessionStorage.setItem("auth_id_token", result.id_token);
         console.log(result);
         return true;
       }
