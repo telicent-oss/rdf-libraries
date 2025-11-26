@@ -134,7 +134,7 @@ class AuthServerOAuth2Client {
 
   // Start OAuth2 login flow (redirects current window)
   async login(redirectUri = null) {
-    const state = this.generateState();
+    const state = sessionStorage.getItem("oauth_state") ?? this.generateState();
     const nonce = this.generateNonce();
     const codeVerifier = this.generateCodeVerifier();
     const codeChallenge = await this.generateCodeChallenge(codeVerifier);
