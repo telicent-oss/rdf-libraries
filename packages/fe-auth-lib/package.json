@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/fe-auth-lib",
-  "version": "0.0.1-TELFE-1371.35",
+  "version": "0.0.1-TELFE-1371.6",
   "private": false,
   "license": "Apache-2.0",
   "description": "OAuth2 client library for Telicent Authentication Server",
