@@ -153,7 +153,6 @@ class AuthServerOAuth2Client {
       response_type: "code",
       client_id: this.config.clientId,
       redirect_uri: finalRedirectUri,
-      return_to: window.location.href,
       scope: this.config.scope,
       state: `${state}.${this.base64URLEncodeString(window.location.href)}`,
       nonce: nonce,
