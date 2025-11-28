@@ -485,4 +485,3 @@ declare class AuthServerOAuth2Client {
 // ES module exports
 export default AuthServerOAuth2Client;
 export { AuthServerOAuth2Client };
-
