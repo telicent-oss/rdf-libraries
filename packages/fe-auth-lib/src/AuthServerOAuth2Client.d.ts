@@ -37,7 +37,14 @@ export interface UserInfo {
   email: string;
   /** Preferred display name - NOT NULL in DB */
   preferred_name: string;
-
+  /** Is Active - NOT NULL in DB */
+  isActive: boolean;
+  /** Groups - NOT NULL in DB */
+  groups: string[];
+  /** Roles - NOT NULL in DB */
+  roles: string[];
+  /** Permissions - NOT NULL in DB */
+  permissions: string[];
   // Standard OIDC claims (always present)
   /** Token issuer URL */
   iss: string;
@@ -106,7 +113,6 @@ export interface RequestOptions {
   /** Additional fetch options */
   [key: string]: any;
 }
-
 
 /**
  * OAuth2 Authorization Code + PKCE client for Telicent auth-server integration.
@@ -408,7 +414,10 @@ declare class AuthServerOAuth2Client {
    * );
    * ```
    */
-  makeAuthenticatedRequest(url: string, options?: RequestOptions): Promise<Response>;
+  makeAuthenticatedRequest(
+    url: string,
+    options?: RequestOptions
+  ): Promise<Response>;
 
   /**
    * Logout user and destroy session
@@ -461,7 +470,11 @@ declare class AuthServerOAuth2Client {
   /**
    * Process response and handle authentication errors
    */
-  afterRequest(response: Response, url: string, options?: RequestOptions): Response;
+  afterRequest(
+    response: Response,
+    url: string,
+    options?: RequestOptions
+  ): Response;
 
   /**
    * Helper method to clear all auth-related storage
@@ -472,3 +485,4 @@ declare class AuthServerOAuth2Client {
 // ES module exports
 export default AuthServerOAuth2Client;
 export { AuthServerOAuth2Client };
+
