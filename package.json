@@ -1,6 +1,6 @@
 {
   "name": "rdf-libraries",
-  "version": "0.0.9",
+  "version": "0.0.9-TELFE-1438.0",
   "description": "Simple client-side lib for working with ontologies",
   "scripts": {
     "clean": "yarn test --clearCache; yarn clean cache",
