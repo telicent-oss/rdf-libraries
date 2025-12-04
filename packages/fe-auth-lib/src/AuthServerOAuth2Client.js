@@ -37,16 +37,6 @@ class AuthServerOAuth2Client {
     }
 
     this.config = {
-      clientId: "spa-client", // Default - should be overridden
-      authServerUrl: "http://auth.telicent.localhost",
-      redirectUri: "http://demo.telicent.localhost/callback.html", // Default - should be overridden
-      popupRedirectUri: null, // Must be provided for popup flows
-      scope: "openid email profile offline_access",
-      apiUrl: "http://api.telicent.localhost",
-      onLogout: () => {
-        window.alert("You are now logged out. Redirecting to /");
-        window.location.href = "/";
-      },
       ...config,
     };
 
