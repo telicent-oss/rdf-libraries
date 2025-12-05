@@ -34,6 +34,12 @@ class AuthServerOAuth2Client {
           `Invalid AuthServerOAuth2Client configuration: ${error.message}`
         );
       }
+    } else {
+      console.warn(
+        "⚠️ AuthServerOAuth2Client instantiated with undefined config"
+      );
+      console.trace();
+      return;
     }
 
     this.config = {
@@ -414,7 +420,6 @@ class AuthServerOAuth2Client {
         const result = await response.json();
         // set auth_session_id if user is already signed in
         sessionStorage.setItem("auth_id_token", result.id_token);
-        console.log(result);
         return true;
       }
 
@@ -724,9 +729,6 @@ class AuthServerOAuth2Client {
     const response = await fetch(url, requestOptions);
 
     if (response.status === 401) {
-      // QUESTION: would I ever use this method to call session check?
-      // I can only envisage scenarios where app endpoints get hit using this?
-      //
       // Don't auto-logout during callback flow or logout operations to prevent infinite loops
       const isCallbackFlow =
         options.skipAutoLogout || url.includes("/session/idtoken");
