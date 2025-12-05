@@ -37,14 +37,14 @@ export interface UserInfo {
   email: string;
   /** Preferred display name - NOT NULL in DB */
   preferred_name: string;
-  /** Is Active - NOT NULL in DB */
-  isActive: boolean;
-  /** Groups - NOT NULL in DB */
-  groups: string[];
-  /** Roles - NOT NULL in DB */
-  roles: string[];
-  /** Permissions - NOT NULL in DB */
-  permissions: string[];
+  /** Is Active - from ID token custom claim */
+  isActive?: boolean;
+  /** Groups - optional (not present in ID token) */
+  groups?: string[];
+  /** Roles - optional (not present in ID token) */
+  roles?: string[];
+  /** Permissions - optional (not present in ID token) */
+  permissions?: string[];
   // Standard OIDC claims (always present)
   /** Token issuer URL */
   iss: string;
@@ -74,7 +74,7 @@ export interface UserInfo {
   token_expired?: boolean;
   /** Token expiration timestamp (ISO string) */
   token_expires_at?: string;
-  /** Source of user info ('id_token' or 'oauth2_userinfo_api') */
+  /** Source of user info (id_token; /userinfo removed) */
   source?: string;
   /** External identity provider details */
   externalProvider?: Record<string, unknown>;
@@ -343,22 +343,11 @@ declare class AuthServerOAuth2Client {
   getUserInfo(): UserInfo | null;
 
   /**
-   * Get fresh user info from OAuth2 userinfo endpoint
+   * Returns ID token claims; /userinfo is no longer available.
    *
-   * Fetches current user data from auth server. Slower than getUserInfo() but
-   * guarantees fresh data. Use when you need up-to-date user information.
+   * Use getUserInfo() instead. This method remains for API compatibility.
    *
-   * @returns Promise resolving to fresh user information
-   * @throws {Error} If request fails or session invalid
-   * @example
-   * ```javascript
-   * try {
-   *   const freshUserInfo = await authClient.getUserInfoFromAPI();
-   *   console.log("Fresh user data:", freshUserInfo);
-   * } catch (error) {
-   *   console.error("Failed to get fresh user info:", error);
-   * }
-   * ```
+   * @returns Promise resolving to user information or null
    */
   getUserInfoFromAPI(): Promise<UserInfo | null>;
 
