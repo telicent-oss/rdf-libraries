@@ -38,7 +38,6 @@ class AuthServerOAuth2Client {
       console.warn(
         "⚠️ AuthServerOAuth2Client instantiated with undefined config"
       );
-      console.trace();
       return;
     }
 
