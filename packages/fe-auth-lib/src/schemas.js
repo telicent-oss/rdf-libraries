@@ -21,6 +21,7 @@ if (z) {
   sub: z.string(),                    // Always present
   email: z.string().email(),          // NOT NULL in DB
   preferred_name: z.string(),         // NOT NULL in DB
+  isActive: z.boolean().optional(),   // Custom claim from ID token
 
   // Standard OIDC claims (always present)
   iss: z.string(),                    // Issuer URL

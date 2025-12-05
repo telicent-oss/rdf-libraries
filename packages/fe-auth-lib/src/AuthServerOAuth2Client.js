@@ -607,6 +607,7 @@ class AuthServerOAuth2Client {
         sub: payload.sub,
         email: payload.email,
         preferred_name: payload.preferred_name,
+        isActive: payload.isActive,
         iss: payload.iss,
         aud: payload.aud,
         exp: payload.exp,
@@ -652,25 +653,10 @@ class AuthServerOAuth2Client {
 
   // Get fresh user info from OAuth2 userinfo endpoint (UNIFIED ENDPOINT)
   async getUserInfoFromAPI() {
-    try {
-      const response = await this.makeAuthenticatedRequest(
-        `${this.config.authServerUrl}/userinfo`
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        return {
-          ...data,
-          source: this.isCrossDomain
-            ? "oauth2_userinfo_api_cross_domain"
-            : "oauth2_userinfo_api_same_domain",
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error("Error getting user info from OAuth2 API:", error);
-      return null;
-    }
+    console.warn(
+      "getUserInfoFromAPI: /userinfo has been removed; returning ID token claims instead."
+    );
+    return this.getUserInfo();
   }
 
   // Get raw ID token from storage
