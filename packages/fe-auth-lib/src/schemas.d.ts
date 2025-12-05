@@ -9,6 +9,7 @@ export declare const GetUserInfoSchema: z.ZodObject<{
   sub: z.ZodString;
   email: z.ZodString;
   preferred_name: z.ZodString;
+  isActive: z.ZodOptional<z.ZodBoolean>;
 
   // Standard OIDC claims (always present)
   iss: z.ZodString;
