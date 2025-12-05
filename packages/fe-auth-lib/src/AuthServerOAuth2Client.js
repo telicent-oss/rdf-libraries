@@ -34,19 +34,14 @@ class AuthServerOAuth2Client {
           `Invalid AuthServerOAuth2Client configuration: ${error.message}`
         );
       }
+    } else {
+      console.warn(
+        "⚠️ AuthServerOAuth2Client instantiated with undefined config"
+      );
+      return;
     }
 
     this.config = {
-      clientId: "spa-client", // Default - should be overridden
-      authServerUrl: "http://auth.telicent.localhost",
-      redirectUri: "http://demo.telicent.localhost/callback.html", // Default - should be overridden
-      popupRedirectUri: null, // Must be provided for popup flows
-      scope: "openid email profile offline_access",
-      apiUrl: "http://api.telicent.localhost",
-      onLogout: () => {
-        window.alert("You are now logged out. Redirecting to /");
-        window.location.href = "/";
-      },
       ...config,
     };
 
@@ -424,7 +419,6 @@ class AuthServerOAuth2Client {
         const result = await response.json();
         // set auth_session_id if user is already signed in
         sessionStorage.setItem("auth_id_token", result.id_token);
-        console.log(result);
         return true;
       }
 
@@ -734,9 +728,6 @@ class AuthServerOAuth2Client {
     const response = await fetch(url, requestOptions);
 
     if (response.status === 401) {
-      // QUESTION: would I ever use this method to call session check?
-      // I can only envisage scenarios where app endpoints get hit using this?
-      //
       // Don't auto-logout during callback flow or logout operations to prevent infinite loops
       const isCallbackFlow =
         options.skipAutoLogout || url.includes("/session/idtoken");
