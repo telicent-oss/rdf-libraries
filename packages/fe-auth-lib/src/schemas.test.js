@@ -65,19 +65,19 @@ describe("AuthServerOAuth2ClientConfigSchema", () => {
 
     expect(results).toMatchInlineSnapshot(`
       [
-        "✗ absolute https URL → clientId: Required, authServerUrl: Required, redirectUri: Required, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ absolute http URL → clientId: Required, authServerUrl: Required, redirectUri: Required, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ null value → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Expected string, received null, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ omitted field → authServerUrl: Required, redirectUri: Required, popupRedirectUri: Required, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ all fields with absolute URLs → onLogout: Required",
-        "✗ relative slash URL in popupRedirectUri → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Invalid url, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ relative dot-slash URL in popupRedirectUri → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Invalid url, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ URL without protocol in popupRedirectUri → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Invalid url, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ protocol-relative URL in popupRedirectUri → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Invalid url, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ relative URL in authServerUrl → clientId: Required, authServerUrl: Invalid url, redirectUri: Required, popupRedirectUri: Required, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ relative URL in redirectUri → clientId: Required, authServerUrl: Required, redirectUri: Invalid url, popupRedirectUri: Required, scope: Required, apiUrl: Required, onLogout: Required",
-        "✗ relative URL in apiUrl → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Required, scope: Required, apiUrl: Invalid url, onLogout: Required",
-        "✗ unknown property → authServerUrl: Required, redirectUri: Required, popupRedirectUri: Required, scope: Required, apiUrl: Required, onLogout: Required, root: Unrecognized key(s) in object: 'unknownProperty'",
+        "✗ absolute https URL → clientId: Required, authServerUrl: Required, redirectUri: Required, scope: Required, onLogout: Required",
+        "✗ absolute http URL → clientId: Required, authServerUrl: Required, redirectUri: Required, scope: Required, onLogout: Required",
+        "✗ null value → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Expected string, received null, scope: Required, onLogout: Required",
+        "✗ omitted field → authServerUrl: Required, redirectUri: Required, popupRedirectUri: Required, scope: Required, onLogout: Required",
+        "✗ all fields with absolute URLs → onLogout: Required, root: Unrecognized key(s) in object: 'apiUrl'",
+        "✗ relative slash URL in popupRedirectUri → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Invalid url, scope: Required, onLogout: Required",
+        "✗ relative dot-slash URL in popupRedirectUri → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Invalid url, scope: Required, onLogout: Required",
+        "✗ URL without protocol in popupRedirectUri → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Invalid url, scope: Required, onLogout: Required",
+        "✗ protocol-relative URL in popupRedirectUri → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Invalid url, scope: Required, onLogout: Required",
+        "✗ relative URL in authServerUrl → clientId: Required, authServerUrl: Invalid url, redirectUri: Required, popupRedirectUri: Required, scope: Required, onLogout: Required",
+        "✗ relative URL in redirectUri → clientId: Required, authServerUrl: Required, redirectUri: Invalid url, popupRedirectUri: Required, scope: Required, onLogout: Required",
+        "✗ relative URL in apiUrl → clientId: Required, authServerUrl: Required, redirectUri: Required, popupRedirectUri: Required, scope: Required, onLogout: Required, root: Unrecognized key(s) in object: 'apiUrl'",
+        "✗ unknown property → authServerUrl: Required, redirectUri: Required, popupRedirectUri: Required, scope: Required, onLogout: Required, root: Unrecognized key(s) in object: 'unknownProperty'",
       ]
     `);
   });

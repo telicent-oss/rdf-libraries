@@ -56,7 +56,6 @@ if (z) {
       redirectUri: z.string().url(),
       popupRedirectUri: z.string().url(),
       scope: z.string(),
-      apiUrl: z.string().url(),
       onLogout: z.function(),
     })
     .strict();
