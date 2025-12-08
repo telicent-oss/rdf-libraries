@@ -964,9 +964,3 @@ if (typeof module !== "undefined" && module.exports) {
   exports.default = AuthServerOAuth2Client;
   exports.AuthServerOAuth2Client = AuthServerOAuth2Client;
 }
-
-// Create global OAuth client instance for browser use
-if (typeof window !== "undefined") {
-  window.AuthServerOAuth2Client = AuthServerOAuth2Client;
-  window.authServerOAuth2Client = new AuthServerOAuth2Client();
-}
