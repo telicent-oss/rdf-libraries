@@ -20,9 +20,6 @@ export const prepareWritebackFactory =
       ((await service.getDCATResource(params)) as DCATResource[]).map(
         async (resource) => {
           const uiRepresentation = await resource.toUIRepresentation();
-          if (!config.FF_CATALOG_UPDATE) {
-            return uiRepresentation;
-          }
           return uiRepresentation;
         }
       )
