@@ -297,13 +297,25 @@ class AuthServerOAuth2Client {
         // which will handle consent properly through OAuth2AuthenticationSuccessHandler
         const authUrl = this.buildAuthorizationUrl();
         console.log("Redirecting to OAuth2 authorization flow:", authUrl);
-        window.location.href = authUrl;
+        this.clearLocalStorage();
+        window.location.href = `${authUrl}/access-denied`;
+        
         return; // Don't throw error, we're redirecting
+      }
+
+      if(errorDetails.error === "access_denied" && tokenResponse.status === 400){
+        console.log(`${errorMessage}`);
+        this.clearLocalStorage();
+
+        window.location.href = `${authUrl}/account-inactive`;
+        
+        return;
       }
 
       // For other errors, throw as before
       const errorMessage =
         errorDetails.error_description || errorDetails.error || "Unknown error";
+      this.clearLocalStorage();
       throw new Error(
         `Token exchange and session creation failed: ${errorMessage}`
       );
