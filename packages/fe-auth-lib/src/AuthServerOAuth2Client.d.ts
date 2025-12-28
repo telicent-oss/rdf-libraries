@@ -10,19 +10,17 @@
  */
 export interface AuthServerOAuth2ClientConfig {
   /** OAuth2 client identifier registered with the auth server */
-  clientId?: string;
+  clientId: string;
   /** Base URL of the authentication server (e.g. "http://auth.telicent.localhost") */
-  authServerUrl?: string;
+  authServerUrl: string;
   /** URI to redirect to after OAuth authorization (must be registered with auth server) */
-  redirectUri?: string;
+  redirectUri: string;
   /** Alternative redirect URI for popup-based authentication flows */
-  popupRedirectUri?: string;
+  popupRedirectUri: string;
   /** OAuth2 scopes to request (e.g. "openid profile message.read") */
-  scope?: string;
-  /** Base URL for API requests (used for cross-domain detection) */
-  apiUrl?: string;
+  scope: string;
   /** Callback function executed after successful logout */
-  onLogout?: () => void;
+  onLogout: () => void;
 }
 
 /**
@@ -144,7 +142,7 @@ declare class AuthServerOAuth2Client {
   static readonly OAUTH_ERROR: string;
 
   /** Client configuration with defaults applied */
-  config: Required<AuthServerOAuth2ClientConfig>;
+  config: AuthServerOAuth2ClientConfig;
   /** Whether this client operates in cross-domain mode */
   isCrossDomain: boolean;
 
@@ -183,6 +181,8 @@ declare class AuthServerOAuth2Client {
    * Base64 URL encoding
    */
   base64URLEncode(array: Uint8Array): string;
+
+  base64URLEncodeString(str: string): string;
 
   /**
    * Generate random state
@@ -255,7 +255,9 @@ declare class AuthServerOAuth2Client {
    *   });
    * ```
    */
-  handleCallback(callbackParams?: string | null): Promise<SessionData>;
+  handleCallback(
+    callbackParams?: string | Record<string, string> | URLSearchParams | null
+  ): Promise<SessionData>;
 
   /**
    * Check if user has valid session
@@ -424,11 +426,6 @@ declare class AuthServerOAuth2Client {
    * ```
    */
   logout(): Promise<void>;
-
-  /**
-   * Track popup window and listen for OAuth callback messages
-   */
-  trackPopup(popup: Window): void;
 
   /**
    * Complete popup OAuth flow

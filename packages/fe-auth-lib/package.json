@@ -32,7 +32,7 @@
     "INSTRUCTIONS.md"
   ],
   "scripts": {
-    "test": "jest",
+    "test": "jest --config ./jest.config.js",
     "build": "echo \"No-op: Nothing to build\"",
     "local-publish": "npm publish --registry http://localhost:4873"
   },
