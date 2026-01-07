@@ -6,6 +6,7 @@ import {
   installTestEnv,
   mockPkceValues,
   resetTestEnv,
+  setWindowLocation,
 } from "./test-utils";
 
 const createConfig = (
@@ -19,18 +20,6 @@ const createConfig = (
   onLogout: jest.fn(),
   ...overrides,
 });
-
-const setWindowLocation = (href: string): void => {
-  const url = new URL(href);
-  Object.defineProperty(window, "location", {
-    value: {
-      href,
-      origin: url.origin,
-      search: url.search,
-    },
-    writable: true,
-  });
-};
 
 const createFetchResponse = (options: {
   ok?: boolean;

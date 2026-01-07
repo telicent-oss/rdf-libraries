@@ -147,6 +147,18 @@ export const installTestEnv = (): { mockDigest: jest.Mock } => {
   return installCryptoMock();
 };
 
+export const setWindowLocation = (href: string): void => {
+  const url = new URL(href);
+  Object.defineProperty(window, "location", {
+    value: {
+      href,
+      origin: url.origin,
+      search: url.search,
+    },
+    writable: true,
+  });
+};
+
 export const resetTestEnv = (): void => {
   resetSessionStorage();
   resetCookies();

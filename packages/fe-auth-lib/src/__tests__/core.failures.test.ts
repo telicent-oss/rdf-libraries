@@ -1,19 +1,7 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../AuthServerOAuth2Client";
-import { installTestEnv, resetTestEnv } from "./test-utils";
-
-const setWindowLocation = (href: string): void => {
-  const url = new URL(href);
-  Object.defineProperty(window, "location", {
-    value: {
-      href,
-      origin: url.origin,
-      search: url.search,
-    },
-    writable: true,
-  });
-};
+import { installTestEnv, resetTestEnv, setWindowLocation } from "./test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
