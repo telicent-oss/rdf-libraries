@@ -34,6 +34,12 @@ const createFetchResponse = (options: {
     text: jest.fn().mockResolvedValue(options.textData ?? ""),
   } as unknown as Response);
 
+const matchedNonce = "✅ MATCHED nonce";
+const mismatchedNonces = {
+  stored: "❌ 🍎 MIS-matched nonce",
+  token: "❌ 🍌 MIS-matched nonce",
+};
+
 describe("happy path - handleCallback stores session and id token", () => {
   beforeEach(() => {
     installTestEnv();
@@ -139,18 +145,19 @@ describe("happy path - handleCallback stores session and id token", () => {
     (Date.now as jest.Mock).mockRestore();
   });
 
-  it("completes callback when id token response is not ok", async () => {
+  it("completes callback when id token response is not ok (500 status)", async () => {
     jest.useFakeTimers();
 
     const client = new AuthServerOAuth2Client(createConfig());
+
     mockPkceValues(client, {
       state: "ABC_state_ABC",
-      nonce: "ABC_nonce_ABC",
+      nonce: matchedNonce,
       codeVerifier: "ABC_codeVerifier_ABC",
     });
 
     sessionStorage.setItem("oauth_state", "ABC_state_ABC");
-    sessionStorage.setItem("oauth_nonce", "ABC_nonce_ABC");
+    sessionStorage.setItem("oauth_nonce", matchedNonce);
     sessionStorage.setItem("oauth_code_verifier", "ABC_codeVerifier_ABC");
     sessionStorage.setItem(
       "oauth_redirect_uri",
@@ -199,7 +206,7 @@ describe("happy path - handleCallback stores session and id token", () => {
           "authIdToken": null,
           "authSessionId": null,
           "oauthCodeVerifier": null,
-          "oauthNonce": "ABC_nonce_ABC",
+          "oauthNonce": "✅ MATCHED nonce",
           "oauthState": null,
         },
       }
@@ -286,7 +293,7 @@ describe("happy path - handleCallback stores session and id token", () => {
     (Date.now as jest.Mock).mockRestore();
   });
 
-  it("warns when id token validation fails", async () => {
+  it("warns when id token validation fails (nonce mismatch)", async () => {
     jest.useFakeTimers();
     const now = 1_700_000_200_000;
     jest.spyOn(Date, "now").mockReturnValue(now);
@@ -294,24 +301,24 @@ describe("happy path - handleCallback stores session and id token", () => {
     const client = new AuthServerOAuth2Client(createConfig());
     mockPkceValues(client, {
       state: "ABC_state_ABC",
-      nonce: "ABC_nonce_ABC",
+      nonce: mismatchedNonces.stored,
       codeVerifier: "ABC_codeVerifier_ABC",
     });
 
     sessionStorage.setItem("oauth_state", "ABC_state_ABC");
-    sessionStorage.setItem("oauth_nonce", "ABC_nonce_ABC");
+    sessionStorage.setItem("oauth_nonce", mismatchedNonces.stored);
     sessionStorage.setItem("oauth_code_verifier", "ABC_codeVerifier_ABC");
     sessionStorage.setItem(
       "oauth_redirect_uri",
       "http://app.telicent.localhost/callback"
     );
 
-    const idToken = buildJwt({
+    const nonceMismatchIdToken = buildJwt({
       sub: "user-3",
       aud: "client-1",
       exp: Math.floor(now / 1000) + 300,
       iat: Math.floor(now / 1000),
-      nonce: "ABC_nonce_ABC",
+      nonce: mismatchedNonces.token,
       email: "user3@example.com",
       preferred_name: "User Three",
       iss: "http://auth.telicent.localhost",
@@ -327,9 +334,8 @@ describe("happy path - handleCallback stores session and id token", () => {
     jest
       .spyOn(client, "makeAuthenticatedRequest")
       .mockResolvedValue(
-        createFetchResponse({ jsonData: { id_token: idToken } })
+        createFetchResponse({ jsonData: { id_token: nonceMismatchIdToken } })
       );
-    jest.spyOn(client, "validateIdToken").mockReturnValue(false);
 
     const promise = client.handleCallback({
       code: "CODE_789",
@@ -339,9 +345,14 @@ describe("happy path - handleCallback stores session and id token", () => {
     await promise;
 
     expect({
+      reason: mismatchedNonces,
       warnings: (console.warn as jest.Mock).mock.calls.map((call) => call[0]),
     }).toMatchInlineSnapshot(`
       {
+        "reason": {
+          "stored": "❌ 🍎 MIS-matched nonce",
+          "token": "❌ 🍌 MIS-matched nonce",
+        },
         "warnings": [
           "ID token validation failed, but continuing with callback",
         ],
