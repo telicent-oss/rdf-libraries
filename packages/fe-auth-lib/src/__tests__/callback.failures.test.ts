@@ -239,6 +239,12 @@ describe("failure path - handleCallback failure modes", () => {
       error = caught as Error;
     }
 
+    /**
+     * TODO Currently enshrines buggy behavior; Must fix 
+     * HOW Fix behavior to correctly redirect to /inactive-account
+     * WHEN After unit tests are done
+     * NOTES https://telicent.atlassian.net/browse/TELFE-1477
+     */
     expect({ error: error?.message }).toMatchInlineSnapshot(`
       {
         "error": "Cannot access 'errorMessage' before initialization",
