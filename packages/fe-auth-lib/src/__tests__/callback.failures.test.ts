@@ -227,7 +227,11 @@ describe("failure path - handleCallback failure modes", () => {
     );
     globalThis.fetch = fetchMock;
 
-    await client.handleCallback({ code: "CODE_1", state: "STATE_1" });
+    await expect(
+      client.handleCallback({ code: "CODE_1", state: "STATE_1" })
+    ).rejects.toThrow(
+      "access_denied redirecting to http://auth.telicent.localhost/account-inactive"
+    );
 
     expect({
       href: window.location.href,
@@ -235,7 +239,7 @@ describe("failure path - handleCallback failure modes", () => {
       oauthVerifier: sessionStorage.getItem("oauth_code_verifier"),
     }).toMatchInlineSnapshot(`
       {
-        "href": "http://auth.telicent.localhost/oauth2/authorize/account-inactive",
+        "href": "http://auth.telicent.localhost/account-inactive",
         "oauthState": null,
         "oauthVerifier": null,
       }
