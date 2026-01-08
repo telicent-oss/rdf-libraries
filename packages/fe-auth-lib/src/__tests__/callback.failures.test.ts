@@ -183,8 +183,6 @@ describe("failure path - handleCallback failure modes", () => {
   it("redirects on consent_required without throwing", async () => {
     jest.useFakeTimers();
     const client = new AuthServerOAuth2Client(createConfig());
-    (client as unknown as { buildAuthorizationUrl: () => string }).buildAuthorizationUrl =
-      () => "http://auth.telicent.localhost/oauth2/authorize";
     sessionStorage.setItem("oauth_state", "STATE_1");
     sessionStorage.setItem("oauth_code_verifier", "VERIFIER_1");
     sessionStorage.setItem("oauth_redirect_uri", "http://app/callback");
@@ -213,15 +211,12 @@ describe("failure path - handleCallback failure modes", () => {
     `);
   });
 
-  it("throws on access_denied", async () => {
+  it("redirects on access_denied", async () => {
     jest.useFakeTimers();
     const client = new AuthServerOAuth2Client(createConfig());
     sessionStorage.setItem("oauth_state", "STATE_1");
     sessionStorage.setItem("oauth_code_verifier", "VERIFIER_1");
     sessionStorage.setItem("oauth_redirect_uri", "http://app/callback");
-    (globalThis as { errorMessage?: string }).errorMessage = "Account inactive";
-    (globalThis as { authUrl?: string }).authUrl =
-      "http://auth.telicent.localhost/oauth2/authorize";
 
     const fetchMock = jest.fn().mockResolvedValue(
       createFetchResponse({
@@ -232,27 +227,19 @@ describe("failure path - handleCallback failure modes", () => {
     );
     globalThis.fetch = fetchMock;
 
-    let error: Error | null = null;
-    try {
-      await client.handleCallback({ code: "CODE_1", state: "STATE_1" });
-    } catch (caught) {
-      error = caught as Error;
-    }
+    await client.handleCallback({ code: "CODE_1", state: "STATE_1" });
 
-    /**
-     * TODO Currently enshrines buggy behavior; Must fix 
-     * HOW Fix behavior to correctly redirect to /inactive-account
-     * WHEN After unit tests are done
-     * NOTES https://telicent.atlassian.net/browse/TELFE-1477
-     */
-    expect({ error: error?.message }).toMatchInlineSnapshot(`
+    expect({
+      href: window.location.href,
+      oauthState: sessionStorage.getItem("oauth_state"),
+      oauthVerifier: sessionStorage.getItem("oauth_code_verifier"),
+    }).toMatchInlineSnapshot(`
       {
-        "error": "Cannot access 'errorMessage' before initialization",
+        "href": "http://auth.telicent.localhost/oauth2/authorize/account-inactive",
+        "oauthState": null,
+        "oauthVerifier": null,
       }
     `);
-
-    delete (globalThis as { errorMessage?: string }).errorMessage;
-    delete (globalThis as { authUrl?: string }).authUrl;
   });
 
   it("throws when token exchange fails with text response", async () => {
