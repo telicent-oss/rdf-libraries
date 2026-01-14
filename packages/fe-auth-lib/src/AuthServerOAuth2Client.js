@@ -44,6 +44,9 @@ class AuthServerOAuth2Client {
     this.config = {
       ...config,
     };
+    this.derived = {
+      accountInactive: `${this.config.authServerUrl}/account-inactive`,
+    }
 
     // Auto-detect if this is a cross-domain client
     this.isCrossDomain = this.detectCrossDomain();
@@ -278,6 +281,8 @@ class AuthServerOAuth2Client {
     );
 
     if (!tokenResponse.ok) {
+      let errorMessage = "Unknown error";
+      const authUrl = `${this.config.authServerUrl}/oauth2/authorize`;
       let errorDetails;
       try {
         // Try to parse JSON error response first
@@ -288,6 +293,9 @@ class AuthServerOAuth2Client {
         errorDetails = { error: "unknown", error_description: errorText };
       }
 
+      errorMessage =
+        errorDetails.error_description || errorDetails.error || "Unknown error";
+
       // Handle specific consent_required error
       if (errorDetails.error === "consent_required") {
         console.log("Consent required - redirecting to proper OAuth2 flow");
@@ -295,7 +303,6 @@ class AuthServerOAuth2Client {
         // The SPA should not directly call /oauth2/session without consent
         // Instead, redirect to start the proper OAuth2 authorization flow
         // which will handle consent properly through OAuth2AuthenticationSuccessHandler
-        const authUrl = this.buildAuthorizationUrl();
         console.log("Redirecting to OAuth2 authorization flow:", authUrl);
         this.clearLocalStorage();
         window.location.href = `${authUrl}/access-denied`;
@@ -303,18 +310,16 @@ class AuthServerOAuth2Client {
         return; // Don't throw error, we're redirecting
       }
 
-      if(errorDetails.error === "access_denied" && tokenResponse.status === 400){
+      if (errorDetails.error === "access_denied" && tokenResponse.status === 400) {
         console.log(`${errorMessage}`);
         this.clearLocalStorage();
 
-        window.location.href = `${authUrl}/account-inactive`;
+        window.location.href = this.derived.accountInactive;
         
-        return;
+        throw new Error(`${errorMessage} redirecting to ${this.derived.accountInactive}`);
       }
 
       // For other errors, throw as before
-      const errorMessage =
-        errorDetails.error_description || errorDetails.error || "Unknown error";
       this.clearLocalStorage();
       throw new Error(
         `Token exchange and session creation failed: ${errorMessage}`
