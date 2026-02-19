@@ -39,10 +39,6 @@
   "publishConfig": {
     "access": "public"
   },
-  "dependencies": {
-    "react": "18.2.0",
-    "react-dom": "18.2.0"
-  },
   "devDependencies": {
     "@types/jest": "^29.4.0",
     "@types/node": "16.11.7",

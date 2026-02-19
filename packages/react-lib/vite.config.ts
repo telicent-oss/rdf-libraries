@@ -13,19 +13,24 @@ export default defineConfig({
       fileName: (format) => {
         // Control the actual file names
         if (format === "es") return "react-lib.es.js";
-        if (format === "cjs") return "react-lib.cjs.js"; 
+        if (format === "cjs") return "react-lib.cjs.js";
         return "react-lib.umd.js"; // uncomment if needed
-      }
+      },
     },
     sourcemap: true,
     rollupOptions: {
       // Mark peer deps / externals here to keep them out of the bundle
-      external: Object.keys(packageJSON.dependencies || {}),
+      external: [
+        ...Object.keys(packageJSON.peerDependencies || {}),
+        "react",
+        "react-dom",
+      ],
     },
-    minify: false
+    minify: false,
   },
   plugins: [
     // Generate types
-    dts({ insertTypesEntry: true }) as PluginOption
-  ]
+    dts({ insertTypesEntry: true }) as PluginOption,
+  ],
 });
+
