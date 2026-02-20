@@ -24,6 +24,7 @@ export default defineConfig({
         ...Object.keys(packageJSON.peerDependencies || {}),
         "react",
         "react-dom",
+        "react/jsx-runtime",
       ],
     },
     minify: false,
@@ -33,4 +34,3 @@ export default defineConfig({
     dts({ insertTypesEntry: true }) as PluginOption,
   ],
 });
-
