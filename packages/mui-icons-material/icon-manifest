@@ -128,8 +128,8 @@
 # AccountCircleSharp.js
 # AccountCircleTwoTone.d.ts
 # AccountCircleTwoTone.js
-# AccountTree.d.ts
-# AccountTree.js
+AccountTree.d.ts
+AccountTree.js
 # AccountTreeOutlined.d.ts
 # AccountTreeOutlined.js
 # AccountTreeRounded.d.ts
@@ -800,8 +800,8 @@ Add.js
 # AlternateEmailSharp.js
 # AlternateEmailTwoTone.d.ts
 # AlternateEmailTwoTone.js
-# AltRoute.d.ts
-# AltRoute.js
+AltRoute.d.ts
+AltRoute.js
 # AltRouteOutlined.d.ts
 # AltRouteOutlined.js
 # AltRouteRounded.d.ts
@@ -880,8 +880,8 @@ Add.js
 # ApartmentSharp.js
 # ApartmentTwoTone.d.ts
 # ApartmentTwoTone.js
-# Api.d.ts
-# Api.js
+Api.d.ts
+Api.js
 # ApiOutlined.d.ts
 # ApiOutlined.js
 # ApiRounded.d.ts
@@ -992,8 +992,8 @@ Add.js
 # AreaChartSharp.js
 # AreaChartTwoTone.d.ts
 # AreaChartTwoTone.js
-# ArrowBack.d.ts
-# ArrowBack.js
+ArrowBack.d.ts
+ArrowBack.js
 # ArrowBackIos.d.ts
 # ArrowBackIos.js
 # ArrowBackIosNew.d.ts
@@ -1102,8 +1102,8 @@ Add.js
 # ArrowDropUpSharp.js
 # ArrowDropUpTwoTone.d.ts
 # ArrowDropUpTwoTone.js
-# ArrowForward.d.ts
-# ArrowForward.js
+ArrowForward.d.ts
+ArrowForward.js
 # ArrowForwardIos.d.ts
 # ArrowForwardIos.js
 # ArrowForwardIosOutlined.d.ts
@@ -1456,8 +1456,8 @@ Add.js
 # AutoDeleteSharp.js
 # AutoDeleteTwoTone.d.ts
 # AutoDeleteTwoTone.js
-# AutoFixHigh.d.ts
-# AutoFixHigh.js
+AutoFixHigh.d.ts
+AutoFixHigh.js
 # AutoFixHighOutlined.d.ts
 # AutoFixHighOutlined.js
 # AutoFixHighRounded.d.ts
@@ -2660,8 +2660,8 @@ Add.js
 # BubbleChartSharp.js
 # BubbleChartTwoTone.d.ts
 # BubbleChartTwoTone.js
-# BugReport.d.ts
-# BugReport.js
+BugReport.d.ts
+BugReport.js
 # BugReportOutlined.d.ts
 # BugReportOutlined.js
 # BugReportRounded.d.ts
@@ -2670,8 +2670,8 @@ Add.js
 # BugReportSharp.js
 # BugReportTwoTone.d.ts
 # BugReportTwoTone.js
-# Build.d.ts
-# Build.js
+Build.d.ts
+Build.js
 # BuildCircle.d.ts
 # BuildCircle.js
 # BuildCircleOutlined.d.ts
@@ -3383,8 +3383,8 @@ Check.js
 # CheckBoxSharp.js
 # CheckBoxTwoTone.d.ts
 # CheckBoxTwoTone.js
-# CheckCircle.d.ts
-# CheckCircle.js
+CheckCircle.d.ts
+CheckCircle.js
 # CheckCircleOutline.d.ts
 # CheckCircleOutline.js
 # CheckCircleOutlined.d.ts
@@ -3621,8 +3621,8 @@ Clear.js
 # CloseSharp.js
 # CloseTwoTone.d.ts
 # CloseTwoTone.js
-# Cloud.d.ts
-# Cloud.js
+Cloud.d.ts
+Cloud.js
 # CloudCircle.d.ts
 # CloudCircle.js
 # CloudCircleOutlined.d.ts
@@ -3653,8 +3653,8 @@ Clear.js
 # CloudDownloadSharp.js
 # CloudDownloadTwoTone.d.ts
 # CloudDownloadTwoTone.js
-# CloudOff.d.ts
-# CloudOff.js
+CloudOff.d.ts
+CloudOff.js
 # CloudOffOutlined.d.ts
 # CloudOffOutlined.js
 # CloudOffRounded.d.ts
@@ -3713,8 +3713,8 @@ Clear.js
 # Co2Sharp.js
 # Co2TwoTone.d.ts
 # Co2TwoTone.js
-# Code.d.ts
-# Code.js
+Code.d.ts
+Code.js
 # CodeOff.d.ts
 # CodeOff.js
 # CodeOffOutlined.d.ts
@@ -4023,8 +4023,8 @@ Clear.js
 # ContactSupportSharp.js
 # ContactSupportTwoTone.d.ts
 # ContactSupportTwoTone.js
-# ContentCopy.d.ts
-# ContentCopy.js
+ContentCopy.d.ts
+ContentCopy.js
 # ContentCopyOutlined.d.ts
 # ContentCopyOutlined.js
 # ContentCopyRounded.d.ts
@@ -4595,8 +4595,8 @@ Clear.js
 # DataExplorationSharp.js
 # DataExplorationTwoTone.d.ts
 # DataExplorationTwoTone.js
-# DataObject.d.ts
-# DataObject.js
+DataObject.d.ts
+DataObject.js
 # DataObjectOutlined.d.ts
 # DataObjectOutlined.js
 # DataObjectRounded.d.ts
@@ -4705,8 +4705,8 @@ Clear.js
 # DehazeSharp.js
 # DehazeTwoTone.d.ts
 # DehazeTwoTone.js
-# Delete.d.ts
-# Delete.js
+Delete.d.ts
+Delete.js
 # DeleteForever.d.ts
 # DeleteForever.js
 # DeleteForeverOutlined.d.ts
@@ -5637,8 +5637,8 @@ Clear.js
 # DragHandleSharp.js
 # DragHandleTwoTone.d.ts
 # DragHandleTwoTone.js
-# DragIndicator.d.ts
-# DragIndicator.js
+DragIndicator.d.ts
+DragIndicator.js
 # DragIndicatorOutlined.d.ts
 # DragIndicatorOutlined.js
 # DragIndicatorRounded.d.ts
@@ -6466,8 +6466,8 @@ ExpandLess.js
 # ExpandLessSharp.js
 # ExpandLessTwoTone.d.ts
 # ExpandLessTwoTone.js
-# ExpandMore.d.ts
-# ExpandMore.js
+ExpandMore.d.ts
+ExpandMore.js
 # ExpandMoreOutlined.d.ts
 # ExpandMoreOutlined.js
 # ExpandMoreRounded.d.ts
@@ -7568,8 +7568,8 @@ ExpandLess.js
 # FmdGoodTwoTone.js
 # Foggy.d.ts
 # Foggy.js
-# Folder.d.ts
-# Folder.js
+Folder.d.ts
+Folder.js
 # FolderCopy.d.ts
 # FolderCopy.js
 # FolderCopyOutlined.d.ts
@@ -8870,8 +8870,8 @@ ExpandLess.js
 # HelpCenterSharp.js
 # HelpCenterTwoTone.d.ts
 # HelpCenterTwoTone.js
-# HelpOutline.d.ts
-# HelpOutline.js
+HelpOutline.d.ts
+HelpOutline.js
 # HelpOutlined.d.ts
 # HelpOutlined.js
 # HelpOutlineOutlined.d.ts
@@ -8978,8 +8978,8 @@ ExpandLess.js
 # HikingSharp.js
 # HikingTwoTone.d.ts
 # HikingTwoTone.js
-# History.d.ts
-# History.js
+History.d.ts
+History.js
 # HistoryEdu.d.ts
 # HistoryEdu.js
 # HistoryEduOutlined.d.ts
@@ -10357,8 +10357,8 @@ ExpandLess.js
 # LineWeightSharp.js
 # LineWeightTwoTone.d.ts
 # LineWeightTwoTone.js
-# Link.d.ts
-# Link.js
+Link.d.ts
+Link.js
 # LinkedCamera.d.ts
 # LinkedCamera.js
 # LinkedCameraOutlined.d.ts
@@ -10811,8 +10811,8 @@ LocationOn.js
 # LocationSearchingSharp.js
 # LocationSearchingTwoTone.d.ts
 # LocationSearchingTwoTone.js
-# Lock.d.ts
-# Lock.js
+Lock.d.ts
+Lock.js
 # LockClock.d.ts
 # LockClock.js
 # LockClockOutlined.d.ts
@@ -12103,8 +12103,8 @@ LocationOn.js
 # NavigateBeforeSharp.js
 # NavigateBeforeTwoTone.d.ts
 # NavigateBeforeTwoTone.js
-# NavigateNext.d.ts
-# NavigateNext.js
+NavigateNext.d.ts
+NavigateNext.js
 # NavigateNextOutlined.d.ts
 # NavigateNextOutlined.js
 # NavigateNextRounded.d.ts
@@ -12925,8 +12925,8 @@ LocationOn.js
 # OpenInFullSharp.js
 # OpenInFullTwoTone.d.ts
 # OpenInFullTwoTone.js
-# OpenInNew.d.ts
-# OpenInNew.js
+OpenInNew.d.ts
+OpenInNew.js
 # OpenInNewOff.d.ts
 # OpenInNewOff.js
 # OpenInNewOffOutlined.d.ts
@@ -14143,8 +14143,8 @@ LocationOn.js
 # PlagiarismSharp.js
 # PlagiarismTwoTone.d.ts
 # PlagiarismTwoTone.js
-# PlayArrow.d.ts
-# PlayArrow.js
+PlayArrow.d.ts
+PlayArrow.js
 # PlayArrowOutlined.d.ts
 # PlayArrowOutlined.js
 # PlayArrowRounded.d.ts
@@ -14593,8 +14593,8 @@ LocationOn.js
 # PsychologySharp.js
 # PsychologyTwoTone.d.ts
 # PsychologyTwoTone.js
-# Public.d.ts
-# Public.js
+Public.d.ts
+Public.js
 # PublicOff.d.ts
 # PublicOff.js
 # PublicOffOutlined.d.ts
@@ -14795,8 +14795,8 @@ LocationOn.js
 # RadioButtonCheckedSharp.js
 # RadioButtonCheckedTwoTone.d.ts
 # RadioButtonCheckedTwoTone.js
-# RadioButtonUnchecked.d.ts
-# RadioButtonUnchecked.js
+RadioButtonUnchecked.d.ts
+RadioButtonUnchecked.js
 # RadioButtonUncheckedOutlined.d.ts
 # RadioButtonUncheckedOutlined.js
 # RadioButtonUncheckedRounded.d.ts
@@ -15318,8 +15318,8 @@ Remove.js
 # ResetTvSharp.js
 # ResetTvTwoTone.d.ts
 # ResetTvTwoTone.js
-# RestartAlt.d.ts
-# RestartAlt.js
+RestartAlt.d.ts
+RestartAlt.js
 # RestartAltOutlined.d.ts
 # RestartAltOutlined.js
 # RestartAltRounded.d.ts
@@ -15748,8 +15748,8 @@ Remove.js
 # SatelliteSharp.js
 # SatelliteTwoTone.d.ts
 # SatelliteTwoTone.js
-# Save.d.ts
-# Save.js
+Save.d.ts
+Save.js
 # SaveAlt.d.ts
 # SaveAlt.js
 # SaveAltOutlined.d.ts
@@ -16038,8 +16038,8 @@ Remove.js
 # SdStorageTwoTone.js
 # SdTwoTone.d.ts
 # SdTwoTone.js
-# Search.d.ts
-# Search.js
+Search.d.ts
+Search.js
 # SearchOff.d.ts
 # SearchOff.js
 # SearchOffOutlined.d.ts
@@ -16058,8 +16058,8 @@ Remove.js
 # SearchSharp.js
 # SearchTwoTone.d.ts
 # SearchTwoTone.js
-# Security.d.ts
-# Security.js
+Security.d.ts
+Security.js
 # SecurityOutlined.d.ts
 # SecurityOutlined.js
 # SecurityRounded.d.ts
@@ -17676,8 +17676,8 @@ Remove.js
 # SpellcheckSharp.js
 # SpellcheckTwoTone.d.ts
 # SpellcheckTwoTone.js
-# Splitscreen.d.ts
-# Splitscreen.js
+Splitscreen.d.ts
+Splitscreen.js
 # SplitscreenOutlined.d.ts
 # SplitscreenOutlined.js
 # SplitscreenRounded.d.ts
@@ -18136,8 +18136,8 @@ Remove.js
 # StopSharp.js
 # StopTwoTone.d.ts
 # StopTwoTone.js
-# Storage.d.ts
-# Storage.js
+Storage.d.ts
+Storage.js
 # StorageOutlined.d.ts
 # StorageOutlined.js
 # StorageRounded.d.ts
@@ -18762,8 +18762,8 @@ Remove.js
 # TableBarSharp.js
 # TableBarTwoTone.d.ts
 # TableBarTwoTone.js
-# TableChart.d.ts
-# TableChart.js
+TableChart.d.ts
+TableChart.js
 # TableChartOutlined.d.ts
 # TableChartOutlined.js
 # TableChartRounded.d.ts
@@ -19342,8 +19342,8 @@ Remove.js
 # TimelapseSharp.js
 # TimelapseTwoTone.d.ts
 # TimelapseTwoTone.js
-# Timeline.d.ts
-# Timeline.js
+Timeline.d.ts
+Timeline.js
 # TimelineOutlined.d.ts
 # TimelineOutlined.js
 # TimelineRounded.d.ts
@@ -20667,8 +20667,8 @@ Remove.js
 # VillaSharp.js
 # VillaTwoTone.d.ts
 # VillaTwoTone.js
-# Visibility.d.ts
-# Visibility.js
+Visibility.d.ts
+Visibility.js
 # VisibilityOff.d.ts
 # VisibilityOff.js
 # VisibilityOffOutlined.d.ts
@@ -20909,8 +20909,8 @@ Remove.js
 # WatchSharp.js
 # WatchTwoTone.d.ts
 # WatchTwoTone.js
-# Water.d.ts
-# Water.js
+Water.d.ts
+Water.js
 # WaterDamage.d.ts
 # WaterDamage.js
 # WaterDamageOutlined.d.ts
@@ -20921,8 +20921,8 @@ Remove.js
 # WaterDamageSharp.js
 # WaterDamageTwoTone.d.ts
 # WaterDamageTwoTone.js
-# WaterDrop.d.ts
-# WaterDrop.js
+WaterDrop.d.ts
+WaterDrop.js
 # WaterDropOutlined.d.ts
 # WaterDropOutlined.js
 # WaterDropRounded.d.ts
