@@ -1,0 +1,29 @@
+{
+  "name": "@telicent-oss/docs-docsify-template",
+  "version": "0.1.0",
+  "private": false,
+  "description": "Reusable docsify site template — curated sidebar (no heading auto-explode), a floating per-page outline, Prism syntax highlighting, and Mermaid diagrams.",
+  "files": [
+    "template/*",
+    "LICENSE"
+  ],
+  "author": "",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/telicent-oss/rdf-libraries.git"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "test": "jest --runInBand --coverage",
+    "lint": "echo no lint"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  }
+}

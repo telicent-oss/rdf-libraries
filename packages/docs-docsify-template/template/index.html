@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Docs</title>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+  <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+  <style>
+    pre[class*="language-"] {
+      border-radius: 6px;
+      border: 1px solid #e1e5e9;
+      font-size: 14px;
+      line-height: 1.4;
+      margin: 1.5em 0;
+    }
+    :not(pre) > code[class*="language-"] {
+      background: #f6f8fa;
+      border: 1px solid #e1e5e9;
+      border-radius: 3px;
+      padding: 2px 4px;
+      font-size: 85%;
+      color: #d63384;
+    }
+    .right-toc {
+      position: fixed;
+      top: 60px;
+      right: 16px;
+      width: 200px;
+      max-height: calc(100vh - 80px);
+      overflow-y: auto;
+      font-size: 13px;
+      line-height: 1.4;
+      border-left: 2px solid #eee;
+      padding-left: 12px;
+    }
+    .right-toc .toc-title {
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      color: #999;
+      margin-bottom: 8px;
+      letter-spacing: 0.5px;
+    }
+    .right-toc a {
+      display: block;
+      color: #666;
+      text-decoration: none;
+      padding: 3px 0;
+    }
+    .right-toc a:hover { color: #42b983; }
+    .right-toc a.toc-h3 {
+      padding-left: 12px;
+      font-size: 12px;
+    }
+    .content { padding-right: 240px !important; }
+    .toc-toggle {
+      position: fixed;
+      top: 8px;
+      right: 8px;
+      z-index: 30;
+      background: none;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      cursor: pointer;
+      color: #ccc;
+      font-size: 18px;
+      padding: 2px 6px;
+      line-height: 1;
+    }
+    .toc-toggle:hover { color: #42b983; border-color: #e1e5e9; }
+    body.hide-toc .right-toc { display: none !important; }
+    body.hide-toc .content { padding-right: 15px !important; }
+    @media (max-width: 1200px) {
+      .right-toc { display: none; }
+      .toc-toggle { display: none; }
+      .content { padding-right: 15px !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <div class="right-toc" id="right-toc"></div>
+  <button class="toc-toggle" id="toc-toggle" title="Toggle page outline">≡</button>
+  <script src="//cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>
+    // Site identity lives in site.config.json (siteName/homepage/repo), not
+    // here, so this file needs no edits when the kit is dropped into a repo.
+    // Loading docsify's own script tag is deferred until that config is
+    // fetched, since docsify reads window.$docsify at script-execution time.
+    fetch('./site.config.json')
+      .then((r) => r.json())
+      .then((cfg) => {
+        mermaid.initialize({ startOnLoad: false });
+
+        window.$docsify = {
+          name: cfg.siteName || 'Docs',
+          repo: cfg.repo || '',
+          loadSidebar: true,
+          subMaxLevel: 0,
+          auto2top: true,
+          homepage: cfg.homepage || 'root/README.md',
+          markdown: {
+            renderer: {
+              code: function(code, lang) {
+                if (lang === 'mermaid') {
+                  return '<div class="mermaid">' + code + '</div>';
+                }
+                return this.origin.code.apply(this, arguments);
+              }
+            }
+          },
+          plugins: [
+            function(hook) {
+              hook.doneEach(function() {
+                mermaid.run({ nodes: document.querySelectorAll('.mermaid') });
+
+                var toc = document.getElementById('right-toc');
+                var headings = document.querySelectorAll('.markdown-section h2, .markdown-section h3');
+                if (!headings.length) { toc.innerHTML = ''; return; }
+                var html = '<div class="toc-title">On this page</div>';
+                headings.forEach(function(h) {
+                  var level = h.tagName === 'H3' ? 'toc-h3' : 'toc-h2';
+                  html += '<a class="' + level + '" href="#' + h.id + '">' + h.textContent + '</a>';
+                });
+                toc.innerHTML = html;
+              });
+            }
+          ]
+        };
+
+        var docsifyScript = document.createElement('script');
+        docsifyScript.src = '//cdn.jsdelivr.net/npm/docsify@4';
+        document.body.appendChild(docsifyScript);
+      });
+  </script>
+  <!-- Syntax highlighting -->
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-typescript.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-javascript.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-jsx.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-tsx.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+  <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-yaml.min.js"></script>
+  <!-- Plugins -->
+  <script src="//cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+  <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+  <script>
+    (function() {
+      var btn = document.getElementById('toc-toggle');
+      if (localStorage.getItem('hide-toc') === 'true') document.body.classList.add('hide-toc');
+      btn.addEventListener('click', function() {
+        document.body.classList.toggle('hide-toc');
+        localStorage.setItem('hide-toc', document.body.classList.contains('hide-toc'));
+      });
+    })();
+  </script>
+</body>
+</html>

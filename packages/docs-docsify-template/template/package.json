@@ -1,0 +1,13 @@
+{
+  "name": "docs-site",
+  "private": true,
+  "scripts": {
+    "build": "node generate-sidebar.js",
+    "serve": "node generate-sidebar.js && docsify serve . --port 3003",
+    "test": "echo no tests",
+    "lint": "echo no lint"
+  },
+  "devDependencies": {
+    "docsify-cli": "^4.4.4"
+  }
+}

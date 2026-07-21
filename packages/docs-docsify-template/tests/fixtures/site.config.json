@@ -1,0 +1,9 @@
+{
+  "siteName": "fixture-repo",
+  "homepage": "root/README.md",
+  "repo": "https://github.com/telicent-oss/fixture-repo",
+  "htmlSections": [],
+  "extraSkipDirs": [],
+  "extraIncludeNames": [],
+  "extraSkipFilenameSubstrings": []
+}
