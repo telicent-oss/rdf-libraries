@@ -3420,6 +3420,13 @@
     svg-path-parser "^1.1.0"
     zod "^3.21.4"
 
+"@telicent-oss/fe-auth-lib@1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@telicent-oss/fe-auth-lib/-/fe-auth-lib-1.0.3.tgz#c64d9a06ee45fc433aa8b89a0223523b952d157d"
+  integrity sha512-+PGiNhTAKNaTRLXOVlkRP6iycA7m6ZmhR9D5c271mUGPA8bD3lLlq0+WAoTW+GoRVXWKWcveEHdKtvw1ocxVOA==
+  dependencies:
+    zod "^3.23.8"
+
 "@telicent-oss/telicent-frontend-cli@^1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@telicent-oss/telicent-frontend-cli/-/telicent-frontend-cli-1.5.0.tgz#afb2a6938af7e5a02aac151b82a30751b0135b37"
