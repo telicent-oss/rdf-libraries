@@ -1,1 +1,14 @@
-{}
+{
+  "packages/RdfService/": "1.0.2",
+  "packages/OntologyService/": "1.0.4",
+  "packages/CatalogService/": "2.0.0",
+  "packages/ies-service/": "1.0.1",
+  "packages/ontology-icon-lib/": "1.0.3",
+  "packages/ontology-icon-react-lib/": "2.0.0",
+  "packages/react-lib/": "0.7.0",
+  "packages/rdf-write-lib/": "1.0.2",
+  "packages/sparql-lib/": "1.0.0",
+  "packages/dev-dependencies-lib/": "0.0.2",
+  "packages/mui-icons-material/": "1.0.0",
+  "packages/fe-auth-lib/": "1.0.3"
+}
