@@ -713,7 +713,7 @@ class AuthServerOAuth2Client {
       // Same-domain: Add CSRF token for state-changing requests
       if (
         options.method &&
-        ["POST", "PUT", "DELETE"].includes(options.method.toUpperCase())
+        ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
       ) {
         const csrfToken = this.getCsrfToken();
         if (csrfToken) {
@@ -778,7 +778,7 @@ class AuthServerOAuth2Client {
       // Same-domain: Add CSRF token for state-changing requests
       if (
         options.method &&
-        ["POST", "PUT", "DELETE"].includes(options.method.toUpperCase())
+        ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
       ) {
         const csrfToken = this.getCsrfToken();
         if (csrfToken) {

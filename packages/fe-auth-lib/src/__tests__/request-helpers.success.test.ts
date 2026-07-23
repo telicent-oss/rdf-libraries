@@ -86,6 +86,29 @@ describe("happy path - request helpers add auth headers", () => {
     `);
   });
 
+  it("adds CSRF token for same-domain PATCH requests", async () => {
+    const client = new AuthServerOAuth2Client(createConfig());
+    setCookies("XSRF-TOKEN=csrf-patch");
+    const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
+    globalThis.fetch = fetchMock;
+
+    await client.makeAuthenticatedRequest(
+      "http://auth.telicent.localhost/data",
+      { method: "PATCH" }
+    );
+
+    expect({
+      headers: fetchMock.mock.calls[0][1]?.headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "Accept": "application/json",
+          "X-XSRF-TOKEN": "csrf-patch",
+        },
+      }
+    `);
+  });
+
   it("prepares request headers for cross-domain and same-domain", () => {
     const crossDomainClient = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
