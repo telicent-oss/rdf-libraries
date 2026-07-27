@@ -23,7 +23,7 @@ function delays(ms: number) {
 describe("RdfService", () => {
   let fuseki: StartedTestContainer;
   beforeAll(async () => {
-    fuseki = await new GenericContainer("atomgraph/fuseki")
+    fuseki = await new GenericContainer("atomgraph/fuseki:4.7.0")
       .withExposedPorts(3030)
       .withCommand(["--mem", "rdf_test/"])
       .withWaitStrategy(Wait.forAll(
