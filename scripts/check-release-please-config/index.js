@@ -20,9 +20,15 @@ const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
 // Extract package paths from the config
 const configuredPackages = Object.keys(config.packages);
 
-// Read directories under ./packages/
+// Read package directories under ./packages/ (a directory is only a package
+// if it contains a package.json; skips leftover dirs like stray node_modules
+// or build output that aren't publishable packages).
 const directories = fs.readdirSync(packagesDir)
-  .filter(item => fs.statSync(path.join(packagesDir, item)).isDirectory())
+  .filter(item => {
+    const full = path.join(packagesDir, item);
+    return fs.statSync(full).isDirectory()
+      && fs.existsSync(path.join(full, 'package.json'));
+  })
   .map(dir => `packages/${dir}/`);
 
 // Compare directories with configured packages
