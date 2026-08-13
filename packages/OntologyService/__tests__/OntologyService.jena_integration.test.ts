@@ -32,7 +32,7 @@ function delay(ms: number) {
 describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
   let fuseki: StartedTestContainer;
   beforeAll(async () => {
-    fuseki = await new GenericContainer("atomgraph/fuseki")
+    fuseki = await new GenericContainer("atomgraph/fuseki:4.7.0")
       .withExposedPorts(3030)
       .withCommand(["--mem", "ontology_test/"])
       .withWaitStrategy(Wait.forAll(
