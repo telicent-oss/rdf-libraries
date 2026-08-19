@@ -11,6 +11,15 @@ const targetCommands = [
   /* skipped 'yarn' and 'npm i' to keep things simple */
 ]
 
+/**
+ * Matches a command only at a word boundary, so "pnpm install" is not read as
+ * "npm install". Without this, no prefix can satisfy the check for a pnpm repo:
+ * the required literal is "LOCAL_MACHINE=false npm install", which pnpm never
+ * produces.
+ */
+const atWordBoundary = (cmd: string): RegExp =>
+  new RegExp(`(?<![\\w-])${cmd.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`)
+
 interface Step {
   run?: string
 }
@@ -42,7 +51,10 @@ export const findWorkflowNpmInstallCommands = (): void => {
             return
           }
           const fullCmd = `LOCAL_MACHINE=false ${cmd}`
-          if (step.run.includes(cmd) && !step.run.includes(fullCmd)) {
+          if (
+            atWordBoundary(cmd).test(step.run) &&
+            !atWordBoundary(fullCmd).test(step.run)
+          ) {
             const FILE = c.yellowBright(filePath)
             const JOB = c.yellowBright(jobName)
             const CMD = c.redBright(cmd)

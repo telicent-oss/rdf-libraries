@@ -78,6 +78,21 @@ jobs:
     expect(consoleOutput).toMatchInlineSnapshot(`[]`)
   })
 
+  it('should not read "pnpm install" as "npm install"', () => {
+    vol.writeFileSync(
+      './.github/workflows/pnpm.yml',
+      `
+jobs:
+  build:
+    steps:
+      - run: pnpm install
+      - run: LOCAL_MACHINE=false pnpm install --frozen-lockfile
+      `,
+    )
+    expect(() => findWorkflowNpmInstallCommands()).not.toThrow()
+    expect(consoleOutput).toMatchInlineSnapshot(`[]`)
+  })
+
   afterEach(() => {
     vol.reset()
   })
