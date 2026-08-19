@@ -53,7 +53,6 @@ overrides:
   # the value is a caret range so a newer patched release is still allowed.
   'rollup@<3.29.5': ^3.29.5
   'rollup@>=4.0.0 <4.22.4': ^4.22.4
-  '@telicent-oss/telicent-frontend-cli': ^1.5.0
   cross-spawn: ^7.0.5
   braces: ^3.0.3
   nx: 19.8.14

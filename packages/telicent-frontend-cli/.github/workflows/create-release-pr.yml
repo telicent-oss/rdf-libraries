@@ -1,0 +1,26 @@
+on:
+  push:
+    branches:
+      - "*"
+
+jobs:
+  create-release-pr:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Create release PR
+        uses: google-github-actions/release-please-action@v3
+        if: ${{ github.ref_name == 'main' }}
+        with:
+          release-type: node
+          package-name: "@telicent-oss/telicent-frontend-cli"
+          prerelease: false
+
+      - name: Create prerelease PR
+        uses: google-github-actions/release-please-action@v3
+        if: ${{ startsWith(github.event.head_commit.message, 'chore:') && contains(github.event.head_commit.message, 'prerelease') }}
+        with:
+          release-type: node
+          package-name: "@telicent-oss/telicent-frontend-cli"
+          prerelease: true
+          default-branch: ${{ github.ref_name }}

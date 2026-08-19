@@ -1,0 +1,7 @@
+#!/bin/sh
+
+set -e
+
+node ./scripts/updateReadmeWithTefeHelpCommand.js
+pnpm test
+pnpm build

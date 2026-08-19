@@ -1,0 +1,4 @@
+#!/bin/zsh
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$DIR/prerelease-fn.sh";
+prerelease;

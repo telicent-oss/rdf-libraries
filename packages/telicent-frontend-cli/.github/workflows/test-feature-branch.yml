@@ -1,0 +1,11 @@
+# Test feature branch
+on:
+  push:
+    branches-ignore:
+      - "main"
+
+jobs:
+  quality:
+    name: Run unit tests
+    uses: telicent-oss/shared-workflows/.github/workflows/javascript-test-feature-branch.yml@main
+    secrets: inherit

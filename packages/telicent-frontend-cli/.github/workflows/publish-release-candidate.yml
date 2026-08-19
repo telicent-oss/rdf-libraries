@@ -1,0 +1,59 @@
+# Publish release candidate
+on:
+  push:
+    tags:
+      # To bump, and push tagged commit:
+      #   pnpm version prerelease && git push && git push --follow-tags || echo "FAILED!"
+      - "v[0-9]+.[0-9]+.[0-9]+-rc.?[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+-dev.?[0-9]+"
+  workflow_dispatch:
+
+jobs:
+  build_and_publish:
+    permissions:
+      id-token: write
+      contents: read
+      packages: write
+    env:
+      APP_NAME: telicent-frontend-cli
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Get tag name
+        id: tag-name
+        run: echo "tag=${GITHUB_REF#refs/*/}" >> $GITHUB_OUTPUT
+
+      - name: configure-node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+          scope: 'telicent-oss'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
+      - name: Get node version
+        id: node
+        run: |
+          echo "version=$(node -v)" >> $GITHUB_OUTPUT
+
+      - name: Get node_modules cache
+        uses: actions/cache@v4
+        id: node_modules
+        with:
+          path: |
+            **/node_modules
+          key: ${{ runner.os }}-node_modules-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ steps.node.outputs.version }}
+          restore-keys: |
+            ${{ runner.os }}-node_modules-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Get dist tag without version suffix
+        id: extract-dist-tag
+        run: |
+          # Extract the dist tag without version suffix e.g. 0.0.0-alpha.1 = alpha, 0.0.0-beta = beta
+          dist_tag=$(echo "${{ steps.tag-name.outputs.tag }}" | sed 's/\.[0-9]\+$//' | cut -d'-' -f2)
+          echo "::set-output name=dist-tag::$dist_tag" # Set the output variable
+      - run: npm publish --tag ${{ steps.extract-dist-tag.outputs.dist-tag }} --access public --provenance

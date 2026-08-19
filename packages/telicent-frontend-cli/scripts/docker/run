@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+
+echo "Current working directory"
+pwd
+
+source "$SCRIPT_DIR/utils/docker-image-names"
+
+# Check if the container exists and remove it if it does
+container="$repo_name-local"
+if [ "$(docker ps -a -q -f name="$container")" ]; then
+    docker rm -f "$container"
+fi
+container_file_path="/usr/local/nginx/html/"
+
+
+# Function to stop the Docker container
+cleanup() {
+  echo "Stopping the Docker container..."
+  docker stop "$container"
+  echo "Container stopped."
+}
+
+# Trap various signals to ensure cleanup is called when script exits
+trap cleanup EXIT INT TERM
+
+echo "Start --name $container $image_run" 
+docker run -d -p 8080:8080 --name "$container" $image_run
+
+echo "Files to host:"
+docker exec "$container" ls "$container_file_path"
+echo "API calls will likely have CORS errors (but thats good enough)"
+echo "SUCCESS Nginx hosting..."
+
+source "$SCRIPT_DIR/open"
+
+while true; do
+  sleep 10
+done

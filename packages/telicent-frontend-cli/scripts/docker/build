@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+set -e
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+
+echo "Current working directory"
+pwd
+
+source "$SCRIPT_DIR/utils/app-config-json"
+source "$SCRIPT_DIR/utils/docker-image-names"
+
+# Trap to handle all script terminations
+cleanup() {
+  rm -f "./${app_name}.sbom.json"
+}
+trap cleanup EXIT
+echo "{}" > "./${app_name}.sbom.json"
+
+trivy image --download-db-only
+
+export FONT_AWESOME_TOKEN=$(UNMASK=true pnpm --silent tefe npmrc-authtoken //npm.fontawesome.com/)
+if [[ -z "$FONT_AWESOME_TOKEN" ]]; then
+  echo "Necessary tokens not found in .npmrc, cannot proceed with build."
+  exit 1
+fi
+if [[ -z "$app_name" || -z "$repo_name" ]]; then
+  echo "Necessary config found, cannot proceed with build."
+  exit 1
+fi
+
+echo "APP_NAME=$app_name"
+
+pnpm install
+pnpm build
+
+echo "image_run: $image_run"
+docker build \
+    --no-cache \
+    --progress=plain \
+    -f Dockerfile \
+    -t "$image_run" \
+    --build-arg APP_NAME="$app_name" \
+    --load .;
+
+"$SCRIPT_DIR/utils/scan" "$image_run"

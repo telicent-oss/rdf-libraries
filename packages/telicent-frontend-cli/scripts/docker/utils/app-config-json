@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+set -e
+# Check if jq is installed
+if ! command -v jq &>/dev/null; then
+  echo "Please install jq before running."
+  echo " - macOS: brew install jq"
+fi
+
+
+APP_CONFIG="$(pwd)/app.config.json"
+
+if [ -f "$APP_CONFIG" ]; then
+  echo "app.config.json exists";
+else
+  echo "ERROR: could not find app.config.json at $APP_CONFIG";
+  exit 1;
+fi
+  
+app_name="$(cat $APP_CONFIG | jq --raw-output .app_name )"
+repo_name="$(cat $APP_CONFIG | jq --raw-output .repo_name )"
+uri_basename="$(cat $APP_CONFIG | jq --raw-output .uri_basename )"

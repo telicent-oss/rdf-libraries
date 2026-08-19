@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Get the version of @commitlint/cli from package.json
+COMMITLINT_VERSION=$(node ./scripts/get-version-commitlint.mjs)
+
+if [ -z "$COMMITLINT_VERSION" ]; then
+  echo "Error: Could not find @commitlint/cli version in package.json"
+  exit 1
+fi
+
+# Run commitlint with the specific version
+pnpm dlx @commitlint/cli@$COMMITLINT_VERSION --edit "$1"

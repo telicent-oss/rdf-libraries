@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "es2020",                 // Node 16 supports ES2020 features
+    "module": "ES2022",                 // Use ES2022 for import.meta support
+    "moduleResolution": "node",         // Use Node.js style module resolution
+    "allowImportingTsExtensions": false,
+    "noEmit": false,
+    "esModuleInterop": true,            // Enable interop between default and named imports
+    "outDir": "./dist",                 // Output directory for compiled files
+    "rootDir": "./src",                 // Root directory of source files
+    "strict": true,                     // Enable all strict type-checking options
+    "baseUrl": ".",                     // Base directory to resolve non-relative module names
+    "resolveJsonModule": true,          // Allow importing JSON modules
+    "importsNotUsedAsValues": "remove", // Omit unused imports
+    "declaration": true,                // Generate .d.ts files for TypeScript files
+    "sourceMap": true,                  // Generate source map files for debugging
+    "isolatedModules": true,            // Ensure each file can be safely transpiled without relying on other imports
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": [
+    "src/**/*",
+  ],
+  "exclude": [
+    "node_modules",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "dist"
+  ]
+}
