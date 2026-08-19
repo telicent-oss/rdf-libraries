@@ -147,3 +147,7 @@ packages/.DS_Store
 # IDE
 .vscode
 gitignored
+
+# Agent scratch: commit-plan files and the runner's staging dir.
+*.gitignored/
+/tmp/
