@@ -19,14 +19,15 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: ${{ runner.os }}-yarn-
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: 'https://registry.npmjs.org/'
           scope: 'telicent-oss'
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
-      - run: LOCAL_MACHINE=false yarn install --frozen-lockfile
-      - run: yarn build
-      - run: yarn test:ci
+      - run: corepack enable
+      - run: LOCAL_MACHINE=false pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test:ci

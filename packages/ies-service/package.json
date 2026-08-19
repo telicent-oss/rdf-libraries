@@ -27,13 +27,13 @@
     "test": "jest --runInBand ",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
-    "link": "yarn link",
+    "link": "pnpm link --global",
     "local-publish": "npm publish --registry http://localhost:4873 --prepatch",
     "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
-    "start:store": "yarn start:triple-store-for-local-dev-and-tests",
-    "prepublish": "yarn lint && yarn test",
-    "prepublishOnly": "yarn build",
-    "tscNoEmit": "yarn tsc --noEmit"
+    "start:store": "pnpm start:triple-store-for-local-dev-and-tests",
+    "prepublish": "pnpm lint && pnpm test",
+    "prepublishOnly": "pnpm build",
+    "tscNoEmit": "pnpm exec tsc --noEmit"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -70,9 +70,6 @@
   },
   "engines": {
     "node": ">=20.19.0"
-  },
-  "resolutions": {
-    "rollup": "3.29.5"
   },
   "publishConfig": {
     "access": "public"

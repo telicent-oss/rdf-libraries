@@ -12,5 +12,5 @@ if [ "$action" != "link" ] && [ "$action" != "unlink" ]; then
     exit 1
 fi
 
-yarn $action react
-yarn $action react-dom
+pnpm $action react
+pnpm $action react-dom

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-yarn build
+pnpm build
 
 # Check for uncommitted changes in the git working directory
 if ! git diff-index --quiet HEAD --; then

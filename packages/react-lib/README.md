@@ -7,7 +7,7 @@ Useful React utilities
 ### Install
 
 ```bash
-yarn install @telicent-oss/react-lib
+pnpm add @telicent-oss/react-lib
 ```
 
 ### Usage
@@ -34,8 +34,8 @@ export const Wait3Seconds = () => {
 ```bash
 git clone https://github.com/Telicent-oss/rdf-libraries
 cd rdf-libraries
-yarn install
+pnpm install
 cd /packages/react-lib
 # make changes
-npx nx affected:build
+pnpm exec nx affected:build
 ```

@@ -10,8 +10,8 @@ if [ "$action" != "link" ] && [ "$action" != "unlink" ]; then
     exit 1
 fi
 
-yarn $action react
-yarn $action react-dom
-yarn $action @telicent-oss/ds
-yarn $action @telicent-oss/ontology-icon-lib
-yarn $action @telicent-oss/react-lib
+pnpm $action react
+pnpm $action react-dom
+pnpm $action @telicent-oss/ds
+pnpm $action @telicent-oss/ontology-icon-lib
+pnpm $action @telicent-oss/react-lib

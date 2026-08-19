@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-yarn cache clean;
+pnpm store prune;
 mvtmp ./node_modules;
 cd ./packages/CatalogService/; mvtmp ./node_modules; mvtmp ./dist; cd -;
 cd ./packages/OntologyService/; mvtmp ./node_modules; mvtmp ./dist; cd -;

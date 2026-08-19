@@ -28,9 +28,9 @@
  *   this script computes an *isolated* build command per package:
  *     - If the package build script looks global (lerna/nx/tsc -b) OR is missing,
  *       we fall back to a local-only TypeScript compile:
- *         • prefer:   yarn tsc -p tsconfig.build.json
- *         • fallback: yarn tsc -p tsconfig.json
- *     - Otherwise, we run: yarn workspace "<name>" run build
+ *         • prefer:   pnpm exec tsc -p tsconfig.build.json
+ *         • fallback: pnpm exec tsc -p tsconfig.json
+ *     - Otherwise, we run: pnpm --filter "<name>" run build
  *   This guarantees we only build the intended workspace.
  */
 
@@ -115,17 +115,17 @@ const isolatedBuildCmdFor = (node) => {
 
   if (looksGlobal) {
     if (hasTsconfigBuild) {
-      return { cmd: "yarn", args: ["tsc", "-p", "tsconfig.build.json"], description: "yarn tsc -p tsconfig.build.json" };
+      return { cmd: "pnpm", args: ["exec", "tsc", "-p", "tsconfig.build.json"], description: "pnpm exec tsc -p tsconfig.build.json" };
     }
     if (hasTsconfig) {
-      return { cmd: "yarn", args: ["tsc", "-p", "tsconfig.json"], description: "yarn tsc -p tsconfig.json" };
+      return { cmd: "pnpm", args: ["exec", "tsc", "-p", "tsconfig.json"], description: "pnpm exec tsc -p tsconfig.json" };
     }
     // Last-resort: still scope to single workspace to avoid fan-out (may fail if no script)
-    return { cmd: "yarn", args: ["workspace", node.name, "run", "build"], description: `yarn workspace "${node.name}" run build` };
+    return { cmd: "pnpm", args: ["--filter", node.name, "run", "build"], description: `pnpm --filter "${node.name}" run build` };
   }
 
   // Script looks safe; run it scoped to this workspace only.
-  return { cmd: "yarn", args: ["workspace", node.name, "run", "build"], description: `yarn workspace "${node.name}" run build` };
+  return { cmd: "pnpm", args: ["--filter", node.name, "run", "build"], description: `pnpm --filter "${node.name}" run build` };
 };
 
 // --- Repo scan → graph --------------------------------------------------------
@@ -352,7 +352,7 @@ function updateDependentRanges(sourceName, newVersion, nodes) {
   for (const pkgName of buildOrder) {
     if (!affected.has(pkgName)) continue;
     console.log(`${DOMAIN} publish ${pkgName}`);
-    runAtRoot("yarn", ["workspace", pkgName, "run", "local-publish"]);
+    runAtRoot("pnpm", ["--filter", pkgName, "run", "local-publish"]);
   }
 
   console.log(`${DOMAIN} Done.`);

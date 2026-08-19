@@ -54,14 +54,17 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-node22-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node22-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: ${{ runner.os }}-node22-
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Install dependencies
-        run: LOCAL_MACHINE=false yarn install
+        run: LOCAL_MACHINE=false pnpm install --frozen-lockfile
 
       - name: Build packages
-        run: npx lerna@^9 run build
+        run: pnpm exec lerna run build
 
       - name: Publish pre-release packages
         run: ./scripts/lerna/publish:ci.sh
@@ -110,14 +113,17 @@ jobs:
           path: |
             node_modules
             packages/*/node_modules
-          key: ${{ runner.os }}-node22-${{ hashFiles('**/package-lock.json') }}
+          key: ${{ runner.os }}-node22-${{ hashFiles('**/pnpm-lock.yaml') }}
           restore-keys: ${{ runner.os }}-node22-
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Install dependencies
-        run: LOCAL_MACHINE=false yarn install
+        run: LOCAL_MACHINE=false pnpm install --frozen-lockfile
 
       - name: Build packages
-        run: npx lerna@^9 run build
+        run: pnpm exec lerna run build
 
       - name: Publish stable packages
         run: ./scripts/lerna/publish:ci.sh

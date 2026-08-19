@@ -240,9 +240,9 @@ try {
 ## Development
 
 ```bash
-npm run dev              # Start development server
-npm run build            # Build for production
-npm run serve            # Preview production build
+pnpm dev              # Start development server
+pnpm build            # Build for production
+pnpm serve            # Preview production build
 ```
 
 For detailed API reference and integration examples, see [API_REFERENCE.md](API_REFERENCE.md) and [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md).

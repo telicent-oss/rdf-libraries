@@ -1,0 +1,62 @@
+packages:
+  - 'packages/*'
+  # Not yet committed to this repo — excluded so the migration lockfile does not
+  # reference packages absent from the tree. Remove when they land.
+  - '!packages/eslint-plugin-ds'
+  - '!packages/pull-gitignored'
+  - '!packages/telicent-apps-generator'
+
+minimumReleaseAge: 4320 # LOCKED: agents must never modify (3-day quarantine)
+trustPolicy: no-downgrade # LOCKED: fail install if a package's trust level dropped
+# Reviewed exceptions to trustPolicy. Each is a maintenance release on an older
+# line, published after that project's main line began shipping provenance, so a
+# date-based no-downgrade check flags it by construction. Each version here is the
+# one this repo already ran under yarn. Re-review if any is bumped.
+trustPolicyExclude:
+  - 'vite' # reviewed 2026-08-19: 4.5.14, official EOL-4.x security backport (vitejs/vite tag v4.5.14)
+  - 'semver' # reviewed 2026-08-19: 5.7.2 and 6.3.1, both EOL lines pulled transitively
+  - '@octokit/endpoint' # reviewed 2026-08-19: 9.0.6, EOL 9.x line
+  - 'detect-port' # reviewed 2026-08-19: 1.6.1, latest release of an unmaintained package
+  - 'rollup' # reviewed 2026-08-19: 3.30.0, official rollup/rollup tag v3.30.0, EOL 3.x line
+  - 'undici' # reviewed 2026-08-19: 5.29.0, EOL-5.x line via testcontainers
+  - 'undici-types' # reviewed 2026-08-19: 6.21.0, ships with @types/node 20.x
+verifyDepsBeforeRun: error # LOCKED: abort `pnpm run` if node_modules is out of sync
+blockExoticSubdeps: true # LOCKED: transitive deps must come from the registry, not git/tarball
+
+# Build scripts: v11 deny-by-default (strictDepBuilds). LOCKED: never set
+# strictDepBuilds:false, ignoreScripts:false, or dangerouslyAllowAllBuilds:true.
+allowBuilds:
+  esbuild: true # reviewed: install script only fetches/verifies its own prebuilt binary
+  '@swc/core': true # reviewed: same shape as esbuild — fetches its own prebuilt native binary
+  nx: true # reviewed: build toolchain, already trusted at devDependency level
+  # Denied — not built. Each is optional here or does nothing this repo needs.
+  '@telicent-oss/ds': false # postinstall only re-runs the tefe workflow check
+  ssh2: false # optional native crypto binding; the pure-JS fallback is used
+  cpu-features: false # native gyp build, an optional accelerator for ssh2
+  protobufjs: false # postinstall builds a CLI shim this repo does not use
+
+# Migrating from yarn-classic flat node_modules; code assumes the flat layout.
+nodeLinker: hoisted
+
+# Carried from the shared parent .npmrc, where pnpm v10+ no longer reads them.
+fetchRetryMaxtimeout: 6000
+fetchRetryMintimeout: 1000
+
+overrides:
+  # Pinned pre-incident. 9.1.2 is the remediation release published hours after
+  # the 2025-07-18 account takeover, so it carries no provenance and trips
+  # trustPolicy. 9.1.0 is what this code was reviewed against.
+  eslint-config-prettier: 9.1.0
+  # Folded in from per-package `resolutions`, which pnpm ignores. Both rollup
+  # entries are the same CVE fix (GHSA-gcx4-mw62-g8wm) on two major lines, so
+  # each is a floor rather than a single pin that would force one major, and
+  # the value is a caret range so a newer patched release is still allowed.
+  'rollup@<3.29.5': ^3.29.5
+  'rollup@>=4.0.0 <4.22.4': ^4.22.4
+  '@telicent-oss/telicent-frontend-cli': ^1.5.0
+  cross-spawn: ^7.0.5
+  braces: ^3.0.3
+  nx: 19.8.14
+  '@nx/devkit': 19.8.14
+  '@nrwl/tao': ^19.8.14
+  '@nrwl/devkit': ^19.8.14

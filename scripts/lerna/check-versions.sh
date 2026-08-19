@@ -23,7 +23,7 @@ lerna ls --json | jq -r '.[] | "\(.name) \(.version) \(.location)"' | while read
     echo "$pkg_name"
     printf "      Not published -> $pkg_version ${GREEN}OK - First time publish${NC}"
   else
-    if npx semver -r ">$registry_version" "$pkg_version" >/dev/null 2>&1; then
+    if pnpm exec semver -r ">$registry_version" "$pkg_version" >/dev/null 2>&1; then
       echo "$pkg_name"
       printf "      $registry_version -> $pkg_version ${GREEN}OK${NC}"
     else

@@ -45,7 +45,7 @@ case "$answer" in
       echo "Removing $dir"
       rm -rf "$dir"
     done
-    echo "Cleanup complete. Run 'yarn install' from the repo root to re-link workspaces."
+    echo "Cleanup complete. Run 'pnpm install' from the repo root to re-link workspaces."
     ;;
   *)
     echo "No changes made."

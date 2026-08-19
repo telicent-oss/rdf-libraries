@@ -7,7 +7,7 @@ for file in packages/*/package.json; do
   
   if [ true ]; then
     # Use jq to add or overwrite the scripts
-    jq '.scripts.tscNoEmit = "yarn tsc --noEmit"' \
+    jq '.scripts.tscNoEmit = "pnpm exec tsc --noEmit"' \
       "$file" > "$file.tmp" && mv "$file.tmp" "$file"
   fi
 

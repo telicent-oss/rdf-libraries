@@ -17,7 +17,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: yarn generate-docs
+      - run: pnpm generate-docs
       - run: |
           mkdir -p docs/rdf-service
           mkdir -p docs/ontology-service

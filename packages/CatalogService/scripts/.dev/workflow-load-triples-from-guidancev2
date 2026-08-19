@@ -38,7 +38,7 @@ HTTP_CODE=$(curl -sS -G \
   "$ENDPOINT" || echo "000")
 
 if [[ "$HTTP_CODE" != "200" ]]; then
-  echo -e "${RED}USER ACTION REQUIRED:${RESET} Open a new terminal and run ${CYAN}yarn start:store${RESET} to start Jena"
+  echo -e "${RED}USER ACTION REQUIRED:${RESET} Open a new terminal and run ${CYAN}pnpm start:store${RESET} to start Jena"
   echo -e "Then try again."
   exit 1
 fi

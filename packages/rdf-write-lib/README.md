@@ -9,7 +9,7 @@ Current implementation is a wrapper around a Python API.
 ### Install
 
 ```bash
-yarn install @telicent-oss/rdf-write-lib
+pnpm add @telicent-oss/rdf-write-lib
 ```
 
 ### Usage

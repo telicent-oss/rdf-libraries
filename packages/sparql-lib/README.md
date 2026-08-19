@@ -7,7 +7,7 @@ Sparql queries
 ### Install
 
 ```bash
-yarn install @telicent-oss/sparql-lib
+pnpm add @telicent-oss/sparql-lib
 ```
 
 ### Usage

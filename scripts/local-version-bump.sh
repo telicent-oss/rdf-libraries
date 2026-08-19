@@ -79,7 +79,7 @@ determine_semantic_version() {
 # commits if --git provided
 # !WARNING THIS IS NOT AN APPROPRIATE APPROACH FOR REAL PUBLISHING
 # Something chage-aware and dependency-aware would be needed
-# e.g. `npx lerna version patch --yes` 
+# e.g. `pnpm exec lerna version patch --yes` 
 sync_version() {
   local target_sem_ver current_version
   target_sem_ver=$1

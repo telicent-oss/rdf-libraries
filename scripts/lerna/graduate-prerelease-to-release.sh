@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Graduate prereleases → release, then run `yarn version` (Yarn v1)
+# Graduate prereleases → release, then set each version with `pnpm version`
 # - Only targets packages already on prerelease (x.y.z-*)
 # - Interactive per package (wizard). No git tags, no push.
 # - Fixes stdin issue: the wizard always reads from the TTY.
@@ -11,8 +11,7 @@ err(){ printf "ERROR: %s\n" "$*\n" >&2; exit 1; }
 has(){ command -v "$1" >/dev/null 2>&1; }
 
 has node || err "Missing: node"
-has yarn || err "Missing: yarn"
-has npx  || err "Missing: npx"
+has pnpm || err "Missing: pnpm"
 has git  || err "Missing: git"
 [ -f lerna.json ]   || err "Run from repo root (lerna.json not found)"
 [ -f package.json ] || err "Run from repo root (package.json not found)"
@@ -21,7 +20,7 @@ if ! git diff --quiet || ! git diff --cached --quiet; then
   [ "${ALLOW_DIRTY:-0}" = "1" ] || err "Working tree not clean. Commit/stash or set ALLOW_DIRTY=1"
 fi
 
-JSON="$(npx -y lerna ls --json --no-private 2>/dev/null || true)"
+JSON="$(pnpm exec lerna ls --json --no-private 2>/dev/null || true)"
 [ -n "$JSON" ] || err "No packages found via Lerna"
 
 # Build a tab-delimited list: name<TAB>location<TAB>version for prerelease packages
@@ -48,14 +47,14 @@ echo
 # Option: non-interactive bump (patch|minor|major|prerelease). If not set → wizard per package.
 BUMP="${BUMP:-}"; case "$BUMP" in ""|patch|minor|major|prerelease) ;; *) err "Invalid BUMP=$BUMP";; esac
 
-# Feed the loop from FD 3 so FD 0 (stdin) stays as the TTY for yarn's prompt.
+# Feed the loop from FD 3 so FD 0 (stdin) stays as the TTY for the version prompt.
 exec 3<<<"$LINES"
 while IFS=$'\t' read -r name loc ver <&3; do
   [ -n "$name" ] || continue
   [ -d "$loc" ]  || err "Missing package dir for $name: $loc"
 
   base="${ver%%-*}"   # e.g. 1.2.3-rc.4 -> 1.2.3
-  echo "→ $name  $ver  →  $base (strip prerelease), then yarn version…"
+  echo "→ $name  $ver  →  $base (strip prerelease), then set the version…"
 
   (
     cd "$loc"
@@ -73,13 +72,14 @@ while IFS=$'\t' read -r name loc ver <&3; do
       }
     '
 
-    # 2) Yarn v1: run version wizard (reads from the TTY), or non-interactive if BUMP is set
+    # 2) Set the version, no tags. pnpm has no interactive wizard, so the
+    #    interactive branch asks for the version itself and passes it through.
     if [ -n "$BUMP" ]; then
-      # Non-interactive: bump kind, no tags
-      yarn version "--$BUMP" --no-git-tag-version >/dev/null </dev/tty
+      pnpm version "$BUMP" --no-git-tag-version >/dev/null
     else
-      # Interactive: wizard asks "New version:"; user types e.g. 1.2.4
-      yarn version --no-git-tag-version </dev/tty
+      printf "   New version: " >/dev/tty
+      read -r NEW_VERSION </dev/tty
+      pnpm version "$NEW_VERSION" --no-git-tag-version >/dev/null
     fi
 
     printf "   new version: %s\n" "$(node -p 'require("./package.json").version')"
@@ -90,11 +90,11 @@ exec 3<&-
 # Optional single commit (off by default)
 if [ "${COMMIT:-0}" = "1" ]; then
   git add -A
-  git commit -m "chore(release): graduate prereleases and run yarn version" || true
+  git commit -m "chore(release): graduate prereleases and set versions" || true
 fi
 
 echo
-echo "Step 1 Done. Prerelease suffixes removed first; yarn version run per package; no tags created; nothing pushed."
+echo "Step 1 Done. Prerelease suffixes removed first; version set per package; no tags created; nothing pushed."
  ./scripts/sync-versions.mjs
 
 echo "Step 2 Done. Synced versions."

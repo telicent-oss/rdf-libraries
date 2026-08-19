@@ -25,21 +25,21 @@
   },
   "types": "./dist/types.d.ts",
   "scripts": {
-    "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
+    "generate-docs": "pnpm exec typedoc --out dist/docs .",
     "test": "jest --runInBand",
     "test:diff": "jest --runInBand --changedSince=origin/main --coverage --coverageReporters html --coverageDirectory ./coverage/diff",
     "test:coverage": "jest --runInBand --coverage --coverageReporters html --coverageDirectory ./coverage/diff",
-    "test:updateSnapshot": "yarn test -- --updateSnapshot",
-    "test:100": "for i in {1..100}; do echo \"Test run: $i\" && yarn jest && sleep .5 || break; done",
+    "test:updateSnapshot": "pnpm test -- --updateSnapshot",
+    "test:100": "for i in {1..100}; do echo \"Test run: $i\" && pnpm exec jest && sleep .5 || break; done",
     "build": "rm -rf ./dist && vite build",
     "lint": "eslint **/*.ts",
-    "link": "yarn link",
+    "link": "pnpm link --global",
     "local-publish": "npm publish --registry http://localhost:4873 --prepatch",
     "start:triple-store-for-local-dev-and-tests": "docker compose down && docker network prune && docker compose up",
-    "start:store": "yarn start:triple-store-for-local-dev-and-tests",
-    "prepublish": "yarn lint && yarn test",
-    "prepublishOnly": "yarn build",
-    "tscNoEmit": "yarn tsc --noEmit"
+    "start:store": "pnpm start:triple-store-for-local-dev-and-tests",
+    "prepublish": "pnpm lint && pnpm test",
+    "prepublishOnly": "pnpm build",
+    "tscNoEmit": "pnpm exec tsc --noEmit"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -85,9 +85,6 @@
   },
   "engines": {
     "node": ">=20.19.0"
-  },
-  "resolutions": {
-    "rollup": "3.29.5"
   },
   "publishConfig": {
     "access": "public"

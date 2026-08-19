@@ -78,13 +78,13 @@ The library detects whether the application and auth server share a domain (e.g.
 ## Install
 
 ```bash
-npm install @telicent-oss/fe-auth-lib
+pnpm add @telicent-oss/fe-auth-lib
 ```
 
 or
 
 ```bash
-yarn add @telicent-oss/fe-auth-lib
+pnpm add @telicent-oss/fe-auth-lib
 ```
 
 ## Usage

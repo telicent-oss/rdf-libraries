@@ -22,17 +22,17 @@
   },
   "types": "./dist/types.d.ts",
   "scripts": {
-    "generate-docs": "./node_modules/.bin/typedoc --out dist/docs .",
+    "generate-docs": "pnpm exec typedoc --out dist/docs .",
     "open-docs": "open ./dist/docs/index.html",
     "test": "jest test",
     "build": "rm -rf ./dist && vite build",
     "publish:dry-run": "npm publish --access public --provenance --dry-run",
     "lint": "eslint **/*.ts",
-    "link": "yarn link",
+    "link": "pnpm link --global",
     "local-publish": "npm publish --registry http://localhost:4873 --prepatch",
-    "prepublish": "yarn lint && yarn test",
-    "prepublishOnly": "yarn build",
-    "tscNoEmit": "yarn tsc --noEmit"
+    "prepublish": "pnpm lint && pnpm test",
+    "prepublishOnly": "pnpm build",
+    "tscNoEmit": "pnpm exec tsc --noEmit"
   },
   "repository": {
     "type": "git",
@@ -59,9 +59,6 @@
   },
   "dependencies": {
     "zod": "^3.22.4"
-  },
-  "resolutions": {
-    "rollup": "3.29.5"
   },
   "publishConfig": {
     "access": "public"

@@ -7,7 +7,7 @@ A helper for (frontend) apps to load and access data for ontology icons using [@
 ### Install
 
 ```bash
-yarn install @telicent-oss/ontology-icon-lib
+pnpm add @telicent-oss/ontology-icon-lib
 ```
 
 ### Usage
@@ -47,10 +47,10 @@ console.log(iconData);
 ```bash
 git clone https://github.com/Telicent-oss/rdf-libraries
 cd rdf-libraries
-yarn install
+pnpm install
 cd /packages/ontology-icon-lib
 # make changes
-npx nx affected:build
+pnpm exec nx affected:build
 ```
 
 ## Related Links

@@ -8,10 +8,10 @@ The upstream package ships ~7,000 files. That, with our security tooling caused 
 
 ## Build / Install
 ```sh
-# Requirements: yarn, node, jq, curl, tar, rsync, awk
+# Requirements: pnpm, node, jq, curl, tar, rsync, awk
 
-yarn install
-yarn build
+pnpm install
+pnpm build
 ```
 The build pulls the latest tarball of `@mui/icons-material`, then writes a pruned package with only the icons you list.
 
@@ -34,7 +34,7 @@ e.g. to enable `X` uncomment its files:
 ```
 (`./icons-manifest` was generated from `@mui/icons-material` v7)
 ```sh
-yarn build
+pnpm build
 ```
 
 Import icons in your app as usual (only listed icons will be included in the slim package).

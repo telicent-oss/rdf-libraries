@@ -8,7 +8,7 @@ For further information on how to use the library see the [API Documentation](RE
 ## Install
 
 ```bash
-yarn install @telicent-oss/ontologyservice
+pnpm add @telicent-oss/ontologyservice
 ```
 
 ## Usage

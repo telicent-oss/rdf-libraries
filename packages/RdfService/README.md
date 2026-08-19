@@ -7,7 +7,7 @@ For futher information on how to use the library see the [API documentation](REA
 ## Install
 
 ```bash
-yarn add @telicent-oss/rdfservice
+pnpm add @telicent-oss/rdfservice
 ```
 
 ## Usage

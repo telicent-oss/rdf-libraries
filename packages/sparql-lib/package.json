@@ -39,14 +39,14 @@
     "start": "vite",
     "test": "jest --runInBand ",
     "test:container": "DO_TEST_CONTAINERS=1 jest --runInBand ",
-    "build": "rm -rf ./dist && yarn build:main",
+    "build": "rm -rf ./dist && pnpm build:main",
     "build:main": "vite build -c vite.config.ts",
-    "lint": "yarn eslint **/*.ts",
-    "link": "yarn link",
+    "lint": "pnpm exec eslint **/*.ts",
+    "link": "pnpm link --global",
     "local-publish": "npm publish --registry http://localhost:4873 --prepatch",
-    "prepublish": "yarn lint && echo 'reimplement test'",
-    "prepublishOnly": "yarn build",
-    "tscNoEmit": "yarn tsc --noEmit"
+    "prepublish": "pnpm lint && echo 'reimplement test'",
+    "prepublishOnly": "pnpm build",
+    "tscNoEmit": "pnpm exec tsc --noEmit"
   },
   "author": "",
   "license": "Apache-2.0",
@@ -71,8 +71,5 @@
   },
   "engines": {
     "node": ">=20.19.0"
-  },
-  "resolutions": {
-    "rollup": "3.29.5"
   }
 }

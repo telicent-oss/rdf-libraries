@@ -3,31 +3,31 @@
   "version": "0.0.9",
   "description": "Simple client-side lib for working with ontologies",
   "scripts": {
-    "clean": "yarn test --clearCache; yarn clean cache",
+    "clean": "pnpm test --clearCache; pnpm clean cache",
     "lint": "lerna run lint",
     "test": "lerna run test",
     "tscNoEmit": "lerna run tscNoEmit",
     "prep": "./scripts/prep.sh",
-    "lp": "yarn local-publish --yes",
-    "plp": "yarn prep && yarn local-publish --yes",
+    "lp": "pnpm local-publish --yes",
+    "plp": "pnpm prep && pnpm local-publish --yes",
     "bump": "lerna exec -- ../../scripts/local-version-bump.sh",
     "bump-graduate": "./scripts/lerna/graduate-prerelease-to-release.sh",
     "prerelease": "tsx scripts/create-prerelease.ts",
     "prepublish:all": "lerna run prepublish --stream --no-prefix --concurrency 1",
-    "test:stable": "lerna run test --scope=@telicent-oss/catalogservice && yarn test:ci",
-    "test:ci": "yarn test",
+    "test:stable": "lerna run test --scope=@telicent-oss/catalogservice && pnpm test:ci",
+    "test:ci": "pnpm test",
     "build": "lerna run build --stream --no-prefix --concurrency 1",
-    "publish:ci": "./scripts/lerna/publish:ci.yarnsh",
+    "publish:ci": "./scripts/lerna/publish:ci.sh",
     "generate-docs": "lerna run generate-docs",
     "open-docs": "lerna run open-docs",
     "postinstall": "[ \"$LOCAL_MACHINE\" = \"false\" ] && echo 'Skipping tefe hook-postinstall' || tefe hook-postinstall",
-    "create-links": "yarn create-links-to-local-packages",
-    "local:link": "yarn use-local-packages:link",
+    "create-links": "pnpm create-links-to-local-packages",
+    "local:link": "pnpm use-local-packages:link",
     "check-package-relative-installs": "./scripts/check-package-relative-installs.sh",
-    "pre:local-publish": "yarn check-package-relative-installs",
+    "pre:local-publish": "pnpm check-package-relative-installs",
     "local-publish": "./scripts/local-publish.mjs",
-    "local:unlink": "yarn use-local-packages:unlink",
-    "use-links": "yarn use-links-to-local-packages",
+    "local:unlink": "pnpm use-local-packages:unlink",
+    "use-links": "pnpm use-links-to-local-packages",
     "build:changed": "lerna run build --since HEAD~1 --include-dependents",
     "test:changed": "lerna run test --since HEAD~1 --include-dependents",
     "changed": "lerna changed --loglevel=silent"
@@ -72,15 +72,5 @@
     "tsx": "^4.19.2",
     "typescript": "^5.5.4"
   },
-  "workspaces": [
-    "packages/*"
-  ],
-  "resolutions": {
-    "@telicent-oss/telicent-frontend-cli": "^1.5.0",
-    "braces": "^3.0.3",
-    "nx": "19.8.14",
-    "@nx/devkit": "19.8.14",
-    "@nrwl/tao": "^19.8.14",
-    "@nrwl/devkit": "^19.8.14"
-  }
+  "packageManager": "pnpm@11.22.0"
 }

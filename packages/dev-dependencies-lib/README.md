@@ -8,5 +8,5 @@ Utilities only used for development (and devDependencies)
 ### Install
 
 ```bash
-yarn install @telicent-oss/dev-dependencies-lib
+pnpm add @telicent-oss/dev-dependencies-lib
 ```

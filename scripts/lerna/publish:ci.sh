@@ -2,7 +2,7 @@
 set -euo pipefail
 
 # 1. Build
-yarn lerna run build --stream --no-prefix --concurrency 1  --include-dependencies
+pnpm exec lerna run build --stream --no-prefix --concurrency 1  --include-dependencies
 
 # 2. Check for uncommitted changes
 git update-index -q --refresh || true
@@ -39,7 +39,7 @@ if ! git diff-index --quiet HEAD --; then
 fi
 
 # 4. Run Lerna from-package with Yarn
-npx lerna@^9 publish from-package \
+pnpm exec lerna publish from-package \
   --no-private \
   --yes \
   --concurrency 1 \

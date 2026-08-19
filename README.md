@@ -12,7 +12,7 @@ This is a monorepo, which contains sub-packages:
 This monorepo's sub-packages are published to https://www.npmjs.com/org/telicent-oss:
 
 ```sh
-yarn install @telicent-oss/ontologyservice
+pnpm add @telicent-oss/ontologyservice
 ```
 
 ## Usage
@@ -40,22 +40,22 @@ For more info, see [API section](README.md#API).
 Requires [nx](https://nx.dev/getting-started/intro).
 
 ```sh
-yarn install
-# yarn cache can cause packages/* to be unreachable
-# Solution: `yarn cache clean`
+pnpm install
+# a stale store can cause packages/* to be unreachable
+# Solution: `pnpm store prune`
 ```
 
 Some useful `nx` commands
 
 ```sh
 # For all impacted packages
-npx nx affected:build # build
-npx nx affected:test # test
-npx nx affected:generate-docs # gen docs
+pnpm exec nx affected:build # build
+pnpm exec nx affected:test # test
+pnpm exec nx affected:generate-docs # gen docs
 # For individual packages
-cd rdfservice && npx nx build # Build
-cd ontologyservice && npx nx test # Test
-cd catalogservice && npx nx lint # Lint
+cd rdfservice && pnpm exec nx build # Build
+cd ontologyservice && pnpm exec nx test # Test
+cd catalogservice && pnpm exec nx lint # Lint
 ```
 
 To dev workflow multiple package:
@@ -66,14 +66,14 @@ echo "console.log('hi');" >> ./src/index.ts; # ...edit producer feature
 cd - && cd ./packages/OntologyService; # In consumer package...
 echo "test('hi', () => expect(logSpy).toHaveBeenCalledWith('hi'));" \
   >> ./src/index.test.ts;  # ...edit consumer test
-npx nx affected:build # Build affected
-npx nx affected:test # Test affected
+pnpm exec nx affected:build # Build affected
+pnpm exec nx affected:test # Test affected
 ```
 
 Build all packages simultaneously:
 
 ```sh
-npx nx run-many -t build
+pnpm exec nx run-many -t build
 ```
 
 Developer notes:
@@ -91,20 +91,20 @@ Build develop linked packages with separate (app) repo:
 First install and _create_ symlinks to packages:
 ```sh
 cd ~/projects/app
-yarn install
+pnpm install
 cd ~/projects/rdf-libraries
-cd ./node_modules/react && yarn link && cd -
-cd ./node_modules/react-dom && yarn link && cd -
+cd ./node_modules/react && pnpm link --global && cd -
+cd ./node_modules/react-dom && pnpm link --global && cd -
 ```
 
 Second, use symlinks as dependencies:
 ```sh
 cd ~/projects/app
-yarn link @telicent-oss/ontology-icon-lib
-yarn link @telicent-oss/ontology-react-lib
-yarn link @telicent-oss/ontology-icon-react-lib
+pnpm link --global @telicent-oss/ontology-icon-lib
+pnpm link --global @telicent-oss/ontology-react-lib
+pnpm link --global @telicent-oss/ontology-icon-react-lib
 cd ~/projects/rdf-libraries
-yarn use:links
+pnpm use:links
 ```
 
 ## Package naming
@@ -144,9 +144,9 @@ ontology-icon-react-lib
 
 ## Publishing
 
-1. **Start prerelease**: `yarn prerelease` — interactively select packages, creates `prerelease/**` branch
+1. **Start prerelease**: `pnpm prerelease` — interactively select packages, creates `prerelease/**` branch
 2. **Push branch**: CI auto-publishes prerelease to npm
-3. **Graduate to stable**: `npm run bump-graduate` — converts prerelease versions to stable
+3. **Graduate to stable**: `pnpm bump-graduate` — converts prerelease versions to stable
 4. **Merge to main & push**: CI auto-publishes stable release to npm
 
 > **Note**: For direct releases without the prerelease flow, manually update package versions in `package.json`

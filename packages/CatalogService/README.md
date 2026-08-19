@@ -17,7 +17,7 @@ Plus a `ApiFactory` that uses the above to create a convenience api object for [
 ### Install
 
 ```bash
-yarn install @telicent-oss/catalogservice
+pnpm add @telicent-oss/catalogservice
 ```
 
 ### Usage
@@ -196,17 +196,17 @@ const Page = ({ searchTerm, dataResourceFilters, set }) => {
 ```bash
 git clone https://github.com/Telicent-oss/rdf-libraries
 cd catalog
-yarn install
+pnpm install
 cd /packages/CatalogService
 # make changes
-npx nx affected:build
+pnpm exec nx affected:build
 ```
 
 ### Develop locally
 
 Run the provided triple store
 ```bash
-yarn start:triple-store-for-local-dev-and-tests
+pnpm start:triple-store-for-local-dev-and-tests
 ```
 
 Or alternatively run your own.

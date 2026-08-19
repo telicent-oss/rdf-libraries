@@ -10,7 +10,7 @@ This package requires [@telicent-oss/ontology-icon-lib](./packages/ontology-icon
 ## Install
 
 ```sh
-yarn install @telicent-oss/ontology-icon-react-lib
+pnpm add @telicent-oss/ontology-icon-react-lib
 ```
 
 
@@ -71,10 +71,10 @@ const IconInfo = () => {
 ```sh
 git clone https://github.com/Telicent-oss/rdf-libraries
 cd rdf-libraries
-yarn install
+pnpm install
 cd /packages/ontology-icon-react-lib
 # make changes
-npx nx affected:build
+pnpm exec nx affected:build
 ```
 
 ## Related Links
