@@ -1,2 +1,36 @@
 packages:
   - 'packages/*'
+
+minimumReleaseAge: 4320    # LOCKED: agents must never modify (3-day quarantine)
+trustPolicy: no-downgrade  # LOCKED: fail install if a package's trust level dropped
+verifyDepsBeforeRun: error # LOCKED: abort `pnpm run` if node_modules is out of sync
+blockExoticSubdeps: true   # LOCKED: transitive deps must come from the registry, not git/tarball
+
+# pnpm v10+ defaults linkWorkspacePackages to false. This repo's cross-package dependency is
+# declared as "*" (not workspace:*) and the publish workflows use `npm publish`, which does not
+# rewrite the workspace: protocol — so linking by range keeps published manifests unchanged.
+# preferWorkspacePackages is needed because the registry copy of @telicent-oss/rdfservice (1.0.2)
+# is newer than the local one (0.0.6), and "*" would otherwise resolve to the registry.
+linkWorkspacePackages: true
+preferWorkspacePackages: true
+
+# Build scripts: v11 deny-by-default (strictDepBuilds). LOCKED: never set
+# strictDepBuilds:false, ignoreScripts:false, or dangerouslyAllowAllBuilds:true.
+allowBuilds:
+  esbuild: true      # reviewed: Vite's bundler; install script fetches/verifies its own prebuilt binary
+  '@swc/core': true  # reviewed: postinstall fetches/verifies its own prebuilt native binary
+  nx: true           # reviewed: nx's own postinstall (native binary + local cache setup)
+
+# Trust-policy exceptions. LOCKED policy above stays `no-downgrade`; each entry below is an
+# exact-version exemption, reviewed 2026-08-19: published by the canonical maintainer, and the
+# "downgrade" is only that this older/backport release line predates the project's provenance
+# adoption (a newer major of the same package is signed). No takeover evidence.
+# Evidence per entry: `npm view <pkg>@<version> _npmUser.name dist.attestations` — publisher is
+# the package's usual release account, and no version in that line carries an attestation.
+# These are exact-version pins: they stop matching if the lockfile moves, and install fails again
+# rather than silently covering a new version. Do not widen an entry to a bare package name.
+trustPolicyExclude:
+  - 'vite@4.5.14'        # reviewed 2026-08-19: published by vitebot; vite 4 line is unsigned, vite 5+ signed
+  - 'rollup@3.30.0'      # reviewed 2026-08-19: published by lukastaegert (rollup lead); rollup 3 line unsigned
+  - 'semver@6.3.1'       # reviewed 2026-08-19: published by lukekarrys (npm); semver 6 backport, unsigned
+  - 'detect-port@1.6.1'  # reviewed 2026-08-19: published by fengmk2 (package author); unsigned release

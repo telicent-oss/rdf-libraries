@@ -42,13 +42,13 @@ pnpm add <npm-package> --filter @telicent-oss/<packageName> # Add dependency to
 
 Some useful `nx` commands
 ```sh
-npx nx affected:build # build impacted packages
-npx nx affected:test # run tests on impacted packages
-npx nx affected:generate-docs # gen docs on impacted packages
-npx nx @telicent-oss/rdfservice:build # Build rdfservice package only
-npx nx @telicent-oss/ontologyservice:test  # Test ontologyservice package only
-npx nx run @telicent-oss/rdfservice:lint # Run "lint" from ./packages/rdfservice/package.json
-npx nx test @telicent-oss/ontologyservice --watch -t setStyles # flags work
+pnpm exec nx affected:build # build impacted packages
+pnpm exec nx affected:test # run tests on impacted packages
+pnpm exec nx affected:generate-docs # gen docs on impacted packages
+pnpm exec nx @telicent-oss/rdfservice:build # Build rdfservice package only
+pnpm exec nx @telicent-oss/ontologyservice:test  # Test ontologyservice package only
+pnpm exec nx run @telicent-oss/rdfservice:lint # Run "lint" from ./packages/rdfservice/package.json
+pnpm exec nx test @telicent-oss/ontologyservice --watch -t setStyles # flags work
 ```
 
 
@@ -59,13 +59,13 @@ echo "console.log('hi');" >> ./src/index.ts; # ...edit producer feature
 cd - && cd ./packages/OntologyService; # In consumer package...
 echo "test('hi', () => expect(logSpy).toHaveBeenCalledWith('hi'));" \
   >> ./src/index.test.ts;  # ...edit consumer test
-npx nx affected:build # Build affected
-npx nx affected:test # Test affected
+pnpm exec nx affected:build # Build affected
+pnpm exec nx affected:test # Test affected
 ```
 
 Build all packages simultaneously:
 ```sh
-npx nx run-many -t build
+pnpm exec nx run-many -t build
 ```
 
 Developer notes:
