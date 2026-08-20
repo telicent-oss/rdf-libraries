@@ -34,6 +34,12 @@ if [ "${PUBLISH:-false}" != "true" ]; then
   args+=(--dry-run)
 fi
 
+# The gate. Nothing here runs in CI, so verifying and publishing are one step
+# rather than a habit someone has to remember in the right order.
+echo "Verifying before publish"
+pnpm -r "${filters[@]}" run lint
+pnpm -r "${filters[@]}" run test
+
 echo "Target registry: $REGISTRY"
 printf 'Packages: %s\n' "${PACKAGES[*]}"
 pnpm "${args[@]}"
