@@ -7,14 +7,17 @@ ESLint rules enforcing the Telicent design system manifest.
 
 ## Install
 
-```bash
-pnpm add -D @telicent-oss/eslint-plugin-ds
-```
-
-Until the name is on npm, install it from this repository:
+Install it from this repository:
 
 ```bash
 pnpm add -D "telicent-oss/rdf-libraries#path:/packages/eslint-plugin-ds"
+```
+
+pnpm records the commit it resolved, so the dependency is pinned. Once the name is
+published, this becomes:
+
+```bash
+pnpm add -D @telicent-oss/eslint-plugin-ds
 ```
 
 ## `tailwind-layout-only`

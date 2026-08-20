@@ -15,14 +15,17 @@ destination is ignored and throws before deleting anything if it is not.
 
 ## Install
 
-```bash
-pnpm add -D @telicent-oss/pull-gitignored
-```
-
-Until the name is on npm, install it from this repository:
+Install it from this repository:
 
 ```bash
 pnpm add -D "telicent-oss/rdf-libraries#path:/packages/pull-gitignored"
+```
+
+pnpm records the commit it resolved, so the dependency is pinned. Once the name is
+published, this becomes:
+
+```bash
+pnpm add -D @telicent-oss/pull-gitignored
 ```
 
 ## Usage
