@@ -1,9 +1,6 @@
 packages:
   - 'packages/*'
-  # Not yet committed to this repo — excluded so the migration lockfile does not
-  # reference packages absent from the tree. Remove when they land.
-  - '!packages/eslint-plugin-ds'
-  - '!packages/pull-gitignored'
+  # Developed in a separate repo, which stays canonical for it.
   - '!packages/telicent-apps-generator'
 
 minimumReleaseAge: 4320 # LOCKED: agents must never modify (3-day quarantine)
