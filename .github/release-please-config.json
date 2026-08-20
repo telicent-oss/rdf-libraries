@@ -18,7 +18,7 @@
       "bumpPatchForMinorPreMajor": true,
       "release-type": "node"
     },
-    "packages/CatalogService/" : {
+    "packages/CatalogService/": {
       "labels": [
         "autorelease: pending"
       ],
@@ -91,6 +91,30 @@
       "release-type": "node"
     },
     "packages/fe-auth-lib/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
+    },
+    "packages/eslint-plugin-ds/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
+    },
+    "packages/pull-gitignored/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
+    },
+    "packages/telicent-frontend-cli/": {
       "labels": [
         "autorelease: pending"
       ],
