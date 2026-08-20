@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/pull-gitignored",
-  "version": "0.0.1",
+  "version": "0.0.1-ghp.0",
   "license": "Apache-2.0",
   "description": "Pull a subdirectory of a git repository into a local gitignored directory, refusing any destination git does not ignore.",
   "type": "module",

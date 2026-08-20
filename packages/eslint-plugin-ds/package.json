@@ -1,6 +1,6 @@
 {
   "name": "@telicent-oss/eslint-plugin-ds",
-  "version": "0.0.1",
+  "version": "0.0.1-ghp.0",
   "license": "Apache-2.0",
   "description": "ESLint rules enforcing the Telicent design system manifest: Tailwind may do layout, size and spacing, and nothing else.",
   "type": "module",
