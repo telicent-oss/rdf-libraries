@@ -30,7 +30,7 @@ jobs:
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: corepack enable
       - run: LOCAL_MACHINE=false pnpm install --frozen-lockfile
-      - run: pnpm publish:prerelease:ci
+      - run: pnpm publish:ci
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_REGISTRY_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
