@@ -1,0 +1,61 @@
+# Publishes packages whose npmjs.org names do not exist yet to GitHub Packages,
+# so closed-source repos can consume them while npmjs.org name requests sit in
+# a queue.
+#
+# INTERIM. When the npmjs.org names are provisioned, the packages move to
+# publish-nx.yml and this whole file is deleted. Nothing else references it.
+#
+# Deliberately separate from publish-nx.yml: that workflow publishes to
+# npmjs.org by trusted publishing (OIDC) and works, so it is left untouched.
+name: publish-github-packages.yml
+
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: 'Actually publish. Unchecked = probe auth and pack only.'
+        type: boolean
+        default: false
+  # Temporary, for testing this workflow before it reaches the default branch.
+  # workflow_dispatch alone cannot run from a feature branch. Remove once
+  # merged; the probe is harmless but the trigger is noise.
+  push:
+    branches:
+      - 'LAB-92/**'
+
+permissions:
+  contents: read
+  packages: write # publish to npm.pkg.github.com
+
+jobs:
+  publish-github-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          # Routes @telicent-oss to GitHub Packages for this run only, and
+          # wires up NODE_AUTH_TOKEN below.
+          registry-url: 'https://npm.pkg.github.com'
+          scope: '@telicent-oss'
+
+      - run: corepack enable
+
+      # No install step: both packages ship plain JS from src with no
+      # dependencies and a no-op build, so pnpm needs only the workspace file
+      # to resolve the filters. Fewer moving parts in the thing under test.
+
+      - name: Probe registry auth
+        run: ./scripts/probe-github-packages-auth.sh
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Publish
+        run: ./scripts/publish-github-packages.sh
+        env:
+          # GITHUB_TOKEN can publish a package whose repository field names
+          # this repo, so no PAT is needed on the publish side.
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISH: ${{ inputs.publish }}
