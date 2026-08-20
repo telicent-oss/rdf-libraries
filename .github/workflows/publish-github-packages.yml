@@ -7,22 +7,19 @@
 #
 # Deliberately separate from publish-nx.yml: that workflow publishes to
 # npmjs.org by trusted publishing (OIDC) and works, so it is left untouched.
+#
+# Dispatch-only, so it cannot run until this file reaches the default branch.
+# That is deliberate: a push trigger here would also fire test-release-nx.yml,
+# which runs on every branch but main, and the point was to add no CI noise.
 name: publish-github-packages.yml
 
 on:
   workflow_dispatch:
     inputs:
       publish:
-        description: 'Actually publish. Unchecked = probe auth and pack only.'
+        description: 'Actually publish. Unchecked = pack only, no registry contact.'
         type: boolean
         default: false
-  # workflow_dispatch only appears once this file is on the default branch, so
-  # until then a push trigger is the only way to run it. A push run cannot take
-  # inputs, so it probes and dry-runs unless the commit message opts in with
-  # the marker below. Remove this trigger once merged.
-  push:
-    branches:
-      - 'LAB-92/**'
 
 permissions:
   contents: read
@@ -59,6 +56,4 @@ jobs:
           # GITHUB_TOKEN can publish a package whose repository field names
           # this repo, so no PAT is needed on the publish side.
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # True when dispatched with the box checked, or when a pushed commit
-          # message carries the opt-in marker. Otherwise this is a dry run.
-          PUBLISH: ${{ inputs.publish || contains(github.event.head_commit.message, '[publish-ghp]') }}
+          PUBLISH: ${{ inputs.publish }}
