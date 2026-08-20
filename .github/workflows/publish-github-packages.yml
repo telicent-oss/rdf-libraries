@@ -48,10 +48,10 @@ jobs:
       # dependencies and a no-op build, so pnpm needs only the workspace file
       # to resolve the filters. Fewer moving parts in the thing under test.
 
-      - name: Probe registry auth
-        run: ./scripts/probe-github-packages-auth.sh
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # No auth probe: a GET against this registry returns 404 for an
+      # unpublished name with a valid token, an invalid token, or no token at
+      # all, so it cannot tell them apart. Publishing is the only test of
+      # publish rights, and a dry run does not contact the registry for auth.
 
       - name: Publish
         run: ./scripts/publish-github-packages.sh
