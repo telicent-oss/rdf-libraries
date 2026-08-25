@@ -2,7 +2,7 @@
   "name": "@telicent-oss/eslint-plugin-ds",
   "version": "0.0.1",
   "private": true,
-  "//": "private blocks release selection, so lerna version leaves this at 0.0.1. Removing the flag IS the deliberate release act.",
+  "//private": "private until we get an npmjs.org package created",
   "license": "Apache-2.0",
   "description": "ESLint rules enforcing the Telicent design system manifest: Tailwind may do layout, size and spacing, and nothing else.",
   "type": "module",
