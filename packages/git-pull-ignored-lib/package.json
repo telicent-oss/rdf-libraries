@@ -1,8 +1,8 @@
 {
-  "name": "@telicent-oss/pull-gitignored",
+  "name": "@telicent-oss/git-pull-ignored-lib",
   "version": "0.0.1",
   "private": true,
-  "//": "private blocks release selection, so lerna version leaves this at 0.0.1. Removing the flag IS the deliberate release act.",
+  "//private": "private until we get an npmjs.org package created",
   "license": "Apache-2.0",
   "description": "Pull a subdirectory of a git repository into a local gitignored directory, refusing any destination git does not ignore.",
   "type": "module",
@@ -37,6 +37,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/telicent-oss/rdf-libraries.git",
-    "directory": "packages/pull-gitignored"
+    "directory": "packages/git-pull-ignored-lib"
   }
 }

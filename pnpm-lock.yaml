@@ -370,6 +370,21 @@ importers:
         specifier: ^3.23.8
         version: 3.25.76
 
+  packages/git-pull-ignored-lib:
+    devDependencies:
+      '@eslint/js':
+        specifier: ^9.0.0
+        version: 9.39.5
+      eslint:
+        specifier: ^9.0.0
+        version: 9.39.5(jiti@2.6.1)(supports-color@10.2.2)
+      typescript:
+        specifier: ^5.0.0
+        version: 5.9.3
+      vitest:
+        specifier: ^4.0.0
+        version: 4.1.10(@types/node@18.19.9)(jsdom@20.0.3(supports-color@10.2.2))(vite@8.2.1(@types/node@18.19.9)(esbuild@0.28.2)(jiti@2.6.1)(tsx@4.23.12)(yaml@2.4.2))
+
   packages/ies-service:
     dependencies:
       '@telicent-oss/rdfservice':
@@ -572,21 +587,6 @@ importers:
       zod:
         specifier: ^3.22.4
         version: 3.25.76
-
-  packages/pull-gitignored:
-    devDependencies:
-      '@eslint/js':
-        specifier: ^9.0.0
-        version: 9.39.5
-      eslint:
-        specifier: ^9.0.0
-        version: 9.39.5(jiti@2.6.1)(supports-color@10.2.2)
-      typescript:
-        specifier: ^5.0.0
-        version: 5.9.3
-      vitest:
-        specifier: ^4.0.0
-        version: 4.1.10(@types/node@18.19.9)(jsdom@20.0.3(supports-color@10.2.2))(vite@8.2.1(@types/node@18.19.9)(esbuild@0.28.2)(jiti@2.6.1)(tsx@4.23.12)(yaml@2.4.2))
 
   packages/rdf-write-lib:
     dependencies:

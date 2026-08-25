@@ -1,4 +1,4 @@
-# @telicent-oss/pull-gitignored
+# @telicent-oss/git-pull-ignored-lib
 
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 ![Node Version](https://img.shields.io/badge/node-%5E20.19.0%20%7C%7C%20%3E%3D22.12.0-brightgreen.svg)
@@ -18,20 +18,20 @@ destination is ignored and throws before deleting anything if it is not.
 Install it from this repository:
 
 ```bash
-pnpm add -D "telicent-oss/rdf-libraries#path:/packages/pull-gitignored"
+pnpm add -D "telicent-oss/rdf-libraries#path:/packages/git-pull-ignored-lib"
 ```
 
 pnpm records the commit it resolved, so the dependency is pinned. Once the name is
 published, this becomes:
 
 ```bash
-pnpm add -D @telicent-oss/pull-gitignored
+pnpm add -D @telicent-oss/git-pull-ignored-lib
 ```
 
 ## Usage
 
 ```js
-import { pullGitignored, PullError } from "@telicent-oss/pull-gitignored";
+import { pullGitignored, PullError } from "@telicent-oss/git-pull-ignored-lib";
 
 try {
   const { sha, ref } = pullGitignored({

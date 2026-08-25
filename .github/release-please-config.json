@@ -106,7 +106,7 @@
       "bumpPatchForMinorPreMajor": true,
       "release-type": "node"
     },
-    "packages/pull-gitignored/": {
+    "packages/git-pull-ignored-lib/": {
       "labels": [
         "autorelease: pending"
       ],
