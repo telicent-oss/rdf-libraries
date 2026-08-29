@@ -38,7 +38,7 @@
     "access": "public"
   },
   "dependencies": {
-    "diff": "^7.0.0",
+    "diff": "^8.0.2",
     "testcontainers": "^10.14.0"
   },
   "devDependencies": {
