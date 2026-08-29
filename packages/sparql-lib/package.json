@@ -59,7 +59,7 @@
   },
   "devDependencies": {
     "@telicent-oss/dev-dependencies-lib": "^0.0.2",
-    "@types/jest": "^29.4.0",
+    "@types/jest": "^30.0.0",
     "eslint": "^8.56.0",
     "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
