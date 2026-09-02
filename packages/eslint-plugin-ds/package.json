@@ -1,0 +1,49 @@
+{
+  "name": "@telicent-oss/eslint-plugin-ds",
+  "version": "0.0.1",
+  "private": true,
+  "//private": "private until we get an npmjs.org package created",
+  "license": "Apache-2.0",
+  "description": "ESLint rules enforcing the Telicent design system manifest: Tailwind may do layout, size and spacing, and nothing else.",
+  "type": "module",
+  "main": "./src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "!src/*.test.js",
+    "!src/**/*.test.js",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "coverage": "vitest run --coverage",
+    "lint": "eslint src/",
+    "tscNoEmit": "echo \"no TypeScript in this package\"",
+    "build": "echo \"No-op: Nothing to build\"",
+    "prepublish": "yarn lint && yarn test"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "peerDependencies": {
+    "eslint": "^9.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/coverage-v8": "^4.0.0",
+    "eslint": "^9.0.0",
+    "typescript": "^5.0.0",
+    "vitest": "^4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/telicent-oss/rdf-libraries.git",
+    "directory": "packages/eslint-plugin-ds"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  }
+}
