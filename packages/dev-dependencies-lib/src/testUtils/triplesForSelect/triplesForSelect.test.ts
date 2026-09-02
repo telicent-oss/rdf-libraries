@@ -92,4 +92,105 @@ WHERE {
       }
     );
   });
+
+  it("returns empty string when the SELECT result yields no URIs", async () => {
+    await expect(
+      triplesForSelect("http://example.org/query", {
+        head: { vars: [] },
+        results: { bindings: [] },
+      })
+    ).resolves.toBe("");
+    expect(global.fetch).not.toHaveBeenCalled();
+  });
+
+  it("throws when the endpoint looks like an /update endpoint", async () => {
+    await expect(
+      triplesForSelect("http://example.org/update", {
+        head: { vars: [] },
+        results: { bindings: [] },
+      })
+    ).rejects.toThrow(/UPDATE endpoint/);
+  });
+
+  it("omits the incoming OPTIONAL block when includeIncoming=false", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global.fetch as any).mockResolvedValueOnce({
+      ok: true,
+      status: 200,
+      text: async () => "<a> <b> <c> .",
+    });
+
+    await triplesForSelect(
+      "http://example.org/sparql",
+      {
+        head: { vars: ["r"] },
+        results: {
+          bindings: [{ r: { type: "uri", value: "http://data.example/ds/a" } }],
+        },
+      },
+      { includeIncoming: false }
+    );
+
+    const call = (global.fetch as jest.Mock).mock.calls[0];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    expect((call[1] as any).body).not.toContain("?pin");
+  });
+
+  it("runs the SELECT then the CONSTRUCT when given a query string", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global.fetch as any)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({
+          head: { vars: ["r"] },
+          results: {
+            bindings: [
+              { r: { type: "uri", value: "http://data.example/ds/a" } },
+            ],
+          },
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        text: async () => "<a> <b> <c> .",
+      });
+
+    const out = await triplesForSelect(
+      "http://example.org/query",
+      "SELECT ?r WHERE { ?r a <http://x> }"
+    );
+    expect(out).toBe("<a> <b> <c> .");
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("throws when the SELECT round-trip fails", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global.fetch as any).mockResolvedValueOnce({
+      ok: false,
+      status: 500,
+      text: async () => "server error",
+    });
+    await expect(
+      triplesForSelect("http://example.org/query", "SELECT ?r WHERE { }")
+    ).rejects.toThrow(/SELECT failed 500/);
+  });
+
+  it("throws when the CONSTRUCT round-trip fails", async () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (global.fetch as any).mockResolvedValueOnce({
+      ok: false,
+      status: 502,
+      text: async () => "bad gateway",
+    });
+    await expect(
+      triplesForSelect("http://example.org/query", {
+        head: { vars: ["r"] },
+        results: {
+          bindings: [{ r: { type: "uri", value: "http://data.example/ds/a" } }],
+        },
+      })
+    ).rejects.toThrow(/CONSTRUCT failed 502/);
+  });
 });
