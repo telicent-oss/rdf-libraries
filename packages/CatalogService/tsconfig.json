@@ -12,7 +12,13 @@
     "baseUrl": ".",
     "paths": {
       "@telicent-oss/sparql-lib": ["../sparql-lib/src/index.ts"]
-    }
+    },
+    // Pinned so the IDE reliably picks up jest ambient globals (describe/it/
+    // expect). Without this, VS Code's TS language service intermittently
+    // fails to auto-load @types/jest from the hoisted workspace-root node_modules
+    // (moduleResolution: Bundler amplifies the issue). If you add another
+    // @types/* package that provides ambient types, append it here.
+    "types": ["jest", "node"]
   },
   "// ts-node": "https://github.com/nodejs/node/issues/48207#issuecomment-1872668858",
   "ts-node": {
