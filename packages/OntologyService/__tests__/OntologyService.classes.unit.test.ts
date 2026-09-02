@@ -480,8 +480,6 @@ describe("Diagram methods", () => {
   let os: OntologyService;
   beforeEach(() => {
     os = new OntologyService(MOCK_URL);
-    // suppress warnings from setting empty security labels during ctor promises
-    (os.config as any) = { NO_WARNINGS: true };
   });
 
   it("getDiagramElements queries by inDiagram + represents", async () => {
