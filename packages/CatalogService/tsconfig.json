@@ -12,7 +12,8 @@
     "baseUrl": ".",
     "paths": {
       "@telicent-oss/sparql-lib": ["../sparql-lib/src/index.ts"]
-    }
+    },
+    "types": ["jest", "node"]
   },
   "// ts-node": "https://github.com/nodejs/node/issues/48207#issuecomment-1872668858",
   "ts-node": {
