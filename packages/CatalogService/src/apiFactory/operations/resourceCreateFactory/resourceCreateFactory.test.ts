@@ -170,4 +170,60 @@ describe("resourceCreateFactory", () => {
       })
     ).rejects.toMatchInlineSnapshot(`[Error: boom]`);
   });
+
+  it("throws an already-in-use error when the minted URI already exists in service.nodes", async () => {
+    const uri = `${COMMON_PREFIXES_MAP["tcat-dataset"]}dataset-id`;
+    const csWithExisting = {
+      ...catalogService,
+      // Pre-existing node under the URI that createUriComponents will mint
+      nodes: { [uri]: { some: "prior" } },
+    };
+
+    const factory = resourceCreateFactory({
+      catalogService: csWithExisting as never,
+      rdfWriteApiClient: {} as never,
+    });
+
+    await expect(
+      factory({
+        type: "dataSet",
+        payload: { identifier: "dataset-id", title: "Duplicate" },
+      })
+    ).rejects.toMatchObject({
+      errors: {
+        identifier: [
+          expect.objectContaining({
+            code: "dataset.uri.duplicate",
+          }),
+        ],
+      },
+    });
+
+    // The store step should NOT have been reached
+    expect(mockedStoreTripleResultsToValueObject).not.toHaveBeenCalled();
+  });
+
+  it("propagates the throwWriteErrorForUri path when createUriComponents fails", async () => {
+    mockedCreateUriComponents.mockRejectedValueOnce(new Error("cannot mint"));
+    const factory = resourceCreateFactory({
+      catalogService: catalogService as never,
+      rdfWriteApiClient: {} as never,
+    });
+
+    await expect(
+      factory({
+        type: "dataSet",
+        payload: { identifier: "dataset-id", title: "T" },
+      })
+    ).rejects.toMatchObject({
+      errors: {
+        uri: [
+          expect.objectContaining({
+            code: "catalog.uri.invalid",
+            summary: "cannot mint",
+          }),
+        ],
+      },
+    });
+  });
 });
