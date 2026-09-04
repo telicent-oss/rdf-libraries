@@ -1,9 +1,13 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { GitRunner, PullError, isGitIgnored, pullGitignored } from "./index";
+import { GitResult, GitRunner, PullError, isGitIgnored, pullGitignored } from "./index";
+
+const ran = (fields: Partial<GitResult> = {}): GitResult => ({
+  status: 0, signal: null, stdout: "", stderr: "", ...fields,
+});
 
 const made: string[] = [];
 const scratch = (name: string) => {
@@ -106,19 +110,15 @@ describe("with git missing from PATH", () => {
 });
 
 // A machine with no git, which the injected runner is what makes reachable in process.
-// node reports the missing binary two different ways, and each is a separate branch:
-// the throwing call carries `code` on the error, the non-throwing one reports it on
-// `result.error`.
+// node reports it on `error.code`, and the check has to read that code rather than the
+// presence of an error: a command that ran and failed arrives the same way.
 describe("git missing from PATH", () => {
-  const enoent = () => Object.assign(new Error("spawn git ENOENT"), { code: "ENOENT" });
-  const noGit: GitRunner = {
-    exec: () => { throw enoent(); },
-    spawn: () => ({ status: null, stdout: "", error: enoent() }),
-  };
+  const noGit: GitRunner = () =>
+    ran({ status: null, error: Object.assign(new Error("spawn git ENOENT"), { code: "ENOENT" }) });
 
   it("is told apart from a path git does not ignore", () => {
-    // Both land in the same catch, and answering false for the first would report
-    // "git does not ignore it" about a machine that cannot run git at all.
+    // Answering false here would report "git does not ignore it" about a machine that
+    // cannot run git at all.
     expect(() => isGitIgnored("pulled", "/tmp", noGit)).toThrow(/git is not on PATH/);
   });
 
@@ -134,12 +134,7 @@ describe("git missing from PATH", () => {
   });
 
   it("does not report a failed git command as a missing one", () => {
-    // The ENOENT check must read the error's code, not merely its presence: a command
-    // that ran and failed also arrives on `result.error`/as a throw.
-    const failing: GitRunner = {
-      exec: () => { throw Object.assign(new Error("exit 1"), { status: 1 }); },
-      spawn: () => ({ status: 128, stdout: "", error: undefined }),
-    };
+    const failing: GitRunner = () => ran({ status: 128, stderr: "fatal: not a git repository\n" });
     expect(isGitIgnored("pulled", "/tmp", failing)).toBe(false);
     expect(() =>
       pullGitignored({
@@ -151,39 +146,58 @@ describe("git missing from PATH", () => {
 });
 
 describe("with a scripted git", () => {
-  /** In a work tree, destination ignored, and the clone doing whatever is asked. */
-  const scripted = (onClone: () => void): GitRunner => ({
-    spawn: () => ({ status: 0, stdout: "true\n" }),
-    exec: (args) => {
-      if (args.includes("clone")) onClone();
-      return "";
-    },
-  });
+  /** In a work tree, destination ignored, and the clone returning whatever is asked. */
+  const scripted = (onClone: GitResult): GitRunner => (args) =>
+    args.includes("clone") ? onClone : ran({ stdout: "true\n" });
+
+  const attemptsFrom = (git: GitRunner): string[] => {
+    try {
+      pullGitignored({
+        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp", git,
+      });
+      throw new Error("expected a PullError");
+    } catch (error) {
+      expect(error).toBeInstanceOf(PullError);
+      return (error as PullError).attempted;
+    }
+  };
 
   it("falls back to git's exit code when the clone failed silently", () => {
     // git normally explains itself on stderr and that wording is carried out verbatim.
     // With nothing written, the exit code is all there is, and the message has to say so
     // rather than reporting an empty reason.
-    try {
-      pullGitignored({
-        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
-        git: scripted(() => { throw Object.assign(new Error("exit 1"), { status: 1 }); }),
-      });
-      throw new Error("expected a PullError");
-    } catch (error) {
-      expect(error).toBeInstanceOf(PullError);
-      expect((error as PullError).attempted).toEqual(["main: could not clone (git exited 1)"]);
-    }
+    expect(attemptsFrom(scripted(ran({ status: 1 })))).toEqual([
+      "main: could not clone (git exited 1)",
+    ]);
   });
 
-  it("survives a thrown value that is not an object at all", () => {
-    // Nothing stops a throw of a string, and the branches that follow read properties off
-    // it. Answering false is the safe end: the caller refuses to delete.
-    const threw: GitRunner = {
-      spawn: () => ({ status: 0, stdout: "true\n" }),
-      exec: () => { throw "not an object"; },
-    };
-    expect(isGitIgnored("pulled", "/tmp", threw)).toBe(false);
+  it("names the deadline only when the deadline is what killed the clone", () => {
+    // A timeout and an outside `kill` both arrive as a signal, so reading the signal alone
+    // reports every killed clone as a clone that ran too long.
+    expect(
+      attemptsFrom(
+        scripted(ran({
+          status: null, signal: "SIGTERM",
+          error: Object.assign(new Error("spawnSync git ETIMEDOUT"), { code: "ETIMEDOUT" }),
+        })),
+      ),
+    ).toEqual(["main: timed out after 60000ms"]);
+    expect(attemptsFrom(scripted(ran({ status: null, signal: "SIGSEGV" })))).toEqual([
+      "main: killed by SIGSEGV",
+    ]);
+  });
+
+  it("refuses to run at all when git is missing, rather than retrying every ref", () => {
+    const noGit: GitRunner = (args) =>
+      args.includes("clone")
+        ? ran({ status: null, error: Object.assign(new Error("ENOENT"), { code: "ENOENT" }) })
+        : ran({ stdout: "true\n" });
+    expect(() =>
+      pullGitignored({
+        repo: "/tmp/x", refs: ["a", "b"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
+        git: noGit,
+      }),
+    ).toThrow(/git is not on PATH/);
   });
 });
 
@@ -297,6 +311,46 @@ describe("pullGitignored", () => {
       expect(error).toBeInstanceOf(PullError);
       expect((error as PullError).attempted).toEqual(["main: cloned, but has no absent"]);
     }
+  });
+
+  it("leaves the old content in place when the copy cannot complete", () => {
+    // The new content is assembled beside dest and swapped in, so a copy that fails
+    // part-way does not leave the caller with neither version. A file subpath is the
+    // cheapest way to fail one: the sha file cannot be written inside a file.
+    const source = sourceRepo({ "guidance/a.md": "A" });
+    const consumer = consumerRepo("pulled/\n");
+    const dest = join(consumer, "pulled");
+    mkdirSync(dest);
+    writeFileSync(join(dest, "old.md"), "OLD");
+
+    expect(() =>
+      pullGitignored({ repo: source, refs: ["main"], subpath: "guidance/a.md", dest, cwd: consumer }),
+    ).toThrow();
+    expect(readFileSync(join(dest, "old.md"), "utf8")).toBe("OLD");
+  });
+
+  it("says so when the clone has no HEAD to read, rather than recording an empty sha", () => {
+    // rev-parse no longer throws on failure, so an unread HEAD would otherwise be copied
+    // into .commitSha as an empty string and pass for a real commit.
+    const source = sourceRepo({ "guidance/a.md": "A" });
+    const consumer = consumerRepo("pulled/\n");
+    const failHead: GitRunner = (args, options) => {
+      if (args.includes("rev-parse") && args.includes("HEAD")) {
+        return ran({ status: 128, stderr: "fatal: bad revision\n" });
+      }
+      const result = spawnSync("git", args, { encoding: "utf8", ...options });
+      return {
+        status: result.status, signal: result.signal,
+        stdout: result.stdout ?? "", stderr: result.stderr ?? "", error: result.error,
+      };
+    };
+
+    expect(() =>
+      pullGitignored({
+        repo: source, refs: ["main"], subpath: "guidance",
+        dest: join(consumer, "pulled"), cwd: consumer, git: failHead,
+      }),
+    ).toThrow(/could not read its HEAD/);
   });
 
   it("kills a clone that outlives its deadline, and says the deadline is why", () => {

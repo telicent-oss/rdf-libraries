@@ -1,7 +1,7 @@
-import { ExecFileSyncOptions, execFileSync, spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { cpSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { isAbsolute, join, relative } from "node:path";
+import { dirname, isAbsolute, join, relative, sep } from "node:path";
 
 /** A failure the caller is expected to print and exit on, rather than a bug. */
 export class PullError extends Error {
@@ -14,26 +14,23 @@ export class PullError extends Error {
   }
 }
 
-/** What node attaches to a failed child process, beyond the Error itself. */
-type ChildProcessError = Error & {
-  code?: string;
-  status?: number | null;
-  signal?: NodeJS.Signals | null;
-  stderr?: Buffer | string;
-};
+const GIT_MISSING = "cannot ask git whether the destination is ignored: git is not on PATH";
 
-/**
- * Narrows without `instanceof`. An error thrown by node's child_process is not always an
- * instance of the `Error` the caller can see: a vm context, a worker or a jest test
- * environment each supply their own global, and `instanceof` is false across that
- * boundary. Replacing the error there would drop `code`, `status`, `signal` and `stderr`,
- * which are the only things the branches below read, so every one would silently stop
- * firing.
- */
-const asChildProcessError = (error: unknown): ChildProcessError =>
-  (typeof error === "object" && error !== null
-    ? error
-    : new Error(String(error))) as ChildProcessError;
+/** What a caller may set on one git invocation. Deliberately narrower than node's. */
+export interface GitOptions {
+  timeout?: number;
+  env?: NodeJS.ProcessEnv;
+}
+
+/** The outcome of one git invocation. Nothing here throws, so every field is readable. */
+export interface GitResult {
+  status: number | null;
+  signal: NodeJS.Signals | null;
+  stdout: string;
+  stderr: string;
+  /** Set when the process could not run or was killed. `code` is node's: ENOENT, ETIMEDOUT. */
+  error?: NodeJS.ErrnoException;
+}
 
 /**
  * How git is run. The command is always git, so only its arguments are passed.
@@ -43,20 +40,27 @@ const asChildProcessError = (error: unknown): ChildProcessError =>
  * while the child reads the real one. A caller with its own reason to control the
  * invocation can supply one too.
  */
-export type GitRunner = {
-  /** Returns stdout. Throws node's own error, carrying code, status, signal and stderr. */
-  exec: (args: string[], options: ExecFileSyncOptions) => string;
-  /** Never throws, so a missing binary can be told apart from a command that failed. */
-  spawn: (args: string[]) => { status: number | null; stdout: string; error?: unknown };
+export type GitRunner = (args: string[], options?: GitOptions) => GitResult;
+
+const realGit: GitRunner = (args, options = {}) => {
+  const result = spawnSync("git", args, { encoding: "utf8", ...options });
+  return {
+    status: result.status,
+    signal: result.signal,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    error: result.error,
+  };
 };
 
-const realGit: GitRunner = {
-  exec: (args, options) => String(execFileSync("git", args, options) ?? ""),
-  spawn: (args) => {
-    const result = spawnSync("git", args, { encoding: "utf8" });
-    return { status: result.status, stdout: result.stdout ?? "", error: result.error };
-  },
-};
+function failedWith(result: GitResult, code: string): boolean {
+  return result.error?.code === code;
+}
+
+/** Raised on the spot: a machine that cannot run git has no answer to any question here. */
+function refuseIfGitMissing(result: GitResult): void {
+  if (failedWith(result, "ENOENT")) throw new PullError(GIT_MISSING);
+}
 
 /**
  * Whether git ignores `path`, asked of git rather than inferred by reading .gitignore,
@@ -65,11 +69,14 @@ const realGit: GitRunner = {
  * `check-ignore` exits 1 for a path that is NOT ignored, which is not an error, so a
  * non-zero exit is read as false. A path outside any repository is not ignored either.
  *
- * Two details decide whether this answers correctly:
+ * Three details decide whether this answers correctly:
  *
  * The path is made relative to `cwd`. git rejects an absolute path it reads as outside
  * the repository, and on macOS a temp directory reached as /var/... resolves to
  * /private/var/..., so an absolute path that IS inside the repo can be read as outside it.
+ *
+ * Separators are rewritten to `/`. `relative()` returns `\` on win32 and git takes only
+ * `/`, so the trailing-slash test below and git's own pattern matching would both miss.
  *
  * A trailing slash is added, which tells git the path is a directory. The usual pattern
  * for a pulled directory is `name/`, which git matches only against something it knows is
@@ -77,41 +84,25 @@ const realGit: GitRunner = {
  * ignored, and every first pull would be refused.
  */
 export function isGitIgnored(path: string, cwd: string, git: GitRunner = realGit): boolean {
-  const rel = isAbsolute(path) ? relative(cwd, path) : path;
+  const rel = (isAbsolute(path) ? relative(cwd, path) : path).split(sep).join("/");
   if (rel === "" || rel.startsWith("..")) return false;
   const asDirectory = rel.endsWith("/") ? rel : `${rel}/`;
-  try {
-    git.exec(["-C", cwd, "check-ignore", "--quiet", asDirectory], {
-      stdio: ["ignore", "ignore", "ignore"],
-    });
-    return true;
-  } catch (error) {
-    // A missing git binary and an unignored path both land here, and answering false for
-    // the first would report "git does not ignore it" about a machine that cannot run git
-    // at all. Only the second is an answer.
-    if (asChildProcessError(error).code === "ENOENT") {
-      throw new PullError(GIT_MISSING);
-    }
-    return false;
-  }
+  const result = git(["-C", cwd, "check-ignore", "--quiet", asDirectory]);
+  refuseIfGitMissing(result);
+  return result.status === 0;
 }
-
-const GIT_MISSING = "cannot ask git whether the destination is ignored: git is not on PATH";
 
 /**
  * Whether `cwd` is inside a git work tree, so an ignore answer means anything.
  *
- * A missing git binary is separated out rather than folded into the false answer.
- * `spawnSync` reports it on `result.error` instead of throwing, and every real caller
- * reaches this before `isGitIgnored`, so without the check a machine that cannot run git
- * is told its repository "is not inside a git work tree" — the same wrong diagnosis the
- * guard in `isGitIgnored` exists to prevent, on the path that is actually taken.
+ * A missing git binary is separated out rather than folded into the false answer. Every
+ * real caller reaches this before `isGitIgnored`, so without the check a machine that
+ * cannot run git is told its repository "is not inside a git work tree" — the same wrong
+ * diagnosis, on the path that is actually taken.
  */
 function insideWorkTree(cwd: string, git: GitRunner): boolean {
-  const result = git.spawn(["-C", cwd, "rev-parse", "--is-inside-work-tree"]);
-  if (result.error && asChildProcessError(result.error).code === "ENOENT") {
-    throw new PullError(GIT_MISSING);
-  }
+  const result = git(["-C", cwd, "rev-parse", "--is-inside-work-tree"]);
+  refuseIfGitMissing(result);
   return result.status === 0 && result.stdout.trim() === "true";
 }
 
@@ -132,7 +123,7 @@ const CLONE_TIMEOUT_MS = 60_000;
  * An existing `GIT_SSH_COMMAND` is extended rather than replaced, so a caller's own ssh
  * settings survive.
  */
-function cloneLimits(timeoutMs: number) {
+function cloneLimits(timeoutMs: number): GitOptions {
   const ssh = process.env.GIT_SSH_COMMAND ?? "ssh";
   return {
     timeout: timeoutMs,
@@ -140,49 +131,67 @@ function cloneLimits(timeoutMs: number) {
   };
 }
 
-type CloneResult = { dir: string } | { reason: string };
+type CloneAttempt = { dir: string; ref: string } | { reason: string };
 
 /**
+ * Clone `ref` and keep it only if it carries `subpath`, which is what the caller is
+ * looking for. A clone that misses is removed here, so the caller holds at most one
+ * directory to clean up.
+ *
  * git's stderr is carried out rather than dropped. A ref that does not exist, a repository
  * that does not exist, a refused credential and an unreachable network all fail the same
  * clone, and collapsing them to "could not clone" sends someone hunting for a missing
  * branch when the real answer is in the line git already wrote.
  *
- * A killed clone has no stderr to carry, so it is named directly. Without that it reports
- * "could not clone (git exited null)", which reads like a git bug rather than a deadline.
+ * A killed clone has no stderr to carry, so each way of being killed is named. Without
+ * that it reports "could not clone (git exited null)", which reads like a git bug.
  */
-function shallowClone(repo: string, ref: string, timeoutMs: number, git: GitRunner): CloneResult {
+function shallowClone(
+  repo: string,
+  ref: string,
+  subpath: string,
+  timeoutMs: number,
+  git: GitRunner,
+): CloneAttempt {
   const tmp = mkdtempSync(join(tmpdir(), "pull-gitignored-"));
-  try {
-    git.exec(["clone", "--quiet", "--depth", "1", "--branch", ref, repo, tmp], {
-      stdio: ["ignore", "ignore", "pipe"],
-      ...cloneLimits(timeoutMs),
-    });
-  } catch (error) {
+  const discard = (reason: string): CloneAttempt => {
     rmSync(tmp, { recursive: true, force: true });
-    const failure = asChildProcessError(error);
-    if (failure.signal !== undefined && failure.signal !== null) {
-      return { reason: `timed out after ${timeoutMs}ms` };
-    }
-    const stderr = (failure.stderr ?? "").toString().trim();
-    const firstLine = stderr.split("\n").filter(Boolean).pop() ?? "";
-    return {
-      reason: firstLine === "" ? `could not clone (git exited ${failure.status})` : firstLine,
-    };
+    return { reason };
+  };
+
+  const result = git(["clone", "--quiet", "--depth", "1", "--branch", ref, repo, tmp], cloneLimits(timeoutMs));
+  if (failedWith(result, "ENOENT")) {
+    rmSync(tmp, { recursive: true, force: true });
+    throw new PullError(GIT_MISSING);
   }
-  return { dir: tmp };
+  if (failedWith(result, "ETIMEDOUT")) return discard(`timed out after ${timeoutMs}ms`);
+  if (result.signal !== null) return discard(`killed by ${result.signal}`);
+  if (result.status !== 0) {
+    const lastLine = result.stderr.trim().split("\n").filter(Boolean).pop() ?? "";
+    return discard(lastLine === "" ? `could not clone (git exited ${result.status})` : lastLine);
+  }
+  if (!existsSync(join(tmp, subpath))) return discard(`cloned, but has no ${subpath}`);
+  return { dir: tmp, ref };
 }
 
 function headSha(dir: string, git: GitRunner): string {
-  return git.exec(["-C", dir, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  const result = git(["-C", dir, "rev-parse", "HEAD"]);
+  refuseIfGitMissing(result);
+  if (result.status !== 0) {
+    throw new PullError(`cloned ${dir} but could not read its HEAD: ${result.stderr.trim()}`);
+  }
+  return result.stdout.trim();
 }
 
-export type PullOptions = {
+export interface PullOptions {
   repo: string;
   /**
    * Tried in order, which lets a caller prefer a feature branch and fall back to the
    * default one. A ref that exists but lacks `subpath` counts as a miss, because the
    * point is to find a ref carrying the content.
+   *
+   * Branch and tag names only. The clone is `--branch <ref>`, which a commit sha does not
+   * satisfy, so a sha is reported as a ref that does not carry the content.
    */
   refs: string[];
   subpath: string;
@@ -196,12 +205,12 @@ export type PullOptions = {
   cloneTimeoutMs?: number;
   /** Defaults to running the real git binary. */
   git?: GitRunner;
-};
+}
 
-export type PullResult = {
+export interface PullResult {
   sha: string;
   ref: string;
-};
+}
 
 /**
  * Replace `dest` with `subpath` taken from `repo`, and record the commit it came from.
@@ -211,6 +220,11 @@ export type PullResult = {
  * gitignored and therefore safe to destroy, and nothing verified the claim. A wrong path,
  * a moved directory or an edited .gitignore turns a pull into data loss, and the files it
  * takes are the ones git is not tracking, so there is nothing to restore from.
+ *
+ * The new content is assembled beside `dest` and swapped in, so `dest` survives until
+ * there is something complete to replace it with. Copying into `dest` directly means a
+ * failed copy — a full disk, a file where a directory was expected — leaves the caller
+ * with neither the old content nor the new.
  */
 export function pullGitignored({
   repo,
@@ -241,37 +255,39 @@ export function pullGitignored({
   }
 
   const attempted: string[] = [];
-  let clone: string | null = null;
-  let usedRef: string | null = null;
+  let clone: { dir: string; ref: string } | null = null;
+  let staging: string | null = null;
   try {
     for (const ref of refs) {
-      const result = shallowClone(repo, ref, cloneTimeoutMs, git);
-      if (!("dir" in result)) {
-        attempted.push(`${ref}: ${result.reason}`);
+      const attempt = shallowClone(repo, ref, subpath, cloneTimeoutMs, git);
+      if ("reason" in attempt) {
+        attempted.push(`${ref}: ${attempt.reason}`);
         continue;
       }
-      if (!existsSync(join(result.dir, subpath))) {
-        attempted.push(`${ref}: cloned, but has no ${subpath}`);
-        rmSync(result.dir, { recursive: true, force: true });
-        continue;
-      }
-      clone = result.dir;
-      usedRef = ref;
+      clone = attempt;
       break;
     }
 
-    if (clone === null || usedRef === null) {
+    if (clone === null) {
       throw new PullError(`no ref of ${repo} carries ${subpath}:\n  ${attempted.join("\n  ")}`, {
         attempted,
       });
     }
 
-    const sha = headSha(clone, git);
+    const sha = headSha(clone.dir, git);
+    // mkdtemp rather than a name derived from dest: it cannot collide with something
+    // already there, so nothing outside dest is ever deleted to make room for it.
+    mkdirSync(dirname(dest), { recursive: true });
+    staging = mkdtempSync(join(dirname(dest), ".pull-gitignored-"));
+    rmSync(staging, { recursive: true, force: true });
+    cpSync(join(clone.dir, subpath), staging, { recursive: true });
+    if (writeShaFile) writeFileSync(join(staging, ".commitSha"), `${sha}\n`);
     rmSync(dest, { recursive: true, force: true });
-    cpSync(join(clone, subpath), dest, { recursive: true });
-    if (writeShaFile) writeFileSync(join(dest, ".commitSha"), `${sha}\n`);
-    return { sha, ref: usedRef };
+    renameSync(staging, dest);
+    staging = null;
+    return { sha, ref: clone.ref };
   } finally {
-    if (clone !== null) rmSync(clone, { recursive: true, force: true });
+    if (clone !== null) rmSync(clone.dir, { recursive: true, force: true });
+    if (staging !== null) rmSync(staging, { recursive: true, force: true });
   }
 }

@@ -1,7 +1,7 @@
-import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, rmSync, cpSync, writeFileSync, mkdtempSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, mkdtempSync, rmSync, cpSync, writeFileSync, renameSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { isAbsolute, relative, join } from "node:path";
+import { isAbsolute, relative, sep, dirname, join } from "node:path";
 class PullError extends Error {
   attempted;
   constructor(message, { attempted = [] } = {}) {
@@ -10,37 +10,36 @@ class PullError extends Error {
     this.attempted = attempted;
   }
 }
-const asChildProcessError = (error) => typeof error === "object" && error !== null ? error : new Error(String(error));
-const realGit = {
-  exec: (args, options) => String(execFileSync("git", args, options) ?? ""),
-  spawn: (args) => {
-    const result = spawnSync("git", args, { encoding: "utf8" });
-    return { status: result.status, stdout: result.stdout ?? "", error: result.error };
-  }
+const GIT_MISSING = "cannot ask git whether the destination is ignored: git is not on PATH";
+const realGit = (args, options = {}) => {
+  const result = spawnSync("git", args, { encoding: "utf8", ...options });
+  return {
+    status: result.status,
+    signal: result.signal,
+    stdout: result.stdout ?? "",
+    stderr: result.stderr ?? "",
+    error: result.error
+  };
 };
+function failedWith(result, code) {
+  return result.error?.code === code;
+}
+function refuseIfGitMissing(result) {
+  if (failedWith(result, "ENOENT"))
+    throw new PullError(GIT_MISSING);
+}
 function isGitIgnored(path, cwd, git = realGit) {
-  const rel = isAbsolute(path) ? relative(cwd, path) : path;
+  const rel = (isAbsolute(path) ? relative(cwd, path) : path).split(sep).join("/");
   if (rel === "" || rel.startsWith(".."))
     return false;
   const asDirectory = rel.endsWith("/") ? rel : `${rel}/`;
-  try {
-    git.exec(["-C", cwd, "check-ignore", "--quiet", asDirectory], {
-      stdio: ["ignore", "ignore", "ignore"]
-    });
-    return true;
-  } catch (error) {
-    if (asChildProcessError(error).code === "ENOENT") {
-      throw new PullError(GIT_MISSING);
-    }
-    return false;
-  }
+  const result = git(["-C", cwd, "check-ignore", "--quiet", asDirectory]);
+  refuseIfGitMissing(result);
+  return result.status === 0;
 }
-const GIT_MISSING = "cannot ask git whether the destination is ignored: git is not on PATH";
 function insideWorkTree(cwd, git) {
-  const result = git.spawn(["-C", cwd, "rev-parse", "--is-inside-work-tree"]);
-  if (result.error && asChildProcessError(result.error).code === "ENOENT") {
-    throw new PullError(GIT_MISSING);
-  }
+  const result = git(["-C", cwd, "rev-parse", "--is-inside-work-tree"]);
+  refuseIfGitMissing(result);
   return result.status === 0 && result.stdout.trim() === "true";
 }
 const CLONE_TIMEOUT_MS = 6e4;
@@ -51,29 +50,36 @@ function cloneLimits(timeoutMs) {
     env: { ...process.env, GIT_SSH_COMMAND: `${ssh} -o ConnectTimeout=10`, GIT_TERMINAL_PROMPT: "0" }
   };
 }
-function shallowClone(repo, ref, timeoutMs, git) {
+function shallowClone(repo, ref, subpath, timeoutMs, git) {
   const tmp = mkdtempSync(join(tmpdir(), "pull-gitignored-"));
-  try {
-    git.exec(["clone", "--quiet", "--depth", "1", "--branch", ref, repo, tmp], {
-      stdio: ["ignore", "ignore", "pipe"],
-      ...cloneLimits(timeoutMs)
-    });
-  } catch (error) {
+  const discard = (reason) => {
     rmSync(tmp, { recursive: true, force: true });
-    const failure = asChildProcessError(error);
-    if (failure.signal !== void 0 && failure.signal !== null) {
-      return { reason: `timed out after ${timeoutMs}ms` };
-    }
-    const stderr = (failure.stderr ?? "").toString().trim();
-    const firstLine = stderr.split("\n").filter(Boolean).pop() ?? "";
-    return {
-      reason: firstLine === "" ? `could not clone (git exited ${failure.status})` : firstLine
-    };
+    return { reason };
+  };
+  const result = git(["clone", "--quiet", "--depth", "1", "--branch", ref, repo, tmp], cloneLimits(timeoutMs));
+  if (failedWith(result, "ENOENT")) {
+    rmSync(tmp, { recursive: true, force: true });
+    throw new PullError(GIT_MISSING);
   }
-  return { dir: tmp };
+  if (failedWith(result, "ETIMEDOUT"))
+    return discard(`timed out after ${timeoutMs}ms`);
+  if (result.signal !== null)
+    return discard(`killed by ${result.signal}`);
+  if (result.status !== 0) {
+    const lastLine = result.stderr.trim().split("\n").filter(Boolean).pop() ?? "";
+    return discard(lastLine === "" ? `could not clone (git exited ${result.status})` : lastLine);
+  }
+  if (!existsSync(join(tmp, subpath)))
+    return discard(`cloned, but has no ${subpath}`);
+  return { dir: tmp, ref };
 }
 function headSha(dir, git) {
-  return git.exec(["-C", dir, "rev-parse", "HEAD"], { encoding: "utf8" }).trim();
+  const result = git(["-C", dir, "rev-parse", "HEAD"]);
+  refuseIfGitMissing(result);
+  if (result.status !== 0) {
+    throw new PullError(`cloned ${dir} but could not read its HEAD: ${result.stderr.trim()}`);
+  }
+  return result.stdout.trim();
 }
 function pullGitignored({
   repo,
@@ -103,39 +109,40 @@ Add it to .gitignore, or point dest at a directory that is already ignored.`
   }
   const attempted = [];
   let clone = null;
-  let usedRef = null;
+  let staging = null;
   try {
     for (const ref of refs) {
-      const result = shallowClone(repo, ref, cloneTimeoutMs, git);
-      if (!("dir" in result)) {
-        attempted.push(`${ref}: ${result.reason}`);
+      const attempt = shallowClone(repo, ref, subpath, cloneTimeoutMs, git);
+      if ("reason" in attempt) {
+        attempted.push(`${ref}: ${attempt.reason}`);
         continue;
       }
-      if (!existsSync(join(result.dir, subpath))) {
-        attempted.push(`${ref}: cloned, but has no ${subpath}`);
-        rmSync(result.dir, { recursive: true, force: true });
-        continue;
-      }
-      clone = result.dir;
-      usedRef = ref;
+      clone = attempt;
       break;
     }
-    if (clone === null || usedRef === null) {
+    if (clone === null) {
       throw new PullError(`no ref of ${repo} carries ${subpath}:
   ${attempted.join("\n  ")}`, {
         attempted
       });
     }
-    const sha = headSha(clone, git);
-    rmSync(dest, { recursive: true, force: true });
-    cpSync(join(clone, subpath), dest, { recursive: true });
+    const sha = headSha(clone.dir, git);
+    mkdirSync(dirname(dest), { recursive: true });
+    staging = mkdtempSync(join(dirname(dest), ".pull-gitignored-"));
+    rmSync(staging, { recursive: true, force: true });
+    cpSync(join(clone.dir, subpath), staging, { recursive: true });
     if (writeShaFile)
-      writeFileSync(join(dest, ".commitSha"), `${sha}
+      writeFileSync(join(staging, ".commitSha"), `${sha}
 `);
-    return { sha, ref: usedRef };
+    rmSync(dest, { recursive: true, force: true });
+    renameSync(staging, dest);
+    staging = null;
+    return { sha, ref: clone.ref };
   } finally {
     if (clone !== null)
-      rmSync(clone, { recursive: true, force: true });
+      rmSync(clone.dir, { recursive: true, force: true });
+    if (staging !== null)
+      rmSync(staging, { recursive: true, force: true });
   }
 }
 export {
@@ -143,4 +150,3 @@ export {
   isGitIgnored,
   pullGitignored
 };
-//# sourceMappingURL=git-pull-ignored-lib.es.js.map
