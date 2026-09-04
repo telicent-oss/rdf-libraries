@@ -42,14 +42,6 @@ export type LayoutOptions = {
 };
 
 /**
- * Whether one class is layout, size or spacing.
- *
- * A responsive or state variant (`md:`, `hover:`) and a negative sign both leave the
- * underlying utility unchanged, so they are stripped before the decision. Arbitrary
- * values need no special case: `min-w-[420px]` is decided by `min-w`, and what sits in
- * the brackets cannot change the category.
- */
-/**
  * Whether any dash-delimited prefix of `token` is in `prefixes`, scanning left to right
  * and stopping at the first hit, which is what makes the shortest prefix of a family the
  * only one that can be read.
@@ -61,6 +53,14 @@ function hasPrefixIn(token: string, prefixes: ReadonlySet<string>): boolean {
   return false;
 }
 
+/**
+ * Whether one class is layout, size or spacing.
+ *
+ * A responsive or state variant (`md:`, `hover:`) and a negative sign both leave the
+ * underlying utility unchanged, so they are stripped before the decision. Arbitrary
+ * values need no special case: `min-w-[420px]` is decided by `min-w`, and what sits in
+ * the brackets cannot change the category.
+ */
 export function isLayoutUtility(rawClass: string, options: LayoutOptions = {}): boolean {
   const { allowTextSizes = true, extraPrefixes = [] } = options;
   const token = rawClass.slice(rawClass.lastIndexOf(":") + 1).replace(/^-/, "");
