@@ -1,4 +1,7 @@
-import { tailwindLayoutOnly } from "./rules/tailwind-layout-only.js";
+import { tailwindLayoutOnly } from "./rules/tailwind-layout-only";
+
+export { isLayoutUtility } from "./rules/tailwind-layout-only";
+export type { LayoutOptions } from "./rules/tailwind-layout-only";
 
 export const rules = {
   "tailwind-layout-only": tailwindLayoutOnly,

@@ -1,3 +1,5 @@
+import type { Rule } from "eslint";
+
 const LAYOUT_KEYWORDS = new Set([
   "flex", "grid", "block", "inline", "inline-flex", "inline-block", "contents", "hidden",
   "static", "relative", "absolute", "fixed", "sticky", "grow", "shrink", "isolate",
@@ -34,6 +36,11 @@ const TEXT_SIZES = new Set([
   "2xl", "3xl", "4xl", "5xl", "6xl", "7xl", "8xl", "9xl",
 ]);
 
+export type LayoutOptions = {
+  allowTextSizes?: boolean;
+  extraPrefixes?: string[];
+};
+
 /**
  * Whether one class is layout, size or spacing.
  *
@@ -42,7 +49,19 @@ const TEXT_SIZES = new Set([
  * values need no special case: `min-w-[420px]` is decided by `min-w`, and what sits in
  * the brackets cannot change the category.
  */
-export function isLayoutUtility(rawClass, options = {}) {
+/**
+ * Whether any dash-delimited prefix of `token` is in `prefixes`, scanning left to right
+ * and stopping at the first hit, which is what makes the shortest prefix of a family the
+ * only one that can be read.
+ */
+function hasPrefixIn(token: string, prefixes: ReadonlySet<string>): boolean {
+  for (let dash = token.indexOf("-"); dash > 0; dash = token.indexOf("-", dash + 1)) {
+    if (prefixes.has(token.slice(0, dash))) return true;
+  }
+  return false;
+}
+
+export function isLayoutUtility(rawClass: string, options: LayoutOptions = {}): boolean {
   const { allowTextSizes = true, extraPrefixes = [] } = options;
   const token = rawClass.slice(rawClass.lastIndexOf(":") + 1).replace(/^-/, "");
   // Nothing left after stripping a variant and a sign, so the class was `-` or `md:`.
@@ -50,34 +69,49 @@ export function isLayoutUtility(rawClass, options = {}) {
   // the reader to the wrong fix.
   if (token === "") return true;
   if (LAYOUT_KEYWORDS.has(token)) return true;
+  // Before the `text-` branch, which answers for every `text-` class and would otherwise
+  // make `extraPrefixes: ["text"]` dead configuration.
+  if (hasPrefixIn(token, new Set(extraPrefixes))) return true;
   if (token.startsWith("text-")) {
     return allowTextSizes && TEXT_SIZES.has(token.slice("text-".length));
   }
-  for (let dash = token.indexOf("-"); dash > 0; dash = token.indexOf("-", dash + 1)) {
-    const prefix = token.slice(0, dash);
-    if (LAYOUT_PREFIXES.has(prefix) || extraPrefixes.includes(prefix)) return true;
-  }
-  return false;
+  return hasPrefixIn(token, LAYOUT_PREFIXES);
 }
 
-function collectStrings(node, onString) {
+/**
+ * The JSX node shapes are reached through `estree` unions that do not carry JSX, so this
+ * walks a loose shape rather than casting at each of the dozen sites below.
+ */
+type LooseNode = Record<string, unknown> & { type?: string };
+
+type OnString = (text: string, at: LooseNode) => void;
+
+function collectStrings(node: unknown, onString: OnString): void {
   if (node === null || typeof node !== "object") return;
-  if (node.type === "Literal" && typeof node.value === "string") {
-    onString(node.value, node);
+  const current = node as LooseNode;
+  if (current.type === "Literal" && typeof current.value === "string") {
+    onString(current.value, current);
     return;
   }
-  if (node.type === "TemplateLiteral") {
-    for (const quasi of node.quasis) onString(quasi.value.cooked ?? "", quasi);
-    for (const expression of node.expressions) collectStrings(expression, onString);
+  if (current.type === "TemplateLiteral") {
+    for (const quasi of (current.quasis as LooseNode[] | undefined) ?? []) {
+      const cooked = (quasi.value as { cooked?: string } | undefined)?.cooked;
+      onString(cooked ?? "", quasi);
+    }
+    for (const expression of (current.expressions as unknown[] | undefined) ?? []) {
+      collectStrings(expression, onString);
+    }
     return;
   }
   for (const key of ["expression", "left", "right", "test", "consequent", "alternate"]) {
-    if (node[key]) collectStrings(node[key], onString);
+    if (current[key]) collectStrings(current[key], onString);
   }
   for (const key of ["elements", "arguments", "expressions"]) {
-    for (const child of node[key] ?? []) collectStrings(child, onString);
+    for (const child of (current[key] as unknown[] | undefined) ?? []) {
+      collectStrings(child, onString);
+    }
   }
-  for (const property of node.properties ?? []) {
+  for (const property of (current.properties as LooseNode[] | undefined) ?? []) {
     // The key, not only the value: `clsx({ "font-bold": on })` is the idiomatic way to
     // write a conditional class, and there the class name is the key.
     if (property.key) collectStrings(property.key, onString);
@@ -85,7 +119,7 @@ function collectStrings(node, onString) {
   }
 }
 
-export const tailwindLayoutOnly = {
+export const tailwindLayoutOnly: Rule.RuleModule = {
   meta: {
     type: "problem",
     docs: {
@@ -108,18 +142,24 @@ export const tailwindLayoutOnly = {
     },
   },
   create(context) {
-    const options = context.options[0] ?? {};
+    const options: LayoutOptions = context.options[0] ?? {};
     return {
-      JSXAttribute(node) {
-        const name = node.name.type === "JSXIdentifier" ? node.name.name : "";
-        if (name !== "className" || node.value === null) return;
-        collectStrings(node.value, (text, at) => {
+      JSXAttribute(node: unknown) {
+        const attribute = node as LooseNode;
+        const nameNode = attribute.name as LooseNode | undefined;
+        const name = nameNode?.type === "JSXIdentifier" ? (nameNode.name as string) : "";
+        if (name !== "className" || attribute.value === null) return;
+        collectStrings(attribute.value, (text, at) => {
           for (const rawClass of text.split(/\s+/)) {
             if (rawClass === "" || isLayoutUtility(rawClass, options)) continue;
-            context.report({ node: at, messageId: "notLayout", data: { value: rawClass } });
+            context.report({
+              node: at as never,
+              messageId: "notLayout",
+              data: { value: rawClass },
+            });
           }
         });
       },
-    };
+    } as Rule.RuleListener;
   },
 };

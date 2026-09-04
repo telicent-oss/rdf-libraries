@@ -63,9 +63,18 @@ A `.commitSha` file is written into the destination recording the commit it came
 
 | Export | Signature | Returns |
 | --- | --- | --- |
-| `pullGitignored` | `({ repo, refs, subpath, dest, cwd, writeShaFile })` | `{ sha, ref }` |
-| `isGitIgnored` | `(path, cwd)` | `boolean` |
+| `pullGitignored` | `({ repo, refs, subpath, dest, cwd, writeShaFile, cloneTimeoutMs, git })` | `{ sha, ref }` |
+| `isGitIgnored` | `(path, cwd, git?)` | `boolean` |
 | `PullError` | `Error` subclass carrying `attempted: string[]` | |
+| `GitRunner` | `{ exec, spawn }` | type only |
+
+`writeShaFile` defaults to true and `cloneTimeoutMs` to 60000, which bounds each clone
+attempt rather than the whole call: three refs can wait three times that.
+
+`git` replaces how git is run, and defaults to running the real binary. It exists so the
+tests can present a machine with no git, which cannot be arranged in process — emptying
+`PATH` does not reach the child under jest. A caller with its own reason to control the
+invocation can pass one.
 
 `isGitIgnored` asks git rather than reading `.gitignore`, so nested and negated patterns
 give the same answer here as they do to git. Two details decide whether it answers

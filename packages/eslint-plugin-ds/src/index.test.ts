@@ -1,19 +1,14 @@
 import { readFileSync } from "node:fs";
-// URL comes from node:url too, so this file needs no node globals in the lint config.
-import { URL, fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
-import plugin, { meta, rules } from "./index.js";
+import { join } from "node:path";
 
-const manifest = JSON.parse(
-  readFileSync(fileURLToPath(new URL("../package.json", import.meta.url)), "utf8"),
-);
+import plugin, { isLayoutUtility, meta, rules } from "./index";
+
+const manifest = JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf8"));
 
 describe("plugin", () => {
   // meta.version is a literal, and release-please bumps package.json without touching
   // source. So the two drift apart silently, and the version ESLint prints in a resolved
-  // config stops matching the version that was installed. Asserted rather than read at
-  // runtime: importing JSON from source would tie the plugin to an import-attributes
-  // syntax that this package's own `engines` range does not cover end to end.
+  // config stops matching the version that was installed.
   it("reports the version the package was published as", () => {
     expect(meta.version).toBe(manifest.version);
   });
@@ -27,5 +22,17 @@ describe("plugin", () => {
   it("exposes the same rules through both exports", () => {
     expect(Object.keys(plugin.rules)).toEqual(Object.keys(rules));
     expect(Object.keys(rules)).toEqual(["tailwind-layout-only"]);
+  });
+});
+
+// isLayoutUtility is exported for callers that want the classification without ESLint,
+// so it is called here the way they would: one class, no options.
+describe("isLayoutUtility", () => {
+  it("classifies without being given options", () => {
+    expect(isLayoutUtility("gap-4")).toBe(true);
+    expect(isLayoutUtility("font-bold")).toBe(false);
+    // The text size scale, which is on by default.
+    expect(isLayoutUtility("text-sm")).toBe(true);
+    expect(isLayoutUtility("text-red-500")).toBe(false);
   });
 });
