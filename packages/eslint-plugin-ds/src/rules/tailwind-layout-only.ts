@@ -3,6 +3,11 @@ import type { Rule } from "eslint";
 const LAYOUT_KEYWORDS = new Set([
   "flex", "grid", "block", "inline", "inline-flex", "inline-block", "contents", "hidden",
   "static", "relative", "absolute", "fixed", "sticky", "grow", "shrink", "isolate",
+  // align-content, named in full rather than carried as a `content` prefix. The prefix
+  // would also admit `content-['x']`, which sets the CSS content property and is exactly
+  // the decoration the design system owns.
+  "content-normal", "content-center", "content-start", "content-end", "content-between",
+  "content-around", "content-evenly", "content-baseline", "content-stretch",
 ]);
 
 /**
@@ -17,7 +22,7 @@ const LAYOUT_KEYWORDS = new Set([
  * prefix silently retires every longer one under it.
  */
 const LAYOUT_PREFIXES = new Set([
-  "flex", "items", "justify", "self", "content", "place-items", "place-content", "place-self",
+  "flex", "items", "justify", "self", "place-items", "place-content", "place-self",
   "order", "basis", "col", "row",
   "grid-cols", "grid-rows", "aspect", "overflow",
   "gap", "space-x", "space-y",
@@ -36,10 +41,26 @@ const TEXT_SIZES = new Set([
   "2xl", "3xl", "4xl", "5xl", "6xl", "7xl", "8xl", "9xl",
 ]);
 
-export type LayoutOptions = {
+export interface LayoutOptions {
   allowTextSizes?: boolean;
   extraPrefixes?: string[];
-};
+}
+
+/**
+ * `LayoutOptions` with the defaults filled in and `extraPrefixes` built into the set the
+ * matcher wants. Built once per lint run rather than per class name.
+ */
+interface Allowance {
+  allowTextSizes: boolean;
+  extraPrefixes: ReadonlySet<string>;
+}
+
+function allowanceFrom(options: LayoutOptions): Allowance {
+  return {
+    allowTextSizes: options.allowTextSizes ?? true,
+    extraPrefixes: new Set(options.extraPrefixes ?? []),
+  };
+}
 
 /**
  * Whether any dash-delimited prefix of `token` is in `prefixes`, scanning left to right
@@ -62,7 +83,11 @@ function hasPrefixIn(token: string, prefixes: ReadonlySet<string>): boolean {
  * the brackets cannot change the category.
  */
 export function isLayoutUtility(rawClass: string, options: LayoutOptions = {}): boolean {
-  const { allowTextSizes = true, extraPrefixes = [] } = options;
+  return isAllowedClass(rawClass, allowanceFrom(options));
+}
+
+function isAllowedClass(rawClass: string, allowance: Allowance): boolean {
+  const { allowTextSizes, extraPrefixes } = allowance;
   const token = rawClass.slice(rawClass.lastIndexOf(":") + 1).replace(/^-/, "");
   // Nothing left after stripping a variant and a sign, so the class was `-` or `md:`.
   // Neither names a utility, and reporting a typo as a design-system violation would send
@@ -71,7 +96,7 @@ export function isLayoutUtility(rawClass: string, options: LayoutOptions = {}): 
   if (LAYOUT_KEYWORDS.has(token)) return true;
   // Before the `text-` branch, which answers for every `text-` class and would otherwise
   // make `extraPrefixes: ["text"]` dead configuration.
-  if (hasPrefixIn(token, new Set(extraPrefixes))) return true;
+  if (hasPrefixIn(token, extraPrefixes)) return true;
   if (token.startsWith("text-")) {
     return allowTextSizes && TEXT_SIZES.has(token.slice("text-".length));
   }
@@ -142,24 +167,30 @@ export const tailwindLayoutOnly: Rule.RuleModule = {
     },
   },
   create(context) {
-    const options: LayoutOptions = context.options[0] ?? {};
-    return {
+    const allowance = allowanceFrom(context.options[0] ?? {});
+    // `class` as well as `className`: JSX takes the former in Preact and in Solid, and a
+    // rule that reads only one of them passes a whole file written the other way.
+    const classAttributes = new Set(["className", "class"]);
+    const listeners: Rule.RuleListener = {
       JSXAttribute(node: unknown) {
         const attribute = node as LooseNode;
         const nameNode = attribute.name as LooseNode | undefined;
         const name = nameNode?.type === "JSXIdentifier" ? (nameNode.name as string) : "";
-        if (name !== "className" || attribute.value === null) return;
+        if (!classAttributes.has(name) || attribute.value === null) return;
         collectStrings(attribute.value, (text, at) => {
           for (const rawClass of text.split(/\s+/)) {
-            if (rawClass === "" || isLayoutUtility(rawClass, options)) continue;
+            if (rawClass === "" || isAllowedClass(rawClass, allowance)) continue;
             context.report({
-              node: at as never,
+              // `at` is inside a JSX attribute, and the estree unions ESLint's types are
+              // built from carry no JSX, so there is no node type here to annotate with.
+              node: at as unknown as Rule.Node,
               messageId: "notLayout",
               data: { value: rawClass },
             });
           }
         });
       },
-    } as Rule.RuleListener;
+    };
+    return listeners;
   },
 };

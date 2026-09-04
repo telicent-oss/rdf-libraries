@@ -1,20 +1,13 @@
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import plugin, { configs, isLayoutUtility, meta, rules } from "./index";
 
-import plugin, { isLayoutUtility, meta, rules } from "./index";
-
-const manifest = JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf8"));
+import { name, version } from "../package.json";
 
 describe("plugin", () => {
-  // meta.version is a literal, and release-please bumps package.json without touching
-  // source. So the two drift apart silently, and the version ESLint prints in a resolved
-  // config stops matching the version that was installed.
-  it("reports the version the package was published as", () => {
-    expect(meta.version).toBe(manifest.version);
-  });
-
-  it("names itself the same as the package, which is how ESLint keys its cache", () => {
-    expect(meta.name).toBe(manifest.name);
+  // ESLint keys its cache on meta.name and prints meta.version in a resolved config, so
+  // both are read from the manifest rather than written out here, where release-please
+  // would bump one and not the other.
+  it("reports itself as the package it was published as", () => {
+    expect(meta).toEqual({ name, version });
   });
 
   // A rule reachable through the named export but not the default one is invisible to a
@@ -22,6 +15,15 @@ describe("plugin", () => {
   it("exposes the same rules through both exports", () => {
     expect(Object.keys(plugin.rules)).toEqual(Object.keys(rules));
     expect(Object.keys(rules)).toEqual(["tailwind-layout-only"]);
+  });
+
+  // The recommended config names the rule in prose, so a rename that misses it ships a
+  // config referring to a rule that does not exist.
+  it("turns on every rule it ships in the recommended config", () => {
+    expect(Object.keys(configs.recommended.rules)).toEqual(
+      Object.keys(rules).map((rule) => `@telicent-oss/ds/${rule}`),
+    );
+    expect(configs.recommended.plugins["@telicent-oss/ds"].meta).toBe(meta);
   });
 });
 

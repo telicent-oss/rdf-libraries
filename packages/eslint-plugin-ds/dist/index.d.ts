@@ -1,6 +1,47 @@
 import { Rule } from 'eslint';
 
+/**
+ * A flat config a consumer can spread, so the rule is turned on in one line instead of
+ * three. The plugin is registered under the same name ESLint prints in a resolved config.
+ */
+export declare const configs: {
+    recommended: {
+        plugins: {
+            "@telicent-oss/ds": {
+                meta: {
+                    name: string;
+                    version: string;
+                };
+                rules: {
+                    "tailwind-layout-only": Rule.RuleModule;
+                };
+            };
+        };
+        rules: {
+            "@telicent-oss/ds/tailwind-layout-only": string;
+        };
+    };
+};
+
 declare const _default: {
+    configs: {
+        recommended: {
+            plugins: {
+                "@telicent-oss/ds": {
+                    meta: {
+                        name: string;
+                        version: string;
+                    };
+                    rules: {
+                        "tailwind-layout-only": Rule.RuleModule;
+                    };
+                };
+            };
+            rules: {
+                "@telicent-oss/ds/tailwind-layout-only": string;
+            };
+        };
+    };
     meta: {
         name: string;
         version: string;
@@ -21,10 +62,10 @@ export default _default;
  */
 export declare function isLayoutUtility(rawClass: string, options?: LayoutOptions): boolean;
 
-export declare type LayoutOptions = {
+export declare interface LayoutOptions {
     allowTextSizes?: boolean;
     extraPrefixes?: string[];
-};
+}
 
 export declare const meta: {
     name: string;

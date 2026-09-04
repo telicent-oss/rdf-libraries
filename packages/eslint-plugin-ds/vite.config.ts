@@ -1,10 +1,12 @@
-import { builtinModules } from "node:module";
+import { builtinModules, createRequire } from "node:module";
 import { resolve } from "node:path";
 
 import { defineConfig, PluginOption } from "vite";
 import dts from "vite-plugin-dts";
 
-import pkg from "./package.json" assert { type: "json" };
+// require rather than an import attribute: vite 4 loads this config through the esbuild
+// that CatalogService pins (0.18), which parses neither `with` nor `assert` as valid here.
+const pkg = createRequire(import.meta.url)("./package.json");
 
 const externals = [
   ...builtinModules,
@@ -29,7 +31,9 @@ export default defineConfig({
       formats: ["es"],
       fileName: () => "eslint-plugin-ds.es.js",
     },
-    sourcemap: true,
+    // No sourcemap: the shipped bundle is unminified ESM that reads as the source, and a
+    // map without the .ts files beside it points a consumer at paths that are not there.
+    sourcemap: false,
     minify: false,
     rollupOptions: { external: externals },
   },

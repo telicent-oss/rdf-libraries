@@ -1,3 +1,5 @@
+const name = "@telicent-oss/eslint-plugin-ds";
+const version = "0.0.1";
 const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
   "flex",
   "grid",
@@ -14,14 +16,25 @@ const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
   "sticky",
   "grow",
   "shrink",
-  "isolate"
+  "isolate",
+  // align-content, named in full rather than carried as a `content` prefix. The prefix
+  // would also admit `content-['x']`, which sets the CSS content property and is exactly
+  // the decoration the design system owns.
+  "content-normal",
+  "content-center",
+  "content-start",
+  "content-end",
+  "content-between",
+  "content-around",
+  "content-evenly",
+  "content-baseline",
+  "content-stretch"
 ]);
 const LAYOUT_PREFIXES = /* @__PURE__ */ new Set([
   "flex",
   "items",
   "justify",
   "self",
-  "content",
   "place-items",
   "place-content",
   "place-self",
@@ -83,6 +96,12 @@ const TEXT_SIZES = /* @__PURE__ */ new Set([
   "8xl",
   "9xl"
 ]);
+function allowanceFrom(options) {
+  return {
+    allowTextSizes: options.allowTextSizes ?? true,
+    extraPrefixes: new Set(options.extraPrefixes ?? [])
+  };
+}
 function hasPrefixIn(token, prefixes) {
   for (let dash = token.indexOf("-"); dash > 0; dash = token.indexOf("-", dash + 1)) {
     if (prefixes.has(token.slice(0, dash)))
@@ -91,13 +110,16 @@ function hasPrefixIn(token, prefixes) {
   return false;
 }
 function isLayoutUtility(rawClass, options = {}) {
-  const { allowTextSizes = true, extraPrefixes = [] } = options;
+  return isAllowedClass(rawClass, allowanceFrom(options));
+}
+function isAllowedClass(rawClass, allowance) {
+  const { allowTextSizes, extraPrefixes } = allowance;
   const token = rawClass.slice(rawClass.lastIndexOf(":") + 1).replace(/^-/, "");
   if (token === "")
     return true;
   if (LAYOUT_KEYWORDS.has(token))
     return true;
-  if (hasPrefixIn(token, new Set(extraPrefixes)))
+  if (hasPrefixIn(token, extraPrefixes))
     return true;
   if (token.startsWith("text-")) {
     return allowTextSizes && TEXT_SIZES.has(token.slice("text-".length));
@@ -159,19 +181,22 @@ const tailwindLayoutOnly = {
     }
   },
   create(context) {
-    const options = context.options[0] ?? {};
-    return {
+    const allowance = allowanceFrom(context.options[0] ?? {});
+    const classAttributes = /* @__PURE__ */ new Set(["className", "class"]);
+    const listeners = {
       JSXAttribute(node) {
         const attribute = node;
         const nameNode = attribute.name;
-        const name = nameNode?.type === "JSXIdentifier" ? nameNode.name : "";
-        if (name !== "className" || attribute.value === null)
+        const name2 = nameNode?.type === "JSXIdentifier" ? nameNode.name : "";
+        if (!classAttributes.has(name2) || attribute.value === null)
           return;
         collectStrings(attribute.value, (text, at) => {
           for (const rawClass of text.split(/\s+/)) {
-            if (rawClass === "" || isLayoutUtility(rawClass, options))
+            if (rawClass === "" || isAllowedClass(rawClass, allowance))
               continue;
             context.report({
+              // `at` is inside a JSX attribute, and the estree unions ESLint's types are
+              // built from carry no JSX, so there is no node type here to annotate with.
               node: at,
               messageId: "notLayout",
               data: { value: rawClass }
@@ -180,20 +205,25 @@ const tailwindLayoutOnly = {
         });
       }
     };
+    return listeners;
   }
 };
 const rules = {
   "tailwind-layout-only": tailwindLayoutOnly
 };
-const meta = {
-  name: "@telicent-oss/eslint-plugin-ds",
-  version: "0.0.1"
+const meta = { name, version };
+const plugin = { meta, rules };
+const configs = {
+  recommended: {
+    plugins: { "@telicent-oss/ds": plugin },
+    rules: { "@telicent-oss/ds/tailwind-layout-only": "error" }
+  }
 };
-const index = { meta, rules };
+const index = { ...plugin, configs };
 export {
+  configs,
   index as default,
   isLayoutUtility,
   meta,
   rules
 };
-//# sourceMappingURL=eslint-plugin-ds.es.js.map
