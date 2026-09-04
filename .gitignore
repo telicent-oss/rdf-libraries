@@ -98,6 +98,16 @@ out
 .nuxt
 dist
 
+# These two ship their build output, unlike every other package here. They are consumed
+# from a git pin rather than a registry, so nothing compiles them on the way in: the
+# install would have to run their build, and the consumer denies build scripts by
+# default. Committing the output keeps that gate shut. Regenerate with `yarn build` in
+# the package; `yarn verify-dist` fails if it is stale.
+!packages/eslint-plugin-ds/dist
+!packages/eslint-plugin-ds/dist/**
+!packages/git-pull-ignored-lib/dist
+!packages/git-pull-ignored-lib/dist/**
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js

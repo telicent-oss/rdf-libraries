@@ -26,8 +26,8 @@
     "lint": "eslint \"src/**/*.ts\"",
     "tscNoEmit": "tsc --noEmit",
     "build": "rm -rf ./dist && vite build",
-    "//prepare": "consumers install this from git, where only prepare runs; without it they would get no dist. Inlined rather than calling yarn build: the consumer may be on pnpm or npm",
-    "prepare": "rm -rf ./dist && vite build",
+    "//dist": "committed, so a git-pinned consumer needs no build on install. There is deliberately no prepare script",
+    "verify-dist": "rm -rf ./dist && vite build && git diff --exit-code -- dist",
     "prepublish": "yarn lint && yarn test",
     "prepublishOnly": "yarn build"
   },
