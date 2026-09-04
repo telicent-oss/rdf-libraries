@@ -66,21 +66,31 @@ A `.commitSha` file is written into the destination recording the commit it came
 | `pullGitignored` | `({ repo, refs, subpath, dest, cwd, writeShaFile, cloneTimeoutMs, git })` | `{ sha, ref }` |
 | `isGitIgnored` | `(path, cwd, git?)` | `boolean` |
 | `PullError` | `Error` subclass carrying `attempted: string[]` | |
-| `GitRunner` | `{ exec, spawn }` | type only |
+| `GitRunner` | `(args, options?) => GitResult` | type only |
+| `GitResult` | `{ status, signal, stdout, stderr, error? }` | type only |
+| `GitOptions` | `{ timeout?, env? }` | type only |
 
 `writeShaFile` defaults to true and `cloneTimeoutMs` to 60000, which bounds each clone
 attempt rather than the whole call: three refs can wait three times that.
 
-`git` replaces how git is run, and defaults to running the real binary. It exists so the
+`git` replaces how git is run, and defaults to running the real binary. It is one function
+taking the arguments after `git` and returning the outcome; it never throws, so a missing
+binary is told apart from a command that ran and failed by reading `error.code` (`ENOENT`
+for a git that is not there, `ETIMEDOUT` for one the deadline killed). It exists so the
 tests can present a machine with no git, which cannot be arranged in process — emptying
 `PATH` does not reach the child under jest. A caller with its own reason to control the
 invocation can pass one.
 
+`dest` is replaced by assembling the new content beside it and renaming it into place, so
+a copy that fails part-way leaves the old content where it was. Only `refs` naming a branch
+or tag work: the clone passes `--branch`, which a commit sha does not satisfy.
+
 `isGitIgnored` asks git rather than reading `.gitignore`, so nested and negated patterns
-give the same answer here as they do to git. Two details decide whether it answers
-correctly, and both are load-bearing: the path is made relative to `cwd`, because git
+give the same answer here as they do to git. Three details decide whether it answers
+correctly, and each is load-bearing: the path is made relative to `cwd`, because git
 rejects an absolute path it reads as outside the repository and on macOS `/var/...`
-resolves to `/private/var/...`; and a trailing slash is added, because the usual pattern
+resolves to `/private/var/...`; separators are rewritten to `/`, because `relative()`
+returns `\` on win32 and git takes only `/`; and a trailing slash is added, because the usual pattern
 for a pulled directory is `name/`, which git matches only against a path it knows is a
 directory — without the slash a destination that does not exist yet reads as not ignored,
 and every first pull would be refused.
@@ -88,15 +98,15 @@ and every first pull would be refused.
 ## Tests
 
 ```bash
-pnpm test
-pnpm coverage
+yarn test
+yarn coverage
 ```
 
 The suite builds real git repositories in temp directories, so the ignore check is proved
 against git itself rather than a mock. It needs `git` on `PATH`; there is no network access
 and no remote is contacted.
 
-Vitest rather than the jest every other package here uses. This package is native ESM with
-no build step, and the repo's `jest.preset.js` transforms `.ts`/`.tsx` through ts-jest with
-no ESM support configured in any package. Running these tests under jest would mean adding
-that configuration; vitest needs none.
+jest with ts-jest, through the repo's `jest.preset.js`, the same as every other package
+here. One test runs the source in a child process through `tsx` instead: it is the one that
+needs git genuinely absent from `PATH`, and jest hands a test a copy of `process.env` while
+the child reads the real one.

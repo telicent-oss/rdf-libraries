@@ -25,7 +25,8 @@ pnpm add -D @telicent-oss/eslint-plugin-ds
 The manifest allows Tailwind for layout, size and spacing, and gives typography, colour
 and decoration to the design system. This rule reports any class outside that allowance.
 
-It sees string literals and template quasis reachable from a `className` attribute. A class
+It sees string literals and template quasis reachable from a `className` or `class`
+attribute. A class
 that arrives through a variable, a tagged template, a spread, or a helper defined in another
 file is not inspected, so the rule catches what is written at the call site rather than
 everything that reaches the DOM.
@@ -34,10 +35,19 @@ everything that reaches the DOM.
 import ds from "@telicent-oss/eslint-plugin-ds";
 
 export default [
+  { files: ["src/**/*.tsx"], ...ds.configs.recommended },
+];
+```
+
+`configs.recommended` registers the plugin and turns on every rule it ships. To pick rules
+or set options, register it and name them:
+
+```js
+export default [
   {
     files: ["src/**/*.tsx"],
     plugins: { "@telicent-oss/ds": ds },
-    rules: { "@telicent-oss/ds/tailwind-layout-only": "error" },
+    rules: { "@telicent-oss/ds/tailwind-layout-only": ["error", { allowTextSizes: false }] },
   },
 ];
 ```
@@ -72,8 +82,8 @@ special case: `min-w-[420px]` is decided by `min-w`.
 
 ### What it does not see
 
-The rule reads the class names written inside the `className` attribute. It does not
-resolve variables, so a class list built above the JSX passes:
+The rule reads the class names written inside the `className` or `class` attribute. It does
+not resolve variables, so a class list built above the JSX passes:
 
 ```jsx
 const classes = clsx("text-red-500");
@@ -86,15 +96,28 @@ clean run as "nothing inline is wrong", not as full enforcement.
 
 ## Tests
 
-`src/rules/*.test.js` drive ESLint's own `RuleTester`, which throws on any case that does
-not behave as declared, so each run is the assertion.
-
-Vitest rather than the jest every other package here uses. This package is native ESM
-with no build step, and the repo's `jest.preset.js` transforms `.ts`/`.tsx` through
-ts-jest with no ESM support configured in any package. Running these tests under jest
-would mean adding that configuration; vitest needs none.
+`src/rules/*.test.ts` drive ESLint's own `RuleTester`, which throws on any case that does
+not behave as declared, so each run is the assertion. jest with ts-jest, through the
+repo's `jest.preset.js`, the same as every other package here.
 
 ```bash
-pnpm test
-pnpm coverage
+yarn test
+yarn coverage
 ```
+
+## Classifying without ESLint
+
+`isLayoutUtility(rawClass, options?)` answers the same question the rule asks, for one
+class at a time, and takes the same `LayoutOptions` the rule takes. A codemod or a check of
+a class list held in data can use it without loading ESLint.
+
+```js
+import { isLayoutUtility } from "@telicent-oss/eslint-plugin-ds";
+
+isLayoutUtility("gap-4");                                  // true
+isLayoutUtility("text-red-500");                           // false
+isLayoutUtility("columns-3", { extraPrefixes: ["columns"] }); // true
+```
+
+It answers true for a class that names no utility at all (`-`, `md:`), matching the rule:
+reporting a typo as a design-system violation sends the reader to the wrong fix.
