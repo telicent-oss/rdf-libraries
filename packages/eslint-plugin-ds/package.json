@@ -38,8 +38,11 @@
   "peerDependencies": {
     "eslint": ">=8"
   },
+  "//dependencies": "the emitted index.d.ts references eslint's Rule type, and eslint 8 ships no types of its own, so a consumer on 8 cannot resolve it unless this comes with the package",
+  "dependencies": {
+    "@types/eslint": "^8.56.0"
+  },
   "devDependencies": {
-    "@types/eslint": "^8.56.0",
     "@types/jest": "^29.5.12",
     "@types/node": "18.19.9",
     "@typescript-eslint/parser": "^6.20.0",
