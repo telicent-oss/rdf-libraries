@@ -5,9 +5,10 @@ import plugin, { isLayoutUtility, meta, rules } from "./index";
 
 describe("plugin", () => {
   // ESLint keys its cache on meta.name and prints meta.version in a resolved config. Both
-  // are read from package.json at run time, so a release-please bump cannot leave the
-  // shipped bundle a version behind. Read here from disk rather than imported, so the test
-  // would still fail if the source went back to a literal.
+  // come from package.json rather than a literal, so a release-please bump cannot leave
+  // the source behind; the build inlines them, and `verify-dist` in CI is what stops a
+  // stale bundle shipping. Read from disk here, not imported, so the test would still fail
+  // if the source went back to a literal.
   it("reports itself as the package it was published as", () => {
     const manifest = JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf8"));
     expect(meta).toEqual({ name: manifest.name, version: manifest.version });

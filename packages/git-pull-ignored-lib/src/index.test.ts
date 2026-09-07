@@ -343,6 +343,20 @@ describe("pullGitignored", () => {
     expect(readdirSync(consumer).filter((e) => e.startsWith(".pull-"))).toEqual([]);
   });
 
+  it("clears a staging directory a killed run left behind", () => {
+    // Staging lives inside dest, so a process killed mid-pull leaves one there. It is
+    // inside the ignored region, and the next run's sweep of dest is what removes it.
+    const source = sourceRepo({ "guidance/a.md": "A" });
+    const consumer = consumerRepo("pulled/\n");
+    const dest = join(consumer, "pulled");
+    mkdirSync(join(dest, ".pull-gitignored-abandoned"), { recursive: true });
+    writeFileSync(join(dest, ".pull-gitignored-abandoned/half.md"), "HALF");
+
+    pullGitignored({ repo: source, refs: ["main"], subpath: "guidance", dest, cwd: consumer });
+
+    expect(readdirSync(dest).sort()).toEqual([".commitSha", "a.md"]);
+  });
+
   it("says so when the clone has no HEAD to read, rather than recording an empty sha", () => {
     // rev-parse no longer throws on failure, so an unread HEAD would otherwise be copied
     // into .commitSha as an empty string and pass for a real commit.
