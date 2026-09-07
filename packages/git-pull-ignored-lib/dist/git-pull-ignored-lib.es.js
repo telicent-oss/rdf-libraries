@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, cpSync, writeFileSync, renameSync, existsSync } from "node:fs";
+import { mkdirSync, mkdtempSync, rmSync, cpSync, writeFileSync, readdirSync, renameSync, existsSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { isAbsolute, relative, sep, dirname, join } from "node:path";
+import { isAbsolute, relative, sep, join } from "node:path";
 class PullError extends Error {
   attempted;
   constructor(message, { attempted = [] } = {}) {
@@ -127,16 +127,27 @@ Add it to .gitignore, or point dest at a directory that is already ignored.`
       });
     }
     const sha = headSha(clone.dir, git);
-    mkdirSync(dirname(dest), { recursive: true });
-    staging = mkdtempSync(join(dirname(dest), ".pull-gitignored-"));
+    mkdirSync(dest, { recursive: true });
+    staging = mkdtempSync(join(dest, ".pull-gitignored-"));
     rmSync(staging, { recursive: true, force: true });
-    cpSync(join(clone.dir, subpath), staging, { recursive: true });
-    if (writeShaFile)
-      writeFileSync(join(staging, ".commitSha"), `${sha}
+    try {
+      cpSync(join(clone.dir, subpath), staging, { recursive: true });
+      if (writeShaFile)
+        writeFileSync(join(staging, ".commitSha"), `${sha}
 `);
-    rmSync(dest, { recursive: true, force: true });
-    renameSync(staging, dest);
-    staging = null;
+    } catch (error) {
+      throw new PullError(
+        `could not assemble ${subpath} from ${repo} in ${dest}: ${error.message}
+Nothing was removed: the previous contents of ${dest} are untouched.`
+      );
+    }
+    for (const entry of readdirSync(dest)) {
+      if (join(dest, entry) !== staging)
+        rmSync(join(dest, entry), { recursive: true, force: true });
+    }
+    for (const entry of readdirSync(staging)) {
+      renameSync(join(staging, entry), join(dest, entry));
+    }
     return { sha, ref: clone.ref };
   } finally {
     if (clone !== null)

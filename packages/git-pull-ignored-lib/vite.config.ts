@@ -4,8 +4,9 @@ import { resolve } from "node:path";
 import { defineConfig, PluginOption } from "vite";
 import dts from "vite-plugin-dts";
 
-// require rather than an import attribute: vite 4 loads this config through the esbuild
-// that CatalogService pins (0.18), which parses neither `with` nor `assert` as valid here.
+// require rather than an import attribute. `assert { type: "json" }` still works but is
+// the deprecated spelling, and `with` does not: vite 4 loads this config through the
+// esbuild CatalogService pins (0.18), which predates `with`. require needs neither.
 const pkg = createRequire(import.meta.url)("./package.json");
 
 const externals = [

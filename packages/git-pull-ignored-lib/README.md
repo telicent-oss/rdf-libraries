@@ -90,7 +90,8 @@ give the same answer here as they do to git. Three details decide whether it ans
 correctly, and each is load-bearing: the path is made relative to `cwd`, because git
 rejects an absolute path it reads as outside the repository and on macOS `/var/...`
 resolves to `/private/var/...`; separators are rewritten to `/`, because `relative()`
-returns `\` on win32 and git takes only `/`; and a trailing slash is added, because the usual pattern
+returns `\` on win32 and git takes only `/` (written for win32, not tested there: the
+suite runs on macOS and linux, and `path.sep` cannot be changed inside a test); and a trailing slash is added, because the usual pattern
 for a pulled directory is `name/`, which git matches only against a path it knows is a
 directory — without the slash a destination that does not exist yet reads as not ignored,
 and every first pull would be refused.

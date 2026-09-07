@@ -1,5 +1,7 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -187,7 +189,9 @@ describe("with a scripted git", () => {
     ]);
   });
 
-  it("refuses to run at all when git is missing, rather than retrying every ref", () => {
+  // Only reachable through an injected runner: with the real one, insideWorkTree raises
+  // first. It pins the contract a caller writing its own runner has to satisfy.
+  it("stops at the first clone when the runner reports git missing", () => {
     const noGit: GitRunner = (args) =>
       args.includes("clone")
         ? ran({ status: null, error: Object.assign(new Error("ENOENT"), { code: "ENOENT" }) })
@@ -323,10 +327,20 @@ describe("pullGitignored", () => {
     mkdirSync(dest);
     writeFileSync(join(dest, "old.md"), "OLD");
 
-    expect(() =>
-      pullGitignored({ repo: source, refs: ["main"], subpath: "guidance/a.md", dest, cwd: consumer }),
-    ).toThrow();
+    try {
+      pullGitignored({ repo: source, refs: ["main"], subpath: "guidance/a.md", dest, cwd: consumer });
+      throw new Error("expected a PullError");
+    } catch (error) {
+      // A PullError, not a raw ENOTDIR: callers print these and exit, and a stack trace
+      // here would read as a bug in the library rather than a bad subpath.
+      expect(error).toBeInstanceOf(PullError);
+      expect((error as PullError).message).toMatch(/Nothing was removed/);
+    }
     expect(readFileSync(join(dest, "old.md"), "utf8")).toBe("OLD");
+    // Nothing left behind, and nothing written outside dest, which is the only path git
+    // was asked about.
+    expect(readdirSync(dest)).toEqual(["old.md"]);
+    expect(readdirSync(consumer).filter((e) => e.startsWith(".pull-"))).toEqual([]);
   });
 
   it("says so when the clone has no HEAD to read, rather than recording an empty sha", () => {

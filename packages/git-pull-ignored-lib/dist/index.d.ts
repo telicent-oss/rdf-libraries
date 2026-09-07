@@ -86,9 +86,9 @@ export interface PullResult {
  * a moved directory or an edited .gitignore turns a pull into data loss, and the files it
  * takes are the ones git is not tracking, so there is nothing to restore from.
  *
- * The new content is assembled beside `dest` and swapped in, so `dest` survives until
- * there is something complete to replace it with. Copying into `dest` directly means a
- * failed copy — a full disk, a file where a directory was expected — leaves the caller
- * with neither the old content nor the new.
+ * The new content is assembled in a directory inside `dest` and moved up into it once it
+ * is complete, so everything that can fail — a full disk, a file where a directory was
+ * expected — fails while the old content is still there. `dest` is the only path git has
+ * been asked about, so it is also the only path this writes to.
  */
 export declare function pullGitignored({ repo, refs, subpath, dest, cwd, writeShaFile, cloneTimeoutMs, git, }: PullOptions): PullResult;

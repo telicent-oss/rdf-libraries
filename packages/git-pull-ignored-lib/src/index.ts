@@ -1,7 +1,9 @@
 import { spawnSync } from "node:child_process";
-import { cpSync, existsSync, mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import {
+  cpSync, existsSync, mkdirSync, mkdtempSync, readdirSync, renameSync, rmSync, writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, isAbsolute, join, relative, sep } from "node:path";
+import { isAbsolute, join, relative, sep } from "node:path";
 
 /** A failure the caller is expected to print and exit on, rather than a bug. */
 export class PullError extends Error {
@@ -221,10 +223,10 @@ export interface PullResult {
  * a moved directory or an edited .gitignore turns a pull into data loss, and the files it
  * takes are the ones git is not tracking, so there is nothing to restore from.
  *
- * The new content is assembled beside `dest` and swapped in, so `dest` survives until
- * there is something complete to replace it with. Copying into `dest` directly means a
- * failed copy — a full disk, a file where a directory was expected — leaves the caller
- * with neither the old content nor the new.
+ * The new content is assembled in a directory inside `dest` and moved up into it once it
+ * is complete, so everything that can fail — a full disk, a file where a directory was
+ * expected — fails while the old content is still there. `dest` is the only path git has
+ * been asked about, so it is also the only path this writes to.
  */
 export function pullGitignored({
   repo,
@@ -275,16 +277,32 @@ export function pullGitignored({
     }
 
     const sha = headSha(clone.dir, git);
-    // mkdtemp rather than a name derived from dest: it cannot collide with something
-    // already there, so nothing outside dest is ever deleted to make room for it.
-    mkdirSync(dirname(dest), { recursive: true });
-    staging = mkdtempSync(join(dirname(dest), ".pull-gitignored-"));
+    // Staged INSIDE dest, which is the only path git has said is disposable. Beside dest
+    // would be a directory nobody ignores, and a process killed between the copy and the
+    // swap would leave a full copy of another repository in the caller's tree for
+    // `git add -A` to pick up.
+    mkdirSync(dest, { recursive: true });
+    staging = mkdtempSync(join(dest, ".pull-gitignored-"));
     rmSync(staging, { recursive: true, force: true });
-    cpSync(join(clone.dir, subpath), staging, { recursive: true });
-    if (writeShaFile) writeFileSync(join(staging, ".commitSha"), `${sha}\n`);
-    rmSync(dest, { recursive: true, force: true });
-    renameSync(staging, dest);
-    staging = null;
+    try {
+      cpSync(join(clone.dir, subpath), staging, { recursive: true });
+      if (writeShaFile) writeFileSync(join(staging, ".commitSha"), `${sha}\n`);
+    } catch (error) {
+      // Nothing has been removed yet, so the old content is still there. Reported as a
+      // PullError because the caller prints these and exits, rather than showing a stack.
+      throw new PullError(
+        `could not assemble ${subpath} from ${repo} in ${dest}: ${(error as Error).message}\n` +
+          `Nothing was removed: the previous contents of ${dest} are untouched.`,
+      );
+    }
+    // Everything that can fail has already run. What is left is removing the old entries
+    // and moving the new ones up out of the staging directory, both inside dest.
+    for (const entry of readdirSync(dest)) {
+      if (join(dest, entry) !== staging) rmSync(join(dest, entry), { recursive: true, force: true });
+    }
+    for (const entry of readdirSync(staging)) {
+      renameSync(join(staging, entry), join(dest, entry));
+    }
     return { sha, ref: clone.ref };
   } finally {
     if (clone !== null) rmSync(clone.dir, { recursive: true, force: true });
