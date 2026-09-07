@@ -12,7 +12,6 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "//types": "first: conditions resolve in order, and only dist/index.d.ts is emitted",
       "types": "./dist/index.d.ts",
       "import": "./dist/eslint-plugin-ds.es.js",
       "//default": "eslint 8's legacy config loads a plugin through require, which needs a condition it matches. Node >=20.19 requires ESM, so the same file serves both",

@@ -12,9 +12,10 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "//types": "first: conditions resolve in order, and only dist/index.d.ts is emitted",
       "types": "./dist/index.d.ts",
-      "import": "./dist/git-pull-ignored-lib.es.js"
+      "import": "./dist/git-pull-ignored-lib.es.js",
+      "//default": "a require() of this package needs a condition it matches. Node >=20.19 requires ESM, so the same file serves both",
+      "default": "./dist/git-pull-ignored-lib.es.js"
     }
   },
   "files": [

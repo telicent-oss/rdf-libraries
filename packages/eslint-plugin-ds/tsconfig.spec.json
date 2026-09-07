@@ -1,8 +1,6 @@
 {
-  "// WHY does this file exist?": "compilerOptions.module = 'CommonJS'",
-  "// WHY is that important?": "Jest works better with CommonJS",
-  "// WHEN can it be removed?": "When tests work with ESM",
-  "// MORE:": "https://jestjs.io/docs/ecmascript-modules",
+  // Exists for one setting: module CommonJS, which jest wants. It can go when the tests
+  // run as ESM. https://jestjs.io/docs/ecmascript-modules
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "esModuleInterop": true,
@@ -10,7 +8,8 @@
     "moduleResolution": "node",
     "types": ["jest", "node"]
   },
-  "// exclude": "cleared: extends would inherit the parent exclude, which drops the tests this project exists for",
+  // Cleared, because extends would inherit the parent exclude, which drops the very tests
+  // this project exists for.
   "exclude": [],
   "include": ["src/**/*.ts"]
 }
