@@ -7,9 +7,8 @@ Pull a subdirectory of a git repo into a local gitignored directory, refusing an
 
 ## Background
 
-A dev tool. Guidance lives in one central repository, and every repo pulls the part it
-needs on setup, so the copy sitting in a repo is always fresh rather than a fork that
-drifted.
+This is a dev tool to help pull fresh guidance docs from a documentation repo into a
+project's gitignored folder.
 
 Pulling means replacing: the destination is deleted and rewritten, so a wrong path, a
 moved directory or an edited `.gitignore` turns that into data loss. The files it replaces
