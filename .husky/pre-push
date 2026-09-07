@@ -5,6 +5,7 @@
 ./scripts/check-release-please-config/index.js
 yarn test
 
-# Two packages commit their dist, because a git pin installs no build. Rebuild and
-# compare, so it cannot go stale.
+# release-please bumps its registered packages - but doesn't publish certain private
+# packages to npmjs.org. For the unpublished, verify-dist rebuilds and compares against
+# the committed ./dist, so a version bump that didnt get a rebuild fails the build.
 yarn lerna run verify-dist

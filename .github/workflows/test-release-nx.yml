@@ -29,6 +29,9 @@ jobs:
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: LOCAL_MACHINE=false yarn install --frozen-lockfile
       - run: yarn build
-      # A release bumps package.json without rebuilding, and dist carries the version.
+      # release-please bumps its registered packages - but doesn't publish certain private
+      # packages to npmjs.org. For the unpublished, verify-dist rebuilds and compares
+      # against the committed ./dist, so a version bump that didnt get a rebuild fails
+      # the build.
       - run: yarn lerna run verify-dist
       - run: yarn test:ci

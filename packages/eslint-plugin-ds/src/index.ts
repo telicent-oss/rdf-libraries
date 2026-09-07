@@ -12,8 +12,7 @@ export const rules = {
 // ESLint names the plugin from meta when it builds cache keys and prints a resolved
 // config, so without it both fall back to an anonymous entry.
 // Read from the manifest, because release-please bumps that and would leave a literal
-// here behind. The build inlines both strings, so the SHIPPED copy can still go stale
-// against a bumped package.json: `verify-dist` in CI is what catches that.
+// here behind.
 export const meta = { name, version };
 
 export default { meta, rules };
