@@ -168,15 +168,12 @@ export const tailwindLayoutOnly: Rule.RuleModule = {
   },
   create(context) {
     const allowance = allowanceFrom(context.options[0] ?? {});
-    // `class` as well as `className`: JSX takes the former in Preact and in Solid, and a
-    // rule that reads only one of them passes a whole file written the other way.
-    const classAttributes = new Set(["className", "class"]);
     const listeners: Rule.RuleListener = {
       JSXAttribute(node: unknown) {
         const attribute = node as LooseNode;
         const nameNode = attribute.name as LooseNode | undefined;
         const name = nameNode?.type === "JSXIdentifier" ? (nameNode.name as string) : "";
-        if (!classAttributes.has(name) || attribute.value === null) return;
+        if (name !== "className" || attribute.value === null) return;
         collectStrings(attribute.value, (text, at) => {
           for (const rawClass of text.split(/\s+/)) {
             if (rawClass === "" || isAllowedClass(rawClass, allowance)) continue;

@@ -182,13 +182,12 @@ const tailwindLayoutOnly = {
   },
   create(context) {
     const allowance = allowanceFrom(context.options[0] ?? {});
-    const classAttributes = /* @__PURE__ */ new Set(["className", "class"]);
     const listeners = {
       JSXAttribute(node) {
         const attribute = node;
         const nameNode = attribute.name;
         const name2 = nameNode?.type === "JSXIdentifier" ? nameNode.name : "";
-        if (!classAttributes.has(name2) || attribute.value === null)
+        if (name2 !== "className" || attribute.value === null)
           return;
         collectStrings(attribute.value, (text, at) => {
           for (const rawClass of text.split(/\s+/)) {
@@ -212,16 +211,8 @@ const rules = {
   "tailwind-layout-only": tailwindLayoutOnly
 };
 const meta = { name, version };
-const plugin = { meta, rules };
-const configs = {
-  recommended: {
-    plugins: { "@telicent-oss/ds": plugin },
-    rules: { "@telicent-oss/ds/tailwind-layout-only": "error" }
-  }
-};
-const index = { ...plugin, configs };
+const index = { meta, rules };
 export {
-  configs,
   index as default,
   isLayoutUtility,
   meta,

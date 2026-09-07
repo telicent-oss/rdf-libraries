@@ -1,13 +1,16 @@
-import plugin, { configs, isLayoutUtility, meta, rules } from "./index";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 
-import { name, version } from "../package.json";
+import plugin, { isLayoutUtility, meta, rules } from "./index";
 
 describe("plugin", () => {
-  // ESLint keys its cache on meta.name and prints meta.version in a resolved config, so
-  // both are read from the manifest rather than written out here, where release-please
-  // would bump one and not the other.
+  // ESLint keys its cache on meta.name and prints meta.version in a resolved config. Both
+  // are read from package.json at run time, so a release-please bump cannot leave the
+  // shipped bundle a version behind. Read here from disk rather than imported, so the test
+  // would still fail if the source went back to a literal.
   it("reports itself as the package it was published as", () => {
-    expect(meta).toEqual({ name, version });
+    const manifest = JSON.parse(readFileSync(join(__dirname, "../package.json"), "utf8"));
+    expect(meta).toEqual({ name: manifest.name, version: manifest.version });
   });
 
   // A rule reachable through the named export but not the default one is invisible to a
@@ -17,14 +20,6 @@ describe("plugin", () => {
     expect(Object.keys(rules)).toEqual(["tailwind-layout-only"]);
   });
 
-  // The recommended config names the rule in prose, so a rename that misses it ships a
-  // config referring to a rule that does not exist.
-  it("turns on every rule it ships in the recommended config", () => {
-    expect(Object.keys(configs.recommended.rules)).toEqual(
-      Object.keys(rules).map((rule) => `@telicent-oss/ds/${rule}`),
-    );
-    expect(configs.recommended.plugins["@telicent-oss/ds"].meta).toBe(meta);
-  });
 });
 
 // isLayoutUtility is exported for callers that want the classification without ESLint,

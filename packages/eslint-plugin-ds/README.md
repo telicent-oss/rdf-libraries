@@ -25,8 +25,7 @@ pnpm add -D @telicent-oss/eslint-plugin-ds
 The manifest allows Tailwind for layout, size and spacing, and gives typography, colour
 and decoration to the design system. This rule reports any class outside that allowance.
 
-It sees string literals and template quasis reachable from a `className` or `class`
-attribute. A class
+It sees string literals and template quasis reachable from a `className` attribute. A class
 that arrives through a variable, a tagged template, a spread, or a helper defined in another
 file is not inspected, so the rule catches what is written at the call site rather than
 everything that reaches the DOM.
@@ -35,15 +34,6 @@ everything that reaches the DOM.
 import ds from "@telicent-oss/eslint-plugin-ds";
 
 export default [
-  { files: ["src/**/*.tsx"], ...ds.configs.recommended },
-];
-```
-
-`configs.recommended` registers the plugin and turns on every rule it ships. To pick rules
-or set options, register it and name them:
-
-```js
-export default [
   {
     files: ["src/**/*.tsx"],
     plugins: { "@telicent-oss/ds": ds },
@@ -51,6 +41,10 @@ export default [
   },
 ];
 ```
+
+The plugin name is the consumer's to choose: `illustrative/hello-world` in the generator
+registers it as `ds` and runs it at `warn`, because a design-system violation there is a
+note to the developer rather than a broken build.
 
 Allowed, by an allowlist rather than a blocklist: Tailwind's utility surface grows with
 every release, so a blocklist silently stops covering what it has never heard of.
@@ -82,8 +76,8 @@ special case: `min-w-[420px]` is decided by `min-w`.
 
 ### What it does not see
 
-The rule reads the class names written inside the `className` or `class` attribute. It does
-not resolve variables, so a class list built above the JSX passes:
+The rule reads the class names written inside the `className` attribute. It does not
+resolve variables, so a class list built above the JSX passes:
 
 ```jsx
 const classes = clsx("text-red-500");

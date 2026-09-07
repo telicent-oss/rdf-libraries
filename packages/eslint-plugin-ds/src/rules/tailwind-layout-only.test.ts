@@ -119,18 +119,6 @@ ruleTester.run("tailwind-layout-only extraPrefixes", tailwindLayoutOnly, {
   invalid: [],
 });
 
-// `class` reads the same as `className`: a file written for Preact or Solid would
-// otherwise pass whole, with no class name ever inspected.
-ruleTester.run("tailwind-layout-only class attribute", tailwindLayoutOnly, {
-  valid: [{ code: '<div class="flex gap-4" />' }],
-  invalid: [
-    {
-      code: '<div class="font-bold" />',
-      errors: [{ messageId: "notLayout", data: { value: "font-bold" } }],
-    },
-  ],
-});
-
 // `content` is align-content, and its values are named in full. Carried as a prefix it
 // also admitted `content-['x']`, which sets the CSS content property.
 ruleTester.run("tailwind-layout-only align-content", tailwindLayoutOnly, {
