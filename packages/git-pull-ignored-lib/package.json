@@ -4,7 +4,7 @@
   "private": true,
   "//private": "private until we get an npmjs.org package created",
   "license": "Apache-2.0",
-  "description": "Pull a subdirectory of a git repository into a local gitignored directory, refusing any destination git does not ignore.",
+  "description": "Pull a subdirectory of a git repo into a local gitignored directory, refusing any destination git does not ignore.",
   "type": "module",
   "//main": "the esm entry: this package is esm only, see vite.config.ts",
   "main": "./dist/git-pull-ignored-lib.es.js",

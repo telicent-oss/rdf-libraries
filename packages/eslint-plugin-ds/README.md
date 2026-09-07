@@ -1,34 +1,28 @@
-# @telicent-oss/eslint-plugin-ds
+## @telicent-oss/eslint-plugin-ds
 
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 ![Node Version](https://img.shields.io/badge/node-%5E20.19.0%20%7C%7C%20%3E%3D22.12.0-brightgreen.svg)
 
-ESLint rules enforcing the Telicent design system manifest.
+ESLint rules enforcing the Telicent design system manifest: Tailwind may do layout, size and spacing, and nothing else.
 
-## Install
+## Background
 
-Install it from this repository:
+The one rule, `tailwind-layout-only`, reports any class outside that allowance.
+Typography, colour and decoration belong to the design system.
 
-```bash
+It works from an allowlist. Tailwind adds utilities every release, and a blocklist would
+miss them.
+
+## Build / Install
+
+```sh
 pnpm add -D "telicent-oss/rdf-libraries#path:/packages/eslint-plugin-ds"
 ```
 
-pnpm records the commit it resolved, so the dependency is pinned. Once the name is
-published, this becomes:
+pnpm pins the commit it resolved. Once the name is published, drop the path:
+`pnpm add -D @telicent-oss/eslint-plugin-ds`.
 
-```bash
-pnpm add -D @telicent-oss/eslint-plugin-ds
-```
-
-## `tailwind-layout-only`
-
-The manifest allows Tailwind for layout, size and spacing, and gives typography, colour
-and decoration to the design system. This rule reports any class outside that allowance.
-
-It sees string literals and template quasis reachable from a `className` attribute. A class
-that arrives through a variable, a tagged template, a spread, or a helper defined in another
-file is not inspected, so the rule catches what is written at the call site rather than
-everything that reaches the DOM.
+## Usage
 
 ```js
 import ds from "@telicent-oss/eslint-plugin-ds";
@@ -44,13 +38,12 @@ export default [
 
 The plugin name and the severity are the consumer's to choose.
 
-Allowed, by an allowlist rather than a blocklist: Tailwind's utility surface grows with
-every release, so a blocklist silently stops covering what it has never heard of.
+Allowed:
 
 ```
 flex flex-col items-center justify-between   gap-4 p-4 -mt-2 space-y-2 scroll-mt-4
 w-full min-w-[420px] max-h-screen            absolute inset-0 z-10 overflow-auto
-shrink-0 grow container inline-grid table     float-left clear-both box-border start-0
+shrink-0 grow container inline-grid table    float-left clear-both box-border start-0
 ```
 
 Reported:
@@ -59,69 +52,59 @@ Reported:
 font-medium   text-red-500   shadow-lg   list-none   rounded-md   opacity-50
 ```
 
-A responsive or state variant, a negative sign and an `!important` marker are stripped
-before the decision, so `md:hover:flex`, `-mt-2` and `!flex` behave as `flex`, `mt-2` and
-`flex`. An arbitrary value needs no special case: `min-w-[420px]` is decided by `min-w`.
+A variant, a negative sign and an `!important` marker come off before the decision, so
+`md:hover:flex`, `-mt-2` and `!flex` read as `flex`, `mt-2` and `flex`. Arbitrary values
+follow their prefix: `min-w-[420px]` is decided by `min-w`.
 
-Three classes are denied by name, because they open with a layout prefix and are not
-layout: `inset-ring-*` and `inset-shadow-*` are box-shadows that take a colour, and
-`overflow-ellipsis` is text-overflow.
+`inset-ring-*` and `inset-shadow-*` are box-shadows with a colour, and `overflow-ellipsis`
+is text-overflow. The `inset` and `overflow` prefixes would admit all three, so they are
+denied.
 
 ### Options
 
 | Option | Default | Effect |
 | --- | --- | --- |
-| `allowTextSizes` | `true` | Permits the `text-{xs…9xl}` size scale. Set `false` where the design system owns font size outright. |
-| `extraPrefixes` | `[]` | Prefixes or whole class names to treat as layout, for a utility the allowlist does not carry yet. `["grid-flow"]` allows `grid-flow-col`; `["truncate"]` allows exactly `truncate`. |
+| `allowTextSizes` | `true` | Permits the `text-{xs…9xl}` size scale. `text-` spans size (`text-sm`) and colour (`text-red-500`), so sizes are opted in by name. Set `false` where the design system owns font size. |
+| `extraPrefixes` | `[]` | Prefixes or whole class names to treat as layout. `["grid-flow"]` allows `grid-flow-col`; `["truncate"]` allows exactly `truncate`. |
 
-`text-` is the one prefix that cannot be allowed wholesale: it spans both size
-(`text-sm`) and colour (`text-red-500`), so sizes are opted in by name.
+### Limits
 
-### What it does not see
-
-The rule reads the class names written inside the `className` attribute. It does not
-resolve variables, so a class list built above the JSX passes:
+The rule reads what is written inside a `className` attribute. It does not resolve
+variables, so a class list built above the JSX passes:
 
 ```jsx
 const classes = clsx("text-red-500");
-<div className={classes} />        // not flagged
+<div className={classes} />                // not flagged
 <div className={clsx("text-red-500")} />   // flagged
+<div className={clsx({ underline })} />    // flagged: an object key counts, quoted or not
 ```
 
-A class written as an object key is read either way round, quoted or not, because
-`clsx({ underline: isLink })` and `clsx({ "underline": isLink })` are the same class:
+A clean run means nothing inline is wrong. Resolving the variable case needs scope or type
+analysis the rule does not do.
 
-```jsx
-<div className={clsx({ underline: isLink })} />   // flagged
-```
+## API
 
-Resolving that needs scope or type analysis the rule deliberately does not do. Treat a
-clean run as "nothing inline is wrong", not as full enforcement.
-
-## Tests
-
-`src/rules/*.test.ts` drive ESLint's own `RuleTester`, which throws on any case that does
-not behave as declared, so each run is the assertion. jest with ts-jest, through the
-repo's `jest.preset.js`, the same as every other package here.
-
-```bash
-yarn test
-yarn coverage
-```
-
-## Classifying without ESLint
-
-`isLayoutUtility(rawClass, options?)` answers the same question the rule asks, for one
-class at a time, and takes the same `LayoutOptions` the rule takes. A codemod or a check of
-a class list held in data can use it without loading ESLint.
+`isLayoutUtility(rawClass, options?)` answers the same question for one class, with the
+same options, so a codemod or a check over class names held in data needs no ESLint.
 
 ```js
 import { isLayoutUtility } from "@telicent-oss/eslint-plugin-ds";
 
-isLayoutUtility("gap-4");                                  // true
-isLayoutUtility("text-red-500");                           // false
-isLayoutUtility("columns-3", { extraPrefixes: ["columns"] }); // true
+isLayoutUtility("gap-4");                                     // true
+isLayoutUtility("text-red-500");                              // false
+isLayoutUtility("columns-3", { extraPrefixes: ["columns"] });  // true
 ```
 
 It answers true for a class that names no utility at all (`-`, `md:`), matching the rule:
 reporting a typo as a design-system violation sends the reader to the wrong fix.
+
+## Tests
+
+From a clone of this repository:
+
+```sh
+yarn test
+yarn coverage
+```
+
+`src/rules/*.test.ts` drive ESLint's own `RuleTester`.
