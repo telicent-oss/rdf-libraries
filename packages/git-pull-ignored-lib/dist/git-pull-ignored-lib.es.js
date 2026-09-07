@@ -24,20 +24,30 @@ const realGit = (args, options = {}) => {
 function failedWith(result, code) {
   return result.error?.code === code;
 }
+function refuseOptionLike(value, what) {
+  if (value.startsWith("-")) {
+    throw new PullError(
+      `refusing to run git: ${what} starts with a dash, which git reads as an option, not a value: ${value}`
+    );
+  }
+}
 function refuseIfGitMissing(result) {
   if (failedWith(result, "ENOENT"))
     throw new PullError(GIT_MISSING);
 }
 function isGitIgnored(path, cwd, git = realGit) {
+  refuseOptionLike(cwd, "cwd");
   const rel = (isAbsolute(path) ? relative(cwd, path) : path).split(sep).join("/");
   if (rel === "" || rel.startsWith(".."))
     return false;
+  refuseOptionLike(rel, "dest");
   const asDirectory = rel.endsWith("/") ? rel : `${rel}/`;
-  const result = git(["-C", cwd, "check-ignore", "--quiet", asDirectory]);
+  const result = git(["-C", cwd, "check-ignore", "--quiet", "--", asDirectory]);
   refuseIfGitMissing(result);
   return result.status === 0;
 }
 function insideWorkTree(cwd, git) {
+  refuseOptionLike(cwd, "cwd");
   const result = git(["-C", cwd, "rev-parse", "--is-inside-work-tree"]);
   refuseIfGitMissing(result);
   return result.status === 0 && result.stdout.trim() === "true";
@@ -51,12 +61,17 @@ function cloneLimits(timeoutMs) {
   };
 }
 function shallowClone(repo, ref, subpath, timeoutMs, git) {
+  refuseOptionLike(repo, "repo");
+  refuseOptionLike(ref, "ref");
   const tmp = mkdtempSync(join(tmpdir(), "pull-gitignored-"));
   const discard = (reason) => {
     rmSync(tmp, { recursive: true, force: true });
     return { reason };
   };
-  const result = git(["clone", "--quiet", "--depth", "1", "--branch", ref, repo, tmp], cloneLimits(timeoutMs));
+  const result = git(
+    ["clone", "--quiet", "--depth", "1", "--branch", ref, "--", repo, tmp],
+    cloneLimits(timeoutMs)
+  );
   if (failedWith(result, "ENOENT")) {
     rmSync(tmp, { recursive: true, force: true });
     throw new PullError(GIT_MISSING);

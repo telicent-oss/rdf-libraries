@@ -81,6 +81,12 @@ tests can present a machine with no git, which cannot be arranged in process —
 `PATH` does not reach the child under jest. A caller with its own reason to control the
 invocation can pass one.
 
+A `repo`, `ref`, `cwd` or `dest` beginning with `-` is refused. git reads a leading dash as
+an option wherever the argument sits, and `--upload-pack=<command>` makes a clone run an
+arbitrary command, so an option-shaped value from a caller is a command-injection route
+rather than a wrong answer. Positionals are separated with `--` as well, which alone would
+not cover the value after `--branch`.
+
 `dest` is replaced by assembling the new content beside it and renaming it into place, so
 a copy that fails part-way leaves the old content where it was. Only `refs` naming a branch
 or tag work: the clone passes `--branch`, which a commit sha does not satisfy.

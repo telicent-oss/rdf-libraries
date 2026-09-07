@@ -205,6 +205,72 @@ describe("with a scripted git", () => {
   });
 });
 
+// git reads a leading dash as an option wherever it sits, and `--upload-pack=<command>`
+// turns a clone into an arbitrary command. CodeQL flags this as second-order command
+// injection: the values come from the library's caller.
+describe("an argument that git would read as an option", () => {
+  const shouldNotRun: GitRunner = () => {
+    throw new Error("git was invoked with an option-shaped argument");
+  };
+
+  it("refuses a cwd that starts with a dash, before running git at all", () => {
+    expect(() =>
+      pullGitignored({
+        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "pulled",
+        cwd: "--upload-pack=touch /tmp/pwned", git: shouldNotRun,
+      }),
+    ).toThrow(/cwd starts with a dash/);
+  });
+
+  it("refuses a dest that starts with a dash", () => {
+    // Reached after the work-tree question, which is answered so the dest check runs.
+    const inWorkTree: GitRunner = (args) =>
+      args.includes("rev-parse") ? ran({ stdout: "true\n" }) : shouldNotRun(args);
+
+    expect(() =>
+      pullGitignored({
+        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "--output=/tmp/pwned", cwd: "/tmp",
+        git: inWorkTree,
+      }),
+    ).toThrow(/dest starts with a dash/);
+    expect(() => isGitIgnored("--output=/tmp/pwned", "/tmp", shouldNotRun)).toThrow(
+      /dest starts with a dash/,
+    );
+  });
+
+  it("refuses them before the clone, which is the call that would execute one", () => {
+    const inWorkTreeAndIgnored: GitRunner = (args) =>
+      args.includes("clone") ? shouldNotRun(args) : ran({ stdout: "true\n" });
+    const call = (options: Record<string, unknown>) =>
+      pullGitignored({
+        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp",
+        git: inWorkTreeAndIgnored, ...options,
+      });
+
+    expect(() => call({ repo: "--upload-pack=touch /tmp/pwned" })).toThrow(/repo starts with a dash/);
+    expect(() => call({ refs: ["--upload-pack=touch /tmp/pwned"] })).toThrow(/ref starts with a dash/);
+  });
+
+  it("separates the positionals, so a value git accepts is still not read as an option", () => {
+    const seen: string[][] = [];
+    const record: GitRunner = (args) => {
+      seen.push(args);
+      return args.includes("clone") ? ran({ status: 1 }) : ran({ stdout: "true\n" });
+    };
+    try {
+      pullGitignored({
+        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp", git: record,
+      });
+    } catch {
+      // The clone fails; the arguments it was given are the point.
+    }
+    const clone = seen.find((args) => args.includes("clone")) ?? [];
+    expect(clone.slice(clone.indexOf("--"))).toEqual(["--", "/tmp/x", expect.any(String)]);
+    const checkIgnore = seen.find((args) => args.includes("check-ignore")) ?? [];
+    expect(checkIgnore.slice(-2)).toEqual(["--", "pulled/"]);
+  });
+});
+
 describe("pullGitignored", () => {
   it("copies the subdirectory and records the commit", () => {
     const source = sourceRepo({ "guidance/a.md": "A", "guidance/nested/b.md": "B", "other.md": "X" });

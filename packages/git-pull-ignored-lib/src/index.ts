@@ -59,6 +59,23 @@ function failedWith(result: GitResult, code: string): boolean {
   return result.error?.code === code;
 }
 
+/**
+ * git reads a leading dash as an option wherever the argument sits, so a repo or ref that
+ * begins with one is passed to git as configuration rather than as a repository. The reach
+ * of that is not limited to a wrong answer: `--upload-pack=<command>` makes a clone run an
+ * arbitrary command. Positionals are also separated with `--` at each call, and neither
+ * defence is sufficient alone — `--` does not protect the value after `--branch`.
+ *
+ * No legitimate repository, ref, path or directory starts with a dash.
+ */
+function refuseOptionLike(value: string, what: string): void {
+  if (value.startsWith("-")) {
+    throw new PullError(
+      `refusing to run git: ${what} starts with a dash, which git reads as an option, not a value: ${value}`,
+    );
+  }
+}
+
 /** Raised on the spot: a machine that cannot run git has no answer to any question here. */
 function refuseIfGitMissing(result: GitResult): void {
   if (failedWith(result, "ENOENT")) throw new PullError(GIT_MISSING);
@@ -86,10 +103,12 @@ function refuseIfGitMissing(result: GitResult): void {
  * ignored, and every first pull would be refused.
  */
 export function isGitIgnored(path: string, cwd: string, git: GitRunner = realGit): boolean {
+  refuseOptionLike(cwd, "cwd");
   const rel = (isAbsolute(path) ? relative(cwd, path) : path).split(sep).join("/");
   if (rel === "" || rel.startsWith("..")) return false;
+  refuseOptionLike(rel, "dest");
   const asDirectory = rel.endsWith("/") ? rel : `${rel}/`;
-  const result = git(["-C", cwd, "check-ignore", "--quiet", asDirectory]);
+  const result = git(["-C", cwd, "check-ignore", "--quiet", "--", asDirectory]);
   refuseIfGitMissing(result);
   return result.status === 0;
 }
@@ -103,6 +122,7 @@ export function isGitIgnored(path: string, cwd: string, git: GitRunner = realGit
  * diagnosis, on the path that is actually taken.
  */
 function insideWorkTree(cwd: string, git: GitRunner): boolean {
+  refuseOptionLike(cwd, "cwd");
   const result = git(["-C", cwd, "rev-parse", "--is-inside-work-tree"]);
   refuseIfGitMissing(result);
   return result.status === 0 && result.stdout.trim() === "true";
@@ -155,13 +175,18 @@ function shallowClone(
   timeoutMs: number,
   git: GitRunner,
 ): CloneAttempt {
+  refuseOptionLike(repo, "repo");
+  refuseOptionLike(ref, "ref");
   const tmp = mkdtempSync(join(tmpdir(), "pull-gitignored-"));
   const discard = (reason: string): CloneAttempt => {
     rmSync(tmp, { recursive: true, force: true });
     return { reason };
   };
 
-  const result = git(["clone", "--quiet", "--depth", "1", "--branch", ref, repo, tmp], cloneLimits(timeoutMs));
+  const result = git(
+    ["clone", "--quiet", "--depth", "1", "--branch", ref, "--", repo, tmp],
+    cloneLimits(timeoutMs),
+  );
   if (failedWith(result, "ENOENT")) {
     rmSync(tmp, { recursive: true, force: true });
     throw new PullError(GIT_MISSING);
