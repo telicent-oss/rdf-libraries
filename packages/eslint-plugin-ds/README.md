@@ -42,16 +42,15 @@ export default [
 ];
 ```
 
-The plugin name is the consumer's to choose: `illustrative/hello-world` in the generator
-registers it as `ds` and runs it at `warn`, because a design-system violation there is a
-note to the developer rather than a broken build.
+The plugin name and the severity are the consumer's to choose.
 
 Allowed, by an allowlist rather than a blocklist: Tailwind's utility surface grows with
 every release, so a blocklist silently stops covering what it has never heard of.
 
 ```
-flex flex-col items-center justify-between   gap-4 p-4 -mt-2 space-y-2
+flex flex-col items-center justify-between   gap-4 p-4 -mt-2 space-y-2 scroll-mt-4
 w-full min-w-[420px] max-h-screen            absolute inset-0 z-10 overflow-auto
+shrink-0 grow container inline-grid table     float-left clear-both box-border start-0
 ```
 
 Reported:
@@ -60,16 +59,20 @@ Reported:
 font-medium   text-red-500   shadow-lg   list-none   rounded-md   opacity-50
 ```
 
-A responsive or state variant and a negative sign are stripped before the decision, so
-`md:hover:flex` and `-mt-2` behave as `flex` and `mt-2`. An arbitrary value needs no
-special case: `min-w-[420px]` is decided by `min-w`.
+A responsive or state variant, a negative sign and an `!important` marker are stripped
+before the decision, so `md:hover:flex`, `-mt-2` and `!flex` behave as `flex`, `mt-2` and
+`flex`. An arbitrary value needs no special case: `min-w-[420px]` is decided by `min-w`.
+
+Three classes are denied by name, because they open with a layout prefix and are not
+layout: `inset-ring-*` and `inset-shadow-*` are box-shadows that take a colour, and
+`overflow-ellipsis` is text-overflow.
 
 ### Options
 
 | Option | Default | Effect |
 | --- | --- | --- |
 | `allowTextSizes` | `true` | Permits the `text-{xs…9xl}` size scale. Set `false` where the design system owns font size outright. |
-| `extraPrefixes` | `[]` | Additional prefixes to treat as layout, for a utility the allowlist does not carry yet. |
+| `extraPrefixes` | `[]` | Prefixes or whole class names to treat as layout, for a utility the allowlist does not carry yet. `["grid-flow"]` allows `grid-flow-col`; `["truncate"]` allows exactly `truncate`. |
 
 `text-` is the one prefix that cannot be allowed wholesale: it spans both size
 (`text-sm`) and colour (`text-red-500`), so sizes are opted in by name.
@@ -83,6 +86,13 @@ resolve variables, so a class list built above the JSX passes:
 const classes = clsx("text-red-500");
 <div className={classes} />        // not flagged
 <div className={clsx("text-red-500")} />   // flagged
+```
+
+A class written as an object key is read either way round, quoted or not, because
+`clsx({ underline: isLink })` and `clsx({ "underline": isLink })` are the same class:
+
+```jsx
+<div className={clsx({ underline: isLink })} />   // flagged
 ```
 
 Resolving that needs scope or type analysis the rule deliberately does not do. Treat a

@@ -1,14 +1,28 @@
 const name = "@telicent-oss/eslint-plugin-ds";
 const version = "0.0.1";
 const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
+  // display, in full: every value of it is layout, and none of them takes a value.
   "flex",
   "grid",
   "block",
   "inline",
   "inline-flex",
   "inline-block",
+  "inline-grid",
   "contents",
   "hidden",
+  "flow-root",
+  "list-item",
+  "table",
+  "inline-table",
+  "table-caption",
+  "table-cell",
+  "table-row",
+  "table-row-group",
+  "table-column",
+  "table-column-group",
+  "table-header-group",
+  "table-footer-group",
   "static",
   "relative",
   "absolute",
@@ -17,6 +31,10 @@ const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
   "grow",
   "shrink",
   "isolate",
+  // The container class and the container-query root, which is where a `@lg:` variant
+  // measures from.
+  "container",
+  "@container",
   // align-content, named in full rather than carried as a `content` prefix. The prefix
   // would also admit `content-['x']`, which sets the CSS content property and is exactly
   // the decoration the design system owns.
@@ -42,13 +60,24 @@ const LAYOUT_PREFIXES = /* @__PURE__ */ new Set([
   "basis",
   "col",
   "row",
+  "grow",
+  "shrink",
   "grid-cols",
   "grid-rows",
+  "grid-flow",
+  "auto",
+  "columns",
   "aspect",
   "overflow",
+  "float",
+  "clear",
+  "box",
+  "table",
   "gap",
   "space-x",
   "space-y",
+  "scroll",
+  "translate",
   "m",
   "mx",
   "my",
@@ -79,8 +108,12 @@ const LAYOUT_PREFIXES = /* @__PURE__ */ new Set([
   "right",
   "bottom",
   "left",
+  "start",
+  "end",
   "z"
 ]);
+const NOT_LAYOUT = /* @__PURE__ */ new Set(["overflow-ellipsis"]);
+const NOT_LAYOUT_PREFIXES = /* @__PURE__ */ new Set(["inset-ring", "inset-shadow"]);
 const TEXT_SIZES = /* @__PURE__ */ new Set([
   "xs",
   "sm",
@@ -103,6 +136,8 @@ function allowanceFrom(options) {
   };
 }
 function hasPrefixIn(token, prefixes) {
+  if (prefixes.has(token))
+    return true;
   for (let dash = token.indexOf("-"); dash > 0; dash = token.indexOf("-", dash + 1)) {
     if (prefixes.has(token.slice(0, dash)))
       return true;
@@ -114,13 +149,15 @@ function isLayoutUtility(rawClass, options = {}) {
 }
 function isAllowedClass(rawClass, allowance) {
   const { allowTextSizes, extraPrefixes } = allowance;
-  const token = rawClass.slice(rawClass.lastIndexOf(":") + 1).replace(/^-/, "");
+  const token = rawClass.slice(rawClass.lastIndexOf(":") + 1).replace(/^!/, "").replace(/!$/, "").replace(/^-/, "");
   if (token === "")
     return true;
   if (LAYOUT_KEYWORDS.has(token))
     return true;
   if (hasPrefixIn(token, extraPrefixes))
     return true;
+  if (NOT_LAYOUT.has(token) || hasPrefixIn(token, NOT_LAYOUT_PREFIXES))
+    return false;
   if (token.startsWith("text-")) {
     return allowTextSizes && TEXT_SIZES.has(token.slice("text-".length));
   }
@@ -154,8 +191,12 @@ function collectStrings(node, onString) {
     }
   }
   for (const property of current.properties ?? []) {
-    if (property.key)
-      collectStrings(property.key, onString);
+    const key = property.key;
+    if (key?.type === "Identifier" && property.computed !== true) {
+      onString(key.name, key);
+    } else if (key) {
+      collectStrings(key, onString);
+    }
     if (property.value)
       collectStrings(property.value, onString);
   }
@@ -177,7 +218,7 @@ const tailwindLayoutOnly = {
       }
     ],
     messages: {
-      notLayout: `Tailwind class "{{value}}" is not layout, size or spacing. The design system owns typography, colour and decoration, so use a DS component or its sx prop. If this really is layout, add its prefix to the rule's extraPrefixes option.`
+      notLayout: `Tailwind class "{{value}}" is not layout, size or spacing. The design system owns typography, colour and decoration, so use a DS component or its sx prop. If this really is layout, add it to the rule's extraPrefixes option.`
     }
   },
   create(context) {

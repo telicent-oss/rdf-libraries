@@ -1,8 +1,15 @@
 import type { Rule } from "eslint";
 
 const LAYOUT_KEYWORDS = new Set([
-  "flex", "grid", "block", "inline", "inline-flex", "inline-block", "contents", "hidden",
+  // display, in full: every value of it is layout, and none of them takes a value.
+  "flex", "grid", "block", "inline", "inline-flex", "inline-block", "inline-grid",
+  "contents", "hidden", "flow-root", "list-item",
+  "table", "inline-table", "table-caption", "table-cell", "table-row", "table-row-group",
+  "table-column", "table-column-group", "table-header-group", "table-footer-group",
   "static", "relative", "absolute", "fixed", "sticky", "grow", "shrink", "isolate",
+  // The container class and the container-query root, which is where a `@lg:` variant
+  // measures from.
+  "container", "@container",
   // align-content, named in full rather than carried as a `content` prefix. The prefix
   // would also admit `content-['x']`, which sets the CSS content property and is exactly
   // the decoration the design system owns.
@@ -23,14 +30,24 @@ const LAYOUT_KEYWORDS = new Set([
  */
 const LAYOUT_PREFIXES = new Set([
   "flex", "items", "justify", "self", "place-items", "place-content", "place-self",
-  "order", "basis", "col", "row",
-  "grid-cols", "grid-rows", "aspect", "overflow",
-  "gap", "space-x", "space-y",
+  "order", "basis", "col", "row", "grow", "shrink",
+  "grid-cols", "grid-rows", "grid-flow", "auto", "columns", "aspect", "overflow",
+  "float", "clear", "box", "table",
+  "gap", "space-x", "space-y", "scroll", "translate",
   "m", "mx", "my", "mt", "mr", "mb", "ml", "ms", "me",
   "p", "px", "py", "pt", "pr", "pb", "pl", "ps", "pe",
   "w", "h", "size", "min-w", "max-w", "min-h", "max-h",
-  "inset", "top", "right", "bottom", "left", "z",
+  "inset", "top", "right", "bottom", "left", "start", "end", "z",
 ]);
+
+/**
+ * Decoration that shares its opening prefix with something layout, so the prefix scan
+ * would otherwise let it through. `inset-ring-red-500` and `inset-shadow-red-500/50` are
+ * box-shadows with a colour, admitted by `inset`; `overflow-ellipsis` is text-overflow,
+ * admitted by `overflow`. Checked after `extraPrefixes`, so a caller can still opt in.
+ */
+const NOT_LAYOUT = new Set(["overflow-ellipsis"]);
+const NOT_LAYOUT_PREFIXES = new Set(["inset-ring", "inset-shadow"]);
 
 // `text-` is two things: a size (`text-sm`) and a colour (`text-red-500`). Allowing the
 // bare prefix would let every colour class through, so sizes are opted in by name and
@@ -63,11 +80,16 @@ function allowanceFrom(options: LayoutOptions): Allowance {
 }
 
 /**
- * Whether any dash-delimited prefix of `token` is in `prefixes`, scanning left to right
- * and stopping at the first hit, which is what makes the shortest prefix of a family the
- * only one that can be read.
+ * Whether `token` or any dash-delimited prefix of it is in `prefixes`. The scan runs left
+ * to right and stops at the first hit, which is what makes the shortest prefix of a family
+ * the only one that can be read.
+ *
+ * The whole token counts, so a class with no dash can be listed. Without that,
+ * `extraPrefixes: ["container"]` was dead configuration while the rule's own message told
+ * the reader to write it.
  */
 function hasPrefixIn(token: string, prefixes: ReadonlySet<string>): boolean {
+  if (prefixes.has(token)) return true;
   for (let dash = token.indexOf("-"); dash > 0; dash = token.indexOf("-", dash + 1)) {
     if (prefixes.has(token.slice(0, dash))) return true;
   }
@@ -88,8 +110,15 @@ export function isLayoutUtility(rawClass: string, options: LayoutOptions = {}): 
 
 function isAllowedClass(rawClass: string, allowance: Allowance): boolean {
   const { allowTextSizes, extraPrefixes } = allowance;
-  const token = rawClass.slice(rawClass.lastIndexOf(":") + 1).replace(/^-/, "");
-  // Nothing left after stripping a variant and a sign, so the class was `-` or `md:`.
+  const token = rawClass
+    .slice(rawClass.lastIndexOf(":") + 1)
+    // `!important`, written `!flex` in Tailwind 3 and `flex!` in 4. Neither changes which
+    // property the class sets, so both come off before the decision.
+    .replace(/^!/, "")
+    .replace(/!$/, "")
+    .replace(/^-/, "");
+  // Nothing left after stripping a variant, an important marker and a sign, so the class
+  // was `-`, `!` or `md:`.
   // Neither names a utility, and reporting a typo as a design-system violation would send
   // the reader to the wrong fix.
   if (token === "") return true;
@@ -97,6 +126,7 @@ function isAllowedClass(rawClass: string, allowance: Allowance): boolean {
   // Before the `text-` branch, which answers for every `text-` class and would otherwise
   // make `extraPrefixes: ["text"]` dead configuration.
   if (hasPrefixIn(token, extraPrefixes)) return true;
+  if (NOT_LAYOUT.has(token) || hasPrefixIn(token, NOT_LAYOUT_PREFIXES)) return false;
   if (token.startsWith("text-")) {
     return allowTextSizes && TEXT_SIZES.has(token.slice("text-".length));
   }
@@ -138,8 +168,16 @@ function collectStrings(node: unknown, onString: OnString): void {
   }
   for (const property of (current.properties as LooseNode[] | undefined) ?? []) {
     // The key, not only the value: `clsx({ "font-bold": on })` is the idiomatic way to
-    // write a conditional class, and there the class name is the key.
-    if (property.key) collectStrings(property.key, onString);
+    // write a conditional class, and there the class name is the key. An unquoted key is
+    // an Identifier rather than a Literal, and `{ underline: on }` is both a valid
+    // identifier and a decoration utility, so reading only the quoted form missed the
+    // shorter spelling of the same thing.
+    const key = property.key as LooseNode | undefined;
+    if (key?.type === "Identifier" && property.computed !== true) {
+      onString(key.name as string, key);
+    } else if (key) {
+      collectStrings(key, onString);
+    }
     if (property.value) collectStrings(property.value, onString);
   }
 }
@@ -163,7 +201,7 @@ export const tailwindLayoutOnly: Rule.RuleModule = {
     ],
     messages: {
       notLayout:
-        'Tailwind class "{{value}}" is not layout, size or spacing. The design system owns typography, colour and decoration, so use a DS component or its sx prop. If this really is layout, add its prefix to the rule\'s extraPrefixes option.',
+        'Tailwind class "{{value}}" is not layout, size or spacing. The design system owns typography, colour and decoration, so use a DS component or its sx prop. If this really is layout, add it to the rule\'s extraPrefixes option.',
     },
   },
   create(context) {

@@ -130,3 +130,94 @@ ruleTester.run("tailwind-layout-only align-content", tailwindLayoutOnly, {
     },
   ],
 });
+
+// An unquoted object key. `clsx({ underline: on })` and `clsx({ "underline": on })` are
+// the same class written two ways, and only the quoted one used to be read: an unquoted
+// key is an Identifier, and every decoration utility that is a valid JS identifier
+// (`underline`, `italic`, `shadow`, `ring`, `uppercase`, `truncate`) went unreported.
+ruleTester.run("tailwind-layout-only identifier keys", tailwindLayoutOnly, {
+  valid: [
+    { code: "<div className={clsx({ flex: yes, hidden: no })} />" },
+    // A computed key names no class; whatever `key` holds is not readable here.
+    { code: "<div className={clsx({ [key]: on })} />" },
+  ],
+  invalid: [
+    {
+      code: "<div className={clsx({ underline: isLink, shadow: on })} />",
+      errors: [
+        { messageId: "notLayout", data: { value: "underline" } },
+        { messageId: "notLayout", data: { value: "shadow" } },
+      ],
+    },
+    {
+      // Shorthand: the key is the whole property.
+      code: "<div className={clsx({ underline })} />",
+      errors: [{ messageId: "notLayout", data: { value: "underline" } }],
+    },
+  ],
+});
+
+// Decoration that opens with a layout prefix. `inset` and `overflow` are prefixes, so the
+// scan let these through: two of them carry a colour, which is what the rule is for.
+ruleTester.run("tailwind-layout-only decoration under a layout prefix", tailwindLayoutOnly, {
+  valid: [
+    // The layout families those prefixes exist for.
+    { code: '<div className="inset-0 -inset-x-1 inset-y-4 overflow-x-auto" />' },
+    // A caller can still opt in, because the deny is checked after extraPrefixes.
+    { code: '<div className="inset-shadow-sm" />', options: [{ extraPrefixes: ["inset-shadow"] }] },
+  ],
+  invalid: [
+    {
+      code: '<div className="inset-ring-red-500" />',
+      errors: [{ messageId: "notLayout", data: { value: "inset-ring-red-500" } }],
+    },
+    {
+      code: '<div className="inset-shadow-red-500/50" />',
+      errors: [{ messageId: "notLayout", data: { value: "inset-shadow-red-500/50" } }],
+    },
+    {
+      code: '<div className="overflow-ellipsis" />',
+      errors: [{ messageId: "notLayout", data: { value: "overflow-ellipsis" } }],
+    },
+  ],
+});
+
+// Layout the allowlist used to report. Each one reported is a team's reason to switch the
+// rule off, and `shrink-0` is among the most-typed flex classes there is.
+ruleTester.run("tailwind-layout-only layout that was reported", tailwindLayoutOnly, {
+  valid: [
+    { code: '<div className="shrink-0 grow-0 grow-[2]" />' },
+    { code: '<div className="container @container" />' },
+    { code: '<div className="inline-grid flow-root table table-cell list-item" />' },
+    { code: '<div className="float-left clear-both box-border" />' },
+    { code: '<div className="start-0 end-0" />' },
+    { code: '<div className="grid-flow-col auto-cols-fr auto-rows-min columns-2" />' },
+    { code: '<div className="scroll-mt-4 translate-x-2" />' },
+    { code: '<div className="hover:-translate-y-1" />' },
+  ],
+  invalid: [],
+});
+
+// `!important`: leading in Tailwind 3, trailing in 4. It changes nothing about which
+// property the class sets, so it cannot change the verdict either.
+ruleTester.run("tailwind-layout-only important marker", tailwindLayoutOnly, {
+  valid: [{ code: '<div className="!flex flex! !p-4 md:!flex" />' }],
+  invalid: [
+    {
+      code: '<div className="!font-bold" />',
+      errors: [{ messageId: "notLayout", data: { value: "!font-bold" } }],
+    },
+  ],
+});
+
+// A class with no dash reaches extraPrefixes. It could not before, while the rule's own
+// message told the reader to add it there.
+ruleTester.run("tailwind-layout-only extraPrefixes without a dash", tailwindLayoutOnly, {
+  valid: [{ code: '<div className="truncate" />', options: [{ extraPrefixes: ["truncate"] }] }],
+  invalid: [
+    {
+      code: '<div className="truncate" />',
+      errors: [{ messageId: "notLayout", data: { value: "truncate" } }],
+    },
+  ],
+});
