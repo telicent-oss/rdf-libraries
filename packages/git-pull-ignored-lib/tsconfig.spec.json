@@ -1,0 +1,15 @@
+{
+  // Exists for one setting: module CommonJS, which jest wants. It can go when the tests
+  // run as ESM. https://jestjs.io/docs/ecmascript-modules
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "types": ["jest", "node"]
+  },
+  // Cleared, because extends would inherit the parent exclude, which drops the very tests
+  // this project exists for.
+  "exclude": [],
+  "include": ["src/**/*.ts"]
+}

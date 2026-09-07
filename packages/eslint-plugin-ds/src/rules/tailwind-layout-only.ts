@@ -1,0 +1,242 @@
+import type { Rule } from "eslint";
+
+const LAYOUT_KEYWORDS = new Set([
+  // Every value of `display`, spelled out, because none of them is written <prefix>-<value>.
+  "flex", "grid", "block", "inline", "inline-flex", "inline-block", "inline-grid",
+  "contents", "hidden", "flow-root", "list-item",
+  "table", "inline-table", "table-caption", "table-cell", "table-row", "table-row-group",
+  "table-column", "table-column-group", "table-header-group", "table-footer-group",
+  // position, isolation, and the bare forms of flex-grow and flex-shrink. `grow` and
+  // `shrink` appear in LAYOUT_PREFIXES too, for the forms that do take a value (`grow-0`).
+  "static", "relative", "absolute", "fixed", "sticky", "grow", "shrink", "isolate",
+  // The container class and the container-query root, which is where a `@lg:` variant
+  // measures from.
+  "container", "@container",
+  // align-content, named in full rather than carried as a `content` prefix. The prefix
+  // would also admit `content-['x']`, which sets the CSS content property and is exactly
+  // the decoration the design system owns.
+  "content-normal", "content-center", "content-start", "content-end", "content-between",
+  "content-around", "content-evenly", "content-baseline", "content-stretch",
+]);
+
+/**
+ * Utilities written <prefix>-<value>, where the value is a length, count or fraction.
+ *
+ * Only the SHORTEST prefix of a family belongs here. The matcher scans a class's dash
+ * boundaries left to right and returns at the first hit, so `col` already decides
+ * `col-span-2`, and an entry for `col-span` would never be read.
+ *
+ * A longer form is needed only where the short one is absent: `grid-cols` (there is no
+ * `grid` prefix, only the keyword), `place-items`, `min-w`, `space-x`. Adding a shorter
+ * prefix silently retires every longer one under it.
+ */
+const LAYOUT_PREFIXES = new Set([
+  "flex", "items", "justify", "self", "place-items", "place-content", "place-self",
+  "order", "basis", "col", "row", "grow", "shrink",
+  "grid-cols", "grid-rows", "grid-flow", "auto", "columns", "aspect", "overflow",
+  "float", "clear", "box", "table",
+  "gap", "space-x", "space-y", "scroll", "translate",
+  "m", "mx", "my", "mt", "mr", "mb", "ml", "ms", "me",
+  "p", "px", "py", "pt", "pr", "pb", "pl", "ps", "pe",
+  "w", "h", "size", "min-w", "max-w", "min-h", "max-h",
+  "inset", "top", "right", "bottom", "left", "start", "end", "z",
+]);
+
+/**
+ * Decoration that opens with a layout prefix, so the prefix scan would let it through.
+ * Add to these when another is found; they are the ones known so far, not a closed set.
+ *
+ * - `inset-ring-*` and `inset-shadow-*` are box-shadows with a colour, admitted by `inset`
+ * - `box-decoration-*` controls how a box-shadow breaks across lines, admitted by `box`
+ * - `overflow-ellipsis` is text-overflow, admitted by `overflow`
+ *
+ * Checked after `extraPrefixes`, so a caller can still opt in.
+ */
+const NOT_LAYOUT = new Set(["overflow-ellipsis"]);
+const NOT_LAYOUT_PREFIXES = new Set(["inset-ring", "inset-shadow", "box-decoration"]);
+
+// `text-` is two things: a size (`text-sm`) and a colour (`text-red-500`). Allowing the
+// bare prefix would let every colour class through, so sizes are opted in by name and
+// `allowTextSizes: false` turns even those off for a project whose design system owns
+// typography outright.
+const TEXT_SIZES = new Set([
+  "xs", "sm", "base", "lg", "xl",
+  "2xl", "3xl", "4xl", "5xl", "6xl", "7xl", "8xl", "9xl",
+]);
+
+export interface LayoutOptions {
+  allowTextSizes?: boolean;
+  extraPrefixes?: string[];
+}
+
+/**
+ * `LayoutOptions` with the defaults filled in and `extraPrefixes` built into the set the
+ * matcher wants. The rule builds one per file it lints, rather than one per class name.
+ */
+interface Allowance {
+  allowTextSizes: boolean;
+  extraPrefixes: ReadonlySet<string>;
+}
+
+function allowanceFrom(options: LayoutOptions): Allowance {
+  return {
+    allowTextSizes: options.allowTextSizes ?? true,
+    extraPrefixes: new Set(options.extraPrefixes ?? []),
+  };
+}
+
+/**
+ * Whether `token` or any dash-delimited prefix of it is in `prefixes`. The scan runs left
+ * to right and stops at the first hit, which is what makes the shortest prefix of a family
+ * the only one that can be read.
+ *
+ * The whole token counts too, so `extraPrefixes` can name a class with no dash in it at
+ * all, such as `truncate`.
+ */
+function hasPrefixIn(token: string, prefixes: ReadonlySet<string>): boolean {
+  if (prefixes.has(token)) return true;
+  for (let dash = token.indexOf("-"); dash > 0; dash = token.indexOf("-", dash + 1)) {
+    if (prefixes.has(token.slice(0, dash))) return true;
+  }
+  return false;
+}
+
+/**
+ * Whether one class is layout, size or spacing.
+ *
+ * A responsive or state variant (`md:`, `hover:`) and a negative sign both leave the
+ * underlying utility unchanged, so they are stripped before the decision. An arbitrary
+ * value is decided by its prefix: `min-w-[420px]` by `min-w`. A colon inside the brackets
+ * is read as a variant separator, so such a class is reported rather than classified.
+ */
+export function isLayoutUtility(rawClass: string, options: LayoutOptions = {}): boolean {
+  return isAllowedClass(rawClass, allowanceFrom(options));
+}
+
+function isAllowedClass(rawClass: string, allowance: Allowance): boolean {
+  const { allowTextSizes, extraPrefixes } = allowance;
+  const token = rawClass
+    .slice(rawClass.lastIndexOf(":") + 1)
+    // `!important`, written `!flex` in Tailwind 3 and `flex!` in 4. Neither changes which
+    // property the class sets, so both come off before the decision.
+    .replace(/^!/, "")
+    .replace(/!$/, "")
+    .replace(/^-/, "");
+  // Nothing left after stripping a variant, an important marker and a sign: the class was
+  // `-`, `!` or `md:`. None names a utility, so this rule passes it and says nothing. A
+  // typo is not a design-system violation, and reporting it as one sends the reader to the
+  // wrong fix.
+  if (token === "") return true;
+  if (LAYOUT_KEYWORDS.has(token)) return true;
+  // Before the `text-` branch, which answers for every `text-` class and would otherwise
+  // make `extraPrefixes: ["text"]` dead configuration.
+  if (hasPrefixIn(token, extraPrefixes)) return true;
+  if (NOT_LAYOUT.has(token) || hasPrefixIn(token, NOT_LAYOUT_PREFIXES)) return false;
+  if (token.startsWith("text-")) {
+    return allowTextSizes && TEXT_SIZES.has(token.slice("text-".length));
+  }
+  return hasPrefixIn(token, LAYOUT_PREFIXES);
+}
+
+/**
+ * ESLint's node types come from `estree`, which has no JSX in it, so every JSX node would
+ * need its own cast. One loose shape instead: a bag of unknown fields with an optional
+ * `type` naming what the node is.
+ */
+type LooseNode = Record<string, unknown> & { type?: string };
+
+type OnString = (text: string, at: LooseNode) => void;
+
+function collectStrings(node: unknown, onString: OnString): void {
+  if (node === null || typeof node !== "object") return;
+  const current = node as LooseNode;
+  if (current.type === "Literal" && typeof current.value === "string") {
+    onString(current.value, current);
+    return;
+  }
+  if (current.type === "TemplateLiteral") {
+    // A template literal is stored as its text chunks (`quasis`) plus the expressions
+    // between them. `cooked` is a chunk's text with escapes resolved.
+    for (const quasi of (current.quasis as LooseNode[] | undefined) ?? []) {
+      const cooked = (quasi.value as { cooked?: string } | undefined)?.cooked;
+      onString(cooked ?? "", quasi);
+    }
+    for (const expression of (current.expressions as unknown[] | undefined) ?? []) {
+      collectStrings(expression, onString);
+    }
+    return;
+  }
+  // The shapes a class name is written inside, by the field each one hangs off:
+  // `{cond && "flex"}` and `{a ?? b}` are left/right, `{cond ? "a" : "b"}` is
+  // test/consequent/alternate, and `expression` is the `{ }` wrapper itself. Adding
+  // support for another shape means adding its field name here.
+  for (const key of ["expression", "left", "right", "test", "consequent", "alternate"]) {
+    if (current[key]) collectStrings(current[key], onString);
+  }
+  // The same, for fields holding a list: an array literal, a `clsx(...)` call's arguments.
+  for (const key of ["elements", "arguments", "expressions"]) {
+    for (const child of (current[key] as unknown[] | undefined) ?? []) {
+      collectStrings(child, onString);
+    }
+  }
+  for (const property of (current.properties as LooseNode[] | undefined) ?? []) {
+    // The key, not only the value: in `clsx({ "font-bold": on })` the class name is the
+    // key. An unquoted key is an Identifier rather than a Literal, so `{ underline: on }`
+    // needs reading too.
+    const key = property.key as LooseNode | undefined;
+    if (key?.type === "Identifier" && property.computed !== true) {
+      onString(key.name as string, key);
+    } else if (key) {
+      collectStrings(key, onString);
+    }
+    if (property.value) collectStrings(property.value, onString);
+  }
+}
+
+export const tailwindLayoutOnly: Rule.RuleModule = {
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Tailwind may do layout, size and spacing. Typography, colour and decoration come from the design system.",
+    },
+    schema: [
+      {
+        type: "object",
+        properties: {
+          allowTextSizes: { type: "boolean" },
+          extraPrefixes: { type: "array", items: { type: "string" } },
+        },
+        additionalProperties: false,
+      },
+    ],
+    messages: {
+      notLayout:
+        'Tailwind class "{{value}}" is not layout, size or spacing. The design system owns typography, colour and decoration, so use a DS component or its sx prop. If this really is layout, add it to the rule\'s extraPrefixes option.',
+    },
+  },
+  create(context) {
+    const allowance = allowanceFrom(context.options[0] ?? {});
+    const listeners: Rule.RuleListener = {
+      JSXAttribute(node: unknown) {
+        const attribute = node as LooseNode;
+        const nameNode = attribute.name as LooseNode | undefined;
+        const name = nameNode?.type === "JSXIdentifier" ? (nameNode.name as string) : "";
+        if (name !== "className" || attribute.value === null) return;
+        collectStrings(attribute.value, (text, at) => {
+          for (const rawClass of text.split(/\s+/)) {
+            if (rawClass === "" || isAllowedClass(rawClass, allowance)) continue;
+            context.report({
+              // `at` is inside a JSX attribute, and the estree unions ESLint's types are
+              // built from carry no JSX, so there is no node type here to annotate with.
+              node: at as unknown as Rule.Node,
+              messageId: "notLayout",
+              data: { value: rawClass },
+            });
+          }
+        });
+      },
+    };
+    return listeners;
+  },
+};
