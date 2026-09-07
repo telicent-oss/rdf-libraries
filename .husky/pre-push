@@ -5,7 +5,6 @@
 ./scripts/check-release-please-config/index.js
 yarn test
 
-# Two packages commit their build output, because they are consumed from a git pin and
-# nothing compiles them on the way in. Committed output can go stale, so it is rebuilt
-# and compared here. Only those two define the script.
+# Two packages commit their dist, because a git pin installs no build. Rebuild and
+# compare, so it cannot go stale.
 yarn lerna run verify-dist
