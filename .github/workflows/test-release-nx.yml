@@ -29,4 +29,9 @@ jobs:
           token: ${{ secrets.NPM_REGISTRY_TOKEN }}
       - run: LOCAL_MACHINE=false yarn install --frozen-lockfile
       - run: yarn build
+      # Two packages commit their dist, because they are consumed from a git pin and
+      # nothing compiles them on the way in. A release bumps package.json without
+      # rebuilding, and the version is read into the bundle, so a stale dist ships a
+      # version behind unless something compares the two.
+      - run: yarn lerna run verify-dist
       - run: yarn test:ci
