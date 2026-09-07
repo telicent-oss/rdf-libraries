@@ -1,11 +1,13 @@
 import type { Rule } from "eslint";
 
 const LAYOUT_KEYWORDS = new Set([
-  // display, in full: every value of it is layout, and none of them takes a value.
+  // Every value of `display`, spelled out, because none of them is written <prefix>-<value>.
   "flex", "grid", "block", "inline", "inline-flex", "inline-block", "inline-grid",
   "contents", "hidden", "flow-root", "list-item",
   "table", "inline-table", "table-caption", "table-cell", "table-row", "table-row-group",
   "table-column", "table-column-group", "table-header-group", "table-footer-group",
+  // position, isolation, and the bare forms of flex-grow and flex-shrink. `grow` and
+  // `shrink` appear in LAYOUT_PREFIXES too, for the forms that do take a value (`grow-0`).
   "static", "relative", "absolute", "fixed", "sticky", "grow", "shrink", "isolate",
   // The container class and the container-query root, which is where a `@lg:` variant
   // measures from.
@@ -41,13 +43,17 @@ const LAYOUT_PREFIXES = new Set([
 ]);
 
 /**
- * Decoration that shares its opening prefix with something layout, so the prefix scan
- * would otherwise let it through. `inset-ring-red-500` and `inset-shadow-red-500/50` are
- * box-shadows with a colour, admitted by `inset`; `overflow-ellipsis` is text-overflow,
- * admitted by `overflow`. Checked after `extraPrefixes`, so a caller can still opt in.
+ * Decoration that opens with a layout prefix, so the prefix scan would let it through.
+ * Add to these when another is found; they are the ones known so far, not a closed set.
+ *
+ * - `inset-ring-*` and `inset-shadow-*` are box-shadows with a colour, admitted by `inset`
+ * - `box-decoration-*` controls how a box-shadow breaks across lines, admitted by `box`
+ * - `overflow-ellipsis` is text-overflow, admitted by `overflow`
+ *
+ * Checked after `extraPrefixes`, so a caller can still opt in.
  */
 const NOT_LAYOUT = new Set(["overflow-ellipsis"]);
-const NOT_LAYOUT_PREFIXES = new Set(["inset-ring", "inset-shadow"]);
+const NOT_LAYOUT_PREFIXES = new Set(["inset-ring", "inset-shadow", "box-decoration"]);
 
 // `text-` is two things: a size (`text-sm`) and a colour (`text-red-500`). Allowing the
 // bare prefix would let every colour class through, so sizes are opted in by name and
@@ -65,7 +71,7 @@ export interface LayoutOptions {
 
 /**
  * `LayoutOptions` with the defaults filled in and `extraPrefixes` built into the set the
- * matcher wants. Built once per lint run rather than per class name.
+ * matcher wants. The rule builds one per file it lints, rather than one per class name.
  */
 interface Allowance {
   allowTextSizes: boolean;
@@ -84,9 +90,8 @@ function allowanceFrom(options: LayoutOptions): Allowance {
  * to right and stops at the first hit, which is what makes the shortest prefix of a family
  * the only one that can be read.
  *
- * The whole token counts, so a class with no dash can be listed. Without that,
- * `extraPrefixes: ["container"]` was dead configuration while the rule's own message told
- * the reader to write it.
+ * The whole token counts too, so `extraPrefixes` can name a class with no dash in it at
+ * all, such as `truncate`.
  */
 function hasPrefixIn(token: string, prefixes: ReadonlySet<string>): boolean {
   if (prefixes.has(token)) return true;
@@ -100,9 +105,9 @@ function hasPrefixIn(token: string, prefixes: ReadonlySet<string>): boolean {
  * Whether one class is layout, size or spacing.
  *
  * A responsive or state variant (`md:`, `hover:`) and a negative sign both leave the
- * underlying utility unchanged, so they are stripped before the decision. Arbitrary
- * values need no special case: `min-w-[420px]` is decided by `min-w`, and what sits in
- * the brackets cannot change the category.
+ * underlying utility unchanged, so they are stripped before the decision. An arbitrary
+ * value is decided by its prefix: `min-w-[420px]` by `min-w`. A colon inside the brackets
+ * is read as a variant separator, so such a class is reported rather than classified.
  */
 export function isLayoutUtility(rawClass: string, options: LayoutOptions = {}): boolean {
   return isAllowedClass(rawClass, allowanceFrom(options));
@@ -117,10 +122,10 @@ function isAllowedClass(rawClass: string, allowance: Allowance): boolean {
     .replace(/^!/, "")
     .replace(/!$/, "")
     .replace(/^-/, "");
-  // Nothing left after stripping a variant, an important marker and a sign, so the class
-  // was `-`, `!` or `md:`.
-  // Neither names a utility, and reporting a typo as a design-system violation would send
-  // the reader to the wrong fix.
+  // Nothing left after stripping a variant, an important marker and a sign: the class was
+  // `-`, `!` or `md:`. None names a utility, so this rule passes it and says nothing. A
+  // typo is not a design-system violation, and reporting it as one sends the reader to the
+  // wrong fix.
   if (token === "") return true;
   if (LAYOUT_KEYWORDS.has(token)) return true;
   // Before the `text-` branch, which answers for every `text-` class and would otherwise
@@ -134,8 +139,9 @@ function isAllowedClass(rawClass: string, allowance: Allowance): boolean {
 }
 
 /**
- * The JSX node shapes are reached through `estree` unions that do not carry JSX, so this
- * walks a loose shape rather than casting at each of the dozen sites below.
+ * ESLint's node types come from `estree`, which has no JSX in it, so every JSX node would
+ * need its own cast. One loose shape instead: a bag of unknown fields with an optional
+ * `type` naming what the node is.
  */
 type LooseNode = Record<string, unknown> & { type?: string };
 
@@ -149,6 +155,8 @@ function collectStrings(node: unknown, onString: OnString): void {
     return;
   }
   if (current.type === "TemplateLiteral") {
+    // A template literal is stored as its text chunks (`quasis`) plus the expressions
+    // between them. `cooked` is a chunk's text with escapes resolved.
     for (const quasi of (current.quasis as LooseNode[] | undefined) ?? []) {
       const cooked = (quasi.value as { cooked?: string } | undefined)?.cooked;
       onString(cooked ?? "", quasi);
@@ -158,20 +166,23 @@ function collectStrings(node: unknown, onString: OnString): void {
     }
     return;
   }
+  // The shapes a class name is written inside, by the field each one hangs off:
+  // `{cond && "flex"}` and `{a ?? b}` are left/right, `{cond ? "a" : "b"}` is
+  // test/consequent/alternate, and `expression` is the `{ }` wrapper itself. Adding
+  // support for another shape means adding its field name here.
   for (const key of ["expression", "left", "right", "test", "consequent", "alternate"]) {
     if (current[key]) collectStrings(current[key], onString);
   }
+  // The same, for fields holding a list: an array literal, a `clsx(...)` call's arguments.
   for (const key of ["elements", "arguments", "expressions"]) {
     for (const child of (current[key] as unknown[] | undefined) ?? []) {
       collectStrings(child, onString);
     }
   }
   for (const property of (current.properties as LooseNode[] | undefined) ?? []) {
-    // The key, not only the value: `clsx({ "font-bold": on })` is the idiomatic way to
-    // write a conditional class, and there the class name is the key. An unquoted key is
-    // an Identifier rather than a Literal, and `{ underline: on }` is both a valid
-    // identifier and a decoration utility, so reading only the quoted form missed the
-    // shorter spelling of the same thing.
+    // The key, not only the value: in `clsx({ "font-bold": on })` the class name is the
+    // key. An unquoted key is an Identifier rather than a Literal, so `{ underline: on }`
+    // needs reading too.
     const key = property.key as LooseNode | undefined;
     if (key?.type === "Identifier" && property.computed !== true) {
       onString(key.name as string, key);

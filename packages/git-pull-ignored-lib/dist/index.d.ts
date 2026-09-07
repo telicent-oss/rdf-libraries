@@ -5,49 +5,39 @@ export declare class PullError extends Error {
         attempted?: string[];
     });
 }
-/** What a caller may set on one git invocation. Deliberately narrower than node's. */
+/** What a caller may set on one git invocation. */
 export interface GitOptions {
     timeout?: number;
     env?: NodeJS.ProcessEnv;
 }
-/** The outcome of one git invocation. Nothing here throws, so every field is readable. */
+/** The outcome of one git invocation. A failure arrives in these fields, never as a throw. */
 export interface GitResult {
     status: number | null;
     signal: NodeJS.Signals | null;
     stdout: string;
     stderr: string;
-    /** Set when the process could not run or was killed. `code` is node's: ENOENT, ETIMEDOUT. */
+    /**
+     * Set when git could not be run or was killed, never when git ran and exited non-zero.
+     * `code` is node's own string: `ENOENT` for no git binary, `ETIMEDOUT` for one the
+     * `timeout` killed.
+     */
     error?: NodeJS.ErrnoException;
 }
 /**
- * How git is run. The command is always git, so only its arguments are passed.
+ * How git is run. It takes the arguments that would follow `git` on a command line, and
+ * returns the outcome instead of throwing.
  *
- * Injected because one condition cannot be produced in process: a machine with no git.
- * Emptying PATH does not do it under jest, which hands the test a copy of `process.env`
- * while the child reads the real one. A caller with its own reason to control the
- * invocation can supply one too.
+ * Injected so a test can present a machine with no git, which cannot be arranged in
+ * process.
  */
 export type GitRunner = (args: string[], options?: GitOptions) => GitResult;
 /**
- * Whether git ignores `path`, asked of git rather than inferred by reading .gitignore,
- * so nested and negated patterns give the same answer here as they do to git itself.
+ * Whether git ignores `path`. Asked of git rather than read out of .gitignore, so nested
+ * and negated patterns give the same answer here as they do to git.
  *
- * `check-ignore` exits 1 for a path that is NOT ignored, which is not an error, so a
- * non-zero exit is read as false. A path outside any repository is not ignored either.
- *
- * Three details decide whether this answers correctly:
- *
- * The path is made relative to `cwd`. git rejects an absolute path it reads as outside
- * the repository, and on macOS a temp directory reached as /var/... resolves to
- * /private/var/..., so an absolute path that IS inside the repo can be read as outside it.
- *
- * Separators are rewritten to `/`. `relative()` returns `\` on win32 and git takes only
- * `/`, so the trailing-slash test below and git's own pattern matching would both miss.
- *
- * A trailing slash is added, which tells git the path is a directory. The usual pattern
- * for a pulled directory is `name/`, which git matches only against something it knows is
- * a directory, so without the slash a destination that does not exist YET reads as not
- * ignored, and every first pull would be refused.
+ * `git check-ignore --quiet <path>` prints nothing and answers with its exit code: 0 for
+ * ignored, 1 for not. Any other code means git could not answer, and false is the safe
+ * reading of that, because the caller refuses to delete anything it is not sure about.
  */
 export declare function isGitIgnored(path: string, cwd: string, git?: GitRunner): boolean;
 export interface PullOptions {
@@ -66,8 +56,7 @@ export interface PullOptions {
     cwd: string;
     writeShaFile?: boolean;
     /**
-     * Bounds each clone attempt, not the call: a caller passing three refs waits up to
-     * three times this in the worst case, which is the same shape as the retries.
+     * Bounds each clone attempt, not the call: three refs can wait three times this.
      */
     cloneTimeoutMs?: number;
     /** Defaults to running the real git binary. */
@@ -80,15 +69,14 @@ export interface PullResult {
 /**
  * Replace `dest` with `subpath` taken from `repo`, and record the commit it came from.
  *
- * `dest` is deleted outright, so this REFUSES to run unless git ignores it. That check is
- * the reason this function exists: every caller's comment claimed the destination was
- * gitignored and therefore safe to destroy, and nothing verified the claim. A wrong path,
- * a moved directory or an edited .gitignore turns a pull into data loss, and the files it
- * takes are the ones git is not tracking, so there is nothing to restore from.
+ * `dest` is deleted outright, so this refuses to run unless git says it is ignored.
  *
- * The new content is assembled in a directory inside `dest` and moved up into it once it
- * is complete, so everything that can fail — a full disk, a file where a directory was
- * expected — fails while the old content is still there. `dest` is the only path git has
- * been asked about, so it is also the only path this writes to.
+ * The clone goes to a temp directory. Inside the caller's own tree, `dest` is the only
+ * path written to, because it is the only one git was asked about.
+ *
+ * The new content is built in a directory inside `dest` and moved up once it is complete,
+ * so a copy that fails part-way leaves the old content in place. Once the move starts the
+ * old content is gone, and a failure there leaves `dest` half-written; the next run
+ * replaces it.
  */
 export declare function pullGitignored({ repo, refs, subpath, dest, cwd, writeShaFile, cloneTimeoutMs, git, }: PullOptions): PullResult;

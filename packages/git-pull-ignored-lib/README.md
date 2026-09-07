@@ -67,9 +67,9 @@ try {
 
 - `cloneTimeoutMs` defaults to 60000 and bounds each attempt, not the call: three refs can
   wait three times that
-- `git`: swaps how git is run, defaulting to the real binary
-- failures come back on `error.code` rather than as a throw: `ENOENT` for no git,
-  `ETIMEDOUT` for a deadline
+- `git`: swaps how git is run, defaulting to the real binary. A runner reports a failure in
+  its result rather than throwing, on `error.code`: `ENOENT` for no git binary, `ETIMEDOUT`
+  for one the deadline killed. `pullGitignored` still throws `PullError` at its caller
 - a `repo`, `ref`, `cwd` or `dest` starting with `-` is refused: git reads a leading dash
   as an option wherever it sits, and `--upload-pack=<command>` makes a clone run a command
 - the new content is built inside `dest` and moved into place, so a copy that fails
@@ -79,7 +79,7 @@ try {
 
 ## Tests
 
-From a clone of this repository:
+The repo itself uses yarn, so from a clone of it:
 
 ```sh
 yarn test

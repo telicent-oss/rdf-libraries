@@ -83,9 +83,9 @@ describe("isGitIgnored", () => {
 // reporting a missing binary the way `noGit` imitates, every in-process test here would
 // still pass and this one would fail.
 //
-// It needs a child process because emptying PATH in this one does nothing: jest hands the
-// test a COPY of process.env while child_process reads the real one. tsx lets the child
-// run the source, so the test does not depend on `dist` existing.
+// It needs a child process because emptying PATH in this one does nothing: the child reads
+// the real environment, not the copy the test sees. tsx lets the child run the source, so
+// the test does not depend on `dist` existing.
 describe("with git missing from PATH", () => {
   const inChildWithoutPath = (body: string) =>
     execFileSync(
@@ -96,8 +96,8 @@ describe("with git missing from PATH", () => {
 
   it("says git is missing, rather than blaming the work tree", () => {
     // Through pullGitignored, which is the path every caller takes. It asks whether cwd is
-    // a work tree first, and git being absent used to answer "no" there, reporting a
-    // missing binary as a repository that is not a repository.
+    // a work tree first, and a machine with no git has to be reported as that rather than
+    // as a directory which is not a repository.
     const output = inChildWithoutPath(
       `const { pullGitignored } = await import("${join(__dirname, "index.ts")}");
        try {
@@ -111,9 +111,9 @@ describe("with git missing from PATH", () => {
   });
 });
 
-// A machine with no git, which the injected runner is what makes reachable in process.
-// node reports it on `error.code`, and the check has to read that code rather than the
-// presence of an error: a command that ran and failed arrives the same way.
+// A machine with no git. The injected runner is what makes that reachable in process.
+// node reports it on `error.code`, and the check has to read that code rather than merely
+// that an error is set, because a command that ran and failed arrives the same way.
 describe("git missing from PATH", () => {
   const noGit: GitRunner = () =>
     ran({ status: null, error: Object.assign(new Error("spawn git ENOENT"), { code: "ENOENT" }) });
@@ -125,8 +125,8 @@ describe("git missing from PATH", () => {
   });
 
   it("is named by the public entry, rather than blamed on the work tree", () => {
-    // pullGitignored asks whether cwd is a work tree first, and a missing git used to
-    // answer "no" there, reporting a missing binary as a directory that is not a repo.
+    // pullGitignored asks whether cwd is a work tree first, which is where a missing git
+    // would otherwise be reported as a directory that is not a repository.
     expect(() =>
       pullGitignored({
         repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
@@ -206,8 +206,8 @@ describe("with a scripted git", () => {
 });
 
 // git reads a leading dash as an option wherever it sits, and `--upload-pack=<command>`
-// turns a clone into an arbitrary command. CodeQL flags this as second-order command
-// injection: the values come from the library's caller.
+// turns a clone into an arbitrary command. The values come from this library's caller, so
+// the check has to be here.
 describe("an argument that git would read as an option", () => {
   const shouldNotRun: GitRunner = () => {
     throw new Error("git was invoked with an option-shaped argument");
@@ -384,9 +384,9 @@ describe("pullGitignored", () => {
   });
 
   it("leaves the old content in place when the copy cannot complete", () => {
-    // The new content is assembled beside dest and swapped in, so a copy that fails
-    // part-way does not leave the caller with neither version. A file subpath is the
-    // cheapest way to fail one: the sha file cannot be written inside a file.
+    // The new content is built inside dest and moved up only once it is complete, so a
+    // copy that fails part-way leaves the old content alone. A file subpath is the cheapest
+    // way to make one fail: the sha file cannot be written inside a file.
     const source = sourceRepo({ "guidance/a.md": "A" });
     const consumer = consumerRepo("pulled/\n");
     const dest = join(consumer, "pulled");
@@ -424,8 +424,8 @@ describe("pullGitignored", () => {
   });
 
   it("says so when the clone has no HEAD to read, rather than recording an empty sha", () => {
-    // rev-parse no longer throws on failure, so an unread HEAD would otherwise be copied
-    // into .commitSha as an empty string and pass for a real commit.
+    // The runner reports a failure in its result rather than throwing, so an unread HEAD
+    // would otherwise be copied into .commitSha as an empty string and pass for a commit.
     const source = sourceRepo({ "guidance/a.md": "A" });
     const consumer = consumerRepo("pulled/\n");
     const failHead: GitRunner = (args, options) => {

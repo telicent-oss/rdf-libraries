@@ -2,8 +2,9 @@ import { RuleTester } from "eslint";
 
 import { tailwindLayoutOnly } from "./tailwind-layout-only";
 
-// eslint 8's RuleTester, so `parser` is a resolved path and options are `parserOptions`.
-// The rule's visitor API is identical in 9, which is what the plugin's consumers run.
+// eslint 8's RuleTester: it takes `parser` as a resolved path and its options as
+// `parserOptions`. The visitor API a rule implements is the same in 8 and 9, and the
+// plugin's consumers run 9.
 const ruleTester = new RuleTester({
   parser: require.resolve("@typescript-eslint/parser"),
   parserOptions: {
@@ -95,9 +96,8 @@ ruleTester.run("tailwind-layout-only", tailwindLayoutOnly, {
 });
 
 // The allowlist carries only the shortest prefix of each family, because the matcher
-// returns at the first dash boundary that hits. These are the ten classes whose own
-// prefix was listed redundantly and has been removed; each must still be allowed, or
-// the removal changed a verdict rather than deleting dead configuration.
+// stops at the first dash boundary that hits: `col` already decides `col-span-2`. These
+// are the longer forms that must therefore still be allowed.
 ruleTester.run("tailwind-layout-only long-form prefixes", tailwindLayoutOnly, {
   valid: [
     { code: '<div className="col-span-2 col-start-1 col-end-3 row-span-2" />' },
@@ -112,8 +112,8 @@ ruleTester.run("tailwind-layout-only long-form prefixes", tailwindLayoutOnly, {
 ruleTester.run("tailwind-layout-only extraPrefixes", tailwindLayoutOnly, {
   valid: [
     { code: '<div className="columns-3" />', options: [{ extraPrefixes: ["columns"] }] },
-    // `text` reaches the allowlist despite the text-size branch, which answers for every
-    // `text-` class and used to return before extraPrefixes was consulted.
+    // `text` reaches the allowlist even though the text-size branch answers for every
+    // `text-` class, because extraPrefixes is consulted first.
     { code: '<div className="text-red-500" />', options: [{ extraPrefixes: ["text"] }] },
   ],
   invalid: [],
@@ -131,10 +131,10 @@ ruleTester.run("tailwind-layout-only align-content", tailwindLayoutOnly, {
   ],
 });
 
-// An unquoted object key. `clsx({ underline: on })` and `clsx({ "underline": on })` are
-// the same class written two ways, and only the quoted one used to be read: an unquoted
-// key is an Identifier, and every decoration utility that is a valid JS identifier
-// (`underline`, `italic`, `shadow`, `ring`, `uppercase`, `truncate`) went unreported.
+// `clsx({ underline: on })` and `clsx({ "underline": on })` are the same class written two
+// ways. The unquoted form is an Identifier rather than a Literal, and every decoration
+// utility that is also a valid JS identifier (`underline`, `italic`, `shadow`, `ring`,
+// `uppercase`, `truncate`) is written that way.
 ruleTester.run("tailwind-layout-only identifier keys", tailwindLayoutOnly, {
   valid: [
     { code: "<div className={clsx({ flex: yes, hidden: no })} />" },
@@ -157,8 +157,8 @@ ruleTester.run("tailwind-layout-only identifier keys", tailwindLayoutOnly, {
   ],
 });
 
-// Decoration that opens with a layout prefix. `inset` and `overflow` are prefixes, so the
-// scan let these through: two of them carry a colour, which is what the rule is for.
+// Decoration that opens with a layout prefix, which the prefix scan would let through.
+// Two of these carry a colour, which is what the rule exists to stop.
 ruleTester.run("tailwind-layout-only decoration under a layout prefix", tailwindLayoutOnly, {
   valid: [
     // The layout families those prefixes exist for.
@@ -182,8 +182,8 @@ ruleTester.run("tailwind-layout-only decoration under a layout prefix", tailwind
   ],
 });
 
-// Layout the allowlist used to report. Each one reported is a team's reason to switch the
-// rule off, and `shrink-0` is among the most-typed flex classes there is.
+// Plainly layout, and it must stay allowed. Each false report is a team's reason to switch
+// the rule off, and `shrink-0` is among the most-typed flex classes there is.
 ruleTester.run("tailwind-layout-only layout that was reported", tailwindLayoutOnly, {
   valid: [
     { code: '<div className="shrink-0 grow-0 grow-[2]" />' },
@@ -210,14 +210,26 @@ ruleTester.run("tailwind-layout-only important marker", tailwindLayoutOnly, {
   ],
 });
 
-// A class with no dash reaches extraPrefixes. It could not before, while the rule's own
-// message told the reader to add it there.
+// A class with no dash in it can be named in extraPrefixes, which is what the rule's own
+// error message tells the reader to do.
 ruleTester.run("tailwind-layout-only extraPrefixes without a dash", tailwindLayoutOnly, {
   valid: [{ code: '<div className="truncate" />', options: [{ extraPrefixes: ["truncate"] }] }],
   invalid: [
     {
       code: '<div className="truncate" />',
       errors: [{ messageId: "notLayout", data: { value: "truncate" } }],
+    },
+  ],
+});
+
+// box-decoration-* controls how a box-shadow breaks across lines. The `box` prefix is
+// there for box-sizing, and admitted it.
+ruleTester.run("tailwind-layout-only box-decoration", tailwindLayoutOnly, {
+  valid: [{ code: '<div className="box-border box-content" />' }],
+  invalid: [
+    {
+      code: '<div className="box-decoration-clone" />',
+      errors: [{ messageId: "notLayout", data: { value: "box-decoration-clone" } }],
     },
   ],
 });

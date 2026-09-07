@@ -14,7 +14,7 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/git-pull-ignored-lib.es.js",
-      "//default": "a require() of this package needs a condition it matches. Node >=20.19 requires ESM, so the same file serves both",
+      "//default": "an exports map only answers a require() if one of its keys matches. Node 20.19 and up can require() an ESM file, so the same file answers both keys",
       "default": "./dist/git-pull-ignored-lib.es.js"
     }
   },

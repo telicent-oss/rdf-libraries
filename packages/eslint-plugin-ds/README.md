@@ -100,7 +100,7 @@ reporting a typo as a design-system violation sends the reader to the wrong fix.
 
 ## Tests
 
-From a clone of this repository:
+The repo itself uses yarn, so from a clone of it:
 
 ```sh
 yarn test

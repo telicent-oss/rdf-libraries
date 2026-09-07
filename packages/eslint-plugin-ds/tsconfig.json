@@ -11,8 +11,10 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  // types: this package runs in node; no sibling needs the node globals.
-  // No ts-node block: the siblings carry one; nothing here is run through ts-node.
+  // types: this package runs in node, so it asks for the node globals. Other packages in
+  // this monorepo do not, which is why the setting is here and not in tsconfig.base.json.
+  // No ts-node block: other packages here carry one; nothing in this package runs under
+  // ts-node.
   "include": ["src/**/*.ts"],
   // The tests are typechecked by tsconfig.spec.json, which adds the jest types.
   "exclude": ["src/**/*.test.ts"]

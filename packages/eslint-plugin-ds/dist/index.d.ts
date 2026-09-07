@@ -15,9 +15,9 @@ export default _default;
  * Whether one class is layout, size or spacing.
  *
  * A responsive or state variant (`md:`, `hover:`) and a negative sign both leave the
- * underlying utility unchanged, so they are stripped before the decision. Arbitrary
- * values need no special case: `min-w-[420px]` is decided by `min-w`, and what sits in
- * the brackets cannot change the category.
+ * underlying utility unchanged, so they are stripped before the decision. An arbitrary
+ * value is decided by its prefix: `min-w-[420px]` by `min-w`. A colon inside the brackets
+ * is read as a variant separator, so such a class is reported rather than classified.
  */
 export declare function isLayoutUtility(rawClass: string, options?: LayoutOptions): boolean;
 

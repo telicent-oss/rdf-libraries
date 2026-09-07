@@ -1,7 +1,7 @@
 const name = "@telicent-oss/eslint-plugin-ds";
 const version = "0.0.1";
 const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
-  // display, in full: every value of it is layout, and none of them takes a value.
+  // Every value of `display`, spelled out, because none of them is written <prefix>-<value>.
   "flex",
   "grid",
   "block",
@@ -23,6 +23,8 @@ const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
   "table-column-group",
   "table-header-group",
   "table-footer-group",
+  // position, isolation, and the bare forms of flex-grow and flex-shrink. `grow` and
+  // `shrink` appear in LAYOUT_PREFIXES too, for the forms that do take a value (`grow-0`).
   "static",
   "relative",
   "absolute",
@@ -113,7 +115,7 @@ const LAYOUT_PREFIXES = /* @__PURE__ */ new Set([
   "z"
 ]);
 const NOT_LAYOUT = /* @__PURE__ */ new Set(["overflow-ellipsis"]);
-const NOT_LAYOUT_PREFIXES = /* @__PURE__ */ new Set(["inset-ring", "inset-shadow"]);
+const NOT_LAYOUT_PREFIXES = /* @__PURE__ */ new Set(["inset-ring", "inset-shadow", "box-decoration"]);
 const TEXT_SIZES = /* @__PURE__ */ new Set([
   "xs",
   "sm",
