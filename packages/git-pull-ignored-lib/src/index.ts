@@ -311,9 +311,8 @@ export function pullGitignored({
           `Nothing was removed: the previous contents of ${dest} are untouched.`,
       );
     }
-    // The copy is done, so the risky part is over. Removing the old entries and moving the
-    // new ones up can still fail on a permission or a locked file, and would leave dest
-    // half-written; the next run replaces it.
+    // From here dest is briefly incomplete: the old entries are gone and the new ones have
+    // not moved up yet.
     for (const entry of readdirSync(dest)) {
       if (join(dest, entry) !== staging) rmSync(join(dest, entry), { recursive: true, force: true });
     }
