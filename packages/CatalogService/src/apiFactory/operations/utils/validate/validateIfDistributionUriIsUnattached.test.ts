@@ -73,4 +73,81 @@ describe("validateIfDistributionUriIsUnattached", () => {
 
     expect(errors).toBe(previous);
   });
+
+  describe("when payload.distributionUri triggers a lookup", () => {
+    it("returns the input errors unchanged when the distribution is not attached anywhere", async () => {
+      catalogService.runQuery.mockResolvedValue({
+        head: { vars: [] },
+        results: { bindings: [{}] },
+      });
+
+      const errors = await validateIfDistributionUriIsUnattached(
+        {},
+        {
+          catalogService: catalogService as never,
+          dcatResource: baseDcatResource as never,
+          operation: {
+            type: "dataSet",
+            payload: { distributionUri: "my-dist" },
+          },
+        }
+      );
+
+      expect(catalogService.runQuery).toHaveBeenCalled();
+      expect(errors).toEqual({});
+    });
+
+    it("returns the input errors unchanged when the distribution is attached to the same resource", async () => {
+      catalogService.runQuery.mockResolvedValue({
+        head: { vars: [] },
+        results: {
+          bindings: [{ dataset: { value: baseDcatResource.uri } }],
+        },
+      });
+
+      const errors = await validateIfDistributionUriIsUnattached(
+        {},
+        {
+          catalogService: catalogService as never,
+          dcatResource: baseDcatResource as never,
+          operation: {
+            type: "dataSet",
+            payload: { distributionUri: "my-dist" },
+          },
+        }
+      );
+
+      expect(errors).toEqual({});
+    });
+
+    it("appends a distributionUri error when the distribution is attached to another dataset", async () => {
+      catalogService.runQuery.mockResolvedValue({
+        head: { vars: [] },
+        results: {
+          bindings: [
+            { dataset: { value: "http://example.com/other-dataset" } },
+          ],
+        },
+      });
+
+      const errors = await validateIfDistributionUriIsUnattached(
+        { form: [] } as Record<string, FieldError[]>,
+        {
+          catalogService: catalogService as never,
+          dcatResource: baseDcatResource as never,
+          operation: {
+            type: "dataSet",
+            payload: { distributionUri: "my-dist" },
+          },
+        }
+      );
+
+      expect(errors.distributionUri).toHaveLength(1);
+      expect(errors.distributionUri?.[0].code).toBe(
+        "distribution.askIfDistributionUriIsUnattached"
+      );
+      expect(errors.distributionUri?.[0].context?.identifier).toBe("my-dist");
+      expect(errors.form).toEqual([]);
+    });
+  });
 });

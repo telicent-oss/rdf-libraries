@@ -1,3 +1,11 @@
 {
   "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // Pinned so the IDE reliably picks up jest ambient globals (describe/it/
+    // expect). Without this, VS Code's TS language service intermittently
+    // fails to auto-load @types/jest from the hoisted workspace-root
+    // node_modules. If you add another @types/* package that provides ambient
+    // types, append it here.
+    "types": ["jest", "node"]
+  }
 }
