@@ -4,7 +4,7 @@
   "private": true,
   "//private": "private until we get an npmjs.org package created",
   "license": "Apache-2.0",
-  "description": "ESLint rules enforcing the Telicent design system manifest: Tailwind may do layout, size and spacing, and nothing else.",
+  "description": "ESLint rules enforcing the Telicent design system manifest: colour comes from the theme, and Tailwind may do layout, size and spacing only.",
   "type": "module",
   "//main": "the esm entry: this package is esm only, see vite.config.ts",
   "main": "./dist/eslint-plugin-ds.es.js",

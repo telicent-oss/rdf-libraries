@@ -1,5 +1,365 @@
 const name = "@telicent-oss/eslint-plugin-ds";
 const version = "0.0.1";
+const NAMED_COLOURS = /* @__PURE__ */ new Set([
+  "aliceblue",
+  "antiquewhite",
+  "aqua",
+  "aquamarine",
+  "azure",
+  "beige",
+  "bisque",
+  "black",
+  "blanchedalmond",
+  "blue",
+  "blueviolet",
+  "brown",
+  "burlywood",
+  "cadetblue",
+  "chartreuse",
+  "chocolate",
+  "coral",
+  "cornflowerblue",
+  "cornsilk",
+  "crimson",
+  "cyan",
+  "darkblue",
+  "darkcyan",
+  "darkgoldenrod",
+  "darkgray",
+  "darkgreen",
+  "darkgrey",
+  "darkkhaki",
+  "darkmagenta",
+  "darkolivegreen",
+  "darkorange",
+  "darkorchid",
+  "darkred",
+  "darksalmon",
+  "darkseagreen",
+  "darkslateblue",
+  "darkslategray",
+  "darkslategrey",
+  "darkturquoise",
+  "darkviolet",
+  "deeppink",
+  "deepskyblue",
+  "dimgray",
+  "dimgrey",
+  "dodgerblue",
+  "firebrick",
+  "floralwhite",
+  "forestgreen",
+  "fuchsia",
+  "gainsboro",
+  "ghostwhite",
+  "gold",
+  "goldenrod",
+  "gray",
+  "green",
+  "greenyellow",
+  "grey",
+  "honeydew",
+  "hotpink",
+  "indianred",
+  "indigo",
+  "ivory",
+  "khaki",
+  "lavender",
+  "lavenderblush",
+  "lawngreen",
+  "lemonchiffon",
+  "lightblue",
+  "lightcoral",
+  "lightcyan",
+  "lightgoldenrodyellow",
+  "lightgray",
+  "lightgreen",
+  "lightgrey",
+  "lightpink",
+  "lightsalmon",
+  "lightseagreen",
+  "lightskyblue",
+  "lightslategray",
+  "lightslategrey",
+  "lightsteelblue",
+  "lightyellow",
+  "lime",
+  "limegreen",
+  "linen",
+  "magenta",
+  "maroon",
+  "mediumaquamarine",
+  "mediumblue",
+  "mediumorchid",
+  "mediumpurple",
+  "mediumseagreen",
+  "mediumslateblue",
+  "mediumspringgreen",
+  "mediumturquoise",
+  "mediumvioletred",
+  "midnightblue",
+  "mintcream",
+  "mistyrose",
+  "moccasin",
+  "navajowhite",
+  "navy",
+  "oldlace",
+  "olive",
+  "olivedrab",
+  "orange",
+  "orangered",
+  "orchid",
+  "palegoldenrod",
+  "palegreen",
+  "paleturquoise",
+  "palevioletred",
+  "papayawhip",
+  "peachpuff",
+  "peru",
+  "pink",
+  "plum",
+  "powderblue",
+  "purple",
+  "rebeccapurple",
+  "red",
+  "rosybrown",
+  "royalblue",
+  "saddlebrown",
+  "salmon",
+  "sandybrown",
+  "seagreen",
+  "seashell",
+  "sienna",
+  "silver",
+  "skyblue",
+  "slateblue",
+  "slategray",
+  "slategrey",
+  "snow",
+  "springgreen",
+  "steelblue",
+  "tan",
+  "teal",
+  "thistle",
+  "tomato",
+  "turquoise",
+  "violet",
+  "wheat",
+  "white",
+  "whitesmoke",
+  "yellow",
+  "yellowgreen"
+]);
+const COLOUR_FAMILIES = /* @__PURE__ */ new Set([
+  "slate",
+  "gray",
+  "zinc",
+  "neutral",
+  "stone",
+  "red",
+  "orange",
+  "amber",
+  "yellow",
+  "lime",
+  "green",
+  "emerald",
+  "teal",
+  "cyan",
+  "sky",
+  "blue",
+  "indigo",
+  "violet",
+  "purple",
+  "fuchsia",
+  "pink",
+  "rose",
+  "black",
+  "white"
+]);
+const COLOUR_PREFIXES = /* @__PURE__ */ new Set([
+  "bg",
+  "text",
+  "border",
+  "ring",
+  "fill",
+  "stroke",
+  "divide",
+  "placeholder",
+  "outline",
+  "accent",
+  "caret",
+  "decoration",
+  "shadow",
+  "from",
+  "via",
+  "to"
+]);
+const HEX = /#[0-9a-f]{3,8}\b/i;
+const FUNCTIONAL = /\b(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\s*\([^)]*\)?/i;
+function findColourLiteral(value) {
+  const hex = HEX.exec(value);
+  if (hex)
+    return hex[0];
+  const functional = FUNCTIONAL.exec(value);
+  if (functional)
+    return functional[0].trim();
+  for (const token of value.toLowerCase().split(/[^a-z]+/)) {
+    if (NAMED_COLOURS.has(token))
+      return token;
+  }
+  return null;
+}
+function findTailwindColourClass(rawToken) {
+  const token = rawToken.slice(rawToken.lastIndexOf(":") + 1);
+  const dash = token.indexOf("-");
+  if (dash < 1)
+    return null;
+  if (!COLOUR_PREFIXES.has(token.slice(0, dash)))
+    return null;
+  const rest = token.slice(dash + 1);
+  if (rest.startsWith("[") && rest.endsWith("]")) {
+    return findColourLiteral(rest.slice(1, -1)) ? token : null;
+  }
+  const shadeAt = rest.lastIndexOf("-");
+  const family = shadeAt === -1 ? rest : rest.slice(0, shadeAt);
+  const shade = shadeAt === -1 ? "" : rest.slice(shadeAt + 1);
+  if (!COLOUR_FAMILIES.has(family))
+    return null;
+  if (shade !== "" && !/^\d{1,3}$/.test(shade))
+    return null;
+  return token;
+}
+function walkStrings(node, visit) {
+  if (node === null || typeof node !== "object")
+    return;
+  const current = node;
+  if (current.type === "Literal" && typeof current.value === "string") {
+    visit(current.value, current);
+    return;
+  }
+  if (current.type === "TemplateLiteral") {
+    for (const quasi of current.quasis ?? []) {
+      const cooked = quasi.value?.cooked;
+      visit(cooked ?? "", quasi);
+    }
+    return;
+  }
+  if (current.type === "ObjectExpression") {
+    for (const property of current.properties ?? []) {
+      if (property.type === "Property")
+        walkStrings(property.value, visit);
+      else if (property.type === "SpreadElement")
+        walkStrings(property.argument, visit);
+    }
+    return;
+  }
+  if (current.type === "ArrayExpression") {
+    for (const element of current.elements ?? []) {
+      walkStrings(element, visit);
+    }
+  }
+}
+function isStyledTag(tag) {
+  if (!tag)
+    return false;
+  const callee = tag.callee;
+  if (tag.type === "CallExpression" && callee?.type === "Identifier") {
+    return callee.name === "styled";
+  }
+  const object = tag.object;
+  return tag.type === "MemberExpression" && object?.type === "Identifier" && object.name === "styled";
+}
+const noColourLiteral = {
+  meta: {
+    type: "problem",
+    docs: {
+      description: "Colour comes from the design system theme, never a literal or a Tailwind colour class."
+    },
+    schema: [
+      {
+        type: "object",
+        properties: { allow: { type: "array", items: { type: "string" } } },
+        additionalProperties: false
+      }
+    ],
+    messages: {
+      literal: 'Colour literal "{{value}}" - read colour from the design system theme instead. If the theme genuinely has no token for it, allow it in your eslint config: the ds/no-colour-literal rule takes an `allow` list. Put the reason beside the entry.',
+      tailwind: 'Tailwind colour class "{{value}}" - set colour through the design system theme. Tailwind may still do layout, size and spacing. If the theme genuinely has no token for it, allow it in your eslint config: the ds/no-colour-literal rule takes an `allow` list. Put the reason beside the entry.'
+    }
+  },
+  create(context) {
+    const allowed = new Set(context.options[0]?.allow ?? []);
+    const reportLiteral = (value, at) => {
+      const hit = findColourLiteral(value);
+      if (hit === null || allowed.has(hit) || allowed.has(value))
+        return;
+      context.report({
+        node: at,
+        messageId: "literal",
+        data: { value: hit }
+      });
+    };
+    return {
+      JSXAttribute(node) {
+        const attribute = node;
+        const nameNode = attribute.name;
+        const name2 = nameNode?.type === "JSXIdentifier" ? nameNode.name : "";
+        if (name2 === "sx" || name2 === "style") {
+          const value2 = attribute.value;
+          if (value2?.type === "JSXExpressionContainer") {
+            walkStrings(value2.expression, reportLiteral);
+          }
+          return;
+        }
+        if (name2 !== "className")
+          return;
+        const value = attribute.value;
+        const strings = [];
+        if (value?.type === "Literal" && typeof value.value === "string") {
+          strings.push([value.value, value]);
+        } else if (value?.type === "JSXExpressionContainer") {
+          walkStrings(value.expression, (text, at) => strings.push([text, at]));
+        }
+        for (const [text, at] of strings) {
+          for (const rawToken of text.split(/\s+/)) {
+            if (rawToken === "")
+              continue;
+            const hit = findTailwindColourClass(rawToken);
+            if (hit === null || allowed.has(hit))
+              continue;
+            context.report({
+              node: at,
+              messageId: "tailwind",
+              data: { value: hit }
+            });
+          }
+        }
+      },
+      TaggedTemplateExpression(node) {
+        const expression = node;
+        if (!isStyledTag(expression.tag))
+          return;
+        const quasi = expression.quasi;
+        for (const chunk of quasi?.quasis ?? []) {
+          const cooked = chunk.value?.cooked;
+          reportLiteral(cooked ?? "", chunk);
+        }
+      },
+      CallExpression(node) {
+        const call = node;
+        const callee = call.callee;
+        const inner = callee?.callee;
+        if (callee?.type !== "CallExpression" || inner?.type !== "Identifier")
+          return;
+        if (inner.name !== "styled")
+          return;
+        for (const argument of call.arguments ?? []) {
+          walkStrings(argument, reportLiteral);
+        }
+      }
+    };
+  }
+};
 const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
   // Every value of `display`, spelled out, because none of them is written <prefix>-<value>.
   "flex",
@@ -251,13 +611,50 @@ const tailwindLayoutOnly = {
   }
 };
 const rules = {
+  "no-colour-literal": noColourLiteral,
   "tailwind-layout-only": tailwindLayoutOnly
 };
 const meta = { name, version };
-const index = { meta, rules };
+const plugin = {
+  meta,
+  rules
+};
+const DEFAULT_FILES = ["src/**/*.{ts,tsx}"];
+function recommended({ files = DEFAULT_FILES } = {}) {
+  return [
+    {
+      files,
+      plugins: { ds: plugin },
+      rules: {
+        "ds/no-colour-literal": "error",
+        "ds/tailwind-layout-only": "warn",
+        "no-restricted-imports": [
+          "warn",
+          {
+            patterns: [
+              {
+                group: ["@mui/*", "@mui/*/*"],
+                message: "Use @telicent-oss/ds instead (icons: @telicent-oss/mui-icons-material). Look the component up in the design system's manifest rather than guessing a name."
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ];
+}
+const configs = {
+  recommended
+};
+const index = Object.assign(plugin, { configs });
 export {
+  DEFAULT_FILES,
+  configs,
   index as default,
+  findColourLiteral,
+  findTailwindColourClass,
   isLayoutUtility,
   meta,
+  recommended,
   rules
 };
