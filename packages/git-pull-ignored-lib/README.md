@@ -17,7 +17,7 @@ are untracked, so there is nothing to restore from.
 `pullGitignored` asks git whether the destination is ignored, and throws before deleting
 anything if it is not.
 
-## Build / Install
+## Install
 
 ```sh
 pnpm add -D "telicent-oss/rdf-libraries#path:/packages/git-pull-ignored-lib"
