@@ -10,6 +10,14 @@
       "bumpPatchForMinorPreMajor": true,
       "release-type": "node"
     },
+    "packages/eslint-plugin-ds/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
+    },
     "packages/OntologyService/": {
       "labels": [
         "autorelease: pending"
