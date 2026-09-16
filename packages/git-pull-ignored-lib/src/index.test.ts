@@ -266,7 +266,7 @@ describe("an argument that git would read as an option", () => {
         git: inWorkTreeAndIgnored, ...options,
       });
 
-    expect(() => call({ repo: "--upload-pack=touch /tmp/pwned" })).toThrow(/repo is not a URL/);
+    expect(() => call({ repo: "--upload-pack=touch /tmp/pwned" })).toThrow(/This is not a URL/);
     expect(() => call({ refs: ["--upload-pack=touch /tmp/pwned"] })).toThrow(/ref starts with a dash/);
   });
 
@@ -280,11 +280,46 @@ describe("an argument that git would read as an option", () => {
         repo, refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp", git: shouldNotClone,
       });
 
-    expect(() => call("ext::sh -c 'touch /tmp/pwned'")).toThrow(/must start with https:\/\/ or ssh:\/\//);
-    expect(() => call("git://github.com/x/y")).toThrow(/must start with https:\/\/ or ssh:\/\//);
-    expect(() => call("file:///tmp/x")).toThrow(/must start with https:\/\/ or ssh:\/\//);
+    expect(() => call("ext::sh -c 'touch /tmp/pwned'")).toThrow(/names another transport/);
+    expect(() => call("git://github.com/x/y")).toThrow(/names another transport/);
+    expect(() => call("file:///tmp/x")).toThrow(/names another transport/);
     expect(() => call("ssh://-oProxyCommand=x@host/y")).toThrow(/user starts with a dash/);
     expect(() => call("ssh://git@-evil/y")).toThrow(/host starts with a dash/);
+
+    // `ssh:` with no `//` parses, with every part but the scheme empty, and hands git the
+    // string back untouched for it to read as an scp-style remote.
+    expect(() => call("ssh:-oProxyCommand=x@host/y")).toThrow(/names no host/);
+    expect(() => call("ssh:///-x/y")).toThrow(/names no host/);
+
+    // git reads `%2D` as `-`, so the dash check has to read it that way too.
+    expect(() => call("ssh://%2DoProxyCommand%3Dfoo@host/y")).toThrow(/user starts with a dash/);
+    expect(() => call("ssh://u@%2Dhost/y")).toThrow(/host starts with a dash/);
+  });
+
+  // The message is printed by callers and lands in CI logs.
+  it("keeps an embedded credential out of the refusal message", () => {
+    const shouldNotClone: GitRunner = (args) =>
+      args.includes("clone") ? shouldNotRun(args) : ran({ stdout: "true\n" });
+    const call = (repo: string) =>
+      pullGitignored({
+        repo, refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp", git: shouldNotClone,
+      });
+
+    expect(() => call("git://user:s3cret@host/y")).toThrow(/git:\/\/host\/y/);
+    expect(() => call("git://user:s3cret@host/y")).not.toThrow(/s3cret/);
+  });
+
+  // Every refusal has to name the form the caller is most likely holding.
+  it("tells a caller holding an scp-style remote what to write instead", () => {
+    const shouldNotClone: GitRunner = (args) =>
+      args.includes("clone") ? shouldNotRun(args) : ran({ stdout: "true\n" });
+
+    expect(() =>
+      pullGitignored({
+        repo: "git@github.com:org/repo.git", refs: ["main"], subpath: "s", dest: "pulled",
+        cwd: "/tmp", git: shouldNotClone,
+      }),
+    ).toThrow(/write git@host:path as ssh:\/\/git@host\/path/);
   });
 
   it("separates the positionals, so a value git accepts is still not read as an option", () => {
@@ -294,14 +329,21 @@ describe("an argument that git would read as an option", () => {
       return args.includes("clone") ? ran({ status: 1 }) : ran({ stdout: "true\n" });
     };
     try {
+      // Spelled so the parsed URL differs from the string: git has to be handed what was
+      // checked, not what the caller wrote.
       pullGitignored({
-        repo: FIXTURE_URL, refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp", git: record,
+        repo: "https://GitHub.com/x/../y.git", refs: ["main"], subpath: "s", dest: "pulled",
+        cwd: "/tmp", git: record,
       });
     } catch {
       // The clone fails; the arguments it was given are the point.
     }
     const clone = seen.find((args) => args.includes("clone")) ?? [];
-    expect(clone.slice(clone.indexOf("--"))).toEqual(["--", FIXTURE_URL, expect.any(String)]);
+    expect(clone.slice(clone.indexOf("--"))).toEqual([
+      "--",
+      "https://github.com/y.git",
+      expect.any(String),
+    ]);
     const checkIgnore = seen.find((args) => args.includes("check-ignore")) ?? [];
     expect(checkIgnore.slice(-2)).toEqual(["--", "pulled/"]);
   });

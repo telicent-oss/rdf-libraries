@@ -32,20 +32,31 @@ function refuseOptionLike(value, what) {
   }
 }
 const TRANSPORTS = /* @__PURE__ */ new Set(["https:", "ssh:"]);
+const REPO_RULE = "repo must be an https:// or ssh:// URL (write git@host:path as ssh://git@host/path)";
+const withoutCredential = (repo) => repo.replace(/\/\/[^/@]*@/, "//");
+const refuseRepo = (repo, because) => {
+  throw new PullError(`${REPO_RULE}. ${because}: ${withoutCredential(repo)}`);
+};
+function decoded(part) {
+  try {
+    return decodeURIComponent(part);
+  } catch {
+    return part;
+  }
+}
 function cloneUrl(repo) {
   let url;
   try {
     url = new URL(repo);
   } catch {
-    throw new PullError(`repo is not a URL: ${repo}`);
+    return refuseRepo(repo, "This is not a URL");
   }
-  if (!TRANSPORTS.has(url.protocol)) {
-    throw new PullError(
-      `repo must start with https:// or ssh:// (for git@host:path write ssh://git@host/path): ${repo}`
-    );
-  }
-  refuseOptionLike(url.username, "user");
-  refuseOptionLike(url.hostname, "host");
+  if (!TRANSPORTS.has(url.protocol))
+    return refuseRepo(repo, "This names another transport");
+  if (url.hostname === "")
+    return refuseRepo(repo, "This names no host");
+  refuseOptionLike(decoded(url.username), "user");
+  refuseOptionLike(decoded(url.hostname), "host");
   return url.href;
 }
 function refuseIfGitMissing(result) {
@@ -77,8 +88,7 @@ function cloneLimits(timeoutMs) {
     env: { ...process.env, GIT_SSH_COMMAND: `${ssh} -o ConnectTimeout=10`, GIT_TERMINAL_PROMPT: "0" }
   };
 }
-function shallowClone(repo, ref, subpath, timeoutMs, git) {
-  const url = cloneUrl(repo);
+function shallowClone(url, ref, subpath, timeoutMs, git) {
   refuseOptionLike(ref, "ref");
   const tmp = mkdtempSync(join(tmpdir(), "pull-gitignored-"));
   const discard = (reason) => {
@@ -123,6 +133,7 @@ function pullGitignored({
   cloneTimeoutMs = CLONE_TIMEOUT_MS,
   git = realGit
 }) {
+  const url = cloneUrl(repo);
   if (!insideWorkTree(cwd, git)) {
     throw new PullError(
       `refusing to replace ${dest}: ${cwd} is not inside a git work tree.
@@ -144,7 +155,7 @@ Add it to .gitignore, or point dest at a directory that is already ignored.`
   let staging = null;
   try {
     for (const ref of refs) {
-      const attempt = shallowClone(repo, ref, subpath, cloneTimeoutMs, git);
+      const attempt = shallowClone(url, ref, subpath, cloneTimeoutMs, git);
       if ("reason" in attempt) {
         attempted.push(`${ref}: ${attempt.reason}`);
         continue;

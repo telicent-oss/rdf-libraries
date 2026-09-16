@@ -70,9 +70,11 @@ try {
 - `git`: swaps how git is run, defaulting to the real binary. A runner reports a failure in
   its result rather than throwing, on `error.code`: `ENOENT` for no git binary, `ETIMEDOUT`
   for one the deadline killed. `pullGitignored` still throws `PullError` at its caller
-- `repo` must be an `https://` or `ssh://` URL. scp-style `git@host:path` is written
-  `ssh://git@host/path`. The remote string also picks git's transport, and `ext::<command>`
-  is a transport that runs the command, so the scheme is checked before git sees it
+- `repo` must be an `https://` or `ssh://` URL naming a host. scp-style `git@host:path` is
+  written `ssh://git@host/path`. The remote string also picks git's transport, and
+  `ext::<command>` is a transport that runs the command, so the URL is parsed and its scheme
+  checked before git sees it, and git is handed the parsed form rather than the string
+- a refusal names the rule and the remote, with any embedded credential removed
 - a `ref`, `cwd` or `dest` starting with `-` is refused, as are a `-`-leading user or host
   in `repo`: git reads a leading dash as an option wherever it sits, and
   `--upload-pack=<command>` makes a clone run a command

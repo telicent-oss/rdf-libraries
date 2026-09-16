@@ -83,6 +83,37 @@ function refuseOptionLike(value: string, what: string): void {
 const TRANSPORTS = new Set(["https:", "ssh:"]);
 
 /**
+ * What a remote may be. Stated once, because every refusal below has to tell the reader the
+ * same thing, and the scp-style form is the one they are most likely holding.
+ */
+const REPO_RULE =
+  "repo must be an https:// or ssh:// URL (write git@host:path as ssh://git@host/path)";
+
+/**
+ * A remote with any embedded credential removed. These messages are printed by callers and
+ * land in CI logs, and `https://user:token@host/...` is a remote a caller may legitimately
+ * hold.
+ */
+const withoutCredential = (repo: string): string => repo.replace(/\/\/[^/@]*@/, "//");
+
+const refuseRepo = (repo: string, because: string): never => {
+  throw new PullError(`${REPO_RULE}. ${because}: ${withoutCredential(repo)}`);
+};
+
+/**
+ * git reads `%2D` as `-`, so a check on the raw text misses an option hiding in an escape.
+ * An escape that does not decode is returned as it stands, which is then refused for some
+ * other reason or handed to git exactly as git will read it.
+ */
+function decoded(part: string): string {
+  try {
+    return decodeURIComponent(part);
+  } catch {
+    return part;
+  }
+}
+
+/**
  * The URL git is given. Parsed first, because the string git gets also picks the transport,
  * and `ext::<command>` is a transport that runs the command. `href` rather than the caller's
  * string, so what git sees is exactly what was checked.
@@ -92,17 +123,16 @@ function cloneUrl(repo: string): string {
   try {
     url = new URL(repo);
   } catch {
-    throw new PullError(`repo is not a URL: ${repo}`);
+    return refuseRepo(repo, "This is not a URL");
   }
-  if (!TRANSPORTS.has(url.protocol)) {
-    throw new PullError(
-      `repo must start with https:// or ssh:// (for git@host:path write ssh://git@host/path): ${repo}`,
-    );
-  }
+  if (!TRANSPORTS.has(url.protocol)) return refuseRepo(repo, "This names another transport");
+  // `ssh:-oProxyCommand=x@h/p` parses, with every part but the scheme empty, and `href`
+  // gives the string back unchanged for git to read as it likes. A remote names a host.
+  if (url.hostname === "") return refuseRepo(repo, "This names no host");
   // git hands `user@host` to ssh as one argument, which ssh reads as an option if it starts
   // with a dash.
-  refuseOptionLike(url.username, "user");
-  refuseOptionLike(url.hostname, "host");
+  refuseOptionLike(decoded(url.username), "user");
+  refuseOptionLike(decoded(url.hostname), "host");
   return url.href;
 }
 
@@ -186,13 +216,12 @@ type CloneAttempt = { dir: string; ref: string } | { reason: string };
  * the problem. A killed clone writes no stderr, so each way of being killed is named.
  */
 function shallowClone(
-  repo: string,
+  url: string,
   ref: string,
   subpath: string,
   timeoutMs: number,
   git: GitRunner,
 ): CloneAttempt {
-  const url = cloneUrl(repo);
   refuseOptionLike(ref, "ref");
   const tmp = mkdtempSync(join(tmpdir(), "pull-gitignored-"));
   const discard = (reason: string): CloneAttempt => {
@@ -279,6 +308,8 @@ export function pullGitignored({
   cloneTimeoutMs = CLONE_TIMEOUT_MS,
   git = realGit,
 }: PullOptions): PullResult {
+  const url = cloneUrl(repo);
+
   if (!insideWorkTree(cwd, git)) {
     throw new PullError(
       `refusing to replace ${dest}: ${cwd} is not inside a git work tree.\n` +
@@ -302,7 +333,7 @@ export function pullGitignored({
   let staging: string | null = null;
   try {
     for (const ref of refs) {
-      const attempt = shallowClone(repo, ref, subpath, cloneTimeoutMs, git);
+      const attempt = shallowClone(url, ref, subpath, cloneTimeoutMs, git);
       if ("reason" in attempt) {
         attempted.push(`${ref}: ${attempt.reason}`);
         continue;
