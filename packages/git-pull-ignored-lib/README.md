@@ -3,18 +3,24 @@
 ![License](https://img.shields.io/badge/license-Apache%202.0-blue.svg)
 ![Node Version](https://img.shields.io/badge/node-%5E20.19.0%20%7C%7C%20%3E%3D22.12.0-brightgreen.svg)
 
-Pull a subdirectory of a git repo into a local gitignored directory, refusing any destination git does not ignore.
+Pulls a subdirectory of a git repo into a local gitignored directory. Refuses any
+destination git does not ignore.
 
 ## Background
 
-This is a dev tool to help pull fresh guidance docs from a documentation repo into a
-project's gitignored folder.
+This dev tool pulls fresh guidance docs from a documentation repo into a project's
+gitignored folder.
 
-Pulling means replacing: the destination is deleted and rewritten, so a wrong path, a
-moved directory or an edited `.gitignore` turns that into data loss. The files it replaces
-are untracked, so there is nothing to restore from.
+Pulling means replacing. The destination is deleted and rewritten. Three things turn that
+into data loss:
 
-`pullGitignored` asks git whether the destination is ignored, and throws before deleting
+- a wrong path
+- a moved directory
+- an edited `.gitignore`
+
+The files it replaces are untracked. There is nothing to restore from.
+
+`pullGitignored` asks git whether the destination is ignored. It throws before deleting
 anything if it is not.
 
 ## Install
@@ -23,8 +29,8 @@ anything if it is not.
 pnpm add -D "telicent-oss/rdf-libraries#path:/packages/git-pull-ignored-lib"
 ```
 
-pnpm pins the commit it resolved. Once the name is published, drop the path:
-`pnpm add -D @telicent-oss/git-pull-ignored-lib`.
+pnpm pins the commit it resolved. The package name is not on npm yet. After it is
+published, drop the path: `pnpm add -D @telicent-oss/git-pull-ignored-lib`.
 
 ## Usage
 
@@ -49,11 +55,14 @@ try {
 }
 ```
 
-- `refs`: tried in order, so a caller can prefer a feature branch and fall back to the default
-- miss: a ref that exists but lacks `subpath`
-- branch and tag names only, because the clone runs `--branch`
-- every ref missing: the `PullError` carries an `attempted` array saying why each did
-- `.commitSha`: written into the destination; `writeShaFile: false` skips it
+`refs` are tried in order. A caller can list a feature branch first and the default branch
+after it. A ref can exist without `subpath`. That counts as a miss, and the next ref is
+tried. When every ref misses, `PullError.attempted` says why each one failed.
+
+The clone runs `--branch`. Only branch and tag names work.
+
+`pullGitignored` writes `.commitSha` into the destination. `writeShaFile: false` skips that
+file.
 
 ## API
 
@@ -65,32 +74,38 @@ try {
 
 `GitRunner`, `GitResult` and `GitOptions` are exported as types.
 
-- `cloneTimeoutMs` defaults to 60000 and bounds each attempt, not the call: three refs can
-  wait three times that
-- `git`: swaps how git is run, defaulting to the real binary. A runner reports a failure in
-  its result rather than throwing, on `error.code`: `ENOENT` for no git binary, `ETIMEDOUT`
-  for one the deadline killed. `pullGitignored` still throws `PullError` at its caller
-- `repo` must be an `https://` or `ssh://` URL naming a host. scp-style `git@host:path` is
-  written `ssh://git@host/path`. The remote string also picks git's transport, and
-  `ext::<command>` is a transport that runs the command, so the URL is parsed and its scheme
-  checked before git sees it, and git is handed the parsed form rather than the string
-- a refusal names the rule and the remote, with any embedded credential removed
-- a `ref`, `cwd` or `dest` starting with `-` is refused, as are a `-`-leading user or host
-  in `repo`: git reads a leading dash as an option wherever it sits, and
-  `--upload-pack=<command>` makes a clone run a command
-- the new content is built inside `dest` and moved into place, so a copy that fails
-  part-way leaves the old content where it was
-- `isGitIgnored` asks git rather than reading `.gitignore`, so nested and negated patterns
-  give the same answer here as they do to git
+`cloneTimeoutMs` defaults to 60000ms. The limit applies to each ref attempt. Three refs can
+take 180000ms in total.
+
+`git` replaces the git runner. The default runner calls the real git binary. A runner
+reports a failure in its result under `error.code`, and does not throw. `ENOENT` means no
+git binary. `ETIMEDOUT` means the deadline killed it. `pullGitignored` still throws
+`PullError` at its caller.
+
+`repo` must be an `https://` or `ssh://` URL naming a host. An scp-style `git@host:path` is
+written `ssh://git@host/path`. The remote string also picks git's transport.
+`ext::<command>` is a transport that runs the command. The library parses the URL first and
+checks its scheme, before git sees it. Git receives the parsed URL. A refusal names the
+rule and the remote. It removes any embedded credential from that message.
+
+A `ref`, `cwd` or `dest` starting with `-` is refused. So is a `-`-leading user or host in
+`repo`. Git reads a leading dash as an option in any position.
+`--upload-pack=<command>` makes a clone run a command.
+
+The library builds the new content inside `dest`. It then moves that content into place. A
+copy that fails part-way leaves the old content where it was.
+
+`isGitIgnored` puts the question to git, and does not read `.gitignore`. Nested and negated
+patterns give the same answer here as they do to git.
 
 ## Tests
 
-The repo itself uses yarn, so from a clone of it:
+This repo uses yarn. Run these from a clone:
 
 ```sh
 yarn test
 yarn coverage
 ```
 
-Real git repositories in temp directories, so the ignore check runs against git itself.
-Needs `git` on `PATH`; no network.
+The tests run real git repositories in temp directories. The ignore check gets git's own
+answer. The tests need `git` on `PATH`. They need no network access.
