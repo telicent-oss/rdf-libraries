@@ -229,45 +229,38 @@ function findTailwindColourClass(rawToken) {
     return null;
   return token;
 }
+const report = (context, at, messageId, value) => context.report({ node: at, messageId, data: { value } });
 function walkStrings(node, visit) {
-  if (node === null || typeof node !== "object")
+  if (!node)
     return;
-  const current = node;
-  if (current.type === "Literal" && typeof current.value === "string") {
-    visit(current.value, current);
-    return;
-  }
-  if (current.type === "TemplateLiteral") {
-    for (const quasi of current.quasis ?? []) {
-      const cooked = quasi.value?.cooked;
-      visit(cooked ?? "", quasi);
-    }
+  if (node.type === "Literal" && typeof node.value === "string") {
+    visit(node.value, node);
     return;
   }
-  if (current.type === "ObjectExpression") {
-    for (const property of current.properties ?? []) {
+  if (node.type === "TemplateLiteral") {
+    for (const quasi of node.quasis)
+      visit(quasi.value.cooked ?? "", quasi);
+    return;
+  }
+  if (node.type === "ObjectExpression") {
+    for (const property of node.properties) {
       if (property.type === "Property")
         walkStrings(property.value, visit);
-      else if (property.type === "SpreadElement")
+      else
         walkStrings(property.argument, visit);
     }
     return;
   }
-  if (current.type === "ArrayExpression") {
-    for (const element of current.elements ?? []) {
+  if (node.type === "ArrayExpression") {
+    for (const element of node.elements)
       walkStrings(element, visit);
-    }
   }
 }
 function isStyledTag(tag) {
-  if (!tag)
-    return false;
-  const callee = tag.callee;
-  if (tag.type === "CallExpression" && callee?.type === "Identifier") {
-    return callee.name === "styled";
+  if (tag.type === "CallExpression") {
+    return tag.callee.type === "Identifier" && tag.callee.name === "styled";
   }
-  const object = tag.object;
-  return tag.type === "MemberExpression" && object?.type === "Identifier" && object.name === "styled";
+  return tag.type === "MemberExpression" && tag.object.type === "Identifier" && tag.object.name === "styled";
 }
 const noColourLiteral = {
   meta: {
@@ -293,28 +286,22 @@ const noColourLiteral = {
       const hit = findColourLiteral(value);
       if (hit === null || allowed.has(hit) || allowed.has(value))
         return;
-      context.report({
-        node: at,
-        messageId: "literal",
-        data: { value: hit }
-      });
+      report(context, at, "literal", hit);
     };
     return {
       JSXAttribute(node) {
         const attribute = node;
-        const nameNode = attribute.name;
-        const name2 = nameNode?.type === "JSXIdentifier" ? nameNode.name : "";
+        const name2 = attribute.name.type === "JSXIdentifier" ? attribute.name.name : "";
         if (name2 === "sx" || name2 === "style") {
-          const value2 = attribute.value;
-          if (value2?.type === "JSXExpressionContainer") {
-            walkStrings(value2.expression, reportLiteral);
+          if (attribute.value?.type === "JSXExpressionContainer") {
+            walkStrings(attribute.value.expression, reportLiteral);
           }
           return;
         }
         if (name2 !== "className")
           return;
-        const value = attribute.value;
         const strings = [];
+        const value = attribute.value;
         if (value?.type === "Literal" && typeof value.value === "string") {
           strings.push([value.value, value]);
         } else if (value?.type === "JSXExpressionContainer") {
@@ -327,11 +314,7 @@ const noColourLiteral = {
             const hit = findTailwindColourClass(rawToken);
             if (hit === null || allowed.has(hit))
               continue;
-            context.report({
-              node: at,
-              messageId: "tailwind",
-              data: { value: hit }
-            });
+            report(context, at, "tailwind", hit);
           }
         }
       },
@@ -339,23 +322,19 @@ const noColourLiteral = {
         const expression = node;
         if (!isStyledTag(expression.tag))
           return;
-        const quasi = expression.quasi;
-        for (const chunk of quasi?.quasis ?? []) {
-          const cooked = chunk.value?.cooked;
-          reportLiteral(cooked ?? "", chunk);
+        for (const chunk of expression.quasi.quasis) {
+          reportLiteral(chunk.value.cooked ?? "", chunk);
         }
       },
       CallExpression(node) {
         const call = node;
         const callee = call.callee;
-        const inner = callee?.callee;
-        if (callee?.type !== "CallExpression" || inner?.type !== "Identifier")
+        if (callee.type !== "CallExpression")
           return;
-        if (inner.name !== "styled")
+        if (callee.callee.type !== "Identifier" || callee.callee.name !== "styled")
           return;
-        for (const argument of call.arguments ?? []) {
+        for (const argument of call.arguments)
           walkStrings(argument, reportLiteral);
-        }
       }
     };
   }

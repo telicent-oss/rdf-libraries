@@ -1,4 +1,5 @@
 import type { Rule } from "eslint";
+import type { TSESTree } from "@typescript-eslint/types";
 
 /**
  * Every CSS named colour. Matched as a whole word, so `red` in `border-red solid` is a
@@ -99,47 +100,54 @@ export function findTailwindColourClass(rawToken: string): string | null {
   return token;
 }
 
-type LooseNode = Record<string, unknown> & { type?: string };
-type OnString = (text: string, at: LooseNode) => void;
+type OnString = (text: string, at: TSESTree.Node) => void;
+
+/**
+ * eslint types its own nodes on plain ESTree, which has no JSX members, so a rule that
+ * visits JSX cannot use `Rule.Node` to read them. The AST is the same object either way;
+ * only the two sets of declarations differ. So the nodes are read as `TSESTree`, which
+ * does describe JSX, and converted back at the single point eslint demands its own type.
+ */
+const report = (
+  context: Rule.RuleContext,
+  at: TSESTree.Node,
+  messageId: string,
+  value: string,
+): void => context.report({ node: at as unknown as Rule.Node, messageId, data: { value } });
 
 /** Every string reachable from a node, with the node each one came from. */
-function walkStrings(node: unknown, visit: OnString): void {
-  if (node === null || typeof node !== "object") return;
-  const current = node as LooseNode;
-  if (current.type === "Literal" && typeof current.value === "string") {
-    visit(current.value, current);
+function walkStrings(node: TSESTree.Node | null | undefined, visit: OnString): void {
+  if (!node) return;
+  if (node.type === "Literal" && typeof node.value === "string") {
+    visit(node.value, node);
     return;
   }
-  if (current.type === "TemplateLiteral") {
-    for (const quasi of (current.quasis as LooseNode[] | undefined) ?? []) {
-      const cooked = (quasi.value as { cooked?: string } | undefined)?.cooked;
-      visit(cooked ?? "", quasi);
-    }
+  if (node.type === "TemplateLiteral") {
+    for (const quasi of node.quasis) visit(quasi.value.cooked ?? "", quasi);
     return;
   }
-  if (current.type === "ObjectExpression") {
-    for (const property of (current.properties as LooseNode[] | undefined) ?? []) {
+  if (node.type === "ObjectExpression") {
+    for (const property of node.properties) {
       if (property.type === "Property") walkStrings(property.value, visit);
-      else if (property.type === "SpreadElement") walkStrings(property.argument, visit);
+      else walkStrings(property.argument, visit);
     }
     return;
   }
-  if (current.type === "ArrayExpression") {
-    for (const element of (current.elements as unknown[] | undefined) ?? []) {
-      walkStrings(element, visit);
-    }
+  if (node.type === "ArrayExpression") {
+    for (const element of node.elements) walkStrings(element, visit);
   }
 }
 
 /** True for the two emotion and MUI forms: styled.div and styled(Thing). */
-function isStyledTag(tag: LooseNode | undefined): boolean {
-  if (!tag) return false;
-  const callee = tag.callee as LooseNode | undefined;
-  if (tag.type === "CallExpression" && callee?.type === "Identifier") {
-    return callee.name === "styled";
+function isStyledTag(tag: TSESTree.Expression): boolean {
+  if (tag.type === "CallExpression") {
+    return tag.callee.type === "Identifier" && tag.callee.name === "styled";
   }
-  const object = tag.object as LooseNode | undefined;
-  return tag.type === "MemberExpression" && object?.type === "Identifier" && object.name === "styled";
+  return (
+    tag.type === "MemberExpression" &&
+    tag.object.type === "Identifier" &&
+    tag.object.name === "styled"
+  );
 }
 
 export const noColourLiteral: Rule.RuleModule = {
@@ -171,32 +179,29 @@ export const noColourLiteral: Rule.RuleModule = {
       // The whole value as well as the match: a project allowing `rgb(0 0 0 / 40%)`
       // writes that, not the substring the regex happened to return.
       if (hit === null || allowed.has(hit) || allowed.has(value)) return;
-      context.report({
-        node: at as unknown as Rule.Node,
-        messageId: "literal",
-        data: { value: hit },
-      });
+      report(context, at, "literal", hit);
     };
 
+    // Each handler takes `unknown` because eslint's listener type is keyed on its own
+    // ESTree node names, which do not include the JSX ones. The visitor key is what
+    // guarantees the node's type; the cast records it.
     return {
       JSXAttribute(node: unknown) {
-        const attribute = node as LooseNode;
-        const nameNode = attribute.name as LooseNode | undefined;
-        const name = nameNode?.type === "JSXIdentifier" ? (nameNode.name as string) : "";
+        const attribute = node as TSESTree.JSXAttribute;
+        const name = attribute.name.type === "JSXIdentifier" ? attribute.name.name : "";
 
         // sx and style are both CSS-value objects, so their strings are CSS values.
         if (name === "sx" || name === "style") {
-          const value = attribute.value as LooseNode | undefined;
-          if (value?.type === "JSXExpressionContainer") {
-            walkStrings(value.expression, reportLiteral);
+          if (attribute.value?.type === "JSXExpressionContainer") {
+            walkStrings(attribute.value.expression, reportLiteral);
           }
           return;
         }
         if (name !== "className") return;
 
         // className holds class names, so its strings are split and read as Tailwind.
-        const value = attribute.value as LooseNode | undefined;
-        const strings: [string, LooseNode][] = [];
+        const strings: [string, TSESTree.Node][] = [];
+        const value = attribute.value;
         if (value?.type === "Literal" && typeof value.value === "string") {
           strings.push([value.value, value]);
         } else if (value?.type === "JSXExpressionContainer") {
@@ -207,36 +212,27 @@ export const noColourLiteral: Rule.RuleModule = {
             if (rawToken === "") continue;
             const hit = findTailwindColourClass(rawToken);
             if (hit === null || allowed.has(hit)) continue;
-            context.report({
-              node: at as unknown as Rule.Node,
-              messageId: "tailwind",
-              data: { value: hit },
-            });
+            report(context, at, "tailwind", hit);
           }
         }
       },
 
       TaggedTemplateExpression(node: unknown) {
-        const expression = node as LooseNode;
-        if (!isStyledTag(expression.tag as LooseNode | undefined)) return;
-        const quasi = expression.quasi as LooseNode | undefined;
-        for (const chunk of (quasi?.quasis as LooseNode[] | undefined) ?? []) {
-          const cooked = (chunk.value as { cooked?: string } | undefined)?.cooked;
-          reportLiteral(cooked ?? "", chunk);
+        const expression = node as TSESTree.TaggedTemplateExpression;
+        if (!isStyledTag(expression.tag)) return;
+        for (const chunk of expression.quasi.quasis) {
+          reportLiteral(chunk.value.cooked ?? "", chunk);
         }
       },
 
       CallExpression(node: unknown) {
         // styled(Thing)({ color: "red" }) only. styled.div({ ... }) has a member-expression
         // callee and is NOT read here, matching the rule this was ported from.
-        const call = node as LooseNode;
-        const callee = call.callee as LooseNode | undefined;
-        const inner = callee?.callee as LooseNode | undefined;
-        if (callee?.type !== "CallExpression" || inner?.type !== "Identifier") return;
-        if (inner.name !== "styled") return;
-        for (const argument of (call.arguments as unknown[] | undefined) ?? []) {
-          walkStrings(argument, reportLiteral);
-        }
+        const call = node as TSESTree.CallExpression;
+        const callee = call.callee;
+        if (callee.type !== "CallExpression") return;
+        if (callee.callee.type !== "Identifier" || callee.callee.name !== "styled") return;
+        for (const argument of call.arguments) walkStrings(argument, reportLiteral);
       },
     };
   },

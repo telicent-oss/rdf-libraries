@@ -6,6 +6,9 @@
     "esModuleInterop": true,
     "module": "CommonJS",
     "moduleResolution": "node",
+    // jest wants CommonJS, which rules out the bundler resolution tsconfig.json uses, so
+    // the one package published behind an exports map is pointed at directly.
+    "paths": { "@typescript-eslint/types": ["./node_modules/@typescript-eslint/types/dist/index.d.ts"] },
     "types": ["jest", "node"]
   },
   // Cleared, because extends would inherit the parent exclude, which drops the very tests
