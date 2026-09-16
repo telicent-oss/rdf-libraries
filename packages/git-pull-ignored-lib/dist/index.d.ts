@@ -41,6 +41,7 @@ export type GitRunner = (args: string[], options?: GitOptions) => GitResult;
  */
 export declare function isGitIgnored(path: string, cwd: string, git?: GitRunner): boolean;
 export interface PullOptions {
+    /** An `https://` or `ssh://` URL. scp-style `git@host:path` is written `ssh://git@host/path`. */
     repo: string;
     /**
      * Tried in order, which lets a caller prefer a feature branch and fall back to the

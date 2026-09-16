@@ -31,6 +31,23 @@ function refuseOptionLike(value, what) {
     );
   }
 }
+const TRANSPORTS = /* @__PURE__ */ new Set(["https:", "ssh:"]);
+function cloneUrl(repo) {
+  let url;
+  try {
+    url = new URL(repo);
+  } catch {
+    throw new PullError(`repo is not a URL: ${repo}`);
+  }
+  if (!TRANSPORTS.has(url.protocol)) {
+    throw new PullError(
+      `repo must start with https:// or ssh:// (for git@host:path write ssh://git@host/path): ${repo}`
+    );
+  }
+  refuseOptionLike(url.username, "user");
+  refuseOptionLike(url.hostname, "host");
+  return url.href;
+}
 function refuseIfGitMissing(result) {
   if (failedWith(result, "ENOENT"))
     throw new PullError(GIT_MISSING);
@@ -61,7 +78,7 @@ function cloneLimits(timeoutMs) {
   };
 }
 function shallowClone(repo, ref, subpath, timeoutMs, git) {
-  refuseOptionLike(repo, "repo");
+  const url = cloneUrl(repo);
   refuseOptionLike(ref, "ref");
   const tmp = mkdtempSync(join(tmpdir(), "pull-gitignored-"));
   const discard = (reason) => {
@@ -69,7 +86,7 @@ function shallowClone(repo, ref, subpath, timeoutMs, git) {
     return { reason };
   };
   const result = git(
-    ["clone", "--quiet", "--depth", "1", "--branch", ref, "--", repo, tmp],
+    ["clone", "--quiet", "--depth", "1", "--branch", ref, "--", url, tmp],
     cloneLimits(timeoutMs)
   );
   if (failedWith(result, "ENOENT")) {
