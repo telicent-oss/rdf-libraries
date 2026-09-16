@@ -147,3 +147,8 @@ packages/.DS_Store
 # IDE
 .vscode
 gitignored
+
+# This package commits its dist, because a git pin installs no build. Rebuild with
+# `yarn build`; `yarn verify-dist` fails if it is stale.
+!packages/eslint-plugin-ds/dist
+!packages/eslint-plugin-ds/dist/**
