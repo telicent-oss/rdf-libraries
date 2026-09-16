@@ -34,6 +34,25 @@ function sourceRepo(files: Record<string, string>) {
   return dir;
 }
 
+/**
+ * The library only clones an https:// or ssh:// URL, so a fixture repo on disk cannot be
+ * named directly. These tests give it this URL and a runner that puts the fixture path back
+ * in the argument list, so the clone, the copy and the ignore check are all still real git.
+ */
+const FIXTURE_URL = "https://github.com/test-org/source.git";
+const gitFromFixture =
+  (source: string): GitRunner =>
+  (args, options = {}) => {
+    const result = spawnSync("git", args.map((arg) => (arg === FIXTURE_URL ? source : arg)), {
+      encoding: "utf8",
+      ...options,
+    });
+    return {
+      status: result.status, signal: result.signal,
+      stdout: result.stdout ?? "", stderr: result.stderr ?? "", error: result.error,
+    };
+  };
+
 function consumerRepo(gitignore: string) {
   const dir = scratch("consumer");
   git(dir, "init", "--quiet", "--initial-branch", "main");
@@ -101,7 +120,7 @@ describe("with git missing from PATH", () => {
     const output = inChildWithoutPath(
       `const { pullGitignored } = await import("${join(__dirname, "index.ts")}");
        try {
-         pullGitignored({ repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp" });
+         pullGitignored({ repo: "https://github.com/test-org/source.git", refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp" });
          console.log("NO_THROW");
        } catch (error) { console.log(error.message); }`,
     );
@@ -129,7 +148,7 @@ describe("git missing from PATH", () => {
     // would otherwise be reported as a directory that is not a repository.
     expect(() =>
       pullGitignored({
-        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
+        repo: FIXTURE_URL, refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
         git: noGit,
       }),
     ).toThrow(/git is not on PATH/);
@@ -140,7 +159,7 @@ describe("git missing from PATH", () => {
     expect(isGitIgnored("pulled", "/tmp", failing)).toBe(false);
     expect(() =>
       pullGitignored({
-        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
+        repo: FIXTURE_URL, refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
         git: failing,
       }),
     ).toThrow(/not inside a git work tree/);
@@ -155,7 +174,7 @@ describe("with a scripted git", () => {
   const attemptsFrom = (git: GitRunner): string[] => {
     try {
       pullGitignored({
-        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp", git,
+        repo: FIXTURE_URL, refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp", git,
       });
       throw new Error("expected a PullError");
     } catch (error) {
@@ -198,7 +217,7 @@ describe("with a scripted git", () => {
         : ran({ stdout: "true\n" });
     expect(() =>
       pullGitignored({
-        repo: "/tmp/x", refs: ["a", "b"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
+        repo: FIXTURE_URL, refs: ["a", "b"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
         git: noGit,
       }),
     ).toThrow(/git is not on PATH/);
@@ -216,7 +235,7 @@ describe("an argument that git would read as an option", () => {
   it("refuses a cwd that starts with a dash, before running git at all", () => {
     expect(() =>
       pullGitignored({
-        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "pulled",
+        repo: FIXTURE_URL, refs: ["main"], subpath: "s", dest: "pulled",
         cwd: "--upload-pack=touch /tmp/pwned", git: shouldNotRun,
       }),
     ).toThrow(/cwd starts with a dash/);
@@ -229,7 +248,7 @@ describe("an argument that git would read as an option", () => {
 
     expect(() =>
       pullGitignored({
-        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "--output=/tmp/pwned", cwd: "/tmp",
+        repo: FIXTURE_URL, refs: ["main"], subpath: "s", dest: "--output=/tmp/pwned", cwd: "/tmp",
         git: inWorkTree,
       }),
     ).toThrow(/dest starts with a dash/);
@@ -243,12 +262,29 @@ describe("an argument that git would read as an option", () => {
       args.includes("clone") ? shouldNotRun(args) : ran({ stdout: "true\n" });
     const call = (options: Record<string, unknown>) =>
       pullGitignored({
-        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp",
+        repo: FIXTURE_URL, refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp",
         git: inWorkTreeAndIgnored, ...options,
       });
 
-    expect(() => call({ repo: "--upload-pack=touch /tmp/pwned" })).toThrow(/repo starts with a dash/);
+    expect(() => call({ repo: "--upload-pack=touch /tmp/pwned" })).toThrow(/repo is not a URL/);
     expect(() => call({ refs: ["--upload-pack=touch /tmp/pwned"] })).toThrow(/ref starts with a dash/);
+  });
+
+  // `ext::<command>` is a git transport that runs the command, chosen from the remote
+  // string alone. The only thing between a caller's string and that is the scheme check.
+  it("refuses a remote that names a transport git would run a command for", () => {
+    const shouldNotClone: GitRunner = (args) =>
+      args.includes("clone") ? shouldNotRun(args) : ran({ stdout: "true\n" });
+    const call = (repo: string) =>
+      pullGitignored({
+        repo, refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp", git: shouldNotClone,
+      });
+
+    expect(() => call("ext::sh -c 'touch /tmp/pwned'")).toThrow(/must start with https:\/\/ or ssh:\/\//);
+    expect(() => call("git://github.com/x/y")).toThrow(/must start with https:\/\/ or ssh:\/\//);
+    expect(() => call("file:///tmp/x")).toThrow(/must start with https:\/\/ or ssh:\/\//);
+    expect(() => call("ssh://-oProxyCommand=x@host/y")).toThrow(/user starts with a dash/);
+    expect(() => call("ssh://git@-evil/y")).toThrow(/host starts with a dash/);
   });
 
   it("separates the positionals, so a value git accepts is still not read as an option", () => {
@@ -259,13 +295,13 @@ describe("an argument that git would read as an option", () => {
     };
     try {
       pullGitignored({
-        repo: "/tmp/x", refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp", git: record,
+        repo: FIXTURE_URL, refs: ["main"], subpath: "s", dest: "pulled", cwd: "/tmp", git: record,
       });
     } catch {
       // The clone fails; the arguments it was given are the point.
     }
     const clone = seen.find((args) => args.includes("clone")) ?? [];
-    expect(clone.slice(clone.indexOf("--"))).toEqual(["--", "/tmp/x", expect.any(String)]);
+    expect(clone.slice(clone.indexOf("--"))).toEqual(["--", FIXTURE_URL, expect.any(String)]);
     const checkIgnore = seen.find((args) => args.includes("check-ignore")) ?? [];
     expect(checkIgnore.slice(-2)).toEqual(["--", "pulled/"]);
   });
@@ -278,7 +314,7 @@ describe("pullGitignored", () => {
     const dest = join(consumer, "pulled");
 
     const { sha, ref } = pullGitignored({
-      repo: source, refs: ["main"], subpath: "guidance", dest, cwd: consumer,
+      repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance", dest, cwd: consumer,
     });
 
     expect(ref).toBe("main");
@@ -296,7 +332,7 @@ describe("pullGitignored", () => {
     const dest = join(consumer, "pulled");
 
     const { sha } = pullGitignored({
-      repo: source, refs: ["main"], subpath: "guidance", dest, cwd: consumer,
+      repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance", dest, cwd: consumer,
       writeShaFile: false,
     });
 
@@ -315,7 +351,7 @@ describe("pullGitignored", () => {
     writeFileSync(join(dest, "keep.md"), "KEEP");
 
     expect(() =>
-      pullGitignored({ repo: source, refs: ["main"], subpath: "guidance", dest, cwd: consumer }),
+      pullGitignored({ repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance", dest, cwd: consumer }),
     ).toThrow(/git does not ignore it/);
     expect(readFileSync(join(dest, "keep.md"), "utf8")).toBe("KEEP");
   });
@@ -325,14 +361,14 @@ describe("pullGitignored", () => {
     const consumer = consumerRepo("pulled/\n");
     const dest = join(consumer, "pulled");
 
-    pullGitignored({ repo: source, refs: ["main"], subpath: "guidance", dest, cwd: consumer });
+    pullGitignored({ repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance", dest, cwd: consumer });
     expect(existsSync(join(dest, "gone.md"))).toBe(true);
 
     rmSync(join(source, "guidance/gone.md"));
     git(source, "add", "-A");
     git(source, "-c", "user.email=t@t.t", "-c", "user.name=t", "commit", "--quiet", "-m", "drop");
 
-    pullGitignored({ repo: source, refs: ["main"], subpath: "guidance", dest, cwd: consumer });
+    pullGitignored({ repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance", dest, cwd: consumer });
     expect(existsSync(join(dest, "gone.md"))).toBe(false);
     expect(existsSync(join(dest, "a.md"))).toBe(true);
   });
@@ -343,7 +379,7 @@ describe("pullGitignored", () => {
 
     try {
       pullGitignored({
-        repo: join(consumer, "no-such-repo"), refs: ["main"], subpath: "x", dest, cwd: consumer,
+        repo: FIXTURE_URL, git: gitFromFixture(join(consumer, "no-such-repo")), refs: ["main"], subpath: "x", dest, cwd: consumer,
       });
       throw new Error("expected a PullError");
     } catch (error) {
@@ -359,7 +395,7 @@ describe("pullGitignored", () => {
     const loose = scratch("loose");
     expect(() =>
       pullGitignored({
-        repo: loose, refs: ["main"], subpath: "x", dest: join(loose, "pulled"), cwd: loose,
+        repo: FIXTURE_URL, refs: ["main"], subpath: "x", dest: join(loose, "pulled"), cwd: loose,
       }),
     ).toThrow(/not inside a git work tree/);
   });
@@ -370,12 +406,12 @@ describe("pullGitignored", () => {
     const dest = join(consumer, "pulled");
 
     const { ref } = pullGitignored({
-      repo: source, refs: ["no-such-branch", "main"], subpath: "guidance", dest, cwd: consumer,
+      repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["no-such-branch", "main"], subpath: "guidance", dest, cwd: consumer,
     });
     expect(ref).toBe("main");
 
     try {
-      pullGitignored({ repo: source, refs: ["main"], subpath: "absent", dest, cwd: consumer });
+      pullGitignored({ repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "absent", dest, cwd: consumer });
       throw new Error("expected a PullError");
     } catch (error) {
       expect(error).toBeInstanceOf(PullError);
@@ -394,7 +430,7 @@ describe("pullGitignored", () => {
     writeFileSync(join(dest, "old.md"), "OLD");
 
     try {
-      pullGitignored({ repo: source, refs: ["main"], subpath: "guidance/a.md", dest, cwd: consumer });
+      pullGitignored({ repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance/a.md", dest, cwd: consumer });
       throw new Error("expected a PullError");
     } catch (error) {
       // A PullError, not a raw ENOTDIR: callers print these and exit, and a stack trace
@@ -418,7 +454,7 @@ describe("pullGitignored", () => {
     mkdirSync(join(dest, ".pull-gitignored-abandoned"), { recursive: true });
     writeFileSync(join(dest, ".pull-gitignored-abandoned/half.md"), "HALF");
 
-    pullGitignored({ repo: source, refs: ["main"], subpath: "guidance", dest, cwd: consumer });
+    pullGitignored({ repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance", dest, cwd: consumer });
 
     expect(readdirSync(dest).sort()).toEqual([".commitSha", "a.md"]);
   });
@@ -428,20 +464,15 @@ describe("pullGitignored", () => {
     // would otherwise be copied into .commitSha as an empty string and pass for a commit.
     const source = sourceRepo({ "guidance/a.md": "A" });
     const consumer = consumerRepo("pulled/\n");
-    const failHead: GitRunner = (args, options) => {
-      if (args.includes("rev-parse") && args.includes("HEAD")) {
-        return ran({ status: 128, stderr: "fatal: bad revision\n" });
-      }
-      const result = spawnSync("git", args, { encoding: "utf8", ...options });
-      return {
-        status: result.status, signal: result.signal,
-        stdout: result.stdout ?? "", stderr: result.stderr ?? "", error: result.error,
-      };
-    };
+    const realGitFromFixture = gitFromFixture(source);
+    const failHead: GitRunner = (args, options) =>
+      args.includes("rev-parse") && args.includes("HEAD")
+        ? ran({ status: 128, stderr: "fatal: bad revision\n" })
+        : realGitFromFixture(args, options);
 
     expect(() =>
       pullGitignored({
-        repo: source, refs: ["main"], subpath: "guidance",
+        repo: FIXTURE_URL, refs: ["main"], subpath: "guidance",
         dest: join(consumer, "pulled"), cwd: consumer, git: failHead,
       }),
     ).toThrow(/could not read its HEAD/);
@@ -456,7 +487,7 @@ describe("pullGitignored", () => {
     // branch reports "git exited null" and reads as a git bug.
     try {
       pullGitignored({
-        repo: source, refs: ["main"], subpath: "guidance",
+        repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance",
         dest: join(consumer, "pulled"), cwd: consumer, cloneTimeoutMs: 1,
       });
       throw new Error("expected a PullError");

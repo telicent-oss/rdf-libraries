@@ -79,6 +79,33 @@ function refuseOptionLike(value: string, what: string): void {
   }
 }
 
+/** The transports this module clones over. Anything else git knows, or learns later, is refused. */
+const TRANSPORTS = new Set(["https:", "ssh:"]);
+
+/**
+ * The URL git is given. Parsed first, because the string git gets also picks the transport,
+ * and `ext::<command>` is a transport that runs the command. `href` rather than the caller's
+ * string, so what git sees is exactly what was checked.
+ */
+function cloneUrl(repo: string): string {
+  let url: URL;
+  try {
+    url = new URL(repo);
+  } catch {
+    throw new PullError(`repo is not a URL: ${repo}`);
+  }
+  if (!TRANSPORTS.has(url.protocol)) {
+    throw new PullError(
+      `repo must start with https:// or ssh:// (for git@host:path write ssh://git@host/path): ${repo}`,
+    );
+  }
+  // git hands `user@host` to ssh as one argument, which ssh reads as an option if it starts
+  // with a dash.
+  refuseOptionLike(url.username, "user");
+  refuseOptionLike(url.hostname, "host");
+  return url.href;
+}
+
 /** A machine with no git cannot answer any question this module asks, so stop there. */
 function refuseIfGitMissing(result: GitResult): void {
   if (failedWith(result, "ENOENT")) throw new PullError(GIT_MISSING);
@@ -165,7 +192,7 @@ function shallowClone(
   timeoutMs: number,
   git: GitRunner,
 ): CloneAttempt {
-  refuseOptionLike(repo, "repo");
+  const url = cloneUrl(repo);
   refuseOptionLike(ref, "ref");
   const tmp = mkdtempSync(join(tmpdir(), "pull-gitignored-"));
   const discard = (reason: string): CloneAttempt => {
@@ -174,7 +201,7 @@ function shallowClone(
   };
 
   const result = git(
-    ["clone", "--quiet", "--depth", "1", "--branch", ref, "--", repo, tmp],
+    ["clone", "--quiet", "--depth", "1", "--branch", ref, "--", url, tmp],
     cloneLimits(timeoutMs),
   );
   if (failedWith(result, "ENOENT")) {
@@ -201,6 +228,7 @@ function headSha(dir: string, git: GitRunner): string {
 }
 
 export interface PullOptions {
+  /** An `https://` or `ssh://` URL. scp-style `git@host:path` is written `ssh://git@host/path`. */
   repo: string;
   /**
    * Tried in order, which lets a caller prefer a feature branch and fall back to the
