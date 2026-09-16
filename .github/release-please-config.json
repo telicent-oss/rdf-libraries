@@ -97,6 +97,14 @@
       "changelog-path": "CHANGELOG.md",
       "bumpPatchForMinorPreMajor": true,
       "release-type": "node"
+    },
+    "packages/git-pull-ignored-lib/": {
+      "labels": [
+        "autorelease: pending"
+      ],
+      "changelog-path": "CHANGELOG.md",
+      "bumpPatchForMinorPreMajor": true,
+      "release-type": "node"
     }
   }
 }

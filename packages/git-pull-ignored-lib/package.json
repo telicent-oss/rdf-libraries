@@ -1,0 +1,57 @@
+{
+  "name": "@telicent-oss/git-pull-ignored-lib",
+  "version": "0.0.1",
+  "private": true,
+  "//private": "private until we get an npmjs.org package created",
+  "license": "Apache-2.0",
+  "description": "Pull a subdirectory of a git repo into a local gitignored directory, refusing any destination git does not ignore.",
+  "type": "module",
+  "//main": "the esm entry: this package is esm only, see vite.config.ts",
+  "main": "./dist/git-pull-ignored-lib.es.js",
+  "module": "./dist/git-pull-ignored-lib.es.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/git-pull-ignored-lib.es.js",
+      "//default": "an exports map only answers a require() if one of its keys matches. Node 20.19 and up can require() an ESM file, so the same file answers both keys",
+      "default": "./dist/git-pull-ignored-lib.es.js"
+    }
+  },
+  "files": [
+    "dist/*"
+  ],
+  "scripts": {
+    "test": "jest --runInBand",
+    "coverage": "jest --runInBand --coverage",
+    "lint": "eslint \"src/**/*.ts\"",
+    "tscNoEmit": "tsc --noEmit",
+    "build": "rm -rf ./dist && vite build",
+    "//dist": "committed, so a git-pinned consumer needs no build on install. There is deliberately no prepare script",
+    "verify-dist": "rm -rf ./dist && vite build && git diff --exit-code -- dist",
+    "prepublishOnly": "yarn lint && yarn test && yarn build"
+  },
+  "engines": {
+    "node": "^20.19.0 || >=22.12.0"
+  },
+  "//devDependencies": "tsx runs the source in a child process for the git-missing test, which needs a child that does not inherit this process's PATH",
+  "devDependencies": {
+    "@types/jest": "^29.5.12",
+    "@types/node": "18.19.9",
+    "eslint": "^8.56.0",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.2.3",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4",
+    "vite": "^4.5.3",
+    "vite-plugin-dts": "^3.6.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/telicent-oss/rdf-libraries.git",
+    "directory": "packages/git-pull-ignored-lib"
+  }
+}

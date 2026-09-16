@@ -1,0 +1,3 @@
+# A package's dist/ is built output, committed because consumers install from a git
+# pin, which runs no build. Marking it generated collapses it in a pull request diff.
+packages/*/dist/** linguist-generated=true
