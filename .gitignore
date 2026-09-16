@@ -98,6 +98,11 @@ out
 .nuxt
 dist
 
+# This package commits its dist, because a git pin installs no build. Rebuild with
+# `yarn build`; `yarn verify-dist` fails if it is stale.
+!packages/git-pull-ignored-lib/dist
+!packages/git-pull-ignored-lib/dist/**
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js

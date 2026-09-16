@@ -1,0 +1,14 @@
+{
+  // Exists for one setting: `module: CommonJS`, which jest needs. It can go when the
+  // tests run as ESM. https://jestjs.io/docs/ecmascript-modules
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "esModuleInterop": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "types": ["jest", "node"]
+  },
+  // Cleared. The inherited exclude drops the tests this project exists to typecheck.
+  "exclude": [],
+  "include": ["src/**/*.ts"]
+}
