@@ -1,10 +1,6 @@
 import { Rule } from 'eslint';
 
 export declare interface ColourOptions {
-    /**
-     * Literals and Tailwind classes this project has decided to keep. Each entry should
-     * carry a reviewer's reason in the config beside it; the rule does not read reasons.
-     */
     allow?: string[];
 }
 
@@ -23,29 +19,14 @@ declare const _default: {
 };
 export default _default;
 
-/** The default `files` for {@link recommended}, for a config sitting beside `src/`. */
 export declare const DEFAULT_FILES: string[];
 
-/** The colour found in a CSS value, or null. Hex first, then functional, then named. */
 export declare function findColourLiteral(value: string): string | null;
 
-/**
- * The Tailwind class if it sets a colour, or null.
- *
- * Any variant prefix is dropped first, so `hover:bg-red-500` is read as `bg-red-500`.
- * An arbitrary value in brackets is handed to findColourLiteral, which is what catches
- * `bg-[#fff]`.
- */
+/** Any variant prefix is dropped first, so `hover:bg-red-500` is read as `bg-red-500`. */
 export declare function findTailwindColourClass(rawToken: string): string | null;
 
-/**
- * Whether one class is layout, size or spacing.
- *
- * A responsive or state variant (`md:`, `hover:`) and a negative sign both leave the
- * underlying utility unchanged, so they are stripped before the decision. An arbitrary
- * value is decided by its prefix: `min-w-[420px]` by `min-w`. A colon inside the brackets
- * is read as a variant separator, so such a class is reported rather than classified.
- */
+/** Whether one Tailwind class is layout, size or spacing. */
 export declare function isLayoutUtility(rawClass: string, options?: LayoutOptions): boolean;
 
 export declare interface LayoutOptions {
@@ -61,19 +42,12 @@ export declare const meta: {
 /**
  * All three guardrails in one flat-config block.
  *
- * Takes `files` because a flat-config pattern resolves against the directory holding
- * the config file, not the project root. A baked-in `src/**` matches nothing from a
- * config one level up, and a block that matches nothing lints green with every
- * guardrail switched off - the one failure mode nobody notices.
+ * `files` is a parameter because a flat-config pattern resolves against the directory
+ * holding the config file. A baked-in `src/**` matches nothing from a config one level
+ * up. A block that matches nothing lints green with every guardrail switched off.
  *
- * The third guardrail is not a rule of this plugin. Banning `@mui/*` needs no custom
- * logic - `no-restricted-imports` already does it - but it belongs with the other two,
- * because a project that adopts one and not the others has a gap it did not choose.
- *
- * Severities differ on purpose. A colour literal has a design-system answer every time,
- * so it fails the build. The other two are judgement calls: whether a Tailwind class has
- * a design-system equivalent, and whether the design system covers the MUI component
- * being reached for. Neither can fail a build without blocking work that has no fix yet.
+ * The `@mui/*` ban is not a rule of this plugin. It ships here anyway, so that a project
+ * cannot adopt the other two and miss it.
  */
 export declare function recommended({ files }?: RecommendedOptions): {
     files: string[];
@@ -96,13 +70,8 @@ export declare function recommended({ files }?: RecommendedOptions): {
     };
 }[];
 
-/**
- * What {@link recommended} takes. The keys are ESLint's own flat-config keys, so what a
- * caller passes reads the same as what it produces, and a key added later needs no new
- * positional argument.
- */
+/** The keys are ESLint's own flat-config keys, so a key added later needs no new argument. */
 export declare interface RecommendedOptions {
-    /** Which files the guardrails apply to. */
     files?: string[];
 }
 

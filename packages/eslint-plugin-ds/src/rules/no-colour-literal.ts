@@ -1,10 +1,6 @@
 import type { Rule } from "eslint";
 import type { TSESTree } from "@typescript-eslint/types";
 
-/**
- * Every CSS named colour. Matched as a whole word, so `red` in `border-red solid` is a
- * hit and `redirect` is not.
- */
 const NAMED_COLOURS = new Set([
   "aliceblue", "antiquewhite", "aqua", "aquamarine", "azure", "beige", "bisque",
   "black", "blanchedalmond", "blue", "blueviolet", "brown", "burlywood", "cadetblue",
@@ -32,20 +28,14 @@ const NAMED_COLOURS = new Set([
   "white", "whitesmoke", "yellow", "yellowgreen",
 ]);
 
-/**
- * Tailwind's colour families. `black` and `white` are here too, and they carry no
- * shade, which is why the shade is optional below.
- */
+/** `black` and `white` carry no shade, so the shade is optional. */
 const COLOUR_FAMILIES = new Set([
   "slate", "gray", "zinc", "neutral", "stone", "red", "orange", "amber", "yellow",
   "lime", "green", "emerald", "teal", "cyan", "sky", "blue", "indigo", "violet",
   "purple", "fuchsia", "pink", "rose", "black", "white",
 ]);
 
-/**
- * Utility prefixes that can take a colour. Several take a size as well - `text-sm`,
- * `border-2` - so a class counts only once its remainder parses as a colour.
- */
+/** Some of these also take a size, such as `text-sm`. The prefix alone is not a colour. */
 const COLOUR_PREFIXES = new Set([
   "bg", "text", "border", "ring", "fill", "stroke", "divide", "placeholder",
   "outline", "accent", "caret", "decoration", "shadow", "from", "via", "to",
@@ -56,14 +46,9 @@ const FUNCTIONAL =
   /\b(?:rgb|rgba|hsl|hsla|hwb|lab|lch|oklab|oklch|color)\s*\([^)]*\)?/i;
 
 export interface ColourOptions {
-  /**
-   * Literals and Tailwind classes this project has decided to keep. Each entry should
-   * carry a reviewer's reason in the config beside it; the rule does not read reasons.
-   */
   allow?: string[];
 }
 
-/** The colour found in a CSS value, or null. Hex first, then functional, then named. */
 export function findColourLiteral(value: string): string | null {
   const hex = HEX.exec(value);
   if (hex) return hex[0];
@@ -75,13 +60,7 @@ export function findColourLiteral(value: string): string | null {
   return null;
 }
 
-/**
- * The Tailwind class if it sets a colour, or null.
- *
- * Any variant prefix is dropped first, so `hover:bg-red-500` is read as `bg-red-500`.
- * An arbitrary value in brackets is handed to findColourLiteral, which is what catches
- * `bg-[#fff]`.
- */
+/** Any variant prefix is dropped first, so `hover:bg-red-500` is read as `bg-red-500`. */
 export function findTailwindColourClass(rawToken: string): string | null {
   const token = rawToken.slice(rawToken.lastIndexOf(":") + 1);
   const dash = token.indexOf("-");
@@ -103,10 +82,8 @@ export function findTailwindColourClass(rawToken: string): string | null {
 type OnString = (text: string, at: TSESTree.Node) => void;
 
 /**
- * eslint types its own nodes on plain ESTree, which has no JSX members, so a rule that
- * visits JSX cannot use `Rule.Node` to read them. The AST is the same object either way;
- * only the two sets of declarations differ. So the nodes are read as `TSESTree`, which
- * does describe JSX, and converted back at the single point eslint demands its own type.
+ * eslint declares its nodes on plain ESTree, which has no JSX members. The AST objects are
+ * the same, so this rule reads nodes as `TSESTree` and casts back here.
  */
 const report = (
   context: Rule.RuleContext,
@@ -115,7 +92,6 @@ const report = (
   value: string,
 ): void => context.report({ node: at as unknown as Rule.Node, messageId, data: { value } });
 
-/** Every string reachable from a node, with the node each one came from. */
 function walkStrings(node: TSESTree.Node | null | undefined, visit: OnString): void {
   if (!node) return;
   if (node.type === "Literal" && typeof node.value === "string") {
@@ -138,7 +114,6 @@ function walkStrings(node: TSESTree.Node | null | undefined, visit: OnString): v
   }
 }
 
-/** True for the two emotion and MUI forms: styled.div and styled(Thing). */
 function isStyledTag(tag: TSESTree.Expression): boolean {
   if (tag.type === "CallExpression") {
     return tag.callee.type === "Identifier" && tag.callee.name === "styled";
@@ -176,21 +151,16 @@ export const noColourLiteral: Rule.RuleModule = {
 
     const reportLiteral: OnString = (value, at) => {
       const hit = findColourLiteral(value);
-      // The whole value as well as the match: a project allowing `rgb(0 0 0 / 40%)`
-      // writes that, not the substring the regex happened to return.
+      // A project allowing `rgb(0 0 0 / 40%)` writes the whole value, not the match.
       if (hit === null || allowed.has(hit) || allowed.has(value)) return;
       report(context, at, "literal", hit);
     };
 
-    // Each handler takes `unknown` because eslint's listener type is keyed on its own
-    // ESTree node names, which do not include the JSX ones. The visitor key is what
-    // guarantees the node's type; the cast records it.
     return {
       JSXAttribute(node: unknown) {
         const attribute = node as TSESTree.JSXAttribute;
         const name = attribute.name.type === "JSXIdentifier" ? attribute.name.name : "";
 
-        // sx and style are both CSS-value objects, so their strings are CSS values.
         if (name === "sx" || name === "style") {
           if (attribute.value?.type === "JSXExpressionContainer") {
             walkStrings(attribute.value.expression, reportLiteral);
@@ -199,7 +169,6 @@ export const noColourLiteral: Rule.RuleModule = {
         }
         if (name !== "className") return;
 
-        // className holds class names, so its strings are split and read as Tailwind.
         const strings: [string, TSESTree.Node][] = [];
         const value = attribute.value;
         if (value?.type === "Literal" && typeof value.value === "string") {
@@ -226,8 +195,8 @@ export const noColourLiteral: Rule.RuleModule = {
       },
 
       CallExpression(node: unknown) {
-        // styled(Thing)({ color: "red" }) only. styled.div({ ... }) has a member-expression
-        // callee and is NOT read here, matching the rule this was ported from.
+        // styled.div({ ... }) is deliberately not read here. The rule this was ported
+        // from ignored it too.
         const call = node as TSESTree.CallExpression;
         const callee = call.callee;
         if (callee.type !== "CallExpression") return;

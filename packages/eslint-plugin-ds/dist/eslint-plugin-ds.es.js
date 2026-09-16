@@ -340,7 +340,7 @@ const noColourLiteral = {
   }
 };
 const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
-  // Every value of `display`, spelled out, because none of them is written <prefix>-<value>.
+  // Every value of `display`. None is written <prefix>-<value>.
   "flex",
   "grid",
   "block",
@@ -362,8 +362,7 @@ const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
   "table-column-group",
   "table-header-group",
   "table-footer-group",
-  // position, isolation, and the bare forms of flex-grow and flex-shrink. `grow` and
-  // `shrink` appear in LAYOUT_PREFIXES too, for the forms that do take a value (`grow-0`).
+  // `grow` and `shrink` are also in LAYOUT_PREFIXES, for the forms that take a value.
   "static",
   "relative",
   "absolute",
@@ -372,13 +371,10 @@ const LAYOUT_KEYWORDS = /* @__PURE__ */ new Set([
   "grow",
   "shrink",
   "isolate",
-  // The container class and the container-query root, which is where a `@lg:` variant
-  // measures from.
   "container",
   "@container",
-  // align-content, named in full rather than carried as a `content` prefix. The prefix
-  // would also admit `content-['x']`, which sets the CSS content property and is exactly
-  // the decoration the design system owns.
+  // align-content values, named in full. A `content` prefix would also admit
+  // `content-['x']`, which is decoration the design system owns.
   "content-normal",
   "content-center",
   "content-start",
@@ -576,8 +572,7 @@ const tailwindLayoutOnly = {
             if (rawClass === "" || isAllowedClass(rawClass, allowance))
               continue;
             context.report({
-              // `at` is inside a JSX attribute, and the estree unions ESLint's types are
-              // built from carry no JSX, so there is no node type here to annotate with.
+              // `at` is a JSX node, which ESLint's estree-based types cannot name.
               node: at,
               messageId: "notLayout",
               data: { value: rawClass }

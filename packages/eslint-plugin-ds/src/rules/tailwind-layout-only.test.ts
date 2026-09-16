@@ -2,9 +2,8 @@ import { RuleTester } from "eslint";
 
 import { tailwindLayoutOnly } from "./tailwind-layout-only";
 
-// eslint 8's RuleTester: it takes `parser` as a resolved path and its options as
-// `parserOptions`. The visitor API a rule implements is the same in 8 and 9, and the
-// plugin's consumers run 9.
+// eslint 8's RuleTester takes `parser` as a resolved path. The visitor API is the same in
+// 8 and 9, and the plugin's consumers run 9.
 const ruleTester = new RuleTester({
   parser: require.resolve("@typescript-eslint/parser"),
   parserOptions: {
@@ -14,27 +13,20 @@ const ruleTester = new RuleTester({
   },
 });
 
-// RuleTester builds its own describe/it blocks from the cases and throws on any that
-// does not behave as declared, so each run IS the assertion. It must be called at module
-// level: wrapping it in an `it` nests a describe inside a test, which jest rejects.
+// RuleTester throws on any case that does not behave as declared, so each run IS the
+// assertion. It must be called at module level. Wrapping it in an `it` nests a describe
+// inside a test, which jest rejects.
 ruleTester.run("tailwind-layout-only", tailwindLayoutOnly, {
   valid: [
     { code: '<div className="flex flex-col gap-4 p-4" />' },
     { code: '<div className="items-center justify-between" />' },
-    // An arbitrary value is decided by its prefix.
     { code: '<div className="min-w-[420px] max-h-screen" />' },
-    // Variants and negative margins leave the utility unchanged.
     { code: '<div className="md:flex hover:gap-2 -mt-2" />' },
-    // The text size scale, which the default option permits.
     { code: '<p className="text-sm" />' },
-    // Nothing to inspect.
     { code: "<div />" },
     { code: "<div className={styles.root} />" },
-    // A non-className attribute is not this rule's business.
     { code: '<div id="font-medium" />' },
-    // Nothing left after stripping a variant or a sign, so it names no utility. Allowed
-    // on purpose: reporting a typo as a design-system violation sends the reader to the
-    // wrong fix.
+    // Nothing left after stripping a variant or a sign, so it names no utility.
     { code: '<div className="- md:" />' },
   ],
   invalid: [
@@ -46,7 +38,6 @@ ruleTester.run("tailwind-layout-only", tailwindLayoutOnly, {
       code: '<ul className="list-none" />',
       errors: [{ messageId: "notLayout", data: { value: "list-none" } }],
     },
-    // A colour class is not layout either, so this rule catches it too.
     {
       code: '<div className="text-red-500" />',
       errors: [{ messageId: "notLayout", data: { value: "text-red-500" } }],
@@ -59,34 +50,27 @@ ruleTester.run("tailwind-layout-only", tailwindLayoutOnly, {
         { messageId: "notLayout", data: { value: "shadow-lg" } },
       ],
     },
-    // Reached through a conditional expression, not only a plain literal.
     {
       code: '<div className={wide ? "gap-8" : "font-thin"} />',
       errors: [{ messageId: "notLayout", data: { value: "font-thin" } }],
     },
-    // A conditional class written as an object key, which is how clsx and cn take one.
     {
       code: '<div className={clsx({ "font-bold": on, "gap-2": true })} />',
       errors: [{ messageId: "notLayout", data: { value: "font-bold" } }],
     },
-    // A template literal, which is how a class list with one interpolated value is
-    // usually written. The literal chunks either side of the hole are still classes.
     {
       code: "<div className={`flex ${size} font-bold`} />",
       errors: [{ messageId: "notLayout", data: { value: "font-bold" } }],
     },
-    // An array hole. `clsx([, "font-bold"])` leaves a null element in the ESTree array,
-    // and the walk has to skip it rather than reading `.type` off nothing.
+    // An array hole leaves a null element in the ESTree array, and the walk has to skip it.
     {
       code: '<div className={clsx([, "font-bold"])} />',
       errors: [{ messageId: "notLayout", data: { value: "font-bold" } }],
     },
-    // Reached through a template literal's interpolation rather than its text.
     {
       code: "<div className={`gap-2 ${wide ? 'shadow-lg' : 'p-4'}`} />",
       errors: [{ messageId: "notLayout", data: { value: "shadow-lg" } }],
     },
-    // Opting out of the text size scale.
     {
       code: '<p className="text-sm" />',
       options: [{ allowTextSizes: false }],
@@ -95,9 +79,8 @@ ruleTester.run("tailwind-layout-only", tailwindLayoutOnly, {
   ],
 });
 
-// The allowlist carries only the shortest prefix of each family, because the matcher
-// stops at the first dash boundary that hits: `col` already decides `col-span-2`. These
-// are the longer forms that must therefore still be allowed.
+// The allowlist carries only the shortest prefix of each family. These are the longer
+// forms that must therefore still be allowed.
 ruleTester.run("tailwind-layout-only long-form prefixes", tailwindLayoutOnly, {
   valid: [
     { code: '<div className="col-span-2 col-start-1 col-end-3 row-span-2" />' },
@@ -108,19 +91,17 @@ ruleTester.run("tailwind-layout-only long-form prefixes", tailwindLayoutOnly, {
   invalid: [],
 });
 
-// A project can widen the allowlist for a utility it does not carry yet.
 ruleTester.run("tailwind-layout-only extraPrefixes", tailwindLayoutOnly, {
   valid: [
     { code: '<div className="columns-3" />', options: [{ extraPrefixes: ["columns"] }] },
-    // `text` reaches the allowlist even though the text-size branch answers for every
-    // `text-` class, because extraPrefixes is consulted first.
+    // `text` reaches the allowlist because extraPrefixes is consulted before the
+    // text-size branch.
     { code: '<div className="text-red-500" />', options: [{ extraPrefixes: ["text"] }] },
   ],
   invalid: [],
 });
 
-// `content` is align-content, and its values are named in full. Carried as a prefix it
-// also admitted `content-['x']`, which sets the CSS content property.
+// `content` is align-content. Carried as a prefix it also admitted `content-['x']`.
 ruleTester.run("tailwind-layout-only align-content", tailwindLayoutOnly, {
   valid: [{ code: '<div className="content-center content-between" />' }],
   invalid: [
@@ -131,14 +112,12 @@ ruleTester.run("tailwind-layout-only align-content", tailwindLayoutOnly, {
   ],
 });
 
-// `clsx({ underline: on })` and `clsx({ "underline": on })` are the same class written two
-// ways. The unquoted form is an Identifier rather than a Literal, and every decoration
-// utility that is also a valid JS identifier (`underline`, `italic`, `shadow`, `ring`,
-// `uppercase`, `truncate`) is written that way.
+// An unquoted object key is an Identifier rather than a Literal. Decoration utilities that
+// are valid JS identifiers (`underline`, `shadow`, `truncate`) are written that way.
 ruleTester.run("tailwind-layout-only identifier keys", tailwindLayoutOnly, {
   valid: [
     { code: "<div className={clsx({ flex: yes, hidden: no })} />" },
-    // A computed key names no class; whatever `key` holds is not readable here.
+    // A computed key names no class.
     { code: "<div className={clsx({ [key]: on })} />" },
   ],
   invalid: [
@@ -158,10 +137,8 @@ ruleTester.run("tailwind-layout-only identifier keys", tailwindLayoutOnly, {
 });
 
 // Decoration that opens with a layout prefix, which the prefix scan would let through.
-// Two of these carry a colour, which is what the rule exists to stop.
 ruleTester.run("tailwind-layout-only decoration under a layout prefix", tailwindLayoutOnly, {
   valid: [
-    // The layout families those prefixes exist for.
     { code: '<div className="inset-0 -inset-x-1 inset-y-4 overflow-x-auto" />' },
     // A caller can still opt in, because the deny is checked after extraPrefixes.
     { code: '<div className="inset-shadow-sm" />', options: [{ extraPrefixes: ["inset-shadow"] }] },
@@ -182,8 +159,8 @@ ruleTester.run("tailwind-layout-only decoration under a layout prefix", tailwind
   ],
 });
 
-// Plainly layout, and it must stay allowed. Each false report is a team's reason to switch
-// the rule off, and `shrink-0` is among the most-typed flex classes there is.
+// Plainly layout, and reported by an earlier version of the rule. Each false report is a
+// team's reason to switch the rule off.
 ruleTester.run("tailwind-layout-only layout that was reported", tailwindLayoutOnly, {
   valid: [
     { code: '<div className="shrink-0 grow-0 grow-[2]" />' },
@@ -198,8 +175,7 @@ ruleTester.run("tailwind-layout-only layout that was reported", tailwindLayoutOn
   invalid: [],
 });
 
-// `!important`: leading in Tailwind 3, trailing in 4. It changes nothing about which
-// property the class sets, so it cannot change the verdict either.
+// `!important`: leading in Tailwind 3, trailing in 4. It cannot change the verdict.
 ruleTester.run("tailwind-layout-only important marker", tailwindLayoutOnly, {
   valid: [{ code: '<div className="!flex flex! !p-4 md:!flex" />' }],
   invalid: [
@@ -222,8 +198,7 @@ ruleTester.run("tailwind-layout-only extraPrefixes without a dash", tailwindLayo
   ],
 });
 
-// box-decoration-* controls how a box-shadow breaks across lines. The `box` prefix is
-// there for box-sizing, and admitted it.
+// box-decoration-* is decoration. The `box` prefix is there for box-sizing, and admitted it.
 ruleTester.run("tailwind-layout-only box-decoration", tailwindLayoutOnly, {
   valid: [{ code: '<div className="box-border box-content" />' }],
   invalid: [

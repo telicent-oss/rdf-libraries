@@ -14,50 +14,35 @@ export const rules = {
 };
 
 // ESLint names the plugin from meta when it builds cache keys and prints a resolved
-// config, so without it both fall back to an anonymous entry.
-// Read from the manifest, because release-please bumps that and would leave a literal
-// here behind.
+// config. Without it, both fall back to an anonymous entry. The name and version come
+// from the manifest, because release-please bumps that and would leave a literal behind.
 export const meta = { name, version };
 
 // The object registered as `ds` below must BE the package's default export. ESLint
-// compares plugin identity, so a consumer that spreads `recommended` and also writes
-// `plugins: { ds }` gets "Cannot redefine plugin" and refuses to start - no lint run at
-// all, rather than a lint error. Object.assign returns the same object it mutates,
-// which is what keeps the two the same.
+// compares plugin identity. A consumer that spreads `recommended` and also writes
+// `plugins: { ds }` otherwise gets "Cannot redefine plugin", and ESLint refuses to
+// start. Object.assign keeps the two the same object.
 const plugin: { meta: typeof meta; rules: typeof rules; configs?: unknown } = {
   meta,
   rules,
 };
 
-/** The default `files` for {@link recommended}, for a config sitting beside `src/`. */
 export const DEFAULT_FILES = ["src/**/*.{ts,tsx}"];
 
-/**
- * What {@link recommended} takes. The keys are ESLint's own flat-config keys, so what a
- * caller passes reads the same as what it produces, and a key added later needs no new
- * positional argument.
- */
+/** The keys are ESLint's own flat-config keys, so a key added later needs no new argument. */
 export interface RecommendedOptions {
-  /** Which files the guardrails apply to. */
   files?: string[];
 }
 
 /**
  * All three guardrails in one flat-config block.
  *
- * Takes `files` because a flat-config pattern resolves against the directory holding
- * the config file, not the project root. A baked-in `src/**` matches nothing from a
- * config one level up, and a block that matches nothing lints green with every
- * guardrail switched off - the one failure mode nobody notices.
+ * `files` is a parameter because a flat-config pattern resolves against the directory
+ * holding the config file. A baked-in `src/**` matches nothing from a config one level
+ * up. A block that matches nothing lints green with every guardrail switched off.
  *
- * The third guardrail is not a rule of this plugin. Banning `@mui/*` needs no custom
- * logic - `no-restricted-imports` already does it - but it belongs with the other two,
- * because a project that adopts one and not the others has a gap it did not choose.
- *
- * Severities differ on purpose. A colour literal has a design-system answer every time,
- * so it fails the build. The other two are judgement calls: whether a Tailwind class has
- * a design-system equivalent, and whether the design system covers the MUI component
- * being reached for. Neither can fail a build without blocking work that has no fix yet.
+ * The `@mui/*` ban is not a rule of this plugin. It ships here anyway, so that a project
+ * cannot adopt the other two and miss it.
  */
 export function recommended({ files = DEFAULT_FILES }: RecommendedOptions = {}) {
   return [
