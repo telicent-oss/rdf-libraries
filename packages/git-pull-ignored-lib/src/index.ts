@@ -18,33 +18,22 @@ export class PullError extends Error {
 
 const GIT_MISSING = "cannot ask git whether the destination is ignored: git is not on PATH";
 
-/** What a caller may set on one git invocation. */
 export interface GitOptions {
   timeout?: number;
   env?: NodeJS.ProcessEnv;
 }
 
-/** The outcome of one git invocation. A failure arrives in these fields, never as a throw. */
+/** A git failure arrives in these fields, never as a throw. */
 export interface GitResult {
   status: number | null;
   signal: NodeJS.Signals | null;
   stdout: string;
   stderr: string;
-  /**
-   * Set when git could not be run or was killed, never when git ran and exited non-zero.
-   * `code` is node's own string: `ENOENT` for no git binary, `ETIMEDOUT` for one the
-   * `timeout` killed.
-   */
+  /** `ENOENT` for no git binary, `ETIMEDOUT` for a killed one. Unset when git merely exited non-zero. */
   error?: NodeJS.ErrnoException;
 }
 
-/**
- * How git is run. It takes the arguments that would follow `git` on a command line, and
- * returns the outcome instead of throwing.
- *
- * Injected so a test can present a machine with no git, which cannot be arranged in
- * process.
- */
+/** Injected so a test can present a machine with no git, which cannot be arranged in process. */
 export type GitRunner = (args: string[], options?: GitOptions) => GitResult;
 
 const realGit: GitRunner = (args, options = {}) => {
@@ -63,13 +52,9 @@ function failedWith(result: GitResult, code: string): boolean {
 }
 
 /**
- * git reads a leading dash as an option wherever the argument sits, and
- * `--upload-pack=<command>` makes a clone run that command. Nothing legitimate here starts
- * with a dash.
- *
- * Each call also puts `--` before its filenames, which tells git to read everything after
- * it as a value. That does not cover a value git expects right after a flag, such as the
- * ref after `--branch`, which is why both defences are here.
+ * `--upload-pack=<command>` makes a clone run that command, and git reads a leading dash as
+ * an option wherever the argument sits. The `--` each call passes does not cover a value git
+ * expects right after a flag, such as the ref after `--branch`.
  */
 function refuseOptionLike(value: string, what: string): void {
   if (value.startsWith("-")) {
@@ -79,32 +64,20 @@ function refuseOptionLike(value: string, what: string): void {
   }
 }
 
-/** The transports this module clones over. Anything else git knows, or learns later, is refused. */
+/** Anything else git knows, or learns later, is refused. */
 const TRANSPORTS = new Set(["https:", "ssh:"]);
 
-/**
- * What a remote may be. Stated once, because every refusal below has to tell the reader the
- * same thing, and the scp-style form is the one they are most likely holding.
- */
 const REPO_RULE =
   "repo must be an https:// or ssh:// URL (write git@host:path as ssh://git@host/path)";
 
-/**
- * A remote with any embedded credential removed. These messages are printed by callers and
- * land in CI logs, and `https://user:token@host/...` is a remote a caller may legitimately
- * hold.
- */
+/** Refusals are printed by callers and land in CI logs. A remote may carry a credential. */
 const withoutCredential = (repo: string): string => repo.replace(/\/\/[^/@]*@/, "//");
 
 const refuseRepo = (repo: string, because: string): never => {
   throw new PullError(`${REPO_RULE}. ${because}: ${withoutCredential(repo)}`);
 };
 
-/**
- * git reads `%2D` as `-`, so a check on the raw text misses an option hiding in an escape.
- * An escape that does not decode is returned as it stands, which is then refused for some
- * other reason or handed to git exactly as git will read it.
- */
+/** git reads `%2D` as `-`. A check on the raw text misses an option hiding in an escape. */
 function decoded(part: string): string {
   try {
     return decodeURIComponent(part);
@@ -114,9 +87,8 @@ function decoded(part: string): string {
 }
 
 /**
- * The URL git is given. Parsed first, because the string git gets also picks the transport,
- * and `ext::<command>` is a transport that runs the command. `href` rather than the caller's
- * string, so what git sees is exactly what was checked.
+ * The remote string also picks git's transport, and `ext::<command>` is a transport that runs
+ * the command. Returns `href`, so git sees exactly what was checked.
  */
 function cloneUrl(repo: string): string {
   let url: URL;
@@ -126,53 +98,39 @@ function cloneUrl(repo: string): string {
     return refuseRepo(repo, "This is not a URL");
   }
   if (!TRANSPORTS.has(url.protocol)) return refuseRepo(repo, "This names another transport");
-  // `ssh:-oProxyCommand=x@h/p` parses, with every part but the scheme empty, and `href`
-  // gives the string back unchanged for git to read as it likes. A remote names a host.
+  // `ssh:-oProxyCommand=x@h/p` parses with every part but the scheme empty, and `href` hands
+  // it to git unchanged.
   if (url.hostname === "") return refuseRepo(repo, "This names no host");
-  // git hands `user@host` to ssh as one argument, which ssh reads as an option if it starts
-  // with a dash.
+  // ssh reads `user@host` as an option if it starts with a dash.
   refuseOptionLike(decoded(url.username), "user");
   refuseOptionLike(decoded(url.hostname), "host");
   return url.href;
 }
 
-/** A machine with no git cannot answer any question this module asks, so stop there. */
 function refuseIfGitMissing(result: GitResult): void {
   if (failedWith(result, "ENOENT")) throw new PullError(GIT_MISSING);
 }
 
 /**
- * Whether git ignores `path`. Asked of git rather than read out of .gitignore, so nested
- * and negated patterns give the same answer here as they do to git.
- *
- * `git check-ignore --quiet <path>` prints nothing and answers with its exit code: 0 for
- * ignored, 1 for not. Any other code means git could not answer, and false is the safe
- * reading of that, because the caller refuses to delete anything it is not sure about.
+ * `check-ignore --quiet` answers with its exit code: 0 for ignored, 1 for not. Any other code
+ * means git could not answer, and false is the safe reading of that.
  */
 export function isGitIgnored(path: string, cwd: string, git: GitRunner = realGit): boolean {
   refuseOptionLike(cwd, "cwd");
-  // Relative, because git rejects an absolute path it reads as outside the repository, and
-  // on macOS /var/... resolves to /private/var/..., which makes an inside path look outside.
-  // Forward slashes, because `relative()` returns `\` on win32 and git takes only `/`.
+  // git rejects an absolute path it reads as outside the repository, and on macOS /var/...
+  // resolves to /private/var/..., which makes an inside path look outside. git takes only
+  // `/`, while `relative()` returns `\` on win32.
   const rel = (isAbsolute(path) ? relative(cwd, path) : path).split(sep).join("/");
   if (rel === "" || rel.startsWith("..")) return false;
   refuseOptionLike(rel, "dest");
-  // The trailing slash tells git this is a directory. A .gitignore usually says `name/`,
-  // which git matches only against a path it knows is a directory, so without it a
-  // destination that does not exist yet reads as not ignored and the first pull is refused.
+  // A .gitignore usually says `name/`, which git matches only against a path it knows is a
+  // directory. Without the trailing slash a destination that does not exist reads as not ignored.
   const asDirectory = rel.endsWith("/") ? rel : `${rel}/`;
   const result = git(["-C", cwd, "check-ignore", "--quiet", "--", asDirectory]);
   refuseIfGitMissing(result);
   return result.status === 0;
 }
 
-/**
- * Whether `cwd` is inside a git work tree, so an ignore answer means anything.
- *
- * A machine with no git is reported as such, rather than as a directory that is not a
- * repository. This runs before `isGitIgnored`, so it is where that diagnosis would first
- * go wrong.
- */
 function insideWorkTree(cwd: string, git: GitRunner): boolean {
   refuseOptionLike(cwd, "cwd");
   const result = git(["-C", cwd, "rev-parse", "--is-inside-work-tree"]);
@@ -180,22 +138,11 @@ function insideWorkTree(cwd: string, git: GitRunner): boolean {
   return result.status === 0 && result.stdout.trim() === "true";
 }
 
-/** How long a single clone may take before it is killed. */
 const CLONE_TIMEOUT_MS = 60_000;
 
 /**
- * A clone with no deadline waits forever, silently, and this one runs inside setup
- * scripts where nothing is watching it. `timeout` alone would catch every stall, on the
- * wall clock, but only after the full window. The other two turn a 60-second wait into a
- * fast failure:
- *
- * - `ConnectTimeout=10` gives up on an ssh host that never answers. It is an ssh option,
- *   so an https clone falls back to `timeout`
- * - `GIT_TERMINAL_PROMPT=0` makes git fail instead of asking for a username when no
- *   credential works
- *
- * An existing `GIT_SSH_COMMAND` is extended rather than replaced, so a caller's own ssh
- * settings survive.
+ * `timeout` alone makes every stall cost the full window, and this runs in setup scripts with
+ * nobody watching. An existing `GIT_SSH_COMMAND` is extended, so a caller's ssh settings survive.
  */
 function cloneLimits(timeoutMs: number): GitOptions {
   const ssh = process.env.GIT_SSH_COMMAND ?? "ssh";
@@ -208,12 +155,8 @@ function cloneLimits(timeoutMs: number): GitOptions {
 type CloneAttempt = { dir: string; ref: string } | { reason: string };
 
 /**
- * Clone `ref`, and keep it only if it carries `subpath`. A clone that misses is deleted
- * here, so the caller has at most one directory to clean up.
- *
- * The reason a clone failed is git's own stderr line, because "could not clone" on its own
- * sends the reader hunting for a missing branch when the repository or the credential was
- * the problem. A killed clone writes no stderr, so each way of being killed is named.
+ * The failure reason is git's own stderr line. "could not clone" alone sends the reader
+ * hunting for a missing branch when the credential was the problem.
  */
 function shallowClone(
   url: string,
@@ -257,26 +200,15 @@ function headSha(dir: string, git: GitRunner): string {
 }
 
 export interface PullOptions {
-  /** An `https://` or `ssh://` URL. scp-style `git@host:path` is written `ssh://git@host/path`. */
   repo: string;
-  /**
-   * Tried in order, which lets a caller prefer a feature branch and fall back to the
-   * default one. A ref that exists but lacks `subpath` counts as a miss, because the
-   * point is to find a ref carrying the content.
-   *
-   * Branch and tag names only. The clone is `--branch <ref>`, which a commit sha does not
-   * satisfy, so a sha is reported as a ref that does not carry the content.
-   */
+  /** Tried in order. The clone is `--branch <ref>`, which a commit sha does not satisfy. */
   refs: string[];
   subpath: string;
   dest: string;
   cwd: string;
   writeShaFile?: boolean;
-  /**
-   * Bounds each clone attempt, not the call: three refs can wait three times this.
-   */
+  /** Bounds each clone attempt, not the call: three refs can wait three times this. */
   cloneTimeoutMs?: number;
-  /** Defaults to running the real git binary. */
   git?: GitRunner;
 }
 
@@ -286,17 +218,9 @@ export interface PullResult {
 }
 
 /**
- * Replace `dest` with `subpath` taken from `repo`, and record the commit it came from.
- *
- * `dest` is deleted outright, so this refuses to run unless git says it is ignored.
- *
- * The clone goes to a temp directory. Inside the caller's own tree, `dest` is the only
- * path written to, because it is the only one git was asked about.
- *
- * The new content is built in a directory inside `dest` and moved up once it is complete,
- * so a copy that fails part-way leaves the old content in place. Once the move starts the
- * old content is gone, and a failure there leaves `dest` half-written; the next run
- * replaces it.
+ * The new content is built inside `dest` and moved up once complete, so a copy that fails
+ * part-way leaves the old content in place. A failure during the move leaves `dest`
+ * half-written, and the next run replaces it.
  */
 export function pullGitignored({
   repo,
@@ -349,29 +273,22 @@ export function pullGitignored({
     }
 
     const sha = headSha(clone.dir, git);
-    // Staged INSIDE dest, which is the only path git has said is disposable. Beside dest
-    // would be a directory nobody ignores, and a process killed between the copy and the
-    // swap would leave a full copy of another repository in the caller's tree for
-    // `git add -A` to pick up.
+    // Staged INSIDE dest, the only path git has said is disposable. Beside dest, a run killed
+    // before the swap would leave another repository for `git add -A` to pick up.
     mkdirSync(dest, { recursive: true });
-    // mkdtemp makes a uniquely named directory, so nothing already there is disturbed.
-    // It is removed again because the copy below wants to create the path itself: the
-    // name is what is being reserved, not the directory.
+    // mkdtemp reserves a unique name; the copy below wants to create the path itself.
     staging = mkdtempSync(join(dest, ".pull-gitignored-"));
     rmSync(staging, { recursive: true, force: true });
     try {
       cpSync(join(clone.dir, subpath), staging, { recursive: true });
       if (writeShaFile) writeFileSync(join(staging, ".commitSha"), `${sha}\n`);
     } catch (error) {
-      // Nothing has been removed yet, so the old content is still there. Reported as a
-      // PullError because the caller prints these and exits, rather than showing a stack.
       throw new PullError(
         `could not assemble ${subpath} from ${repo} in ${dest}: ${(error as Error).message}\n` +
           `Nothing was removed: the previous contents of ${dest} are untouched.`,
       );
     }
-    // From here dest is briefly incomplete: the old entries are gone and the new ones have
-    // not moved up yet.
+    // From here dest is briefly incomplete: old entries gone, new ones not yet moved up.
     for (const entry of readdirSync(dest)) {
       if (join(dest, entry) !== staging) rmSync(join(dest, entry), { recursive: true, force: true });
     }

@@ -4,9 +4,8 @@ import { resolve } from "node:path";
 import { defineConfig, PluginOption } from "vite";
 import dts from "vite-plugin-dts";
 
-// require rather than an import attribute. `assert { type: "json" }` still works but is
-// the deprecated spelling, and `with` does not: vite 4 loads this config through the
-// esbuild CatalogService pins (0.18), which predates `with`. require needs neither.
+// require, not an import attribute. Vite 4 loads this config through esbuild 0.18,
+// pinned by CatalogService, which predates `with`. `assert` works but is deprecated.
 const pkg = createRequire(import.meta.url)("./package.json");
 
 const externals = [
@@ -25,15 +24,13 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "gitPullIgnoredLib",
-      // ESM only. A cjs bundle here is unusable: `type: module` plus a `.js` extension
-      // makes node parse it as ESM, so `require` of it returns an empty object rather
-      // than failing loudly. Every consumer imports this, so the cjs half was a broken
-      // entry point nobody wanted.
+      // ESM only. `type: module` makes node parse a `.js` cjs bundle as ESM, so
+      // `require` of it returns an empty object instead of failing.
       formats: ["es"],
       fileName: () => "git-pull-ignored-lib.es.js",
     },
-    // No sourcemap: the shipped bundle is unminified ESM that reads as the source, and a
-    // map without the .ts files beside it points a consumer at paths that are not there.
+    // No sourcemap: the .ts files are not shipped, so a map points at paths that are
+    // not there.
     sourcemap: false,
     minify: false,
     rollupOptions: { external: externals },

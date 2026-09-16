@@ -35,9 +35,8 @@ function sourceRepo(files: Record<string, string>) {
 }
 
 /**
- * The library only clones an https:// or ssh:// URL, so a fixture repo on disk cannot be
- * named directly. These tests give it this URL and a runner that puts the fixture path back
- * in the argument list, so the clone, the copy and the ignore check are all still real git.
+ * The library only clones an https:// or ssh:// URL. A fixture repo on disk cannot be named
+ * directly. So the runner swaps this URL back to the fixture path, and every git call is real.
  */
 const FIXTURE_URL = "https://github.com/test-org/source.git";
 const gitFromFixture =
@@ -79,8 +78,7 @@ describe("isGitIgnored", () => {
 
   it("answers false for a path outside the repository, rather than asking git about it", () => {
     const repo = consumerRepo("pulled/\n");
-    // git rejects a path it reads as outside the work tree, so these are decided before
-    // it is asked. "not ignored" is the safe answer: the caller refuses to delete.
+    // "not ignored" is the safe answer. The caller then refuses to delete.
     expect(isGitIgnored("../pulled", repo)).toBe(false);
     expect(isGitIgnored(repo, repo)).toBe(false);
   });
@@ -97,14 +95,8 @@ describe("isGitIgnored", () => {
   });
 });
 
-// The one test that uses a real absent git rather than an injected fake, which is what
-// makes it worth its cost: it checks the fake above is faithful. If node ever stopped
-// reporting a missing binary the way `noGit` imitates, every in-process test here would
-// still pass and this one would fail.
-//
-// It needs a child process because emptying PATH in this one does nothing: the child reads
-// the real environment, not the copy the test sees. tsx lets the child run the source, so
-// the test does not depend on `dist` existing.
+// The only test that uses a real absent git. It checks the `noGit` fake below is faithful.
+// It needs a child process, because emptying PATH in this one does not reach a spawned git.
 describe("with git missing from PATH", () => {
   const inChildWithoutPath = (body: string) =>
     execFileSync(
@@ -114,9 +106,6 @@ describe("with git missing from PATH", () => {
     ).trim();
 
   it("says git is missing, rather than blaming the work tree", () => {
-    // Through pullGitignored, which is the path every caller takes. It asks whether cwd is
-    // a work tree first, and a machine with no git has to be reported as that rather than
-    // as a directory which is not a repository.
     const output = inChildWithoutPath(
       `const { pullGitignored } = await import("${join(__dirname, "index.ts")}");
        try {
@@ -130,22 +119,15 @@ describe("with git missing from PATH", () => {
   });
 });
 
-// A machine with no git. The injected runner is what makes that reachable in process.
-// node reports it on `error.code`, and the check has to read that code rather than merely
-// that an error is set, because a command that ran and failed arrives the same way.
 describe("git missing from PATH", () => {
   const noGit: GitRunner = () =>
     ran({ status: null, error: Object.assign(new Error("spawn git ENOENT"), { code: "ENOENT" }) });
 
   it("is told apart from a path git does not ignore", () => {
-    // Answering false here would report "git does not ignore it" about a machine that
-    // cannot run git at all.
     expect(() => isGitIgnored("pulled", "/tmp", noGit)).toThrow(/git is not on PATH/);
   });
 
   it("is named by the public entry, rather than blamed on the work tree", () => {
-    // pullGitignored asks whether cwd is a work tree first, which is where a missing git
-    // would otherwise be reported as a directory that is not a repository.
     expect(() =>
       pullGitignored({
         repo: FIXTURE_URL, refs: ["main"], subpath: "s", dest: "/tmp/x/pulled", cwd: "/tmp",
@@ -167,7 +149,6 @@ describe("git missing from PATH", () => {
 });
 
 describe("with a scripted git", () => {
-  /** In a work tree, destination ignored, and the clone returning whatever is asked. */
   const scripted = (onClone: GitResult): GitRunner => (args) =>
     args.includes("clone") ? onClone : ran({ stdout: "true\n" });
 
@@ -184,17 +165,12 @@ describe("with a scripted git", () => {
   };
 
   it("falls back to git's exit code when the clone failed silently", () => {
-    // git normally explains itself on stderr and that wording is carried out verbatim.
-    // With nothing written, the exit code is all there is, and the message has to say so
-    // rather than reporting an empty reason.
     expect(attemptsFrom(scripted(ran({ status: 1 })))).toEqual([
       "main: could not clone (git exited 1)",
     ]);
   });
 
   it("names the deadline only when the deadline is what killed the clone", () => {
-    // A timeout and an outside `kill` both arrive as a signal, so reading the signal alone
-    // reports every killed clone as a clone that ran too long.
     expect(
       attemptsFrom(
         scripted(ran({
@@ -208,8 +184,7 @@ describe("with a scripted git", () => {
     ]);
   });
 
-  // Only reachable through an injected runner: with the real one, insideWorkTree raises
-  // first. It pins the contract a caller writing its own runner has to satisfy.
+  // Only reachable through an injected runner. With the real one, insideWorkTree raises first.
   it("stops at the first clone when the runner reports git missing", () => {
     const noGit: GitRunner = (args) =>
       args.includes("clone")
@@ -224,9 +199,8 @@ describe("with a scripted git", () => {
   });
 });
 
-// git reads a leading dash as an option wherever it sits, and `--upload-pack=<command>`
-// turns a clone into an arbitrary command. The values come from this library's caller, so
-// the check has to be here.
+// git reads a leading dash as an option wherever it sits. `--upload-pack=<command>` then
+// turns a clone into an arbitrary command.
 describe("an argument that git would read as an option", () => {
   const shouldNotRun: GitRunner = () => {
     throw new Error("git was invoked with an option-shaped argument");
@@ -242,7 +216,6 @@ describe("an argument that git would read as an option", () => {
   });
 
   it("refuses a dest that starts with a dash", () => {
-    // Reached after the work-tree question, which is answered so the dest check runs.
     const inWorkTree: GitRunner = (args) =>
       args.includes("rev-parse") ? ran({ stdout: "true\n" }) : shouldNotRun(args);
 
@@ -270,8 +243,8 @@ describe("an argument that git would read as an option", () => {
     expect(() => call({ refs: ["--upload-pack=touch /tmp/pwned"] })).toThrow(/ref starts with a dash/);
   });
 
-  // `ext::<command>` is a git transport that runs the command, chosen from the remote
-  // string alone. The only thing between a caller's string and that is the scheme check.
+  // `ext::<command>` is a git transport that runs the command. It is chosen from the remote
+  // string alone, so the scheme check is the only thing that stops it.
   it("refuses a remote that names a transport git would run a command for", () => {
     const shouldNotClone: GitRunner = (args) =>
       args.includes("clone") ? shouldNotRun(args) : ran({ stdout: "true\n" });
@@ -286,8 +259,8 @@ describe("an argument that git would read as an option", () => {
     expect(() => call("ssh://-oProxyCommand=x@host/y")).toThrow(/user starts with a dash/);
     expect(() => call("ssh://git@-evil/y")).toThrow(/host starts with a dash/);
 
-    // `ssh:` with no `//` parses, with every part but the scheme empty, and hands git the
-    // string back untouched for it to read as an scp-style remote.
+    // `ssh:` with no `//` parses, with every part but the scheme empty. git then reads the
+    // untouched string as an scp-style remote.
     expect(() => call("ssh:-oProxyCommand=x@host/y")).toThrow(/names no host/);
     expect(() => call("ssh:///-x/y")).toThrow(/names no host/);
 
@@ -296,7 +269,7 @@ describe("an argument that git would read as an option", () => {
     expect(() => call("ssh://u@%2Dhost/y")).toThrow(/host starts with a dash/);
   });
 
-  // The message is printed by callers and lands in CI logs.
+  // Callers print this message, and it lands in CI logs.
   it("keeps an embedded credential out of the refusal message", () => {
     const shouldNotClone: GitRunner = (args) =>
       args.includes("clone") ? shouldNotRun(args) : ran({ stdout: "true\n" });
@@ -309,7 +282,6 @@ describe("an argument that git would read as an option", () => {
     expect(() => call("git://user:s3cret@host/y")).not.toThrow(/s3cret/);
   });
 
-  // Every refusal has to name the form the caller is most likely holding.
   it("tells a caller holding an scp-style remote what to write instead", () => {
     const shouldNotClone: GitRunner = (args) =>
       args.includes("clone") ? shouldNotRun(args) : ran({ stdout: "true\n" });
@@ -329,14 +301,14 @@ describe("an argument that git would read as an option", () => {
       return args.includes("clone") ? ran({ status: 1 }) : ran({ stdout: "true\n" });
     };
     try {
-      // Spelled so the parsed URL differs from the string: git has to be handed what was
+      // Spelled so the parsed URL differs from the string. git must be handed what was
       // checked, not what the caller wrote.
       pullGitignored({
         repo: "https://GitHub.com/x/../y.git", refs: ["main"], subpath: "s", dest: "pulled",
         cwd: "/tmp", git: record,
       });
     } catch {
-      // The clone fails; the arguments it was given are the point.
+      // The clone fails. The arguments it was given are the point.
     }
     const clone = seen.find((args) => args.includes("clone")) ?? [];
     expect(clone.slice(clone.indexOf("--"))).toEqual([
@@ -363,7 +335,6 @@ describe("pullGitignored", () => {
     expect(sha).toMatch(/^[0-9a-f]{40}$/);
     expect(readFileSync(join(dest, "a.md"), "utf8")).toBe("A");
     expect(readFileSync(join(dest, "nested/b.md"), "utf8")).toBe("B");
-    // Only the subpath, not the whole repository.
     expect(existsSync(join(dest, "other.md"))).toBe(false);
     expect(readFileSync(join(dest, ".commitSha"), "utf8").trim()).toBe(sha);
   });
@@ -378,8 +349,7 @@ describe("pullGitignored", () => {
       writeShaFile: false,
     });
 
-    // Still reported to the caller, just not written into the pulled directory, which is
-    // the point: a consumer that tracks the sha itself does not want the file.
+    // The sha is still reported to the caller. A consumer that tracks it does not want the file.
     expect(sha).toMatch(/^[0-9a-f]{40}$/);
     expect(existsSync(join(dest, "a.md"))).toBe(true);
     expect(existsSync(join(dest, ".commitSha"))).toBe(false);
@@ -426,8 +396,6 @@ describe("pullGitignored", () => {
       throw new Error("expected a PullError");
     } catch (error) {
       expect(error).toBeInstanceOf(PullError);
-      // The point is that git's wording survives; "could not clone" alone would read as a
-      // missing branch when the repository is what is missing.
       expect((error as PullError).attempted[0]).not.toBe("main: could not clone");
       expect((error as PullError).attempted[0]).toMatch(/repository|does not exist|not found/i);
     }
@@ -462,9 +430,8 @@ describe("pullGitignored", () => {
   });
 
   it("leaves the old content in place when the copy cannot complete", () => {
-    // The new content is built inside dest and moved up only once it is complete, so a
-    // copy that fails part-way leaves the old content alone. A file subpath is the cheapest
-    // way to make one fail: the sha file cannot be written inside a file.
+    // A file subpath is the cheapest way to make a copy fail part-way. The sha file cannot
+    // be written inside a file.
     const source = sourceRepo({ "guidance/a.md": "A" });
     const consumer = consumerRepo("pulled/\n");
     const dest = join(consumer, "pulled");
@@ -475,21 +442,19 @@ describe("pullGitignored", () => {
       pullGitignored({ repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance/a.md", dest, cwd: consumer });
       throw new Error("expected a PullError");
     } catch (error) {
-      // A PullError, not a raw ENOTDIR: callers print these and exit, and a stack trace
-      // here would read as a bug in the library rather than a bad subpath.
+      // A PullError, not a raw ENOTDIR. A stack trace would read as a library bug rather
+      // than a bad subpath.
       expect(error).toBeInstanceOf(PullError);
       expect((error as PullError).message).toMatch(/Nothing was removed/);
     }
     expect(readFileSync(join(dest, "old.md"), "utf8")).toBe("OLD");
-    // Nothing left behind, and nothing written outside dest, which is the only path git
-    // was asked about.
     expect(readdirSync(dest)).toEqual(["old.md"]);
     expect(readdirSync(consumer).filter((e) => e.startsWith(".pull-"))).toEqual([]);
   });
 
   it("clears a staging directory a killed run left behind", () => {
-    // Staging lives inside dest, so a process killed mid-pull leaves one there. It is
-    // inside the ignored region, and the next run's sweep of dest is what removes it.
+    // Staging lives inside dest. A process killed mid-pull leaves one there, and the next
+    // run's sweep of dest removes it.
     const source = sourceRepo({ "guidance/a.md": "A" });
     const consumer = consumerRepo("pulled/\n");
     const dest = join(consumer, "pulled");
@@ -502,8 +467,8 @@ describe("pullGitignored", () => {
   });
 
   it("says so when the clone has no HEAD to read, rather than recording an empty sha", () => {
-    // The runner reports a failure in its result rather than throwing, so an unread HEAD
-    // would otherwise be copied into .commitSha as an empty string and pass for a commit.
+    // The runner reports failure in its result rather than throwing. An unread HEAD would
+    // otherwise reach .commitSha as an empty string and pass for a commit.
     const source = sourceRepo({ "guidance/a.md": "A" });
     const consumer = consumerRepo("pulled/\n");
     const realGitFromFixture = gitFromFixture(source);
@@ -524,9 +489,8 @@ describe("pullGitignored", () => {
     const source = sourceRepo({ "guidance/a.md": "A" });
     const consumer = consumerRepo("pulled/\n");
 
-    // 1ms cannot span spawning a process, so the clone is always still running when the
-    // deadline lands. A killed child carries a signal and no stderr, which without that
-    // branch reports "git exited null" and reads as a git bug.
+    // 1ms cannot span spawning a process. The clone is always still running when the
+    // deadline lands.
     try {
       pullGitignored({
         repo: FIXTURE_URL, git: gitFromFixture(source), refs: ["main"], subpath: "guidance",

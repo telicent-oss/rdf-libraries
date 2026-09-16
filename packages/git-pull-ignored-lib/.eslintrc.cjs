@@ -11,9 +11,8 @@ module.exports =  {
   ignorePatterns: exclude,
   parser:  '@typescript-eslint/parser',
   parserOptions: {
-    // Two projects because tsconfig.json leaves the tests out, which keeps the jest types
-    // out of the config that builds the shipped code. eslint refuses to parse a file no
-    // project covers, so without tsconfig.spec.json the tests break the lint run.
+    // Two projects, because tsconfig.json leaves the tests out. eslint refuses to parse
+    // a file no project covers, so the tests need tsconfig.spec.json here.
     project: ["./tsconfig.json", "./tsconfig.spec.json"],
     tsconfigRootDir: __dirname,
     ecmaVersion: 2018,

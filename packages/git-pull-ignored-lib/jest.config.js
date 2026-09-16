@@ -7,14 +7,14 @@ export default {
   automock: false,
   moduleFileExtensions: ["ts", "tsx", "js", "jsx"],
   transform: {
-    // The tsconfig belongs in the transform tuple. Under `globals` it still works but
-    // ts-jest prints a deprecation warning on every run.
+    // The tsconfig goes in the transform tuple. Under `globals` ts-jest prints a
+    // deprecation warning on every run.
     "^.+\\.tsx?$": ["ts-jest", { tsconfig: "<rootDir>/tsconfig.spec.json" }],
   },
-  // The shared preset emits html only, so `yarn coverage` printed nothing to the
-  // terminal. json-summary is what a CI step reads without parsing the html.
+  // The shared preset emits html only. `text` prints to the terminal. `json-summary`
+  // is what a CI step reads.
   coverageReporters: ["text", "html", "json-summary"],
-  // Each test drives real git repositories in a temp directory, which is slower than
-  // the default 5s allows.
+  // Each test drives real git repositories in a temp directory. The default 5s is
+  // not enough.
   testTimeout: 30_000,
 };
