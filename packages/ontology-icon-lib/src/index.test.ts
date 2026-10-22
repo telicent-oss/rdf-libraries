@@ -17,7 +17,7 @@ jest.mock("@telicent-oss/ontologyservice", () => {
 
   // Extending the actual OntologyService class
   class MockOntologyService extends actual.OntologyService {
-    getStyles = jest.fn(() =>
+    getInheritedStyles = jest.fn(() =>
       Promise.resolve({
         ["http://example.com#term"]: {
           defaultStyles: {
