@@ -312,3 +312,81 @@ describe("OntologyService - Integration Test with Fuseki - Create Data", () => {
     await fuseki.stop();
   });
 });
+
+describe("OntologyService - Integration Test with Fuseki - Inherited Styles", () => {
+  let fuseki: StartedTestContainer;
+  let inheritOs: OntologyService;
+  const ns = "http://example.test/animals#";
+  const styleJson = (backgroundColor: string, faIcon: string) =>
+    JSON.stringify({
+      defaultStyles: {
+        dark: { backgroundColor, color: "#FFFFFF" },
+        light: { backgroundColor, color: "#000000" },
+        shape: "ellipse",
+        borderRadius: "9999px",
+        borderWidth: "2px",
+        selectedBorderWidth: "3px",
+      },
+      defaultIcons: { riIcon: "", faIcon, faUnicode: "", faClass: "fa-solid" },
+    });
+
+  beforeAll(async () => {
+    fuseki = await new GenericContainer("atomgraph/fuseki:4.7.0")
+      .withExposedPorts(3030)
+      .withCommand(["--mem", "inherit_test/"])
+      .withWaitStrategy(Wait.forAll(
+        [
+          Wait.forListeningPorts(),
+          Wait.forLogMessage(/Start Fuseki \(http=\d+\)/),
+        ],
+      ))
+      .start();
+    inheritOs = new OntologyService(
+      `http://127.0.0.1:${fuseki.getMappedPort(3030)}/`,
+      "inherit_test",
+      undefined,
+      undefined,
+      true,
+    );
+    inheritOs.setWarnings = false;
+
+    // Dog → Animal → Entity (styled), Cat → Mammal (styled) → Animal,
+    // Rock has no styled ancestor, Animal also has a blank-node superclass
+    await inheritOs.runUpdate([
+      `INSERT DATA {
+        <${ns}Entity> a <${inheritOs.owlClass}> .
+        <${ns}Animal> a <${inheritOs.owlClass}> ; <${inheritOs.rdfsSubClassOf}> <${ns}Entity> , [ a <${inheritOs.owlClass}> ] .
+        <${ns}Dog> a <${inheritOs.owlClass}> ; <${inheritOs.rdfsSubClassOf}> <${ns}Animal> .
+        <${ns}Mammal> a <${inheritOs.owlClass}> ; <${inheritOs.rdfsSubClassOf}> <${ns}Animal> .
+        <${ns}Cat> a <${inheritOs.owlClass}> ; <${inheritOs.rdfsSubClassOf}> <${ns}Mammal> .
+        <${ns}Rock> a <${inheritOs.owlClass}> .
+      }`,
+    ]);
+    await inheritOs.runUpdate([
+      `INSERT DATA {<${ns}Entity> <${inheritOs.telicentStyle}> '${styleJson("#112233", "fa-solid fa-cube")}' .}`,
+      `INSERT DATA {<${ns}Mammal> <${inheritOs.telicentStyle}> '${styleJson("#445566", "fa-solid fa-paw")}' .}`,
+    ]);
+  }, 60000);
+
+  it("gives unstyled classes the style of their nearest styled ancestor", async () => {
+    const styles = await inheritOs.getInheritedStyles();
+
+    expect(styles[`${ns}Entity`].defaultIcons.faIcon).toBe("fa-solid fa-cube");
+    expect(styles[`${ns}Animal`]).toEqual(styles[`${ns}Entity`]);
+    expect(styles[`${ns}Dog`]).toEqual(styles[`${ns}Entity`]);
+    expect(styles[`${ns}Mammal`].defaultIcons.faIcon).toBe("fa-solid fa-paw");
+    expect(styles[`${ns}Cat`]).toEqual(styles[`${ns}Mammal`]);
+    expect(styles[`${ns}Rock`]).toBeUndefined();
+  });
+
+  it("leaves getStyles returning own styles only", async () => {
+    const styles = await inheritOs.getStyles([]);
+
+    expect(Object.keys(styles).sort()).toEqual([`${ns}Entity`, `${ns}Mammal`]);
+  });
+
+  afterAll(async () => {
+    if (!fuseki) return;
+    await fuseki.stop();
+  });
+});
