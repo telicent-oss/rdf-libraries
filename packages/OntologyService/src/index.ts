@@ -21,6 +21,8 @@ import {
 } from "@telicent-oss/rdfservice";
 import { z } from "zod";
 import { getTypeInitials } from "./ds-helper";
+import { resolveInheritedStyle } from "./inherited-styles";
+export { resolveInheritedStyle } from "./inherited-styles";
 export {
   type QueryResponse,
   RDFSResource,
@@ -89,6 +91,11 @@ export type OntologyStyle = {
 export const StylesQuerySolution = z.object({
   cls: SparQLResultBinding,
   style: SparQLResultBinding,
+});
+
+export const SubClassEdgeQuerySolution = z.object({
+  sub: SparQLResultBinding,
+  super: SparQLResultBinding,
 });
 
 export const FlattenedStyle = z.object({
@@ -1591,6 +1598,56 @@ export class OntologyService extends RdfService {
     }, {} as StyleResponseType);
 
     return styles;
+  }
+
+  /**
+   * @method getInheritedStyles
+   * @remarks
+   * Like getStyles([]), but a class with no style of its own takes the style of
+   * its nearest styled ancestor via rdfs:subClassOf. Classes with no styled
+   * ancestor are left out, so callers fall back to initials as before.
+   * If the subclass hierarchy can't be loaded, only own styles are returned.
+   * @returns {Promise<StyleResponseType>} - a dictionary keyed by class URI
+   */
+  async getInheritedStyles(): Promise<StyleResponseType> {
+    const [ownStyles, parents] = await Promise.all([
+      this.getStyles([]),
+      this.getSubClassParents(),
+    ]);
+    const classes = new Set([...Object.keys(ownStyles), ...parents.keys()]);
+
+    return [...classes].reduce((acc, cls) => {
+      const style = resolveInheritedStyle(cls, ownStyles, parents);
+      if (style) acc[cls] = style;
+      return acc;
+    }, {} as StyleResponseType);
+  }
+
+  private async getSubClassParents(): Promise<Map<string, string[]>> {
+    const query = `SELECT DISTINCT ?sub ?super WHERE {
+      ?sub <${this.rdfsSubClassOf}> ?super .
+      FILTER(isIRI(?sub) && isIRI(?super) && ?sub != ?super)
+    }`;
+    try {
+      const spOut = await this.runQuery(query);
+      const result = createQueryResponseSchema(
+        SubClassEdgeQuerySolution
+      ).safeParse(spOut);
+      if (!result.success) throw result.error;
+      return result.data.results.bindings.reduce(
+        (acc, { sub, super: parent }) => {
+          acc.set(sub.value, [...(acc.get(sub.value) ?? []), parent.value]);
+          return acc;
+        },
+        new Map<string, string[]>()
+      );
+    } catch (err) {
+      console.warn(
+        "Could not load subclass hierarchy, styles will not be inherited",
+        err
+      );
+      return new Map();
+    }
   }
 
   // DS specific methods

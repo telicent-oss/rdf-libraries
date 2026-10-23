@@ -306,6 +306,95 @@ describe("OntologyService query builders", () => {
     });
   });
 
+  describe("getInheritedStyles", () => {
+    const Dog = "http://example.test/Dog";
+    const Animal = "http://example.test/Animal";
+    const Entity = "http://example.test/Entity";
+    const Cat = "http://example.test/Cat";
+    const styleObj = {
+      defaultIcons: { riIcon: "", faIcon: "", faUnicode: "", faClass: "" },
+      defaultStyles: {
+        shape: "ellipse",
+        borderRadius: "0",
+        borderWidth: "0",
+        selectedBorderWidth: "0",
+        dark: { backgroundColor: "#000", color: "#fff" },
+        light: { backgroundColor: "#fff", color: "#000" },
+      },
+    };
+
+    beforeEach(() => {
+      jest.spyOn(os, "getStyles").mockResolvedValue({ [Entity]: styleObj });
+    });
+
+    it("queries direct subClassOf edges between named classes", async () => {
+      await os.getInheritedStyles();
+
+      const query = runQuery.mock.calls[0][0] as string;
+      expect(query).toContain(`?sub <${os.rdfsSubClassOf}> ?super`);
+      expect(query).toContain("isIRI(?sub) && isIRI(?super)");
+      expect(query).not.toContain("subClassOf>*");
+    });
+
+    it("gives unstyled descendants their nearest styled ancestor's style", async () => {
+      runQuery.mockResolvedValueOnce(
+        makeBindings([
+          { sub: uri(Dog), super: uri(Animal) },
+          { sub: uri(Animal), super: uri(Entity) },
+        ]) as never
+      );
+
+      const out = await os.getInheritedStyles();
+
+      expect(out).toEqual({
+        [Entity]: styleObj,
+        [Animal]: styleObj,
+        [Dog]: styleObj,
+      });
+    });
+
+    it("leaves out classes with no styled ancestor", async () => {
+      runQuery.mockResolvedValueOnce(
+        makeBindings([{ sub: uri(Cat), super: uri(Animal) }]) as never
+      );
+
+      const out = await os.getInheritedStyles();
+
+      expect(Object.keys(out)).toEqual([Entity]);
+    });
+
+    it("returns own styles only when the subclass query throws", async () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+      runQuery.mockRejectedValueOnce(new Error("network down"));
+
+      const out = await os.getInheritedStyles();
+
+      expect(out).toEqual({ [Entity]: styleObj });
+      expect(warn).toHaveBeenCalledWith(
+        "Could not load subclass hierarchy, styles will not be inherited",
+        expect.any(Error)
+      );
+      warn.mockRestore();
+    });
+
+    it("returns own styles only when the subclass response is malformed", async () => {
+      const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
+      runQuery.mockResolvedValueOnce({ unexpected: true } as never);
+
+      const out = await os.getInheritedStyles();
+
+      expect(out).toEqual({ [Entity]: styleObj });
+      expect(warn).toHaveBeenCalled();
+      warn.mockRestore();
+    });
+
+    it("rejects when the styles query fails", async () => {
+      jest.spyOn(os, "getStyles").mockRejectedValue(new Error("styles down"));
+
+      await expect(os.getInheritedStyles()).rejects.toThrow("styles down");
+    });
+  });
+
   describe("getAllPreferredLabels", () => {
     it("returns an empty array on empty response", async () => {
       const out = await os.getAllPreferredLabels();

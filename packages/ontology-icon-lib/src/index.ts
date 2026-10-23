@@ -8,10 +8,6 @@ import { findIcon, flattenStyles } from "./context-utils";
 export * from "./context-utils";
 export { version, name } from "../package.json";
 
-// TODO Update ./findIcon with new behavior
-// WHEN TELFE-839
-// @see {@link https://telicent.atlassian.net/browse/TELFE-839}
-
 export type IconType = FlattenedStyleTypeForFindIcon | FlattenedStyleType;
 
 // **module** scoped variables
@@ -53,8 +49,15 @@ export const init = async (
 ): Promise<IconType[]> => {
   moduleOntologyService = await ontologyServicePromise;
   assertModuleOntologyService();
-  moduleOntologyService
-    .getStyles([])
+  // Older OntologyService instances predate getInheritedStyles
+  const stylesPromise =
+    typeof moduleOntologyService.getInheritedStyles === "function"
+      ? moduleOntologyService.getInheritedStyles()
+      : (console.warn(
+          "OntologyService has no getInheritedStyles(), styles will not be inherited"
+        ),
+        moduleOntologyService.getStyles([]));
+  stylesPromise
     .then(flattenStyles)
     .then((res) => moduleStylesPromiseCallbackFulfill(res))
     .catch((err) => moduleStylesPromiseCallbackReject(err));
