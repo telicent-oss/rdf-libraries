@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { QueryResponse, TypedNodeQuerySolution } from "@telicent-oss/rdfservice";
+import { QueryResponse } from "@telicent-oss/rdfservice";
 import {
   AppliedStyle,
   Diagram,
