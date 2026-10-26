@@ -5,15 +5,17 @@ test("Fail when input is not a uri", () => {
     .toThrowErrorMatchingInlineSnapshot(`
     "[
       {
-        "validation": "regex",
-        "code": "invalid_string",
-        "message": "\\n  Invalid URI format. \\n  Ensure it starts with a valid scheme and is followed by '://',\\n  then a valid resource part without spaces.",
-        "path": []
+        "origin": "string",
+        "code": "invalid_format",
+        "format": "regex",
+        "pattern": "/^[A-Za-z][A-Za-z0-9+.-]*:(?:\\\\/\\\\/(?:\\\\/\\\\S*|\\\\S+)|[^\\\\/\\\\s]\\\\S*)$/",
+        "path": [],
+        "message": "\\n  Invalid URI format. \\n  Ensure it starts with a valid scheme and is followed by '://',\\n  then a valid resource part without spaces."
       },
       {
         "code": "custom",
-        "message": "URI must include either a hash or at least one URI segment.",
-        "path": []
+        "path": [],
+        "message": "URI must include either a hash or at least one URI segment."
       }
     ]"
   `);
@@ -24,8 +26,8 @@ test("Fail when input is uri without hash or url segment", () => {
     "[
       {
         "code": "custom",
-        "message": "URI must include either a hash or at least one URI segment.",
-        "path": []
+        "path": [],
+        "message": "URI must include either a hash or at least one URI segment."
       }
     ]"
   `);

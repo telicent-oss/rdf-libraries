@@ -58,7 +58,7 @@
     "vite-tsconfig-paths": "^4.2.1"
   },
   "dependencies": {
-    "zod": "^3.22.4"
+    "zod": "^4.6.6"
   },
   "resolutions": {
     "rollup": "3.29.5"
