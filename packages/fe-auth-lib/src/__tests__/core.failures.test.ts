@@ -45,12 +45,12 @@ describe("failure path - validation failures and edge handling", () => {
         ],
         "error": "Invalid AuthServerOAuth2Client configuration: [
         {
-          "validation": "url",
-          "code": "invalid_string",
-          "message": "Invalid url",
+          "code": "invalid_format",
+          "format": "url",
           "path": [
             "authServerUrl"
-          ]
+          ],
+          "message": "Invalid URL"
         }
       ]",
       }

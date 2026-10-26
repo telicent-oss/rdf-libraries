@@ -43,7 +43,7 @@ if (z) {
     token_expired: z.boolean().optional(),
     token_expires_at: z.string().optional(),
     source: z.string().optional(),
-    externalProvider: z.record(z.unknown()).optional(),
+    externalProvider: z.record(z.string(), z.unknown()).optional(),
   });
 
   /**
