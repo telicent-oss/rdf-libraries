@@ -29,7 +29,7 @@ export declare const GetUserInfoSchema: z.ZodObject<{
   token_expired: z.ZodOptional<z.ZodBoolean>;
   token_expires_at: z.ZodOptional<z.ZodString>;
   source: z.ZodOptional<z.ZodString>;
-  externalProvider: z.ZodOptional<z.ZodRecord<z.ZodUnknown>>;
+  externalProvider: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodUnknown>>;
 }>;
 
 /**
@@ -47,7 +47,7 @@ export declare const AuthServerOAuth2ClientConfigSchema: z.ZodObject<{
   popupRedirectUri: z.ZodOptional<z.ZodNullable<z.ZodString>>;
   scope: z.ZodOptional<z.ZodString>;
   apiUrl: z.ZodOptional<z.ZodString>;
-  onLogout: z.ZodOptional<z.ZodFunction<z.ZodTuple<[], z.ZodUnknown>, z.ZodUnknown>>;
+  onLogout: z.ZodOptional<z.ZodFunction>;
 }>;
 
 export type AuthServerOAuth2ClientConfig = z.infer<typeof AuthServerOAuth2ClientConfigSchema>;

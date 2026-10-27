@@ -28,7 +28,7 @@ test("throwWriteErrorForUri", () => {
           "uri": [
             {
               "code": "catalog.uri.invalid",
-              "summary": "(root): Expected string, received number",
+              "summary": "(root): Invalid input: expected string, received number",
             },
           ],
         },
