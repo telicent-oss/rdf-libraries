@@ -22,7 +22,6 @@
     "publish:ci": "./scripts/lerna/publish:ci.yarnsh",
     "generate-docs": "lerna run generate-docs",
     "open-docs": "lerna run open-docs",
-    "postinstall": "[ \"$LOCAL_MACHINE\" = \"false\" ] && echo 'Skipping tefe hook-postinstall' || tefe hook-postinstall",
     "create-links": "yarn create-links-to-local-packages",
     "local:link": "yarn use-local-packages:link",
     "check-package-relative-installs": "./scripts/check-package-relative-installs.sh",
@@ -54,7 +53,6 @@
     "@nx/jest": "19.5.4",
     "@swc-node/register": "1.9.2",
     "@swc/core": "1.5.7",
-    "@telicent-oss/telicent-frontend-cli": "^1.5.0",
     "@types/jest": "^29.5.12",
     "@types/node": "18.19.9",
     "@typescript-eslint/eslint-plugin": "6.20.0",
@@ -79,7 +77,6 @@
     "packages/*"
   ],
   "resolutions": {
-    "@telicent-oss/telicent-frontend-cli": "^1.5.0",
     "braces": "^3.0.3",
     "nx": "19.8.14",
     "@nx/devkit": "19.8.14",
