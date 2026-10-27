@@ -3227,6 +3227,13 @@
     zod "^3.21.4"
     zustand "^5.0.3"
 
+"@telicent-oss/fe-auth-lib@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@telicent-oss/fe-auth-lib/-/fe-auth-lib-1.0.4.tgz#dc40f476a6e3cec29b51b654952bb1275ce241d8"
+  integrity sha512-8DNEKrH21KKiWDuNJtgOVrVwpMAz2GRIqaBqEBoeuhWxuzR+kCrEy/En2Wr67aGt+BG54dGSc6IKstpmQBZAWA==
+  dependencies:
+    zod "^3.23.8"
+
 "@telicent-oss/telicent-frontend-cli@^1.5.0":
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/@telicent-oss/telicent-frontend-cli/-/telicent-frontend-cli-1.5.0.tgz#afb2a6938af7e5a02aac151b82a30751b0135b37"
@@ -12571,7 +12578,7 @@ zip-stream@^6.0.1:
     compress-commons "^6.0.2"
     readable-stream "^4.0.0"
 
-zod@^3.21.4:
+zod@^3.21.4, zod@^3.23.8:
   version "3.25.76"
   resolved "https://registry.yarnpkg.com/zod/-/zod-3.25.76.tgz#26841c3f6fd22a6a2760e7ccb719179768471e34"
   integrity sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==
