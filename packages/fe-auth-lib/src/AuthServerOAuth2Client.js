@@ -330,7 +330,6 @@ class AuthServerOAuth2Client {
     console.log(
       "🎉 Session created securely via domain cookies (access token never exposed)"
     );
-    console.log("📊 Session data:", sessionData);
 
     // For cross-domain clients, store session ID for Authorization header use
     // since cookies won't work across different domains
@@ -338,7 +337,7 @@ class AuthServerOAuth2Client {
       isCrossDomain: this.isCrossDomain,
       sessionIsCrossDomain: sessionData.isCrossDomain,
       hasSessionToken: !!sessionData.sessionToken,
-      sessionToken: sessionData.sessionToken,
+      sessionToken: sessionData.sessionToken ? "********" : undefined,
     });
     if (
       this.isCrossDomain &&
