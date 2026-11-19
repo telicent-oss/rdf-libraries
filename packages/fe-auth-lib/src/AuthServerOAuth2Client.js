@@ -36,6 +36,11 @@ class AuthServerOAuth2Client {
     // Older versions kept the token here for the whole session
     sessionStorage.removeItem("auth_session_id");
     window.addEventListener("pagehide", () => this.#handOffAccessToken());
+    // Restored from the back/forward cache: the constructor won't run again and the
+    // token is still in memory, so drop the copy written on pagehide
+    window.addEventListener("pageshow", (event) => {
+      if (event.persisted) sessionStorage.removeItem(ACCESS_TOKEN_HANDOFF_KEY);
+    });
 
     if (AuthServerOAuth2ClientConfigSchema && config) {
       try {
