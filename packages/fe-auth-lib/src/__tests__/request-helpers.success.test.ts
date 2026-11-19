@@ -139,6 +139,61 @@ describe("happy path - request helpers add auth headers", () => {
     `);
   });
 
+  it("omits Authorization header from beforeRequest when cross-domain has no session", () => {
+    const client = new AuthServerOAuth2Client(
+      createConfig({ authServerUrl: "https://auth.telicent.io" })
+    );
+
+    const headers = client.beforeRequest().headers;
+
+    expect(headers).toMatchInlineSnapshot(`
+      {
+        "Accept": "application/json",
+      }
+    `);
+  });
+
+  it("omits Authorization header when cross-domain has no session", async () => {
+    const client = new AuthServerOAuth2Client(
+      createConfig({ authServerUrl: "https://auth.telicent.io" })
+    );
+    const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
+    globalThis.fetch = fetchMock;
+
+    await client.makeAuthenticatedRequest("https://api.telicent.io/data");
+
+    expect({
+      headers: fetchMock.mock.calls[0][1]?.headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "Accept": "application/json",
+        },
+      }
+    `);
+  });
+
+  it("omits Authorization header for same-domain requests even when a session id is stored", async () => {
+    const client = new AuthServerOAuth2Client(createConfig());
+    sessionStorage.setItem("auth_session_id", "SESSION_123");
+    const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
+    globalThis.fetch = fetchMock;
+
+    await client.makeAuthenticatedRequest(
+      "http://auth.telicent.localhost/data"
+    );
+
+    expect({
+      headers: fetchMock.mock.calls[0][1]?.headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "Accept": "application/json",
+        },
+      }
+    `);
+  });
+
   it("returns response from afterRequest on allowed 401", () => {
     const client = new AuthServerOAuth2Client(createConfig());
     const response = createFetchResponse({ status: 401, ok: false });
