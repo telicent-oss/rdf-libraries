@@ -59,10 +59,10 @@ describe("happy path - logout flows", () => {
   });
 
   it("includes Authorization header for cross-domain logout", async () => {
+    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
     const client = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
-    sessionStorage.setItem("auth_session_id", "SESSION_123");
     const fetchMock = jest
       .fn()
       .mockResolvedValue(createFetchResponse({ jsonData: {} }));
@@ -84,8 +84,8 @@ describe("happy path - logout flows", () => {
 
   it("omits Authorization header for same-domain logout even when a session id is stored", async () => {
     setWindowLocation("http://app.telicent.localhost");
+    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
     const client = new AuthServerOAuth2Client(createConfig());
-    sessionStorage.setItem("auth_session_id", "SESSION_123");
     const fetchMock = jest
       .fn()
       .mockResolvedValue(createFetchResponse({ jsonData: {} }));

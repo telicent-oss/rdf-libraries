@@ -15,13 +15,28 @@ if (typeof require !== "undefined") {
   }
 }
 
+// Interim reload handoff (see README). Lives only between pagehide and the
+// next page's constructor. Removed when the BFF lands.
+const ACCESS_TOKEN_HANDOFF_KEY = "auth_access_token_handoff";
+
 // Unified OAuth2 Client Implementation using Auth Server Session Management
 // Works for both same-domain and cross-domain scenarios with automatic detection
 class AuthServerOAuth2Client {
   // Event constants for popup communication
   static OAUTH_SUCCESS = "oauth-success";
   static OAUTH_ERROR = "oauth-error";
+
+  // Cross-domain access token. Memory only, so page script can't read it from storage.
+  #accessToken = null;
+
   constructor(config) {
+    // Take over a token handed off by the previous page, and delete it at once
+    this.#accessToken = sessionStorage.getItem(ACCESS_TOKEN_HANDOFF_KEY);
+    sessionStorage.removeItem(ACCESS_TOKEN_HANDOFF_KEY);
+    // Older versions kept the token here for the whole session
+    sessionStorage.removeItem("auth_session_id");
+    window.addEventListener("pagehide", () => this.#handOffAccessToken());
+
     if (AuthServerOAuth2ClientConfigSchema && config) {
       try {
         AuthServerOAuth2ClientConfigSchema.parse(config);
@@ -331,22 +346,18 @@ class AuthServerOAuth2Client {
       "🎉 Session created securely via domain cookies (access token never exposed)"
     );
 
-    // For cross-domain clients, store session ID for Authorization header use
+    // For cross-domain clients, hold the access token in memory for Authorization header use
     // since cookies won't work across different domains
+    const accessToken = sessionData.access_token ?? sessionData.sessionToken;
     console.log("🔍 Cross-domain check:", {
       isCrossDomain: this.isCrossDomain,
       sessionIsCrossDomain: sessionData.isCrossDomain,
-      hasSessionToken: !!sessionData.sessionToken,
-      sessionToken: sessionData.sessionToken ? "********" : undefined,
+      hasAccessToken: !!accessToken,
     });
-    if (
-      this.isCrossDomain &&
-      sessionData.isCrossDomain &&
-      sessionData.sessionToken
-    ) {
-      sessionStorage.setItem("auth_session_id", sessionData.sessionToken);
+    if (this.isCrossDomain && sessionData.isCrossDomain && accessToken) {
+      this.#accessToken = accessToken;
       console.log(
-        "🔑 Cross-domain client: Session ID stored for Authorization header use"
+        "🔑 Cross-domain client: Access token held in memory for Authorization header use"
       );
     } else {
       console.log(
@@ -741,12 +752,18 @@ class AuthServerOAuth2Client {
   }
 
   #authHeaders() {
-    const sessionId = sessionStorage.getItem("auth_session_id");
-    if (!this.isCrossDomain || !sessionId) return {};
+    if (!this.isCrossDomain || !this.#accessToken) return {};
 
     return {
-      Authorization: `Bearer ${sessionId}`,
+      Authorization: `Bearer ${this.#accessToken}`,
     };
+  }
+
+  // On page unload, park the token so the next page's constructor can take it over
+  #handOffAccessToken() {
+    if (this.#accessToken) {
+      sessionStorage.setItem(ACCESS_TOKEN_HANDOFF_KEY, this.#accessToken);
+    }
   }
 
   // Prepare request options with authentication
@@ -938,7 +955,8 @@ class AuthServerOAuth2Client {
   // Helper method to clear all auth-related storage
   clearLocalStorage() {
     sessionStorage.removeItem("auth_id_token");
-    sessionStorage.removeItem("auth_session_id"); // Clear cross-domain session ID
+    this.#accessToken = null; // Clear cross-domain access token
+    sessionStorage.removeItem(ACCESS_TOKEN_HANDOFF_KEY); // and any handoff copy
     sessionStorage.removeItem("oauth_state"); // cleanup in case of incomplete flows
     sessionStorage.removeItem("oauth_code_verifier"); // cleanup in case of incomplete flows
     sessionStorage.removeItem("oauth_nonce"); // cleanup in case of incomplete flows

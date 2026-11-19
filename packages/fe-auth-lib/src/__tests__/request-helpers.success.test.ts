@@ -42,10 +42,10 @@ describe("happy path - request helpers add auth headers", () => {
   });
 
   it("adds Authorization header for cross-domain requests", async () => {
+    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
     const client = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
-    sessionStorage.setItem("auth_session_id", "SESSION_123");
     const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
     globalThis.fetch = fetchMock;
 
@@ -110,11 +110,11 @@ describe("happy path - request helpers add auth headers", () => {
   });
 
   it("prepares request headers for cross-domain and same-domain", () => {
+    sessionStorage.setItem("auth_access_token_handoff", "SESSION_ABC");
     const crossDomainClient = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
     const sameDomainClient = new AuthServerOAuth2Client(createConfig());
-    sessionStorage.setItem("auth_session_id", "SESSION_ABC");
     setCookies("XSRF-TOKEN=csrf-456");
 
     const crossHeaders = crossDomainClient.beforeRequest().headers;
@@ -174,8 +174,8 @@ describe("happy path - request helpers add auth headers", () => {
   });
 
   it("omits Authorization header for same-domain requests even when a session id is stored", async () => {
+    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
     const client = new AuthServerOAuth2Client(createConfig());
-    sessionStorage.setItem("auth_session_id", "SESSION_123");
     const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
     globalThis.fetch = fetchMock;
 
