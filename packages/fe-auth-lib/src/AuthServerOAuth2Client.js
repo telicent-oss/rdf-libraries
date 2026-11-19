@@ -408,19 +408,11 @@ class AuthServerOAuth2Client {
   // Check if user is authenticated by checking session via auth-server
   async isAuthenticated() {
     try {
+      // Same-domain clients rely on cookies, which are included automatically
       const headers = {
         Accept: "application/json",
+        ...this.#authHeaders(),
       };
-
-      // For cross-domain clients, include session ID in Authorization header
-      // For same-domain clients, cookies are included automatically
-      const sessionId = sessionStorage.getItem("auth_session_id");
-      if (this.isCrossDomain && sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-        console.log(
-          "🔍 Using session ID in Authorization header for authentication check"
-        );
-      }
 
       const response = await fetch(
         `${this.config.authServerUrl}/session/check`,
@@ -433,7 +425,7 @@ class AuthServerOAuth2Client {
 
       if (response.ok) {
         const result = await response.json();
-        // set auth_session_id if user is already signed in
+        // Refresh the stored ID token from the active session
         sessionStorage.setItem("auth_id_token", result.id_token);
         return true;
       }
@@ -695,29 +687,18 @@ class AuthServerOAuth2Client {
     const headers = {
       Accept: "application/json",
       ...options.headers,
+      ...this.#authHeaders(),
     };
 
-    // Choose authentication method based on domain context
-    if (this.isCrossDomain) {
-      // Cross-domain: Use session ID in Authorization header
-      const sessionId = sessionStorage.getItem("auth_session_id");
-      if (sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-        console.log(
-          "Using session ID in Authorization header for cross-domain request to:",
-          url
-        );
-      }
-    } else {
-      // Same-domain: Add CSRF token for state-changing requests
-      if (
-        options.method &&
-        ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
-      ) {
-        const csrfToken = this.getCsrfToken();
-        if (csrfToken) {
-          headers["X-XSRF-TOKEN"] = csrfToken;
-        }
+    // Same-domain: Add CSRF token for state-changing requests
+    if (
+      !this.isCrossDomain &&
+      options.method &&
+      ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
+    ) {
+      const csrfToken = this.getCsrfToken();
+      if (csrfToken) {
+        headers["X-XSRF-TOKEN"] = csrfToken;
       }
     }
 
@@ -759,30 +740,32 @@ class AuthServerOAuth2Client {
     return response;
   }
 
+  #authHeaders() {
+    const sessionId = sessionStorage.getItem("auth_session_id");
+    if (!this.isCrossDomain || !sessionId) return {};
+
+    return {
+      Authorization: `Bearer ${sessionId}`,
+    };
+  }
+
   // Prepare request options with authentication
   beforeRequest(options = {}) {
     const headers = {
       Accept: "application/json", // Exact match with original
       ...options.headers,
+      ...this.#authHeaders(),
     };
 
-    // Choose authentication method based on domain context
-    if (this.isCrossDomain) {
-      // Cross-domain: Use session ID in Authorization header
-      const sessionId = sessionStorage.getItem("auth_session_id");
-      if (sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-      }
-    } else {
-      // Same-domain: Add CSRF token for state-changing requests
-      if (
-        options.method &&
-        ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
-      ) {
-        const csrfToken = this.getCsrfToken();
-        if (csrfToken) {
-          headers["X-XSRF-TOKEN"] = csrfToken;
-        }
+    // Same-domain: Add CSRF token for state-changing requests
+    if (
+      !this.isCrossDomain &&
+      options.method &&
+      ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
+    ) {
+      const csrfToken = this.getCsrfToken();
+      if (csrfToken) {
+        headers["X-XSRF-TOKEN"] = csrfToken;
       }
     }
 
@@ -845,14 +828,8 @@ class AuthServerOAuth2Client {
     try {
       const headers = {
         Accept: "application/json",
+        ...this.#authHeaders(),
       };
-
-      // For cross-domain clients, include session ID in Authorization header
-      const sessionId = sessionStorage.getItem("auth_session_id");
-      if (this.isCrossDomain && sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-        console.log("🚪 Using session ID in Authorization header for logout");
-      }
 
       const response = await fetch(
         `${this.config.authServerUrl}/session/logout`,
