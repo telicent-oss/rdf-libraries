@@ -1,7 +1,7 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../AuthServerOAuth2Client";
-import { installTestEnv, resetTestEnv } from "./test-utils";
+import { installTestEnv, resetTestEnv, setWindowLocation } from "./test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -59,13 +59,13 @@ describe("happy path - logout flows", () => {
   });
 
   it("includes Authorization header for cross-domain logout", async () => {
+    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
     const client = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
-    sessionStorage.setItem("auth_session_id", "SESSION_123");
-    const fetchMock = jest.fn().mockResolvedValue(
-      createFetchResponse({ jsonData: {} })
-    );
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(createFetchResponse({ jsonData: {} }));
     globalThis.fetch = fetchMock;
 
     await client.logout();
@@ -82,15 +82,58 @@ describe("happy path - logout flows", () => {
     `);
   });
 
+  it("omits Authorization header for same-domain logout even when a session id is stored", async () => {
+    setWindowLocation("http://app.telicent.localhost");
+    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
+    const client = new AuthServerOAuth2Client(createConfig());
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(createFetchResponse({ jsonData: {} }));
+
+    globalThis.fetch = fetchMock;
+
+    await client.logout();
+
+    expect({
+      headers: fetchMock.mock.calls[0][1]?.headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "Accept": "application/json",
+        },
+      }
+    `);
+  });
+
+  it("omits Authorization header for cross-domain logout when no session id is stored", async () => {
+    const client = new AuthServerOAuth2Client(
+      createConfig({ authServerUrl: "https://auth.telicent.io" })
+    );
+
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(createFetchResponse({ jsonData: {} }));
+    globalThis.fetch = fetchMock;
+
+    await client.logout();
+    expect({
+      headers: fetchMock.mock.calls[0][1]?.headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "Accept": "application/json",
+        },
+      }
+    `);
+  });
+
   it("continues logout when response is not json", async () => {
     const onLogout = jest.fn();
     const client = new AuthServerOAuth2Client(createConfig({ onLogout }));
-    const fetchMock = jest.fn().mockResolvedValue(
-      ({
-        ok: true,
-        json: jest.fn().mockRejectedValue(new Error("bad json")),
-      } as unknown as Response)
-    );
+    const fetchMock = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockRejectedValue(new Error("bad json")),
+    } as unknown as Response);
     globalThis.fetch = fetchMock;
 
     await client.logout();

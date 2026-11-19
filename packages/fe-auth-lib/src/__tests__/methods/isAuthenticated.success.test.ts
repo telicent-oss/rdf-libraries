@@ -57,10 +57,10 @@ describe("happy path - isAuthenticated succeeds", () => {
   });
 
   it("sends Authorization header for cross-domain session", async () => {
+    sessionStorage.setItem("auth_access_token_handoff", "SESSION_ABC");
     const client = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
-    sessionStorage.setItem("auth_session_id", "SESSION_ABC");
     const fetchMock = jest.fn().mockResolvedValue(
       createFetchResponse({ jsonData: { id_token: "ID_TOKEN_2" } })
     );
@@ -76,6 +76,60 @@ describe("happy path - isAuthenticated succeeds", () => {
         "headers": {
           "Accept": "application/json",
           "Authorization": "Bearer SESSION_ABC",
+        },
+        "result": true,
+      }
+    `);
+  });
+
+  it("omits Authorization header for same-domain even when a session id is stored", async () => {
+    sessionStorage.setItem("auth_access_token_handoff", "SESSION_ABC");
+    const client = new AuthServerOAuth2Client(createConfig());
+
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(
+        createFetchResponse({ jsonData: { id_token: "ID_TOKEN_3" } })
+      );
+    globalThis.fetch = fetchMock;
+
+    const result = await client.isAuthenticated();
+
+    expect({
+      result,
+      headers: fetchMock.mock.calls[0][1]?.headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "Accept": "application/json",
+        },
+        "result": true,
+      }
+    `);
+  });
+
+  it("omits Authorization header for cross-domain when no session id is stored", async () => {
+    const client = new AuthServerOAuth2Client(
+      createConfig({
+        authServerUrl: "https://auth.telicent.io",
+      })
+    );
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(
+        createFetchResponse({ jsonData: { id_token: "ID_TOKEN_4" } })
+      );
+    globalThis.fetch = fetchMock;
+
+    const result = await client.isAuthenticated();
+
+    expect({
+      result,
+      headers: fetchMock.mock.calls[0][1]?.headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "Accept": "application/json",
         },
         "result": true,
       }

@@ -134,7 +134,7 @@ describe("happy path - handleCallback stores session and id token", () => {
         },
         "storage": {
           "authIdToken": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1c2VyLTEiLCJhdWQiOiJjbGllbnQtMSIsImV4cCI6MTcwMDAwMDMwMCwiaWF0IjoxNzAwMDAwMDAwLCJub25jZSI6IkFCQ19ub25jZV9BQkMiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJwcmVmZXJyZWRfbmFtZSI6IlVzZXIgT25lIiwiaXNzIjoiaHR0cHM6Ly9hdXRoLnRlbGljZW50LmlvIiwianRpIjoiaWQtMSJ9.",
-          "authSessionId": "SESSION_123",
+          "authSessionId": null,
           "oauthCodeVerifier": null,
           "oauthNonce": null,
           "oauthState": null,
