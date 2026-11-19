@@ -85,6 +85,24 @@ export const restoreConsoleMocks = (): void => {
   consoleMocks = undefined;
 };
 
+let windowListenerSpy: jest.SpyInstance | undefined;
+
+// Each client adds window listeners (pagehide, pageshow) that would otherwise
+// leak into later tests and fire on their events.
+export const trackWindowListeners = (): void => {
+  if (windowListenerSpy) return;
+  windowListenerSpy = jest.spyOn(window, "addEventListener");
+};
+
+export const removeWindowListeners = (): void => {
+  if (!windowListenerSpy) return;
+  for (const [type, listener, options] of windowListenerSpy.mock.calls) {
+    window.removeEventListener(type, listener, options);
+  }
+  windowListenerSpy.mockRestore();
+  windowListenerSpy = undefined;
+};
+
 export const installCryptoMock = (options?: {
   fillByte?: number;
   digestBytes?: number[];
@@ -141,10 +159,22 @@ export const installTestEnv = (): { mockDigest: jest.Mock } => {
   installTextEncoder();
   installBase64();
   installConsoleMocks();
+  trackWindowListeners();
   Object.defineProperty(window, "top", { value: window, writable: true });
   resetSessionStorage();
   resetCookies();
   return installCryptoMock();
+};
+
+// jsdom's real Location, captured before any test replaces window.location
+const originalLocation =
+  typeof window === "undefined"
+    ? undefined
+    : Object.getOwnPropertyDescriptor(window, "location");
+
+export const resetWindowLocation = (): void => {
+  if (!originalLocation) return;
+  Object.defineProperty(window, "location", originalLocation);
 };
 
 export const setWindowLocation = (href: string): void => {
@@ -163,6 +193,8 @@ export const resetTestEnv = (): void => {
   resetSessionStorage();
   resetCookies();
   restoreConsoleMocks();
+  removeWindowListeners();
+  resetWindowLocation();
 };
 
 export const mockPkceValues = (
