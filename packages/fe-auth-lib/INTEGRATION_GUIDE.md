@@ -541,11 +541,11 @@ const mockClient = new MockAuthClient({ authenticated: true });
 
 ### 1. Handle Authentication State Changes
 
+The library doesn't sync sessions between tabs. `sessionStorage` is per tab, so `storage` events never fire for it across tabs. From 3.0.0 the cross-domain token isn't kept in `sessionStorage` at all. Check `isAuthenticated()` when a tab regains focus if you need to react to logouts in other tabs.
+
 ```javascript
-// Listen for authentication state changes
-window.addEventListener("storage", (e) => {
-  if (e.key === "auth_session_id") {
-    // Session changed in another tab
+document.addEventListener("visibilitychange", async () => {
+  if (document.visibilityState === "visible" && !(await authClient.isAuthenticated())) {
     location.reload();
   }
 });

@@ -253,7 +253,9 @@ The client uses minimal `sessionStorage` for authentication:
 - `oauth_nonce`: Temporary nonce (cleared after validation)
 - `oauth_code_verifier`: Temporary PKCE verifier (cleared after use)
 
-Session authentication is handled entirely via secure domain cookies.
+Same-domain session authentication is handled entirely via secure domain cookies.
+
+Cross-domain clients hold the access token in memory. During a page reload it is briefly handed off under `auth_access_token_handoff`, which the next page's constructor deletes. See "Cross-Domain Token Storage (Interim)" in the README.
 
 ## Security Features
 
