@@ -25,6 +25,14 @@ export type RdfServiceConstructor<T> = abstract new (...args: any[]) => T;
 export class RdfService extends AbstractConstructorPromises {
   static classLookup: Record<string, RdfServiceConstructor<RDFSResource>> = {};
 
+  // Optional extra headers (e.g. the login's Authorization header) added to every
+  // query and update. Set once by the app; shared by every service instance.
+  static #requestHeaders: () => Record<string, string> = () => ({});
+
+  static setRequestHeaders(provider: () => Record<string, string>) {
+    RdfService.#requestHeaders = provider;
+  }
+
   static lookupClass<C extends RdfServiceConstructor<RDFSResource>>(
     clsUri: LongURI,
     defaultCtor: C
@@ -293,6 +301,7 @@ export class RdfService extends AbstractConstructorPromises {
     const response = await fetch(this.queryEndpoint, {
       method: "POST",
       headers: {
+        ...RdfService.#requestHeaders(),
         "Content-Type": "application/sparql-query",
         Accept: "application/sparql-results+json",
       },
@@ -353,7 +362,7 @@ export class RdfService extends AbstractConstructorPromises {
       const postObject = {
         method: "POST",
         headers: {
-          //
+          ...RdfService.#requestHeaders(),
           Accept: "*/*",
           // 'Security-Label': sl, Temporarily removed because if this label is applied
           //  it omits CORS headers from the pre-flight response
