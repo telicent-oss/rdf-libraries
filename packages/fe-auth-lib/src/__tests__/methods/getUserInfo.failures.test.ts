@@ -1,7 +1,7 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../../AuthServerOAuth2Client";
-import { buildJwt, installTestEnv, resetTestEnv } from "../test-utils";
+import { buildJwt, installTestEnv, resetTestEnv, holdIdToken } from "../test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -36,9 +36,9 @@ describe("failure path - getUserInfo errors", () => {
     `);
   });
 
-  it("returns null for invalid token", () => {
+  it("returns null for invalid token", async () => {
     const client = new AuthServerOAuth2Client(createConfig());
-    sessionStorage.setItem("auth_id_token", "not-a-jwt");
+    await holdIdToken(client, "not-a-jwt");
 
     const info = client.getUserInfo();
 
@@ -49,7 +49,7 @@ describe("failure path - getUserInfo errors", () => {
     `);
   });
 
-  it("returns null for expired token", () => {
+  it("returns null for expired token", async () => {
     const now = 1_700_000_000_000;
     jest.spyOn(Date, "now").mockReturnValue(now);
 
@@ -64,7 +64,7 @@ describe("failure path - getUserInfo errors", () => {
       iss: "http://auth.telicent.localhost",
       jti: "id-1",
     });
-    sessionStorage.setItem("auth_id_token", token);
+    await holdIdToken(client, token);
 
     const info = client.getUserInfo();
 
@@ -77,7 +77,7 @@ describe("failure path - getUserInfo errors", () => {
     (Date.now as jest.Mock).mockRestore();
   });
 
-  it("returns unvalidated info when schema validation fails", () => {
+  it("returns unvalidated info when schema validation fails", async () => {
     const now = 1_700_000_000_000;
     jest.spyOn(Date, "now").mockReturnValue(now);
 
@@ -90,7 +90,7 @@ describe("failure path - getUserInfo errors", () => {
       iss: "http://auth.telicent.localhost",
       jti: "id-1",
     });
-    sessionStorage.setItem("auth_id_token", token);
+    await holdIdToken(client, token);
 
     const info = client.getUserInfo();
 
@@ -135,9 +135,9 @@ describe("failure path - getUserInfo errors", () => {
     (Date.now as jest.Mock).mockRestore();
   });
 
-  it("returns null when decodeJWT throws", () => {
+  it("returns null when decodeJWT throws", async () => {
     const client = new AuthServerOAuth2Client(createConfig());
-    sessionStorage.setItem("auth_id_token", "TOKEN");
+    await holdIdToken(client, "TOKEN");
     jest.spyOn(client, "decodeJWT").mockImplementation(() => {
       throw new Error("decode failed");
     });

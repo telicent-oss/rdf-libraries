@@ -1,7 +1,12 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../AuthServerOAuth2Client";
-import { installTestEnv, resetTestEnv, signIn } from "./test-utils";
+import {
+  holdIdToken,
+  installTestEnv,
+  resetTestEnv,
+  signIn,
+} from "./test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -42,60 +47,83 @@ describe("happy path - access token held in memory only", () => {
     jest.restoreAllMocks();
   });
 
-  it("holds the login token in memory and never writes or logs it", async () => {
+  it("holds both tokens in memory and never writes, logs or returns them", async () => {
     const client = new AuthServerOAuth2Client(createConfig());
 
-    await signIn(client, "SECRET_ACCESS_TOKEN");
+    const callbackResult = await signIn(client, "SECRET_ACCESS_TOKEN");
+    await holdIdToken(client, "SECRET_ID_TOKEN");
     window.dispatchEvent(new Event("pagehide"));
 
+    const storage = sessionStorageValues();
     const consoleOutput = allConsoleOutput();
     expect({
       headers: client.beforeRequest().headers,
-      storageHasToken: sessionStorageValues().includes("SECRET_ACCESS_TOKEN"),
-      consoleHasToken: consoleOutput.includes("SECRET_ACCESS_TOKEN"),
+      idToken: client.getRawIdToken(),
+      callbackResult,
+      storageHasAccessToken: storage.includes("SECRET_ACCESS_TOKEN"),
+      storageHasIdToken: storage.includes("SECRET_ID_TOKEN"),
+      consoleHasAccessToken: consoleOutput.includes("SECRET_ACCESS_TOKEN"),
     }).toMatchInlineSnapshot(`
       {
-        "consoleHasToken": false,
+        "callbackResult": {
+          "isCrossDomain": true,
+        },
+        "consoleHasAccessToken": false,
         "headers": {
           "Accept": "application/json",
           "Authorization": "Bearer SECRET_ACCESS_TOKEN",
         },
-        "storageHasToken": false,
+        "idToken": "SECRET_ID_TOKEN",
+        "storageHasAccessToken": false,
+        "storageHasIdToken": false,
       }
     `);
   });
 
-  it("loses the token on reload and clears the legacy auth_session_id", async () => {
+  it("loses both tokens on reload and clears the legacy storage keys", async () => {
     sessionStorage.setItem("auth_session_id", "LEGACY_TOKEN");
+    sessionStorage.setItem("auth_id_token", "LEGACY_ID_TOKEN");
     const before = new AuthServerOAuth2Client(createConfig());
     await signIn(before, "TOKEN_BEFORE_RELOAD");
+    await holdIdToken(before, "ID_TOKEN_BEFORE_RELOAD");
 
     window.dispatchEvent(new Event("pagehide"));
     const after = new AuthServerOAuth2Client(createConfig());
 
     expect({
       headers: after.beforeRequest().headers,
-      legacy: sessionStorage.getItem("auth_session_id"),
+      idToken: after.getRawIdToken(),
+      legacySessionId: sessionStorage.getItem("auth_session_id"),
+      legacyIdToken: sessionStorage.getItem("auth_id_token"),
     }).toMatchInlineSnapshot(`
       {
         "headers": {
           "Accept": "application/json",
         },
-        "legacy": null,
+        "idToken": null,
+        "legacyIdToken": null,
+        "legacySessionId": null,
       }
     `);
   });
 
-  it("forgets the token on logout", async () => {
+  it("forgets both tokens on logout", async () => {
     const client = new AuthServerOAuth2Client(createConfig());
     await signIn(client, "TOKEN_LOGOUT");
+    await holdIdToken(client, "ID_TOKEN_LOGOUT");
     globalThis.fetch = jest.fn().mockResolvedValue(createFetchResponse({}));
 
     await client.logout();
 
-    expect(client.beforeRequest().headers).toMatchInlineSnapshot(`
+    expect({
+      headers: client.beforeRequest().headers,
+      idToken: client.getRawIdToken(),
+    }).toMatchInlineSnapshot(`
       {
-        "Accept": "application/json",
+        "headers": {
+          "Accept": "application/json",
+        },
+        "idToken": null,
       }
     `);
   });

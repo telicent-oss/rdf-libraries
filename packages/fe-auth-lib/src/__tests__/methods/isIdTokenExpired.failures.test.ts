@@ -1,7 +1,7 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../../AuthServerOAuth2Client";
-import { buildJwt, installTestEnv, resetTestEnv } from "../test-utils";
+import { buildJwt, installTestEnv, resetTestEnv, holdIdToken } from "../test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -36,7 +36,7 @@ describe("failure path - isIdTokenExpired errors", () => {
     `);
   });
 
-  it("returns true for expired token", () => {
+  it("returns true for expired token", async () => {
     const now = 1_700_000_000_000;
     jest.spyOn(Date, "now").mockReturnValue(now);
 
@@ -46,7 +46,7 @@ describe("failure path - isIdTokenExpired errors", () => {
       aud: "client-1",
       exp: Math.floor(now / 1000) - 10,
     });
-    sessionStorage.setItem("auth_id_token", token);
+    await holdIdToken(client, token);
 
     const result = client.isIdTokenExpired();
 
@@ -59,9 +59,9 @@ describe("failure path - isIdTokenExpired errors", () => {
     (Date.now as jest.Mock).mockRestore();
   });
 
-  it("returns true when decodeJWT throws", () => {
+  it("returns true when decodeJWT throws", async () => {
     const client = new AuthServerOAuth2Client(createConfig());
-    sessionStorage.setItem("auth_id_token", "TOKEN");
+    await holdIdToken(client, "TOKEN");
     jest.spyOn(client, "decodeJWT").mockImplementation(() => {
       throw new Error("decode failed");
     });

@@ -1,7 +1,7 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../AuthServerOAuth2Client";
-import { buildJwt, installTestEnv, resetTestEnv } from "./test-utils";
+import { buildJwt, installTestEnv, resetTestEnv, holdIdToken } from "./test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -91,7 +91,7 @@ describe("happy path - jwt decode, validation, and user info", () => {
     (Date.now as jest.Mock).mockRestore();
   });
 
-  it("returns user info from id token", () => {
+  it("returns user info from id token", async () => {
     const now = 1_700_000_000_000;
     jest.spyOn(Date, "now").mockReturnValue(now);
 
@@ -112,7 +112,7 @@ describe("happy path - jwt decode, validation, and user info", () => {
       isActive: true,
       name: "User One",
     });
-    sessionStorage.setItem("auth_id_token", token);
+    await holdIdToken(client, token);
 
     const info = client.getUserInfo();
 
@@ -174,7 +174,7 @@ describe("happy path - jwt decode, validation, and user info", () => {
       iss: "http://auth.telicent.localhost",
       jti: "id-1",
     });
-    sessionStorage.setItem("auth_id_token", token);
+    await holdIdToken(client, token);
 
     const info = await client.getUserInfoFromAPI();
 

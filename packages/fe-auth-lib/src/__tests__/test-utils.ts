@@ -239,7 +239,7 @@ export const mockPkceValues = (
 export const signIn = async (
   client: { handleCallback: (params: string) => Promise<unknown> },
   accessToken: string
-): Promise<void> => {
+): Promise<unknown> => {
   sessionStorage.setItem("oauth_state", "SIGN_IN_state");
   sessionStorage.setItem("oauth_code_verifier", "SIGN_IN_codeVerifier");
   sessionStorage.setItem("oauth_redirect_uri", "http://app.telicent.localhost/callback");
@@ -249,5 +249,20 @@ export const signIn = async (
     .fn()
     .mockResolvedValueOnce(response({ isCrossDomain: true, access_token: accessToken }))
     .mockResolvedValueOnce(response({}));
-  await client.handleCallback("code=SIGN_IN_code&state=SIGN_IN_state");
+  return client.handleCallback("code=SIGN_IN_code&state=SIGN_IN_state");
+};
+
+// The ID token lives only in memory. isAuthenticated() takes it from the
+// /session/check response without validation, so it can hold any test value.
+// Leaves globalThis.fetch mocked; callers replace it.
+export const holdIdToken = async (
+  client: { isAuthenticated: () => Promise<boolean> },
+  idToken: string
+): Promise<void> => {
+  globalThis.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: jest.fn().mockResolvedValue({ id_token: idToken }),
+  } as unknown as Response);
+  await client.isAuthenticated();
 };

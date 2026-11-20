@@ -1,7 +1,7 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../../AuthServerOAuth2Client";
-import { buildJwt, installTestEnv, resetTestEnv } from "../test-utils";
+import { buildJwt, installTestEnv, resetTestEnv, holdIdToken } from "../test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -24,7 +24,7 @@ describe("happy path - isIdTokenExpired returns false", () => {
     resetTestEnv();
   });
 
-  it("returns false for valid token", () => {
+  it("returns false for valid token", async () => {
     const now = 1_700_000_000_000;
     jest.spyOn(Date, "now").mockReturnValue(now);
 
@@ -34,7 +34,7 @@ describe("happy path - isIdTokenExpired returns false", () => {
       aud: "client-1",
       exp: Math.floor(now / 1000) + 300,
     });
-    sessionStorage.setItem("auth_id_token", token);
+    await holdIdToken(client, token);
 
     const result = client.isIdTokenExpired();
 

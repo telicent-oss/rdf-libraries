@@ -1,7 +1,7 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../../AuthServerOAuth2Client";
-import { installTestEnv, resetTestEnv } from "../test-utils";
+import { installTestEnv, resetTestEnv, holdIdToken } from "../test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -24,9 +24,9 @@ describe("happy path - getRawIdToken returns stored token", () => {
     resetTestEnv();
   });
 
-  it("returns auth_id_token from storage", () => {
+  it("returns the ID token held in memory", async () => {
     const client = new AuthServerOAuth2Client(createConfig());
-    sessionStorage.setItem("auth_id_token", "RAW_TOKEN");
+    await holdIdToken(client, "RAW_TOKEN");
 
     const result = client.getRawIdToken();
 

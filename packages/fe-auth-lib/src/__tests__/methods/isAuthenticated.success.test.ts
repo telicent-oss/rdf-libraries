@@ -50,7 +50,7 @@ describe("happy path - isAuthenticated succeeds", () => {
 
     expect({
       result,
-      authIdToken: sessionStorage.getItem("auth_id_token"),
+      authIdToken: client.getRawIdToken(),
       fetchUrl: fetchMock.mock.calls[0][0],
     }).toMatchInlineSnapshot(`
       {
