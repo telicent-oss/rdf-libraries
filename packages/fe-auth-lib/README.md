@@ -75,6 +75,25 @@ The library detects whether the application and auth server share a domain (e.g.
 
 **Cross-Domain**: Applications on different domains use Authorization headers with session tokens. The library stores tokens and includes them in cross-domain requests.
 
+### Cross-Domain Token Storage (Interim)
+
+From 3.0.0 the cross-domain access token is held in memory, in a private field of the client. It is no longer kept in `sessionStorage` under `auth_session_id`.
+
+To survive a page reload, the token is handed off through `sessionStorage`:
+
+- On `pagehide`, the client writes the token to `auth_access_token_handoff`.
+- The next page's client constructor reads that key and deletes it straight away.
+- If the page is restored from the back/forward cache, the copy is deleted on `pageshow`.
+- `logout()` and `clearLocalStorage()` clear the in-memory token and any handoff copy.
+
+This is an interim mitigation, not a full fix for XSS. It stops scripts finding the token in storage during normal use. Script running on the page can still capture the token, for example by wrapping `fetch` or calling `beforeRequest()`. A script that runs before the library during a reload can also read the handoff key. The planned BFF (backend-for-frontend) removes the token from the browser entirely, and this handoff will be deleted when it lands.
+
+Other effects:
+
+- Create one client per page. The first client constructed takes over the handed-off token.
+- Users logged in on an earlier version must log in again once, because `auth_session_id` is cleared on startup.
+- Closing the tab, or the browser being killed on mobile, ends the session.
+
 ## Install
 
 ```bash
@@ -208,4 +227,4 @@ interface AuthServerOAuth2ClientConfig {
 - **Same-domain** - Client and auth server share parent domain (e.g., `*.telicent.localhost`)
 - **Cross-domain** - Client and auth server on different domains
 - **ID Token** - JWT containing user identity claims, cached locally
-- **Session Token** - Opaque token for cross-domain authentication via Authorization header
+- **Session Token** - Access token for cross-domain authentication via Authorization header. Read from `access_token`, falling back to `sessionToken`, in the `/oauth2/token` response

@@ -1,7 +1,12 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../AuthServerOAuth2Client";
-import { installTestEnv, resetTestEnv, setCookies } from "./test-utils";
+import {
+  installTestEnv,
+  resetTestEnv,
+  setCookies,
+  signIn,
+} from "./test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -45,7 +50,7 @@ describe("happy path - request helpers add auth headers", () => {
     const client = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
-    sessionStorage.setItem("auth_session_id", "SESSION_123");
+    await signIn(client, "SESSION_123");
     const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
     globalThis.fetch = fetchMock;
 
@@ -109,12 +114,12 @@ describe("happy path - request helpers add auth headers", () => {
     `);
   });
 
-  it("prepares request headers for cross-domain and same-domain", () => {
+  it("prepares request headers for cross-domain and same-domain", async () => {
     const crossDomainClient = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
+    await signIn(crossDomainClient, "SESSION_ABC");
     const sameDomainClient = new AuthServerOAuth2Client(createConfig());
-    sessionStorage.setItem("auth_session_id", "SESSION_ABC");
     setCookies("XSRF-TOKEN=csrf-456");
 
     const crossHeaders = crossDomainClient.beforeRequest().headers;
@@ -134,6 +139,61 @@ describe("happy path - request helpers add auth headers", () => {
         "sameHeaders": {
           "Accept": "application/json",
           "X-XSRF-TOKEN": "csrf-456",
+        },
+      }
+    `);
+  });
+
+  it("omits Authorization header from beforeRequest when cross-domain has no session", () => {
+    const client = new AuthServerOAuth2Client(
+      createConfig({ authServerUrl: "https://auth.telicent.io" })
+    );
+
+    const headers = client.beforeRequest().headers;
+
+    expect(headers).toMatchInlineSnapshot(`
+      {
+        "Accept": "application/json",
+      }
+    `);
+  });
+
+  it("omits Authorization header when cross-domain has no session", async () => {
+    const client = new AuthServerOAuth2Client(
+      createConfig({ authServerUrl: "https://auth.telicent.io" })
+    );
+    const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
+    globalThis.fetch = fetchMock;
+
+    await client.makeAuthenticatedRequest("https://api.telicent.io/data");
+
+    expect({
+      headers: fetchMock.mock.calls[0][1]?.headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "Accept": "application/json",
+        },
+      }
+    `);
+  });
+
+  it("omits Authorization header for same-domain requests even when login returns a token", async () => {
+    const client = new AuthServerOAuth2Client(createConfig());
+    await signIn(client, "SESSION_123");
+    const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
+    globalThis.fetch = fetchMock;
+
+    await client.makeAuthenticatedRequest(
+      "http://auth.telicent.localhost/data"
+    );
+
+    expect({
+      headers: fetchMock.mock.calls[0][1]?.headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "headers": {
+          "Accept": "application/json",
         },
       }
     `);

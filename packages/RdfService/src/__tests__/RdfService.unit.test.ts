@@ -3,9 +3,16 @@ import { RdfService, RDFSResource, noColonInPrefixException } from "../index";
 const MOCK_URL = "http://localhost:3030/";
 
 const makeService = (writeEnabled = true) => {
-  const svc = new RdfService(MOCK_URL, "ds", undefined, undefined, writeEnabled, {
-    NO_WARNINGS: true,
-  });
+  const svc = new RdfService(
+    MOCK_URL,
+    "ds",
+    undefined,
+    undefined,
+    writeEnabled,
+    {
+      NO_WARNINGS: true,
+    }
+  );
   return svc;
 };
 
@@ -17,7 +24,9 @@ describe("RdfService prefix handling", () => {
 
   it("addPrefix throws when the prefix does not end with a colon", () => {
     expect(() => svc.addPrefix("bad", "http://x/")).toBe;
-    expect(() => svc.addPrefix("bad", "http://x/")).toThrow(noColonInPrefixException);
+    expect(() => svc.addPrefix("bad", "http://x/")).toThrow(
+      noColonInPrefixException
+    );
   });
 
   it("addPrefix registers a new prefix so getPrefix returns it by exact URI match", () => {
@@ -26,15 +35,21 @@ describe("RdfService prefix handling", () => {
   });
 
   it("getPrefix returns the input when the URI is not registered", () => {
-    expect(svc.getPrefix("http://not-registered/")).toBe("http://not-registered/");
+    expect(svc.getPrefix("http://not-registered/")).toBe(
+      "http://not-registered/"
+    );
   });
 
   it("shorten replaces the matching prefix", () => {
-    expect(svc.shorten("http://www.w3.org/2000/01/rdf-schema#Class")).toBe("rdfs:Class");
+    expect(svc.shorten("http://www.w3.org/2000/01/rdf-schema#Class")).toBe(
+      "rdfs:Class"
+    );
   });
 
   it("shorten returns the URI as-is when no prefix matches", () => {
-    expect(svc.shorten("http://unknown.test/thing")).toBe("http://unknown.test/thing");
+    expect(svc.shorten("http://unknown.test/thing")).toBe(
+      "http://unknown.test/thing"
+    );
   });
 
   it("defaultNamespace setter/getter proxies through the ':' prefix", () => {
@@ -54,7 +69,9 @@ describe("RdfService prefix handling", () => {
 
   it("sparqlPrefixes concatenates every registered prefix", () => {
     const all = svc.sparqlPrefixes;
-    expect(all).toContain("PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>");
+    expect(all).toContain(
+      "PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>"
+    );
     expect(all).toContain("PREFIX xsd: <http://www.w3.org/2001/XMLSchema#>");
   });
 });
@@ -101,7 +118,9 @@ describe("RdfService lifecycle helpers", () => {
     expect(svc.lookupClass("http://custom", RDFSResource)).toBe(
       Custom as unknown as typeof RDFSResource
     );
-    expect(svc.lookupClass("http://not-registered", RDFSResource)).toBe(RDFSResource);
+    expect(svc.lookupClass("http://not-registered", RDFSResource)).toBe(
+      RDFSResource
+    );
   });
 
   it("getAllElements warns about deprecation", () => {
@@ -137,7 +156,9 @@ describe("RdfService lifecycle helpers", () => {
 describe("RdfService write operations", () => {
   it("runUpdate short-circuits with a warning when writeEnabled=false", async () => {
     const svc = makeService(false);
-    const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => undefined);
+    const warnSpy = jest
+      .spyOn(console, "warn")
+      .mockImplementation(() => undefined);
     const out = await svc.runUpdate(["INSERT DATA { <a> <b> <c> }"]);
     expect(out).toContain("read only");
     expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("read only"));
@@ -149,7 +170,9 @@ describe("RdfService write operations", () => {
 
     await svc.insertTriple("http://s", "http://p", "http://o");
     const updates = runUpdate.mock.calls[0][0];
-    expect(updates[updates.length - 1]).toBe("INSERT DATA {<http://s> <http://p> <http://o> . }");
+    expect(updates[updates.length - 1]).toBe(
+      "INSERT DATA {<http://s> <http://p> <http://o> . }"
+    );
   });
 
   it("insertTriple builds a LITERAL-object INSERT DATA update with xsd datatype", async () => {
@@ -202,7 +225,9 @@ describe("RdfService write operations", () => {
 
     await svc.deleteTriple("http://s", "http://p", "http://o", "URI");
     const updates = runUpdate.mock.calls[0][0];
-    expect(updates[0]).toBe("DELETE DATA {<http://s> <http://p> <http://o> . }");
+    expect(updates[0]).toBe(
+      "DELETE DATA {<http://s> <http://p> <http://o> . }"
+    );
   });
 
   it("deleteNode issues an inbound-reference DELETE by default", async () => {
@@ -342,5 +367,68 @@ describe("RdfService.find / rankedWrap", () => {
     };
     const out = await svc.rankedWrap(response as never, "foo");
     expect(out.map((r) => r.score)).toEqual([3, 1]);
+  });
+});
+
+describe("RdfService request headers", () => {
+  const okResponse = (body: unknown) =>
+    ({
+      ok: true,
+      json: jest.fn().mockResolvedValue(body),
+      text: jest.fn().mockResolvedValue("ok"),
+    } as unknown as Response);
+
+  afterEach(() => {
+    RdfService.setRequestHeaders(() => ({}));
+    jest.restoreAllMocks();
+  });
+
+  it("sends only its own headers when the app sets none", async () => {
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(okResponse({ results: { bindings: [] } }));
+    globalThis.fetch = fetchMock;
+
+    await makeService().runQuery("SELECT * WHERE {}");
+
+    expect(fetchMock.mock.calls[0][1].headers).toMatchInlineSnapshot(`
+      {
+        "Accept": "application/sparql-results+json",
+        "Content-Type": "application/sparql-query",
+      }
+    `);
+  });
+
+  it("adds the app's headers to queries and updates without overriding its own", async () => {
+    RdfService.setRequestHeaders(() => ({
+      Authorization: "Bearer TOKEN_123",
+      Accept: "application/json",
+    }));
+    const fetchMock = jest
+      .fn()
+      .mockResolvedValue(okResponse({ results: { bindings: [] } }));
+    globalThis.fetch = fetchMock;
+    const svc = makeService();
+
+    await svc.runQuery("SELECT * WHERE {}");
+    await svc.runUpdate(["INSERT DATA {}"]);
+
+    expect({
+      query: fetchMock.mock.calls[0][1].headers,
+      update: fetchMock.mock.calls[1][1].headers,
+    }).toMatchInlineSnapshot(`
+      {
+        "query": {
+          "Accept": "application/sparql-results+json",
+          "Authorization": "Bearer TOKEN_123",
+          "Content-Type": "application/sparql-query",
+        },
+        "update": {
+          "Accept": "*/*",
+          "Authorization": "Bearer TOKEN_123",
+          "Content-Type": "application/sparql-update",
+        },
+      }
+    `);
   });
 });

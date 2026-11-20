@@ -115,7 +115,7 @@ describe("happy path - handleCallback stores session and id token", () => {
       sessionData,
       storage: {
         authSessionId: sessionStorage.getItem("auth_session_id"),
-        authIdToken: sessionStorage.getItem("auth_id_token"),
+        authIdToken: client.getRawIdToken(),
         oauthState: sessionStorage.getItem("oauth_state"),
         oauthCodeVerifier: sessionStorage.getItem("oauth_code_verifier"),
         oauthNonce: sessionStorage.getItem("oauth_nonce"),
@@ -129,12 +129,11 @@ describe("happy path - handleCallback stores session and id token", () => {
         ],
         "sessionData": {
           "isCrossDomain": true,
-          "sessionToken": "SESSION_123",
           "user": "user-1",
         },
         "storage": {
           "authIdToken": "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1c2VyLTEiLCJhdWQiOiJjbGllbnQtMSIsImV4cCI6MTcwMDAwMDMwMCwiaWF0IjoxNzAwMDAwMDAwLCJub25jZSI6IkFCQ19ub25jZV9BQkMiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJwcmVmZXJyZWRfbmFtZSI6IlVzZXIgT25lIiwiaXNzIjoiaHR0cHM6Ly9hdXRoLnRlbGljZW50LmlvIiwianRpIjoiaWQtMSJ9.",
-          "authSessionId": "SESSION_123",
+          "authSessionId": null,
           "oauthCodeVerifier": null,
           "oauthNonce": null,
           "oauthState": null,
@@ -191,7 +190,7 @@ describe("happy path - handleCallback stores session and id token", () => {
       sessionData,
       storage: {
         authSessionId: sessionStorage.getItem("auth_session_id"),
-        authIdToken: sessionStorage.getItem("auth_id_token"),
+        authIdToken: client.getRawIdToken(),
         oauthState: sessionStorage.getItem("oauth_state"),
         oauthCodeVerifier: sessionStorage.getItem("oauth_code_verifier"),
         oauthNonce: sessionStorage.getItem("oauth_nonce"),
@@ -274,13 +273,12 @@ describe("happy path - handleCallback stores session and id token", () => {
       sessionData,
       storage: {
         authSessionId: sessionStorage.getItem("auth_session_id"),
-        authIdToken: sessionStorage.getItem("auth_id_token"),
+        authIdToken: client.getRawIdToken(),
       },
     }).toMatchInlineSnapshot(`
       {
         "sessionData": {
           "isCrossDomain": true,
-          "sessionToken": "SESSION_456",
           "user": "user-2",
         },
         "storage": {

@@ -1,4 +1,4 @@
-import { installTestEnv, resetTestEnv } from "./test-utils";
+import { installTestEnv, resetTestEnv, holdIdToken } from "./test-utils";
 
 describe("happy path - schema loading succeeds", () => {
   beforeEach(() => {
@@ -39,7 +39,7 @@ describe("happy path - schema loading succeeds", () => {
     `);
   });
 
-  it("validates user info via schema when available", () => {
+  it("validates user info via schema when available", async () => {
     let AuthServerOAuth2Client:
       | typeof import("../AuthServerOAuth2Client").default
       | undefined;
@@ -64,7 +64,7 @@ describe("happy path - schema loading succeeds", () => {
     const token =
       "eyJhbGciOiJub25lIiwidHlwIjoiSldUIn0.eyJzdWIiOiJ1c2VyLTEiLCJlbWFpbCI6InVzZXJAZXhhbXBsZS5jb20iLCJwcmVmZXJyZWRfbmFtZSI6IlVzZXIgT25lIiwiaXNzIjoiaHR0cDovL2F1dGgudGVsaWNlbnQubG9jYWxob3N0IiwiYXVkIjoiY2xpZW50LTEiLCJleHAiOjE3MDAwMDAzMDAsImlhdCI6MTcwMDAwMDAwMCwianRpIjoiaWQtMSJ9.";
 
-    sessionStorage.setItem("auth_id_token", token);
+    await holdIdToken(client, token);
     const info = client.getUserInfo();
 
     expect({ info }).toMatchInlineSnapshot(`

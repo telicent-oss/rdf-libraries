@@ -1,7 +1,7 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../../AuthServerOAuth2Client";
-import { buildJwt, installTestEnv, resetTestEnv } from "../test-utils";
+import { buildJwt, installTestEnv, resetTestEnv, holdIdToken } from "../test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -24,7 +24,7 @@ describe("happy path - getUserInfo returns mapped user info", () => {
     resetTestEnv();
   });
 
-  it("returns user info for valid token", () => {
+  it("returns user info for valid token", async () => {
     const now = 1_700_000_000_000;
     jest.spyOn(Date, "now").mockReturnValue(now);
 
@@ -40,7 +40,7 @@ describe("happy path - getUserInfo returns mapped user info", () => {
       jti: "id-1",
       isActive: true,
     });
-    sessionStorage.setItem("auth_id_token", token);
+    await holdIdToken(client, token);
 
     const info = client.getUserInfo();
 

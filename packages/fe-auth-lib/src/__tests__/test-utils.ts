@@ -85,6 +85,24 @@ export const restoreConsoleMocks = (): void => {
   consoleMocks = undefined;
 };
 
+let windowListenerSpy: jest.SpyInstance | undefined;
+
+// Each client adds window listeners (pagehide, pageshow) that would otherwise
+// leak into later tests and fire on their events.
+export const trackWindowListeners = (): void => {
+  if (windowListenerSpy) return;
+  windowListenerSpy = jest.spyOn(window, "addEventListener");
+};
+
+export const removeWindowListeners = (): void => {
+  if (!windowListenerSpy) return;
+  for (const [type, listener, options] of windowListenerSpy.mock.calls) {
+    window.removeEventListener(type, listener, options);
+  }
+  windowListenerSpy.mockRestore();
+  windowListenerSpy = undefined;
+};
+
 export const installCryptoMock = (options?: {
   fillByte?: number;
   digestBytes?: number[];
@@ -141,10 +159,22 @@ export const installTestEnv = (): { mockDigest: jest.Mock } => {
   installTextEncoder();
   installBase64();
   installConsoleMocks();
+  trackWindowListeners();
   Object.defineProperty(window, "top", { value: window, writable: true });
   resetSessionStorage();
   resetCookies();
   return installCryptoMock();
+};
+
+// jsdom's real Location, captured before any test replaces window.location
+const originalLocation =
+  typeof window === "undefined"
+    ? undefined
+    : Object.getOwnPropertyDescriptor(window, "location");
+
+export const resetWindowLocation = (): void => {
+  if (!originalLocation) return;
+  Object.defineProperty(window, "location", originalLocation);
 };
 
 export const setWindowLocation = (href: string): void => {
@@ -163,6 +193,8 @@ export const resetTestEnv = (): void => {
   resetSessionStorage();
   resetCookies();
   restoreConsoleMocks();
+  removeWindowListeners();
+  resetWindowLocation();
 };
 
 export const mockPkceValues = (
@@ -200,4 +232,37 @@ export const mockPkceValues = (
   jest.spyOn(client, "generateNonce").mockReturnValue(values.nonce);
 
   return values;
+};
+
+// The access token lives only in memory, so the one way to give a client a token
+// is to run the login callback. Leaves globalThis.fetch mocked; callers replace it.
+export const signIn = async (
+  client: { handleCallback: (params: string) => Promise<unknown> },
+  accessToken: string
+): Promise<unknown> => {
+  sessionStorage.setItem("oauth_state", "SIGN_IN_state");
+  sessionStorage.setItem("oauth_code_verifier", "SIGN_IN_codeVerifier");
+  sessionStorage.setItem("oauth_redirect_uri", "http://app.telicent.localhost/callback");
+  const response = (json: unknown) =>
+    ({ ok: true, status: 200, json: jest.fn().mockResolvedValue(json) }) as unknown as Response;
+  globalThis.fetch = jest
+    .fn()
+    .mockResolvedValueOnce(response({ isCrossDomain: true, access_token: accessToken }))
+    .mockResolvedValueOnce(response({}));
+  return client.handleCallback("code=SIGN_IN_code&state=SIGN_IN_state");
+};
+
+// The ID token lives only in memory. isAuthenticated() takes it from the
+// /session/check response without validation, so it can hold any test value.
+// Leaves globalThis.fetch mocked; callers replace it.
+export const holdIdToken = async (
+  client: { isAuthenticated: () => Promise<boolean> },
+  idToken: string
+): Promise<void> => {
+  globalThis.fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    status: 200,
+    json: jest.fn().mockResolvedValue({ id_token: idToken }),
+  } as unknown as Response);
+  await client.isAuthenticated();
 };

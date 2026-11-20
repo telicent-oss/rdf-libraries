@@ -28,6 +28,7 @@ describe("happy path - popup flow and callbacks", () => {
 
   afterEach(() => {
     resetTestEnv();
+    jest.restoreAllMocks(); // per-test dispatch/remove spies would otherwise count earlier tests' calls
     jest.useRealTimers();
   });
 
@@ -103,17 +104,6 @@ describe("happy path - popup flow and callbacks", () => {
           {
             "detail": {
               "clientId": "client-1",
-              "type": "oauth-success",
-            },
-            "type": "oauth-success",
-          },
-          {
-            "detail": undefined,
-            "type": "message",
-          },
-          {
-            "detail": {
-              "clientId": "client-1",
               "message": "fail",
               "type": "oauth-error",
             },
@@ -143,7 +133,7 @@ describe("happy path - popup flow and callbacks", () => {
     }).toMatchInlineSnapshot(`
       {
         "closeCalls": 0,
-        "dispatchCalls": 5,
+        "dispatchCalls": 1,
       }
     `);
   });
@@ -178,41 +168,6 @@ describe("happy path - popup flow and callbacks", () => {
           {
             "detail": undefined,
             "type": "message",
-          },
-          {
-            "detail": {
-              "clientId": "client-1",
-              "type": "oauth-success",
-            },
-            "type": "oauth-success",
-          },
-          {
-            "detail": undefined,
-            "type": "message",
-          },
-          {
-            "detail": {
-              "clientId": "client-1",
-              "message": "fail",
-              "type": "oauth-error",
-            },
-            "type": "oauth-error",
-          },
-          {
-            "detail": undefined,
-            "type": "message",
-          },
-          {
-            "detail": undefined,
-            "type": "message",
-          },
-          {
-            "detail": {
-              "callbackUrl": "http://app.telicent.localhost/callback?code=1",
-              "clientId": "client-1",
-              "type": "oauth-callback",
-            },
-            "type": "oauth-callback",
           },
           {
             "detail": {
@@ -270,7 +225,7 @@ describe("happy path - popup flow and callbacks", () => {
       removeCalls: removeSpy.mock.calls.length,
     }).toMatchInlineSnapshot(`
       {
-        "removeCalls": 5,
+        "removeCalls": 1,
       }
     `);
   });

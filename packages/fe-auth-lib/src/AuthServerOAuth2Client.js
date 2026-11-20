@@ -21,7 +21,19 @@ class AuthServerOAuth2Client {
   // Event constants for popup communication
   static OAUTH_SUCCESS = "oauth-success";
   static OAUTH_ERROR = "oauth-error";
+
+  // Cross-domain access token. Memory only, never written to storage, so it is
+  // lost on reload and the user must log in again.
+  #accessToken = null;
+  // ID token. Memory only for the same reason, so user info is empty until the
+  // next login round trip after a reload.
+  #idToken = null;
+
   constructor(config) {
+    // Older versions kept the tokens here for the whole session
+    sessionStorage.removeItem("auth_session_id");
+    sessionStorage.removeItem("auth_id_token");
+
     if (AuthServerOAuth2ClientConfigSchema && config) {
       try {
         AuthServerOAuth2ClientConfigSchema.parse(config);
@@ -330,24 +342,19 @@ class AuthServerOAuth2Client {
     console.log(
       "🎉 Session created securely via domain cookies (access token never exposed)"
     );
-    console.log("📊 Session data:", sessionData);
 
-    // For cross-domain clients, store session ID for Authorization header use
+    // For cross-domain clients, hold the access token in memory for Authorization header use
     // since cookies won't work across different domains
+    const accessToken = sessionData.access_token ?? sessionData.sessionToken;
     console.log("🔍 Cross-domain check:", {
       isCrossDomain: this.isCrossDomain,
       sessionIsCrossDomain: sessionData.isCrossDomain,
-      hasSessionToken: !!sessionData.sessionToken,
-      sessionToken: sessionData.sessionToken,
+      hasAccessToken: !!accessToken,
     });
-    if (
-      this.isCrossDomain &&
-      sessionData.isCrossDomain &&
-      sessionData.sessionToken
-    ) {
-      sessionStorage.setItem("auth_session_id", sessionData.sessionToken);
+    if (this.isCrossDomain && sessionData.isCrossDomain && accessToken) {
+      this.#accessToken = accessToken;
       console.log(
-        "🔑 Cross-domain client: Session ID stored for Authorization header use"
+        "🔑 Cross-domain client: Access token held in memory for Authorization header use"
       );
     } else {
       console.log(
@@ -385,8 +392,8 @@ class AuthServerOAuth2Client {
               "ID token validation failed, but continuing with callback"
             );
           } else {
-            sessionStorage.setItem("auth_id_token", idTokenData.id_token);
-            console.log("ID token validated and stored in sessionStorage");
+            this.#idToken = idTokenData.id_token;
+            console.log("ID token validated and held in memory");
           }
         }
       }
@@ -403,25 +410,19 @@ class AuthServerOAuth2Client {
     sessionStorage.removeItem("oauth_code_verifier");
     // Note: oauth_nonce is removed in validateIdToken after successful validation
 
-    return sessionData;
+    // Keep the access token out of the caller's hands; it stays in memory here
+    const { access_token, sessionToken, ...publicSessionData } = sessionData;
+    return publicSessionData;
   }
 
   // Check if user is authenticated by checking session via auth-server
   async isAuthenticated() {
     try {
+      // Same-domain clients rely on cookies, which are included automatically
       const headers = {
         Accept: "application/json",
+        ...this.#authHeaders(),
       };
-
-      // For cross-domain clients, include session ID in Authorization header
-      // For same-domain clients, cookies are included automatically
-      const sessionId = sessionStorage.getItem("auth_session_id");
-      if (this.isCrossDomain && sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-        console.log(
-          "🔍 Using session ID in Authorization header for authentication check"
-        );
-      }
 
       const response = await fetch(
         `${this.config.authServerUrl}/session/check`,
@@ -434,8 +435,8 @@ class AuthServerOAuth2Client {
 
       if (response.ok) {
         const result = await response.json();
-        // set auth_session_id if user is already signed in
-        sessionStorage.setItem("auth_id_token", result.id_token);
+        // Refresh the ID token from the active session
+        this.#idToken = result.id_token ?? null;
         return true;
       }
 
@@ -577,7 +578,7 @@ class AuthServerOAuth2Client {
   // Check if ID token is expired
   isIdTokenExpired() {
     try {
-      const idToken = sessionStorage.getItem("auth_id_token");
+      const idToken = this.#idToken;
       if (!idToken) return true;
 
       const payload = this.decodeJWT(idToken);
@@ -595,9 +596,9 @@ class AuthServerOAuth2Client {
   // Get user info from ID token (offline method)
   getUserInfo() {
     try {
-      const idToken = sessionStorage.getItem("auth_id_token");
+      const idToken = this.#idToken;
       if (!idToken) {
-        console.log("No ID token found in storage");
+        console.log("No ID token held");
         return null;
       }
 
@@ -670,9 +671,9 @@ class AuthServerOAuth2Client {
     return this.getUserInfo();
   }
 
-  // Get raw ID token from storage
+  // Get raw ID token
   getRawIdToken() {
-    return sessionStorage.getItem("auth_id_token");
+    return this.#idToken;
   }
 
   // Get CSRF token from cookie (same-domain only)
@@ -696,29 +697,18 @@ class AuthServerOAuth2Client {
     const headers = {
       Accept: "application/json",
       ...options.headers,
+      ...this.#authHeaders(),
     };
 
-    // Choose authentication method based on domain context
-    if (this.isCrossDomain) {
-      // Cross-domain: Use session ID in Authorization header
-      const sessionId = sessionStorage.getItem("auth_session_id");
-      if (sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-        console.log(
-          "Using session ID in Authorization header for cross-domain request to:",
-          url
-        );
-      }
-    } else {
-      // Same-domain: Add CSRF token for state-changing requests
-      if (
-        options.method &&
-        ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
-      ) {
-        const csrfToken = this.getCsrfToken();
-        if (csrfToken) {
-          headers["X-XSRF-TOKEN"] = csrfToken;
-        }
+    // Same-domain: Add CSRF token for state-changing requests
+    if (
+      !this.isCrossDomain &&
+      options.method &&
+      ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
+    ) {
+      const csrfToken = this.getCsrfToken();
+      if (csrfToken) {
+        headers["X-XSRF-TOKEN"] = csrfToken;
       }
     }
 
@@ -760,30 +750,31 @@ class AuthServerOAuth2Client {
     return response;
   }
 
+  #authHeaders() {
+    if (!this.isCrossDomain || !this.#accessToken) return {};
+
+    return {
+      Authorization: `Bearer ${this.#accessToken}`,
+    };
+  }
+
   // Prepare request options with authentication
   beforeRequest(options = {}) {
     const headers = {
       Accept: "application/json", // Exact match with original
       ...options.headers,
+      ...this.#authHeaders(),
     };
 
-    // Choose authentication method based on domain context
-    if (this.isCrossDomain) {
-      // Cross-domain: Use session ID in Authorization header
-      const sessionId = sessionStorage.getItem("auth_session_id");
-      if (sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-      }
-    } else {
-      // Same-domain: Add CSRF token for state-changing requests
-      if (
-        options.method &&
-        ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
-      ) {
-        const csrfToken = this.getCsrfToken();
-        if (csrfToken) {
-          headers["X-XSRF-TOKEN"] = csrfToken;
-        }
+    // Same-domain: Add CSRF token for state-changing requests
+    if (
+      !this.isCrossDomain &&
+      options.method &&
+      ["POST", "PUT", "DELETE", "PATCH"].includes(options.method.toUpperCase())
+    ) {
+      const csrfToken = this.getCsrfToken();
+      if (csrfToken) {
+        headers["X-XSRF-TOKEN"] = csrfToken;
       }
     }
 
@@ -846,14 +837,8 @@ class AuthServerOAuth2Client {
     try {
       const headers = {
         Accept: "application/json",
+        ...this.#authHeaders(),
       };
-
-      // For cross-domain clients, include session ID in Authorization header
-      const sessionId = sessionStorage.getItem("auth_session_id");
-      if (this.isCrossDomain && sessionId) {
-        headers["Authorization"] = `Bearer ${sessionId}`;
-        console.log("🚪 Using session ID in Authorization header for logout");
-      }
 
       const response = await fetch(
         `${this.config.authServerUrl}/session/logout`,
@@ -961,8 +946,8 @@ class AuthServerOAuth2Client {
 
   // Helper method to clear all auth-related storage
   clearLocalStorage() {
-    sessionStorage.removeItem("auth_id_token");
-    sessionStorage.removeItem("auth_session_id"); // Clear cross-domain session ID
+    this.#idToken = null; // Clear ID token
+    this.#accessToken = null; // Clear cross-domain access token
     sessionStorage.removeItem("oauth_state"); // cleanup in case of incomplete flows
     sessionStorage.removeItem("oauth_code_verifier"); // cleanup in case of incomplete flows
     sessionStorage.removeItem("oauth_nonce"); // cleanup in case of incomplete flows
