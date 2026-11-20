@@ -1,7 +1,12 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../AuthServerOAuth2Client";
-import { installTestEnv, resetTestEnv, setWindowLocation } from "./test-utils";
+import {
+  installTestEnv,
+  resetTestEnv,
+  setWindowLocation,
+  signIn,
+} from "./test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -59,10 +64,10 @@ describe("happy path - logout flows", () => {
   });
 
   it("includes Authorization header for cross-domain logout", async () => {
-    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
     const client = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
+    await signIn(client, "SESSION_123");
     const fetchMock = jest
       .fn()
       .mockResolvedValue(createFetchResponse({ jsonData: {} }));
@@ -82,10 +87,10 @@ describe("happy path - logout flows", () => {
     `);
   });
 
-  it("omits Authorization header for same-domain logout even when a session id is stored", async () => {
+  it("omits Authorization header for same-domain logout even when login returns a token", async () => {
     setWindowLocation("http://app.telicent.localhost");
-    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
     const client = new AuthServerOAuth2Client(createConfig());
+    await signIn(client, "SESSION_123");
     const fetchMock = jest
       .fn()
       .mockResolvedValue(createFetchResponse({ jsonData: {} }));

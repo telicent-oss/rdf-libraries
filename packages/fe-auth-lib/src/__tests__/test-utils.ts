@@ -233,3 +233,21 @@ export const mockPkceValues = (
 
   return values;
 };
+
+// The access token lives only in memory, so the one way to give a client a token
+// is to run the login callback. Leaves globalThis.fetch mocked; callers replace it.
+export const signIn = async (
+  client: { handleCallback: (params: string) => Promise<unknown> },
+  accessToken: string
+): Promise<void> => {
+  sessionStorage.setItem("oauth_state", "SIGN_IN_state");
+  sessionStorage.setItem("oauth_code_verifier", "SIGN_IN_codeVerifier");
+  sessionStorage.setItem("oauth_redirect_uri", "http://app.telicent.localhost/callback");
+  const response = (json: unknown) =>
+    ({ ok: true, status: 200, json: jest.fn().mockResolvedValue(json) }) as unknown as Response;
+  globalThis.fetch = jest
+    .fn()
+    .mockResolvedValueOnce(response({ isCrossDomain: true, access_token: accessToken }))
+    .mockResolvedValueOnce(response({}));
+  await client.handleCallback("code=SIGN_IN_code&state=SIGN_IN_state");
+};

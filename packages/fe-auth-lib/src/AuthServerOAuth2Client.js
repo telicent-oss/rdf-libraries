@@ -15,10 +15,6 @@ if (typeof require !== "undefined") {
   }
 }
 
-// Interim reload handoff (see README). Lives only between pagehide and the
-// next page's constructor. Removed when the BFF lands.
-const ACCESS_TOKEN_HANDOFF_KEY = "auth_access_token_handoff";
-
 // Unified OAuth2 Client Implementation using Auth Server Session Management
 // Works for both same-domain and cross-domain scenarios with automatic detection
 class AuthServerOAuth2Client {
@@ -26,21 +22,13 @@ class AuthServerOAuth2Client {
   static OAUTH_SUCCESS = "oauth-success";
   static OAUTH_ERROR = "oauth-error";
 
-  // Cross-domain access token. Memory only, so page script can't read it from storage.
+  // Cross-domain access token. Memory only, never written to storage, so it is
+  // lost on reload and the user must log in again.
   #accessToken = null;
 
   constructor(config) {
-    // Take over a token handed off by the previous page, and delete it at once
-    this.#accessToken = sessionStorage.getItem(ACCESS_TOKEN_HANDOFF_KEY);
-    sessionStorage.removeItem(ACCESS_TOKEN_HANDOFF_KEY);
     // Older versions kept the token here for the whole session
     sessionStorage.removeItem("auth_session_id");
-    window.addEventListener("pagehide", () => this.#handOffAccessToken());
-    // Restored from the back/forward cache: the constructor won't run again and the
-    // token is still in memory, so drop the copy written on pagehide
-    window.addEventListener("pageshow", (event) => {
-      if (event.persisted) sessionStorage.removeItem(ACCESS_TOKEN_HANDOFF_KEY);
-    });
 
     if (AuthServerOAuth2ClientConfigSchema && config) {
       try {
@@ -764,13 +752,6 @@ class AuthServerOAuth2Client {
     };
   }
 
-  // On page unload, park the token so the next page's constructor can take it over
-  #handOffAccessToken() {
-    if (this.#accessToken) {
-      sessionStorage.setItem(ACCESS_TOKEN_HANDOFF_KEY, this.#accessToken);
-    }
-  }
-
   // Prepare request options with authentication
   beforeRequest(options = {}) {
     const headers = {
@@ -961,7 +942,6 @@ class AuthServerOAuth2Client {
   clearLocalStorage() {
     sessionStorage.removeItem("auth_id_token");
     this.#accessToken = null; // Clear cross-domain access token
-    sessionStorage.removeItem(ACCESS_TOKEN_HANDOFF_KEY); // and any handoff copy
     sessionStorage.removeItem("oauth_state"); // cleanup in case of incomplete flows
     sessionStorage.removeItem("oauth_code_verifier"); // cleanup in case of incomplete flows
     sessionStorage.removeItem("oauth_nonce"); // cleanup in case of incomplete flows

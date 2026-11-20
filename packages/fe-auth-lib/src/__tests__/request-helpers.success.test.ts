@@ -1,7 +1,12 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../AuthServerOAuth2Client";
-import { installTestEnv, resetTestEnv, setCookies } from "./test-utils";
+import {
+  installTestEnv,
+  resetTestEnv,
+  setCookies,
+  signIn,
+} from "./test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -42,10 +47,10 @@ describe("happy path - request helpers add auth headers", () => {
   });
 
   it("adds Authorization header for cross-domain requests", async () => {
-    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
     const client = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
+    await signIn(client, "SESSION_123");
     const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
     globalThis.fetch = fetchMock;
 
@@ -109,11 +114,11 @@ describe("happy path - request helpers add auth headers", () => {
     `);
   });
 
-  it("prepares request headers for cross-domain and same-domain", () => {
-    sessionStorage.setItem("auth_access_token_handoff", "SESSION_ABC");
+  it("prepares request headers for cross-domain and same-domain", async () => {
     const crossDomainClient = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
+    await signIn(crossDomainClient, "SESSION_ABC");
     const sameDomainClient = new AuthServerOAuth2Client(createConfig());
     setCookies("XSRF-TOKEN=csrf-456");
 
@@ -173,9 +178,9 @@ describe("happy path - request helpers add auth headers", () => {
     `);
   });
 
-  it("omits Authorization header for same-domain requests even when a session id is stored", async () => {
-    sessionStorage.setItem("auth_access_token_handoff", "SESSION_123");
+  it("omits Authorization header for same-domain requests even when login returns a token", async () => {
     const client = new AuthServerOAuth2Client(createConfig());
+    await signIn(client, "SESSION_123");
     const fetchMock = jest.fn().mockResolvedValue(createFetchResponse({}));
     globalThis.fetch = fetchMock;
 

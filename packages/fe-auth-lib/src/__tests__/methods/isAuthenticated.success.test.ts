@@ -1,7 +1,12 @@
 import AuthServerOAuth2Client, {
   AuthServerOAuth2ClientConfig,
 } from "../../AuthServerOAuth2Client";
-import { installTestEnv, resetTestEnv, setWindowLocation } from "../test-utils";
+import {
+  installTestEnv,
+  resetTestEnv,
+  setWindowLocation,
+  signIn,
+} from "../test-utils";
 
 const createConfig = (
   overrides: Partial<AuthServerOAuth2ClientConfig> = {}
@@ -57,10 +62,10 @@ describe("happy path - isAuthenticated succeeds", () => {
   });
 
   it("sends Authorization header for cross-domain session", async () => {
-    sessionStorage.setItem("auth_access_token_handoff", "SESSION_ABC");
     const client = new AuthServerOAuth2Client(
       createConfig({ authServerUrl: "https://auth.telicent.io" })
     );
+    await signIn(client, "SESSION_ABC");
     const fetchMock = jest.fn().mockResolvedValue(
       createFetchResponse({ jsonData: { id_token: "ID_TOKEN_2" } })
     );
@@ -82,9 +87,9 @@ describe("happy path - isAuthenticated succeeds", () => {
     `);
   });
 
-  it("omits Authorization header for same-domain even when a session id is stored", async () => {
-    sessionStorage.setItem("auth_access_token_handoff", "SESSION_ABC");
+  it("omits Authorization header for same-domain even when login returns a token", async () => {
     const client = new AuthServerOAuth2Client(createConfig());
+    await signIn(client, "SESSION_ABC");
 
     const fetchMock = jest
       .fn()
